@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { formatSlot } from "@/lib/slots"
 import { signOut } from "@/app/login/actions"
-import type { AgentRow } from "@/lib/agent"
+import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import BookingLink from "./booking-link"
 
 export const dynamic = "force-dynamic"
@@ -27,9 +27,7 @@ export default async function DashboardPage() {
 
   const { data: agentData } = await supabase
     .from("agents")
-    .select(
-      "id, business_name, full_name, slug, timezone, weekdays, day_start, day_end, slot_minutes, days_ahead"
-    )
+    .select(AGENT_SELECT)
     .eq("id", user.id)
     .maybeSingle()
   const agent = agentData as AgentRow | null

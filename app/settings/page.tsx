@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import type { AgentRow } from "@/lib/agent"
+import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import SettingsForm from "./settings-form"
 import BookingLink from "@/app/dashboard/booking-link"
 
@@ -16,9 +16,7 @@ export default async function SettingsPage() {
 
   const { data } = await supabase
     .from("agents")
-    .select(
-      "id, business_name, full_name, slug, timezone, weekdays, day_start, day_end, slot_minutes, days_ahead"
-    )
+    .select(AGENT_SELECT)
     .eq("id", user.id)
     .maybeSingle()
 
