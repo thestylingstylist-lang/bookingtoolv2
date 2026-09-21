@@ -7,7 +7,7 @@ import { TIMEZONES } from "@/lib/config"
 
 export type SettingsResult = { ok: boolean; message: string }
 
-const MAX_IMAGE_BYTES = 3 * 1024 * 1024 // 3 MB
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024 // 5 MB
 const ALLOWED_IMAGE = ["image/png", "image/jpeg", "image/webp", "image/gif"]
 
 // Upload one image to the public "branding" bucket and return its public URL.
@@ -21,7 +21,7 @@ async function uploadImage(
   if (!ALLOWED_IMAGE.includes(file.type))
     throw new Error(`Your ${kind} must be a PNG, JPG, WEBP or GIF image.`)
   if (file.size > MAX_IMAGE_BYTES)
-    throw new Error(`Your ${kind} image is too large (max 3 MB).`)
+    throw new Error(`Your ${kind} image is too large (max 5 MB).`)
 
   const ext = file.type === "image/png" ? "png"
     : file.type === "image/webp" ? "webp"

@@ -30,13 +30,13 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
           <ImageField
             kind="logo"
             label="Logo"
-            hint="Wide or square. Shown at the top of your page."
+            hint="Wide or square. Shown at the top of your page. PNG, JPEG, WEBP or GIF, up to 5 MB."
             current={agent.logo_url}
           />
           <ImageField
             kind="headshot"
             label="Headshot"
-            hint="A friendly photo of you. Shown round."
+            hint="A friendly photo of you. Shown round. PNG, JPEG, WEBP or GIF, up to 5 MB."
             current={agent.headshot_url}
             round
           />

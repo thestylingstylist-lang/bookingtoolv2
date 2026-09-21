@@ -5,12 +5,13 @@ import { signUp } from "./actions"
 
 export default function SignupForm() {
   const [state, formAction, pending] = useActionState(signUp, null)
+  const v = state?.values
 
   return (
     <form action={formAction} className="space-y-5">
-      <Field label="Business name" name="businessName" autoComplete="organization" required />
-      <Field label="Your name" name="fullName" autoComplete="name" required />
-      <Field label="Email" name="email" type="email" autoComplete="email" required />
+      <Field label="Business name" name="businessName" autoComplete="organization" required defaultValue={v?.businessName ?? ""} />
+      <Field label="Your name" name="fullName" autoComplete="name" required defaultValue={v?.fullName ?? ""} />
+      <Field label="Email" name="email" type="email" autoComplete="email" required defaultValue={v?.email ?? ""} />
       <Field
         label="Password"
         name="password"

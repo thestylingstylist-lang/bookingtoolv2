@@ -7,19 +7,28 @@ import { slugify, uniqueSlug, AGENT_DEFAULTS } from "@/lib/agent"
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+export type SignupState = {
+  error: string
+  values: { businessName: string; fullName: string; email: string }
+}
+
 export async function signUp(
-  _prev: { error: string } | null,
+  _prev: SignupState | null,
   formData: FormData
-): Promise<{ error: string }> {
+): Promise<SignupState> {
   const businessName = String(formData.get("businessName") ?? "").trim()
   const fullName = String(formData.get("fullName") ?? "").trim()
   const email = String(formData.get("email") ?? "").trim().toLowerCase()
   const password = String(formData.get("password") ?? "")
 
-  if (!businessName) return { error: "Enter your business name." }
-  if (!fullName) return { error: "Enter your name." }
-  if (!emailRe.test(email)) return { error: "Enter a valid email address." }
-  if (password.length < 8) return { error: "Use a password of at least 8 characters." }
+  // Echo back what they typed so a validation error never wipes the form.
+  const values = { businessName, fullName, email }
+  const fail = (error: string): SignupState => ({ error, values })
+
+  if (!businessName) return fail("Enter your business name.")
+  if (!fullName) return fail("Enter your name.")
+  if (!emailRe.test(email)) return fail("Enter a valid email address.")
+  if (password.length < 8) return fail("Use a password of at least 8 characters.")
 
   const admin = createAdminClient()
 
@@ -32,9 +41,9 @@ export async function signUp(
   if (createErr || !created.user) {
     const msg = createErr?.message ?? ""
     if (msg.toLowerCase().includes("already")) {
-      return { error: "An account with that email already exists. Try signing in." }
+      return fail("An account with that email already exists. Try signing in.")
     }
-    return { error: "Couldn't create your account. Please try again." }
+    return fail("Couldn't create your account. Please try again.")
   }
 
   // Give them a unique booking-link slug and their profile row.
@@ -54,7 +63,7 @@ export async function signUp(
   if (rowErr) {
     // Roll back the auth user so they can retry cleanly.
     await admin.auth.admin.deleteUser(created.user.id)
-    return { error: "Couldn't finish setting up your account. Please try again." }
+    return fail("Couldn't finish setting up your account. Please try again.")
   }
 
   // Log them straight in.
