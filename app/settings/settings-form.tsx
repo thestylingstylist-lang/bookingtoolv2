@@ -36,7 +36,7 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
           <ImageField
             kind="headshot"
             label="Headshot"
-            hint="A friendly photo of you. Shown round. PNG, JPEG, WEBP or GIF, up to 5 MB."
+            hint="A friendly photo of you. PNG, JPEG, WEBP or GIF, up to 5 MB."
             current={agent.headshot_url}
             round
           />
@@ -200,7 +200,7 @@ function ImageField({
   const inputRef = useRef<HTMLInputElement>(null)
 
   const shown = removed ? "" : preview
-  const shape = round ? "rounded-full" : "rounded-xl"
+  const shape = round ? "rounded-2xl" : "rounded-xl"
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

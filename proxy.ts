@@ -34,7 +34,13 @@ export async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
-  const guarded = path.startsWith("/dashboard") || path.startsWith("/settings")
+  const guarded =
+    path.startsWith("/dashboard") ||
+    path.startsWith("/settings") ||
+    path.startsWith("/start-here") ||
+    path.startsWith("/bookings") ||
+    path.startsWith("/clients") ||
+    path.startsWith("/documents")
   if (!user && guarded) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
@@ -46,5 +52,14 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/settings/:path*", "/login", "/signup"],
+  matcher: [
+    "/dashboard/:path*",
+    "/settings/:path*",
+    "/start-here/:path*",
+    "/bookings/:path*",
+    "/clients/:path*",
+    "/documents/:path*",
+    "/login",
+    "/signup",
+  ],
 }
