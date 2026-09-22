@@ -3,11 +3,11 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-const ITEMS = [
+const ITEMS: { href: string; label: string; soon?: boolean }[] = [
   { href: "/start-here", label: "Start here" },
   { href: "/dashboard", label: "Home" },
-  { href: "/clients", label: "Clients", soon: true },
-  { href: "/documents", label: "Documents", soon: true },
+  { href: "/clients", label: "Clients" },
+  { href: "/templates", label: "Templates" },
   { href: "/bookings", label: "Bookings" },
   { href: "/settings", label: "Settings" },
 ]
