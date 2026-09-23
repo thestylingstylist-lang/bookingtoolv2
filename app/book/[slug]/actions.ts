@@ -82,5 +82,3 @@ export async function createBooking(
 
   return { ok: true }
 }
-
-}
