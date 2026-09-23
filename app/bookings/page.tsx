@@ -70,6 +70,7 @@ export default async function BookingsPage() {
                 <th className="px-5 py-3 font-medium">Contact</th>
                 <th className="px-5 py-3 font-medium">Type</th>
                 <th className="px-5 py-3 font-medium">Looking to</th>
+                <th className="px-5 py-3 font-medium">Notes</th>
               </tr>
             </thead>
             <tbody>
@@ -84,12 +85,7 @@ export default async function BookingsPage() {
                       {formatSlot(b.slot_start, agent.timezone)}
                     </td>
                     <td className="px-5 py-4">
-                      <div>{b.first_name} {b.last_name}</div>
-                      {b.notes && (
-                        <p className="mt-1 max-w-xs whitespace-pre-line text-xs text-ink/50">
-                          {b.notes}
-                        </p>
-                      )}
+                      {b.first_name} {b.last_name}
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col">
@@ -99,6 +95,7 @@ export default async function BookingsPage() {
                     </td>
                     <td className="px-5 py-4">{b.meeting_type === "phone" ? "Phone" : "Video"}</td>
                     <td className="px-5 py-4 whitespace-nowrap">{b.looking_to || "\u2014"}</td>
+                    <td className="min-w-[14rem] max-w-sm px-5 py-4 whitespace-pre-line">{b.notes || "\u2014"}</td>
                   </tr>
                 )
               })}
