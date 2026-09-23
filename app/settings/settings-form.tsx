@@ -88,10 +88,7 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
           <p className="mt-1 text-sm text-ink/60">Your hours and how clients can book.</p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Text label="Business name" name="businessName" defaultValue={agent.business_name} required />
-          <Text label="Your name" name="fullName" defaultValue={agent.full_name} />
-        </div>
+        <Text label="Business name" name="businessName" defaultValue={agent.business_name} required />
 
         <label className="block">
           <span className="mb-1.5 block text-sm text-ink/70">Timezone</span>
