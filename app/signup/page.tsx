@@ -1,3 +1,4 @@
+import AuthFooter from "@/app/auth-footer"
 import Link from "next/link"
 import SignupForm from "./signup-form"
 
@@ -18,6 +19,7 @@ export default function SignupPage() {
           Sign in
         </Link>
       </p>
+      <AuthFooter />
     </main>
   )
 }

@@ -27,6 +27,9 @@ export default function LoginForm() {
           required
           className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
         />
+        <a href="/forgot-password" className="mt-2 inline-block text-sm font-medium text-brass hover:underline">
+          Forgot password?
+        </a>
       </label>
       {state?.error && (
         <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">

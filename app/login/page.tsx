@@ -1,3 +1,4 @@
+import AuthFooter from "@/app/auth-footer"
 import LoginForm from "./login-form"
 
 export default function LoginPage() {
@@ -8,6 +9,7 @@ export default function LoginPage() {
         <h1 className="mt-2 font-serif text-3xl">Sign in to your dashboard</h1>
       </header>
       <LoginForm />
+      <AuthFooter />
     </main>
   )
 }
