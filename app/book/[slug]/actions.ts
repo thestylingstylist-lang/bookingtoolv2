@@ -3,7 +3,12 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
 import { toAgentConfig, MEETING_TYPES, type MeetingType } from "@/lib/config"
-import { isValidOpenSlot } from "@/lib/slots"
+import { isValidOpenSlot, formatSlot } from "@/lib/slots"
+import {
+  sendEmail,
+  clientConfirmationEmail,
+  agentNotificationEmail,
+} from "@/lib/email"
 
 export type BookingResult = { ok: true } | { ok: false; error: string }
 
@@ -78,6 +83,55 @@ export async function createBooking(
       return { ok: false, error: "That time was just taken. Please pick another slot." }
     }
     return { ok: false, error: "We couldn't save your booking. Please try again." }
+  }
+
+  // Booking is saved. Send the emails, but never let an email failure turn a
+  // successful booking into an error for the client. formatSlot renders the
+  // time in the agent's own timezone so it matches what they see on the page.
+  const whenLabel = formatSlot(slotStart, agent.timezone)
+  const agentName = agent.full_name || agent.business_name || "your agent"
+  const clientName = `${firstName} ${lastName}`.trim()
+
+  try {
+    const client = clientConfirmationEmail({
+      clientFirstName: firstName,
+      agentName,
+      whenLabel,
+      meetingType,
+      agentPhone: agent.public_phone || undefined,
+      agentEmail: agent.public_email || undefined,
+    })
+    await sendEmail({
+      to: email,
+      subject: client.subject,
+      html: client.html,
+      text: client.text,
+      fromName: agentName,
+      replyTo: agent.public_email || undefined,
+    })
+
+    if (agent.public_email) {
+      const note = agentNotificationEmail({
+        agentName,
+        clientName,
+        clientEmail: email,
+        clientPhone: phone,
+        whenLabel,
+        meetingType,
+        lookingTo,
+        notes,
+      })
+      await sendEmail({
+        to: agent.public_email,
+        subject: note.subject,
+        html: note.html,
+        text: note.text,
+        fromName: "Marvberry",
+        replyTo: email,
+      })
+    }
+  } catch (err) {
+    console.error("[booking] email step failed (booking still saved):", err)
   }
 
   return { ok: true }
