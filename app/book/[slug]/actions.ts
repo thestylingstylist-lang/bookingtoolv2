@@ -110,7 +110,10 @@ export async function createBooking(
       replyTo: agent.public_email || undefined,
     })
 
-    if (agent.public_email) {
+    // Booking alerts go to the realtor's account (sign-in) email.
+    const { data: authUser } = await admin.auth.admin.getUserById(agent.id)
+    const alertEmail = authUser?.user?.email || agent.public_email
+    if (alertEmail) {
       const note = agentNotificationEmail({
         agentName,
         clientName,
@@ -122,7 +125,7 @@ export async function createBooking(
         notes,
       })
       await sendEmail({
-        to: agent.public_email,
+        to: alertEmail,
         subject: note.subject,
         html: note.html,
         text: note.text,
