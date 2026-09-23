@@ -3,8 +3,19 @@
 import { useMemo, useState, useTransition } from "react"
 import type { Slot } from "@/lib/slots"
 import { createBooking } from "./actions"
+import { consultationEvent, googleCalendarUrl, outlookCalendarUrl } from "@/lib/calendar"
 
-export default function BookingForm({ slots, slug }: { slots: Slot[]; slug: string }) {
+type AgentInfo = { name: string; minutes: number; phone?: string; email?: string }
+
+export default function BookingForm({
+  slots,
+  slug,
+  agent,
+}: {
+  slots: Slot[]
+  slug: string
+  agent: AgentInfo
+}) {
   const [selected, setSelected] = useState<string>("")
   const [activeDay, setActiveDay] = useState<string>(slots[0]?.dayLabel ?? "")
   const [meetingType, setMeetingType] = useState<"virtual" | "phone">("virtual")
@@ -39,6 +50,17 @@ export default function BookingForm({ slots, slug }: { slots: Slot[]; slug: stri
   }
 
   if (done) {
+    const event = consultationEvent({
+      agentName: agent.name,
+      startISO: selected,
+      minutes: agent.minutes,
+      meetingType,
+      agentPhone: agent.phone,
+      agentEmail: agent.email,
+    })
+    const icsHref = `/book/${slug}/ics?start=${encodeURIComponent(selected)}&type=${meetingType}`
+    const calBtn =
+      "rounded-xl border border-ink/15 bg-white px-5 py-3 text-sm text-ink transition-colors hover:border-ink/40"
     return (
       <div className="rounded-2xl border border-sage/30 bg-white/60 p-8">
         <h2 className="font-serif text-2xl">You&rsquo;re booked.</h2>
@@ -46,6 +68,18 @@ export default function BookingForm({ slots, slug }: { slots: Slot[]; slug: stri
           Your consultation is confirmed. I&rsquo;ll be in touch at the contact you
           provided if anything changes. Talk soon.
         </p>
+        <p className="mt-8 text-xs uppercase tracking-widest text-ink/50">Add to calendar</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a href={googleCalendarUrl(event)} target="_blank" rel="noopener noreferrer" className={calBtn}>
+            Google
+          </a>
+          <a href={icsHref} className={calBtn}>
+            Apple
+          </a>
+          <a href={outlookCalendarUrl(event)} target="_blank" rel="noopener noreferrer" className={calBtn}>
+            Outlook
+          </a>
+        </div>
       </div>
     )
   }
