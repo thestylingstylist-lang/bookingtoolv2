@@ -7,7 +7,7 @@ import { isValidOpenSlot } from "@/lib/slots"
 
 export type BookingResult = { ok: true } | { ok: false; error: string }
 
-const LOOKING_TO = ["Buy", "Sell", "Buy and sell", "Just exploring"] as const
+const LOOKING_TO = ["Buy", "Sell", "Buy and sell", "Returning Client"] as const
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
