@@ -14,7 +14,7 @@ type AgentInfo = {
 }
 
 const SERIF = { fontFamily: "'Cormorant Garamond', Georgia, serif" }
-const LOOKING_TO = ["Buy", "Sell", "Buy and sell", "Returing Client"]
+const LOOKING_TO = ["Buy", "Sell", "Buy and sell", "Returning Client"]
 
 const TZ_NAMES: Record<string, string> = {
   "America/New_York": "US/Canada Eastern Time",
