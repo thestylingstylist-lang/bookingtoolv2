@@ -52,7 +52,6 @@ export async function saveSettings(
   if (!user) return { ok: false, message: "Please sign in again." }
 
   const businessName = String(formData.get("businessName") ?? "").trim()
-  const fullName = String(formData.get("fullName") ?? "").trim()
   const timezone = String(formData.get("timezone") ?? "").trim()
   const dayStart = Number(formData.get("dayStart"))
   const dayEnd = Number(formData.get("dayEnd"))
@@ -95,7 +94,6 @@ export async function saveSettings(
 
   const update: Record<string, unknown> = {
     business_name: businessName,
-    full_name: fullName,
     timezone,
     weekdays,
     day_start: dayStart,
@@ -136,4 +134,35 @@ export async function removeImage(kind: "logo" | "headshot"): Promise<SettingsRe
 
   revalidatePath("/settings")
   return { ok: true, message: `Removed your ${kind}.` }
+}
+
+
+// Save the account section: the agent's own first/last name. Email is the
+// login identity and is not editable here. We store the combined name in
+// full_name so the rest of the app (dashboard, booking page) keeps working.
+export async function saveAccount(
+  _prev: SettingsResult | null,
+  formData: FormData
+): Promise<SettingsResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, message: "Please sign in again." }
+
+  const firstName = String(formData.get("firstName") ?? "").trim().slice(0, 60)
+  const lastName = String(formData.get("lastName") ?? "").trim().slice(0, 60)
+  const fullName = [firstName, lastName].filter(Boolean).join(" ")
+
+  if (!fullName) return { ok: false, message: "Please enter your name." }
+
+  const { error } = await supabase
+    .from("agents")
+    .update({ full_name: fullName })
+    .eq("id", user.id)
+  if (error) return { ok: false, message: "Couldn't save. Please try again." }
+
+  revalidatePath("/settings")
+  revalidatePath("/dashboard")
+  return { ok: true, message: "Saved." }
 }
