@@ -76,7 +76,16 @@ export default async function BookPage({
         </p>
       </header>
 
-      <BookingForm slots={slots} slug={agent.slug} />
+      <BookingForm
+        slots={slots}
+        slug={agent.slug}
+        agent={{
+          name: agent.full_name || agent.business_name,
+          minutes: agent.slot_minutes,
+          phone: agent.public_phone,
+          email: agent.public_email,
+        }}
+      />
 
       <footer className="mt-16 space-y-2 text-xs text-ink/40">
         {(agent.public_phone || agent.public_email) && (
