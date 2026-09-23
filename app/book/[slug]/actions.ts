@@ -7,6 +7,8 @@ import { isValidOpenSlot } from "@/lib/slots"
 
 export type BookingResult = { ok: true } | { ok: false; error: string }
 
+const LOOKING_TO = ["Buy", "Sell", "Buy and sell", "Just exploring"] as const
+
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function createBooking(
@@ -22,13 +24,16 @@ export async function createBooking(
   const phone = String(formData.get("phone") ?? "").trim()
   const meetingType = String(formData.get("meetingType") ?? "").trim() as MeetingType
   const slotStart = String(formData.get("slotStart") ?? "").trim()
+  const lookingToRaw = String(formData.get("lookingTo") ?? "").trim()
+  const lookingTo = (LOOKING_TO as readonly string[]).includes(lookingToRaw) ? lookingToRaw : null
+  const notes = String(formData.get("notes") ?? "").trim().slice(0, 1000) || null
 
   if (!firstName || !lastName) return { ok: false, error: "Please enter your first and last name." }
   if (!phone) return { ok: false, error: "Please enter a phone number." }
   if (!email) return { ok: false, error: "Please enter an email address." }
   if (!emailRe.test(email)) return { ok: false, error: "That email doesn't look right. Check it and try again." }
   if (!(MEETING_TYPES as readonly string[]).includes(meetingType))
-    return { ok: false, error: "Choose a virtual or phone consultation." }
+    return { ok: false, error: "Choose a phone or video call." }
   if (!slotStart) return { ok: false, error: "Pick a time slot to continue." }
 
   const admin = createAdminClient()
@@ -50,7 +55,7 @@ export async function createBooking(
     return { ok: false, error: "That time was just taken. Please pick another slot." }
   }
 
-  const { error } = await admin.from("bookings").insert({
+  const base = {
     agent_id: agent.id,
     first_name: firstName,
     last_name: lastName,
@@ -58,7 +63,15 @@ export async function createBooking(
     phone,
     meeting_type: meetingType,
     slot_start: slotStart,
-  })
+  }
+
+  // Save the extra answers if the database has the columns; if the
+  // columns haven't been added yet, still save the booking itself.
+  let { error } = await admin.from("bookings").insert({ ...base, looking_to: lookingTo, notes })
+  const code = (error as { code?: string } | null)?.code
+  if (error && (code === "PGRST204" || code === "42703")) {
+    ;({ error } = await admin.from("bookings").insert(base))
+  }
 
   if (error) {
     if ((error as { code?: string }).code === "23505") {
@@ -68,4 +81,6 @@ export async function createBooking(
   }
 
   return { ok: true }
+}
+
 }
