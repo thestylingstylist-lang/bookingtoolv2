@@ -47,8 +47,8 @@ export default function AccountForm({
           className="w-full cursor-not-allowed rounded-xl border border-ink/10 bg-ink/5 px-4 py-3 text-ink/60 outline-none"
         />
         <span className="mt-1.5 block text-xs text-ink/50">
-          This is how we&rsquo;ll reach you and the email you sign in with. Need
-          to change it? Contact support.
+          Your new-booking alerts go here. It&rsquo;s also the email you sign
+          in with. Need to change it? Contact support.
         </span>
       </label>
 
