@@ -176,3 +176,53 @@ Email: ${opts.clientEmail}${opts.lookingTo ? `\nLooking to: ${opts.lookingTo}` :
 
   return { subject: `New booking: ${opts.clientName}`, html, text }
 }
+
+export function clientReminderEmail(opts: {
+  clientFirstName: string
+  agentName: string
+  whenLabel: string
+  meetingType: string
+  agentPhone?: string
+  agentEmail?: string
+}) {
+  const how =
+    opts.meetingType === "phone"
+      ? `${opts.agentName} will call you at the number you gave.`
+      : `${opts.agentName} will send a video link before your call.`
+  const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).join(" &middot; ")
+
+  const html = wrap(`
+    <tr><td style="background:#b08477;height:6px;"></td></tr>
+    <tr><td style="padding:32px 32px 8px;">
+      <h1 style="margin:0;font-size:22px;color:#1c1a19;font-family:Georgia,serif;">See you soon${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
+      <p style="margin:12px 0 0;color:#3d3230;font-size:15px;line-height:1.5;">A quick reminder about your consultation with ${opts.agentName}:</p>
+    </td></tr>
+    <tr><td style="padding:16px 32px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f8f3ef;border-radius:10px;padding:16px;">
+        ${detailRows([
+          ["When", opts.whenLabel],
+          ["Type", opts.meetingType === "phone" ? "Phone call" : "Video call"],
+        ])}
+      </table>
+    </td></tr>
+    <tr><td style="padding:0 32px 8px;">
+      <p style="margin:0;color:#3d3230;font-size:14px;line-height:1.5;">${how}</p>
+    </td></tr>
+    ${
+      contact
+        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#8a7872;font-size:13px;">Need to change something? ${contact}</p></td></tr>`
+        : `<tr><td style="height:20px;"></td></tr>`
+    }
+  `)
+
+  const text = `See you soon${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
+
+A quick reminder about your consultation with ${opts.agentName}.
+
+When: ${opts.whenLabel}
+Type: ${opts.meetingType === "phone" ? "Phone call" : "Video call"}
+
+${how}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `\n\nNeed to change something? ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
+
+  return { subject: `Reminder: your consultation with ${opts.agentName}`, html, text }
+}
