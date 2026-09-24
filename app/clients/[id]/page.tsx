@@ -8,6 +8,7 @@ import SendDocument from "./send-document"
 import { sendMessage, resendDocument } from "./actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
+import { PHASES, phaseIndex, toPhase } from "@/lib/phases"
 
 export const dynamic = "force-dynamic"
 
@@ -22,6 +23,7 @@ type Client = {
   client_type: string | null
   budget_min: number | null
   budget_max: number | null
+  phase: string | null
 }
 
 type Message = {
@@ -62,6 +64,7 @@ const ERRORS: Record<string, string> = {
   deal: "Couldn't save the buying range. Please try again.",
   offer: "Couldn't save that offer. Add a property address and try again.",
   note: "Couldn't save that note. Please try again.",
+  phase: "Couldn't change the phase. Please try again.",
 }
 
 function initials(first: string, last: string) {
@@ -94,7 +97,7 @@ export default async function ClientJacket({
 
   const { data } = await supabase
     .from("clients")
-    .select("id, first_name, last_name, email, phone, address, created_at, client_type, budget_min, budget_max")
+    .select("id, first_name, last_name, email, phone, address, created_at, client_type, budget_min, budget_max, phase")
     .eq("id", id)
     .maybeSingle()
   const client = data as Client | null
@@ -124,7 +127,7 @@ export default async function ClientJacket({
       .order("created_at", { ascending: true }),
     supabase
       .from("steps")
-      .select("id, title, done")
+      .select("id, title, done, phase")
       .eq("client_id", id)
       .order("position", { ascending: true })
       .order("created_at", { ascending: true }),
@@ -147,7 +150,11 @@ export default async function ClientJacket({
   const messages = (msgData ?? []) as Message[]
   const docs = new Map(((docData ?? []) as Doc[]).map((d) => [d.id, d]))
   const templates = (tplData ?? []) as { id: string; title: string; body: string }[]
-  const tasks = (taskData ?? []) as Task[]
+  const phase = toPhase(client.phase)
+  const tasks = ((taskData ?? []) as (Task & { phase: string | null })[]).filter(
+    (t) => toPhase(t.phase) === phase
+  )
+  const pi = phaseIndex(phase)
   const collected = (colData ?? []) as Collected[]
   const offers = (offerData ?? []) as Offer[]
   const notes = (noteData ?? []) as Note[]
@@ -171,31 +178,72 @@ export default async function ClientJacket({
 
   return (
     <AppShell agent={agent}>
-      <main className="bg-white lg:h-screen lg:overflow-hidden">
-        <div className="grid grid-cols-1 lg:h-full lg:grid-cols-[280px_minmax(0,1fr)_300px]">
+      <main className="flex flex-col bg-white lg:h-screen lg:overflow-hidden">
+        {/* Client header */}
+        <div className="flex items-center gap-3 border-b border-[#ecebe6] px-6 py-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f2e4dd] font-serif text-base text-[#8a6a5f]">
+            {initials(client.first_name, client.last_name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-[15px] font-semibold">{name}</h1>
+            <p className="text-xs text-[#8c8a83]">{client.phone || client.email || "\u00a0"}</p>
+          </div>
+          <Link
+            href="/clients"
+            className="text-xs text-[#8c8a83] underline-offset-2 hover:text-ink hover:underline"
+          >
+            &larr; All clients
+          </Link>
+        </div>
+
+        {/* Phase tracker */}
+        <div className="flex items-center border-b border-[#ecebe6] bg-[#fcfbf9] px-6 py-4">
+          {PHASES.map((p, idx) => {
+            const state = idx < pi ? "done" : idx === pi ? "now" : "later"
+            return (
+              <div key={p.key} className={`flex items-center ${idx < PHASES.length - 1 ? "flex-1" : ""}`}>
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-[1.5px] text-xs font-semibold ${
+                      state === "done"
+                        ? "border-sage bg-sage text-white"
+                        : state === "now"
+                          ? "border-ink bg-ink text-white"
+                          : "border-[#d8d6cf] bg-white text-[#8c8a83]"
+                    }`}
+                  >
+                    {state === "done" ? "\u2713" : idx + 1}
+                  </span>
+                  <span
+                    className={`text-[13px] ${
+                      state === "now" ? "font-semibold" : state === "done" ? "" : "text-[#8c8a83]"
+                    }`}
+                  >
+                    {p.label}
+                  </span>
+                </div>
+                {idx < PHASES.length - 1 && (
+                  <div className={`mx-4 h-[1.5px] flex-1 ${idx < pi ? "bg-sage" : "bg-[#e2e0d9]"}`} />
+                )}
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_300px]">
           {/* Tasks + documents collected */}
           <div className="border-b border-[#ecebe6] bg-[#f4f3f0] px-5 py-6 lg:overflow-y-auto lg:border-b-0 lg:border-r">
-            <Link
-              href="/clients"
-              className="mb-6 inline-block text-xs text-[#8c8a83] underline-offset-2 hover:text-ink hover:underline"
-            >
-              &larr; All clients
-            </Link>
-            <LeftColumn clientId={client.id} tasks={tasks} collected={collected} />
+            <LeftColumn
+              clientId={client.id}
+              firstName={client.first_name}
+              phase={phase}
+              tasks={tasks}
+              collected={collected}
+            />
           </div>
 
           {/* Conversation */}
           <section className="flex min-h-[600px] flex-col bg-white lg:min-h-0">
-            <div className="flex items-center gap-3 border-b border-[#ecebe6] px-6 py-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f2e4dd] font-serif text-base text-[#8a6a5f]">
-                {initials(client.first_name, client.last_name)}
-              </div>
-              <div className="min-w-0">
-                <h1 className="truncate text-[15px] font-semibold">{name}</h1>
-                <p className="text-xs text-[#8c8a83]">{client.phone || client.email || "\u00a0"}</p>
-              </div>
-            </div>
-
             {(sp.updated || banner || error) && (
               <div className="space-y-2 px-6 pt-4">
                 {sp.updated && (
