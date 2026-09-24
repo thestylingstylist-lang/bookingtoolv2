@@ -6,6 +6,7 @@ import AppShell from "@/app/app-shell"
 import JacketDetails from "./jacket-details"
 import SendDocument from "./send-document"
 import { sendMessage, resendDocument } from "./actions"
+import LeftColumn, { type Task, type Collected } from "./left-column"
 
 export const dynamic = "force-dynamic"
 
@@ -52,6 +53,8 @@ const ERRORS: Record<string, string> = {
   doc: "Couldn't create the document. Please try again.",
   blanks: "Fill in every blank before sending.",
   msg: "Couldn't send that message. Please try again.",
+  task: "Couldn't update that task. Please try again.",
+  collected: "Couldn't update that document. Please try again.",
 }
 
 export default async function ClientJacket({
@@ -85,7 +88,13 @@ export default async function ClientJacket({
   const client = data as Client | null
   if (!client) notFound()
 
-  const [{ data: msgData }, { data: docData }, { data: tplData }] = await Promise.all([
+  const [
+    { data: msgData },
+    { data: docData },
+    { data: tplData },
+    { data: taskData },
+    { data: colData },
+  ] = await Promise.all([
     supabase
       .from("messages")
       .select("id, created_at, sender, body, document_id")
@@ -99,10 +108,23 @@ export default async function ClientJacket({
       .from("document_templates")
       .select("id, title, body")
       .order("created_at", { ascending: true }),
+    supabase
+      .from("steps")
+      .select("id, title, done")
+      .eq("client_id", id)
+      .order("position", { ascending: true })
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("collected_docs")
+      .select("id, title, received")
+      .eq("client_id", id)
+      .order("created_at", { ascending: true }),
   ])
   const messages = (msgData ?? []) as Message[]
   const docs = new Map(((docData ?? []) as Doc[]).map((d) => [d.id, d]))
   const templates = (tplData ?? []) as { id: string; title: string; body: string }[]
+  const tasks = (taskData ?? []) as Task[]
+  const collected = (colData ?? []) as Collected[]
 
   const name = `${client.first_name} ${client.last_name}`.trim() || "Client"
   const fmt = new Intl.DateTimeFormat("en-US", {
@@ -123,7 +145,7 @@ export default async function ClientJacket({
 
   return (
     <AppShell agent={agent}>
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-7xl px-6 py-10">
         <Link
           href="/clients"
           className="text-sm text-ink/50 underline-offset-2 hover:text-ink/80 hover:underline"
@@ -148,7 +170,10 @@ export default async function ClientJacket({
           <p className="mt-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
         )}
 
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)_320px]">
+          {/* Tasks + documents collected */}
+          <LeftColumn clientId={client.id} tasks={tasks} collected={collected} />
+
           {/* Conversation */}
           <section className="flex min-h-[520px] flex-col rounded-2xl border border-ink/10 bg-white/50">
             <div className="flex flex-1 flex-col gap-2 p-6">
