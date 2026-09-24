@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { formatSlot } from "@/lib/slots"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
+import { addClientFromBooking } from "@/app/clients/actions"
 
 export const dynamic = "force-dynamic"
 
@@ -18,7 +19,12 @@ type Booking = {
   notes: string | null
 }
 
-export default async function BookingsPage() {
+export default async function BookingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ added?: string; error?: string }>
+}) {
+  const params = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -39,6 +45,14 @@ export default async function BookingsPage() {
     .order("slot_start", { ascending: true })
 
   const bookings = (data ?? []) as Booking[]
+
+  // Which of these bookings have already been turned into a client?
+  const { data: clientRows } = await supabase
+    .from("clients")
+    .select("booking_id")
+    .not("booking_id", "is", null)
+  const addedIds = new Set((clientRows ?? []).map((c) => c.booking_id as string))
+
   const now = Date.now()
 
   return (
@@ -47,9 +61,21 @@ export default async function BookingsPage() {
       <p className="text-sm font-medium tracking-wide text-sage">Bookings</p>
       <h1 className="mt-2 font-serif text-3xl">Your consultations</h1>
 
-      {error && (
+      {params.added === "1" && (
+        <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+          Added to your clients.
+        </p>
+      )}
+      {params.added === "exists" && (
+        <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+          That person is already one of your clients.
+        </p>
+      )}
+      {(error || params.error === "add") && (
         <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-          Couldn&rsquo;t load bookings. Refresh to try again.
+          {params.error === "add"
+            ? "Couldn\u2019t add that client. Please try again."
+            : "Couldn\u2019t load bookings. Refresh to try again."}
         </p>
       )}
 
@@ -71,11 +97,13 @@ export default async function BookingsPage() {
                 <th className="px-5 py-3 font-medium">Type</th>
                 <th className="px-5 py-3 font-medium">Looking to</th>
                 <th className="px-5 py-3 font-medium">Notes</th>
+                <th className="px-5 py-3 font-medium"></th>
               </tr>
             </thead>
             <tbody>
               {bookings.map((b) => {
                 const past = new Date(b.slot_start).getTime() < now
+                const isClient = addedIds.has(b.id)
                 return (
                   <tr
                     key={b.id}
@@ -96,6 +124,23 @@ export default async function BookingsPage() {
                     <td className="px-5 py-4">{b.meeting_type === "phone" ? "Phone" : "Video"}</td>
                     <td className="px-5 py-4 whitespace-nowrap">{b.looking_to || "\u2014"}</td>
                     <td className="min-w-[14rem] max-w-sm px-5 py-4 whitespace-pre-line">{b.notes || "\u2014"}</td>
+                    <td className="px-5 py-4 whitespace-nowrap text-right">
+                      {isClient ? (
+                        <span className="inline-flex items-center rounded-full bg-sage/10 px-3 py-1 text-xs font-medium text-sage">
+                          Client
+                        </span>
+                      ) : (
+                        <form action={addClientFromBooking}>
+                          <input type="hidden" name="bookingId" value={b.id} />
+                          <button
+                            type="submit"
+                            className="rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ink hover:text-paper"
+                          >
+                            Add as client
+                          </button>
+                        </form>
+                      )}
+                    </td>
                   </tr>
                 )
               })}
