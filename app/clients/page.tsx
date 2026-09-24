@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import { addClient } from "./actions"
+import ClientRow from "./client-row"
 
 export const dynamic = "force-dynamic"
 
@@ -19,7 +20,7 @@ type Client = {
 export default async function ClientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ added?: string; error?: string }>
+  searchParams: Promise<{ added?: string; updated?: string; error?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -54,6 +55,11 @@ export default async function ClientsPage({
         {params.added && (
           <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
             Client added.
+          </p>
+        )}
+        {params.updated && (
+          <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+            Client updated.
           </p>
         )}
         {params.error === "name" && (
@@ -119,27 +125,12 @@ export default async function ClientsPage({
                   <th className="px-5 py-3 font-medium">Name</th>
                   <th className="px-5 py-3 font-medium">Contact</th>
                   <th className="px-5 py-3 font-medium">Address</th>
+                  <th className="px-5 py-3 font-medium"></th>
                 </tr>
               </thead>
               <tbody>
                 {clients.map((c) => (
-                  <tr
-                    key={c.id}
-                    className="border-b border-ink/5 last:border-0"
-                  >
-                    <td className="px-5 py-4">
-                      {c.first_name} {c.last_name}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col">
-                        {c.phone && <span>{c.phone}</span>}
-                        {c.email && (
-                          <span className="text-ink/50">{c.email}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-4 text-ink/60">{c.address}</td>
-                  </tr>
+                  <ClientRow key={c.id} client={c} />
                 ))}
               </tbody>
             </table>
