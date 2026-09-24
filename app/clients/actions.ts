@@ -1,154 +1,86 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { formatSlot } from "@/lib/slots"
-import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
-import AppShell from "@/app/app-shell"
-import { addClientFromBooking } from "@/app/clients/actions"
 
-export const dynamic = "force-dynamic"
-
-type Booking = {
-  id: string
-  first_name: string
-  last_name: string
-  email: string | null
-  phone: string | null
-  meeting_type: string
-  slot_start: string
-  looking_to: string | null
-  notes: string | null
-}
-
-export default async function BookingsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ added?: string; error?: string }>
-}) {
-  const params = await searchParams
+// Add a client by hand. Runs as the logged-in agent, so RLS
+// ("agent manages clients") ties the row to them automatically.
+export async function addClient(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  const { data: agentData } = await supabase
-    .from("agents")
-    .select(AGENT_SELECT)
-    .eq("id", user.id)
-    .maybeSingle()
-  const agent = agentData as AgentRow | null
-  if (!agent) redirect("/login")
+  const firstName = String(formData.get("firstName") ?? "").trim()
+  const lastName = String(formData.get("lastName") ?? "").trim()
+  const email = String(formData.get("email") ?? "").trim()
+  const phone = String(formData.get("phone") ?? "").trim()
+  const address = String(formData.get("address") ?? "").trim()
 
-  const { data, error } = await supabase
+  if (!firstName && !lastName) {
+    redirect("/clients?error=name")
+  }
+
+  const { error } = await supabase.from("clients").insert({
+    agent_id: user.id,
+    first_name: firstName,
+    last_name: lastName,
+    email: email || null,
+    phone: phone || null,
+    address: address || null,
+  })
+
+  if (error) {
+    redirect("/clients?error=save")
+  }
+
+  revalidatePath("/clients")
+  redirect("/clients?added=1")
+}
+
+// Turn a booking into a client with one click. Copies the details the
+// person already gave on the booking page — no retyping. Records
+// booking_id so the same booking can't be added twice.
+export async function addClientFromBooking(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect("/login")
+
+  const bookingId = String(formData.get("bookingId") ?? "").trim()
+  if (!bookingId) redirect("/bookings?error=add")
+
+  // Load the booking (RLS: agent owns it) and guard against a repeat add.
+  const { data: booking } = await supabase
     .from("bookings")
-    .select("id, first_name, last_name, email, phone, meeting_type, slot_start, looking_to, notes")
-    .order("slot_start", { ascending: true })
+    .select("id, first_name, last_name, email, phone")
+    .eq("id", bookingId)
+    .maybeSingle()
+  if (!booking) redirect("/bookings?error=add")
 
-  const bookings = (data ?? []) as Booking[]
-
-  // Which of these bookings have already been turned into a client?
-  const { data: clientRows } = await supabase
+  const { data: existing } = await supabase
     .from("clients")
-    .select("booking_id")
-    .not("booking_id", "is", null)
-  const addedIds = new Set((clientRows ?? []).map((c) => c.booking_id as string))
+    .select("id")
+    .eq("booking_id", bookingId)
+    .maybeSingle()
+  if (existing) {
+    redirect("/bookings?added=exists")
+  }
 
-  const now = Date.now()
+  const { error } = await supabase.from("clients").insert({
+    agent_id: user.id,
+    booking_id: booking.id,
+    first_name: booking.first_name ?? "",
+    last_name: booking.last_name ?? "",
+    email: booking.email || null,
+    phone: booking.phone || null,
+  })
+  if (error) redirect("/bookings?error=add")
 
-  return (
-    <AppShell agent={agent}>
-    <main className="mx-auto max-w-6xl px-6 py-12">
-      <p className="text-sm font-medium tracking-wide text-sage">Bookings</p>
-      <h1 className="mt-2 font-serif text-3xl">Your consultations</h1>
-
-      {params.added === "1" && (
-        <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
-          Added to your clients.
-        </p>
-      )}
-      {params.added === "exists" && (
-        <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
-          That person is already one of your clients.
-        </p>
-      )}
-      {(error || params.error === "add") && (
-        <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-          {params.error === "add"
-            ? "Couldn\u2019t add that client. Please try again."
-            : "Couldn\u2019t load bookings. Refresh to try again."}
-        </p>
-      )}
-
-      {bookings.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-ink/10 bg-white/50 p-10 text-center">
-          <h2 className="font-serif text-xl">No bookings yet.</h2>
-          <p className="mt-2 text-ink/60">
-            Share your booking link and new consultations will appear here.
-          </p>
-        </div>
-      ) : (
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-ink/10 bg-white/50">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-ink/10 text-ink/50">
-              <tr>
-                <th className="px-5 py-3 font-medium">When</th>
-                <th className="px-5 py-3 font-medium">Client</th>
-                <th className="px-5 py-3 font-medium">Contact</th>
-                <th className="px-5 py-3 font-medium">Type</th>
-                <th className="px-5 py-3 font-medium">Looking to</th>
-                <th className="px-5 py-3 font-medium">Notes</th>
-                <th className="px-5 py-3 font-medium"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((b) => {
-                const past = new Date(b.slot_start).getTime() < now
-                const isClient = addedIds.has(b.id)
-                return (
-                  <tr
-                    key={b.id}
-                    className={"border-b border-ink/5 last:border-0 " + (past ? "text-ink/40" : "")}
-                  >
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      {formatSlot(b.slot_start, agent.timezone)}
-                    </td>
-                    <td className="px-5 py-4">
-                      {b.first_name} {b.last_name}
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex flex-col">
-                        {b.phone && <span>{b.phone}</span>}
-                        {b.email && <span className="text-ink/50">{b.email}</span>}
-                      </div>
-                    </td>
-                    <td className="px-5 py-4">{b.meeting_type === "phone" ? "Phone" : "Video"}</td>
-                    <td className="px-5 py-4 whitespace-nowrap">{b.looking_to || "\u2014"}</td>
-                    <td className="min-w-[14rem] max-w-sm px-5 py-4 whitespace-pre-line">{b.notes || "\u2014"}</td>
-                    <td className="px-5 py-4 whitespace-nowrap text-right">
-                      {isClient ? (
-                        <span className="inline-flex items-center rounded-full bg-sage/10 px-3 py-1 text-xs font-medium text-sage">
-                          Client
-                        </span>
-                      ) : (
-                        <form action={addClientFromBooking}>
-                          <input type="hidden" name="bookingId" value={b.id} />
-                          <button
-                            type="submit"
-                            className="rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ink hover:text-paper"
-                          >
-                            Add as client
-                          </button>
-                        </form>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </main>
-    </AppShell>
-  )
+  revalidatePath("/clients")
+  revalidatePath("/bookings")
+  redirect("/bookings?added=1")
 }
