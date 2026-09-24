@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { PHASES, toPhase } from "@/lib/phases"
 
 // Tasks (steps table) and documents collected (collected_docs table)
 // for one client. All run as the logged-in agent under RLS.
@@ -27,6 +28,7 @@ export async function addTask(formData: FormData): Promise<void> {
   const { supabase, userId } = await agentOrLogin()
   const clientId = String(formData.get("clientId") ?? "")
   const title = String(formData.get("title") ?? "").trim()
+  const phase = toPhase(formData.get("phase"))
   if (!clientId) redirect("/clients")
   if (!title) back(clientId)
 
@@ -34,11 +36,13 @@ export async function addTask(formData: FormData): Promise<void> {
     .from("steps")
     .select("id", { count: "exact", head: true })
     .eq("client_id", clientId)
+    .eq("phase", phase)
 
   const { error } = await supabase.from("steps").insert({
     agent_id: userId,
     client_id: clientId,
     title,
+    phase,
     position: count ?? 0,
   })
   back(clientId, error ? "task" : undefined)
@@ -61,6 +65,58 @@ export async function deleteTask(formData: FormData): Promise<void> {
   const clientId = String(formData.get("clientId") ?? "")
   const id = String(formData.get("id") ?? "")
   const { error } = await supabase.from("steps").delete().eq("id", id)
+  back(clientId, error ? "task" : undefined)
+}
+
+// ---- Phases ---------------------------------------------------------------
+
+// Adds a phase's standard steps, only if that phase has no steps yet.
+async function seedPhase(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  clientId: string,
+  phase: ReturnType<typeof toPhase>
+) {
+  const { count } = await supabase
+    .from("steps")
+    .select("id", { count: "exact", head: true })
+    .eq("client_id", clientId)
+    .eq("phase", phase)
+  if ((count ?? 0) > 0) return null
+
+  const steps = PHASES.find((p) => p.key === phase)?.steps ?? []
+  const { error } = await supabase.from("steps").insert(
+    steps.map((title, position) => ({
+      agent_id: userId,
+      client_id: clientId,
+      title,
+      phase,
+      position,
+    }))
+  )
+  return error
+}
+
+// Move a client to another phase, forward or back. Only ever on a click.
+export async function movePhase(formData: FormData): Promise<void> {
+  const { supabase, userId } = await agentOrLogin()
+  const clientId = String(formData.get("clientId") ?? "")
+  const to = toPhase(formData.get("to"))
+  if (!clientId) redirect("/clients")
+
+  const { error } = await supabase.from("clients").update({ phase: to }).eq("id", clientId)
+  if (error) back(clientId, "phase")
+
+  const seedError = await seedPhase(supabase, userId, clientId, to)
+  back(clientId, seedError ? "task" : undefined)
+}
+
+export async function addStandardSteps(formData: FormData): Promise<void> {
+  const { supabase, userId } = await agentOrLogin()
+  const clientId = String(formData.get("clientId") ?? "")
+  const phase = toPhase(formData.get("phase"))
+  if (!clientId) redirect("/clients")
+  const error = await seedPhase(supabase, userId, clientId, phase)
   back(clientId, error ? "task" : undefined)
 }
 
