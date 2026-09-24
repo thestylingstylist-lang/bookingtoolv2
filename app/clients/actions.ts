@@ -84,3 +84,45 @@ export async function addClientFromBooking(formData: FormData): Promise<void> {
   revalidatePath("/bookings")
   redirect("/bookings?added=1")
 }
+
+
+// Edit an existing client's details (name, contact, address). Runs as the
+// logged-in agent; RLS "agent manages clients" scopes it to their own rows.
+export async function updateClient(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect("/login")
+
+  const id = String(formData.get("id") ?? "").trim()
+  if (!id) redirect("/clients?error=save")
+
+  const firstName = String(formData.get("firstName") ?? "").trim()
+  const lastName = String(formData.get("lastName") ?? "").trim()
+  const email = String(formData.get("email") ?? "").trim()
+  const phone = String(formData.get("phone") ?? "").trim()
+  const address = String(formData.get("address") ?? "").trim()
+
+  if (!firstName && !lastName) {
+    redirect("/clients?error=name")
+  }
+
+  const { error } = await supabase
+    .from("clients")
+    .update({
+      first_name: firstName,
+      last_name: lastName,
+      email: email || null,
+      phone: phone || null,
+      address: address || null,
+    })
+    .eq("id", id)
+
+  if (error) {
+    redirect("/clients?error=save")
+  }
+
+  revalidatePath("/clients")
+  redirect("/clients?updated=1")
+}
