@@ -5,7 +5,10 @@ import {
   addCollected,
   toggleCollected,
   deleteCollected,
+  movePhase,
+  addStandardSteps,
 } from "./checklist-actions"
+import { PHASES, phaseIndex, type Phase } from "@/lib/phases"
 
 export type Task = { id: string; title: string; done: boolean }
 export type Collected = { id: string; title: string; received: boolean }
@@ -36,18 +39,54 @@ function RemoveButton({ label }: { label: string }) {
 
 export default function LeftColumn({
   clientId,
+  firstName,
+  phase,
   tasks,
   collected,
 }: {
   clientId: string
+  firstName: string
+  phase: Phase
   tasks: Task[]
   collected: Collected[]
 }) {
+  const i = phaseIndex(phase)
+  const current = PHASES[i]
+  const next = PHASES[i + 1]
+  const prev = PHASES[i - 1]
+  const upNext = tasks.find((t) => !t.done)
+
   return (
     <div className="space-y-8">
-      {/* Tasks */}
+      {/* Right now */}
+      {tasks.length > 0 && (
+        <div className="rounded-xl border border-[#ecebe6] bg-white p-3.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#b08477]">Right now</p>
+          <p className="mt-1 text-sm leading-snug">
+            {upNext
+              ? upNext.title
+              : next
+                ? `${current.label} is done. Move ${firstName || "them"} to ${next.label} when you're ready.`
+                : "Every step is done."}
+          </p>
+        </div>
+      )}
+
+      {/* Checklist for the current phase */}
       <section>
-        <h2 className="text-xs uppercase tracking-[0.08em] text-[#8c8a83]">To do for this deal</h2>
+        <h2 className="text-xs uppercase tracking-[0.08em] text-[#8c8a83]">{current.label} checklist</h2>
+        {tasks.length === 0 && (
+          <form action={addStandardSteps} className="mt-3">
+            <Hidden clientId={clientId} />
+            <input type="hidden" name="phase" value={phase} />
+            <button
+              type="submit"
+              className="w-full rounded-lg border border-dashed border-[#c9c7c0] bg-white px-3 py-2.5 text-sm text-[#8c8a83] hover:border-ink hover:text-ink"
+            >
+              Add the standard {current.label.toLowerCase()} steps
+            </button>
+          </form>
+        )}
         <ul className="mt-3">
           {tasks.map((t) => (
             <li key={t.id} className="group flex items-start gap-2.5 py-2">
@@ -76,11 +115,34 @@ export default function LeftColumn({
         </ul>
         <form action={addTask} className="mt-2 flex gap-2">
           <Hidden clientId={clientId} />
-          <input name="title" placeholder="Add a task" className={inputClass} />
+          <input type="hidden" name="phase" value={phase} />
+          <input name="title" placeholder="Add a step" className={inputClass} />
           <button type="submit" className="rounded-lg border border-[#ecebe6] bg-white px-3 text-sm hover:bg-[#f4f3f0]">
             Add
           </button>
         </form>
+
+        {next && (
+          <form action={movePhase} className="mt-5">
+            <Hidden clientId={clientId} />
+            <input type="hidden" name="to" value={next.key} />
+            <button
+              type="submit"
+              className="w-full rounded-[10px] bg-ink px-3 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              Move to {next.label} &rarr;
+            </button>
+          </form>
+        )}
+        {prev && (
+          <form action={movePhase} className="mt-2 text-center">
+            <Hidden clientId={clientId} />
+            <input type="hidden" name="to" value={prev.key} />
+            <button type="submit" className="text-xs text-[#8c8a83] hover:text-ink">
+              &larr; Back to {prev.label}
+            </button>
+          </form>
+        )}
       </section>
 
       {/* Documents collected */}
