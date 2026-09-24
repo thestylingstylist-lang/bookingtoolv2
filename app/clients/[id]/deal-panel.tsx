@@ -10,7 +10,7 @@ export type Offer = {
 export type Note = { id: string; body: string; created_at: string }
 
 const inputClass =
-  "w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm outline-none focus:border-sage"
+  "w-full rounded-lg border border-[#ecebe6] bg-white px-3 py-2 text-sm outline-none placeholder:text-[#8c8a83] focus:border-sage"
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -30,7 +30,7 @@ function Remove({ action, clientId, id, label }: {
       <button
         type="submit"
         aria-label={`Remove ${label}`}
-        className="px-1 text-ink/30 opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
+        className="px-1 text-[#8c8a83] opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
       >
         &times;
       </button>
@@ -63,10 +63,10 @@ export default function DealPanel({
   })
 
   return (
-    <div className="mt-6 space-y-8">
+    <div className="mt-7 space-y-7">
       {/* Type + buying range */}
       <section>
-        <h2 className="text-xs uppercase tracking-wide text-ink/50">Deal</h2>
+        <h2 className="text-[13px] font-semibold">Deal</h2>
         <form action={saveDeal} className="mt-3 space-y-3">
           <input type="hidden" name="clientId" value={clientId} />
           <select name="clientType" defaultValue={clientType ?? ""} className={inputClass}>
@@ -76,7 +76,7 @@ export default function DealPanel({
             <option value="both">Buyer and seller</option>
           </select>
           <div>
-            <label className="mb-1 block text-xs text-ink/50">Buying range</label>
+            <label className="mb-1 block text-[11px] uppercase tracking-[0.05em] text-[#8c8a83]">Buying range</label>
             <div className="flex items-center gap-2">
               <input
                 name="budgetMin"
@@ -85,7 +85,7 @@ export default function DealPanel({
                 defaultValue={budgetMin != null ? usd.format(budgetMin) : ""}
                 className={inputClass}
               />
-              <span className="text-ink/40">&ndash;</span>
+              <span className="text-[#8c8a83]">&ndash;</span>
               <input
                 name="budgetMax"
                 inputMode="numeric"
@@ -95,7 +95,7 @@ export default function DealPanel({
               />
             </div>
           </div>
-          <button type="submit" className="rounded-lg border border-ink/20 px-3 py-1.5 text-sm hover:bg-ink/5">
+          <button type="submit" className="rounded-lg border border-[#ecebe6] bg-white px-3 py-1.5 text-sm hover:bg-[#f4f3f0]">
             Save
           </button>
         </form>
@@ -103,16 +103,16 @@ export default function DealPanel({
 
       {/* Offers */}
       <section>
-        <h2 className="text-xs uppercase tracking-wide text-ink/50">Offers</h2>
-        {offers.length === 0 && <p className="mt-3 text-sm text-ink/40">No offers yet.</p>}
+        <h2 className="text-[13px] font-semibold">Offers</h2>
+        {offers.length === 0 && <p className="mt-2 text-sm text-[#8c8a83]">No offers yet.</p>}
         <ul className="mt-3 space-y-3">
           {offers.map((o) => (
-            <li key={o.id} className="group flex items-start gap-2 border-b border-ink/5 pb-3">
+            <li key={o.id} className="group flex items-start gap-2 border-b border-[#ecebe6] pb-3">
               <div className="flex-1 text-sm">
                 <p className="font-medium">{o.property_address}</p>
                 {o.amount != null && <p className="mt-0.5">{usd.format(o.amount)}</p>}
                 {(o.other_agent_name || o.other_agent_email) && (
-                  <p className="mt-1 text-xs text-ink/50">
+                  <p className="mt-1 text-xs text-[#8c8a83]">
                     Buyer/Selling Agent: {[o.other_agent_name, o.other_agent_email].filter(Boolean).join(" · ")}
                   </p>
                 )}
@@ -122,14 +122,14 @@ export default function DealPanel({
           ))}
         </ul>
         <details className="mt-3">
-          <summary className="cursor-pointer text-sm text-sage">+ Add an offer</summary>
+          <summary className="cursor-pointer text-sm text-[#b08477] hover:text-ink">+ Add an offer</summary>
           <form action={addOffer} className="mt-3 space-y-2">
             <input type="hidden" name="clientId" value={clientId} />
             <input name="address" required placeholder="Property address" className={inputClass} />
             <input name="amount" inputMode="numeric" placeholder="Offer amount" className={inputClass} />
             <input name="agentName" placeholder="Buyer/Selling Agent name" className={inputClass} />
             <input name="agentEmail" type="email" placeholder="Buyer/Selling Agent email" className={inputClass} />
-            <button type="submit" className="rounded-lg border border-ink/20 px-3 py-1.5 text-sm hover:bg-ink/5">
+            <button type="submit" className="rounded-lg border border-[#ecebe6] bg-white px-3 py-1.5 text-sm hover:bg-[#f4f3f0]">
               Save offer
             </button>
           </form>
@@ -138,20 +138,20 @@ export default function DealPanel({
 
       {/* Notes */}
       <section>
-        <h2 className="text-xs uppercase tracking-wide text-ink/50">Notes</h2>
+        <h2 className="text-[13px] font-semibold">Notes</h2>
         <form action={addNote} className="mt-3 space-y-2">
           <input type="hidden" name="clientId" value={clientId} />
           <textarea name="body" rows={2} placeholder="Add a note" className={inputClass + " resize-none"} />
-          <button type="submit" className="rounded-lg border border-ink/20 px-3 py-1.5 text-sm hover:bg-ink/5">
+          <button type="submit" className="rounded-lg border border-[#ecebe6] bg-white px-3 py-1.5 text-sm hover:bg-[#f4f3f0]">
             Add note
           </button>
         </form>
         <ul className="mt-4 space-y-3">
           {notes.map((n) => (
-            <li key={n.id} className="group flex items-start gap-2 rounded-lg bg-ink/[0.03] p-3">
+            <li key={n.id} className="group flex items-start gap-2 rounded-[11px] bg-[#f7f6f3] px-3 py-2.5">
               <div className="flex-1">
-                <p className="whitespace-pre-wrap text-sm">{n.body}</p>
-                <p className="mt-1 text-xs text-ink/40">{day.format(new Date(n.created_at))}</p>
+                <p className="whitespace-pre-wrap text-[13px] leading-relaxed">{n.body}</p>
+                <p className="mt-1.5 text-[11px] text-[#8c8a83]">{day.format(new Date(n.created_at))}</p>
               </div>
               <Remove action={deleteNote} clientId={clientId} id={n.id} label="note" />
             </li>
