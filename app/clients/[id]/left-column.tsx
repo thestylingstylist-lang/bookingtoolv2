@@ -11,7 +11,7 @@ export type Task = { id: string; title: string; done: boolean }
 export type Collected = { id: string; title: string; received: boolean }
 
 const inputClass =
-  "min-w-0 flex-1 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm outline-none focus:border-sage"
+  "min-w-0 flex-1 rounded-lg border border-[#ecebe6] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#8c8a83] focus:border-sage"
 
 function Hidden({ clientId, id }: { clientId: string; id?: string }) {
   return (
@@ -27,7 +27,7 @@ function RemoveButton({ label }: { label: string }) {
     <button
       type="submit"
       aria-label={`Remove ${label}`}
-      className="px-1 text-ink/30 opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
+      className="px-1 text-[#8c8a83] opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
     >
       &times;
     </button>
@@ -44,27 +44,27 @@ export default function LeftColumn({
   collected: Collected[]
 }) {
   return (
-    <aside className="space-y-8">
+    <div className="space-y-8">
       {/* Tasks */}
       <section>
-        <h2 className="text-xs uppercase tracking-wide text-ink/50">To do for this deal</h2>
+        <h2 className="text-xs uppercase tracking-[0.08em] text-[#8c8a83]">To do for this deal</h2>
         <ul className="mt-3">
           {tasks.map((t) => (
-            <li key={t.id} className="group flex items-start gap-2 py-1.5">
+            <li key={t.id} className="group flex items-start gap-2.5 py-2">
               <form action={toggleTask}>
                 <Hidden clientId={clientId} id={t.id} />
                 <input type="hidden" name="done" value={t.done ? "0" : "1"} />
                 <button
                   type="submit"
                   aria-label={t.done ? "Mark not done" : "Mark done"}
-                  className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border text-[10px] leading-none ${
-                    t.done ? "border-sage bg-sage text-white" : "border-ink/30 bg-white"
+                  className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded-[5px] border-[1.5px] text-[10px] leading-none ${
+                    t.done ? "border-sage bg-sage text-white" : "border-[#c9c7c0] bg-white"
                   }`}
                 >
                   {t.done ? "\u2713" : ""}
                 </button>
               </form>
-              <span className={`flex-1 text-sm ${t.done ? "text-ink/40 line-through" : ""}`}>
+              <span className={`flex-1 text-sm ${t.done ? "text-[#8c8a83] line-through" : ""}`}>
                 {t.title}
               </span>
               <form action={deleteTask}>
@@ -77,7 +77,7 @@ export default function LeftColumn({
         <form action={addTask} className="mt-2 flex gap-2">
           <Hidden clientId={clientId} />
           <input name="title" placeholder="Add a task" className={inputClass} />
-          <button type="submit" className="rounded-lg border border-ink/20 px-3 text-sm hover:bg-ink/5">
+          <button type="submit" className="rounded-lg border border-[#ecebe6] bg-white px-3 text-sm hover:bg-[#f4f3f0]">
             Add
           </button>
         </form>
@@ -85,10 +85,10 @@ export default function LeftColumn({
 
       {/* Documents collected */}
       <section>
-        <h2 className="text-xs uppercase tracking-wide text-ink/50">Documents collected</h2>
+        <h2 className="text-xs uppercase tracking-[0.08em] text-[#8c8a83]">Documents collected</h2>
         <ul className="mt-3">
           {collected.map((d) => (
-            <li key={d.id} className="group flex items-center gap-2 py-1.5">
+            <li key={d.id} className="group flex items-center gap-2 py-2">
               <span className="flex-1 text-sm">{d.title}</span>
               <form action={toggleCollected}>
                 <Hidden clientId={clientId} id={d.id} />
@@ -96,8 +96,8 @@ export default function LeftColumn({
                 <button
                   type="submit"
                   title={d.received ? "Mark as waiting" : "Mark as received"}
-                  className={`rounded-full px-2.5 py-0.5 text-xs ${
-                    d.received ? "bg-sage/15 text-sage" : "bg-brass/15 text-brass"
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] ${
+                    d.received ? "bg-[#e4ece7] text-sage" : "bg-[#f0e7d6] text-brass"
                   }`}
                 >
                   {d.received ? "Received" : "Waiting"}
@@ -113,12 +113,12 @@ export default function LeftColumn({
         <form action={addCollected} className="mt-2 flex gap-2">
           <Hidden clientId={clientId} />
           <input name="title" placeholder="e.g. Pay stubs" className={inputClass} />
-          <button type="submit" className="rounded-lg border border-ink/20 px-3 text-sm hover:bg-ink/5">
+          <button type="submit" className="rounded-lg border border-[#ecebe6] bg-white px-3 text-sm hover:bg-[#f4f3f0]">
             Add
           </button>
         </form>
-        <p className="mt-2 text-xs text-ink/40">Tap Waiting to mark it received.</p>
+        <p className="mt-2 text-xs text-[#8c8a83]">Tap Waiting to mark it received.</p>
       </section>
-    </aside>
+    </div>
   )
 }
