@@ -96,7 +96,9 @@ export async function updateClient(formData: FormData): Promise<void> {
   if (!user) redirect("/login")
 
   const id = String(formData.get("id") ?? "").trim()
-  if (!id) redirect("/clients?error=save")
+  const returnTo = String(formData.get("returnTo") ?? "").trim()
+  const backOk = returnTo.startsWith("/clients/")
+  if (!id) redirect(backOk ? `${returnTo}?error=save` : "/clients?error=save")
 
   const firstName = String(formData.get("firstName") ?? "").trim()
   const lastName = String(formData.get("lastName") ?? "").trim()
@@ -105,7 +107,7 @@ export async function updateClient(formData: FormData): Promise<void> {
   const address = String(formData.get("address") ?? "").trim()
 
   if (!firstName && !lastName) {
-    redirect("/clients?error=name")
+    redirect(backOk ? `${returnTo}?error=name` : "/clients?error=name")
   }
 
   const { error } = await supabase
@@ -120,9 +122,13 @@ export async function updateClient(formData: FormData): Promise<void> {
     .eq("id", id)
 
   if (error) {
-    redirect("/clients?error=save")
+    redirect(backOk ? `${returnTo}?error=save` : "/clients?error=save")
   }
 
   revalidatePath("/clients")
+  if (backOk) {
+    revalidatePath(returnTo)
+    redirect(`${returnTo}?updated=1`)
+  }
   redirect("/clients?updated=1")
 }
