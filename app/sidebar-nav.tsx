@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-const ITEMS: { href: string; label: string; soon?: boolean }[] = [
+const ITEMS: { href: string; label: string }[] = [
   { href: "/start-here", label: "Start here" },
   { href: "/dashboard", label: "Home" },
   { href: "/clients", label: "Clients" },
@@ -12,23 +12,28 @@ const ITEMS: { href: string; label: string; soon?: boolean }[] = [
   { href: "/settings", label: "Settings" },
 ]
 
-export default function SidebarNav() {
+export default function SidebarNav({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname()
 
   return (
-    <nav className="space-y-1">
+    <nav className={collapsed ? "flex flex-col items-center gap-3" : "space-y-1"}>
       {ITEMS.map((item) => {
-        const active = pathname === item.href
+        const active = pathname === item.href || pathname.startsWith(item.href + "/")
 
-        if (item.soon) {
+        if (collapsed) {
           return (
-            <span
+            <Link
               key={item.href}
-              className="flex cursor-default items-center justify-between rounded-lg px-3 py-2 text-sm text-ink/25"
+              href={item.href}
+              title={item.label}
+              aria-label={item.label}
+              className={
+                "flex h-8 w-8 items-center justify-center rounded-lg text-xs font-medium transition-colors " +
+                (active ? "bg-white text-[#141210]" : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white")
+              }
             >
-              {item.label}
-              <span className="text-[10px] uppercase tracking-wide">Soon</span>
-            </span>
+              {item.label.charAt(0)}
+            </Link>
           )
         }
 
@@ -38,9 +43,7 @@ export default function SidebarNav() {
             href={item.href}
             className={
               "block rounded-lg px-3 py-2 text-sm transition-colors " +
-              (active
-                ? "bg-ink text-paper"
-                : "text-ink/70 hover:bg-ink/5 hover:text-ink")
+              (active ? "bg-white text-[#141210]" : "text-white/60 hover:bg-white/10 hover:text-white")
             }
           >
             {item.label}
