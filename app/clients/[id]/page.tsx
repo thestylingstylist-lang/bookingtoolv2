@@ -64,6 +64,11 @@ const ERRORS: Record<string, string> = {
   note: "Couldn't save that note. Please try again.",
 }
 
+function initials(first: string, last: string) {
+  const i = `${first.trim().charAt(0)}${last.trim().charAt(0)}`.toUpperCase()
+  return i || "?"
+}
+
 export default async function ClientJacket({
   params,
   searchParams,
@@ -166,96 +171,109 @@ export default async function ClientJacket({
 
   return (
     <AppShell agent={agent}>
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <Link
-          href="/clients"
-          className="text-sm text-ink/50 underline-offset-2 hover:text-ink/80 hover:underline"
-        >
-          &larr; All clients
-        </Link>
-        <h1 className="mt-3 font-serif text-3xl">{name}</h1>
-
-        {sp.updated && (
-          <p className="mt-5 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">Client updated.</p>
-        )}
-        {banner && (
-          <p
-            className={`mt-5 rounded-lg px-4 py-3 text-sm ${
-              banner.ok ? "bg-sage/10 text-sage" : "bg-brass/10 text-brass"
-            }`}
-          >
-            {banner.text}
-          </p>
-        )}
-        {error && (
-          <p className="mt-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
-        )}
-
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)_320px]">
+      <main className="bg-white lg:h-screen lg:overflow-hidden">
+        <div className="grid grid-cols-1 lg:h-full lg:grid-cols-[280px_minmax(0,1fr)_300px]">
           {/* Tasks + documents collected */}
-          <LeftColumn clientId={client.id} tasks={tasks} collected={collected} />
+          <div className="border-b border-[#ecebe6] bg-[#f4f3f0] px-5 py-6 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+            <Link
+              href="/clients"
+              className="mb-6 inline-block text-xs text-[#8c8a83] underline-offset-2 hover:text-ink hover:underline"
+            >
+              &larr; All clients
+            </Link>
+            <LeftColumn clientId={client.id} tasks={tasks} collected={collected} />
+          </div>
 
           {/* Conversation */}
-          <section className="flex min-h-[520px] flex-col rounded-2xl border border-ink/10 bg-white/50">
-            <div className="flex flex-1 flex-col gap-2 p-6">
-              {messages.length === 0 && (
-                <p className="m-auto max-w-xs text-center text-sm text-ink/50">
-                  Nothing here yet. Send the agreement to get started.
-                </p>
-              )}
-              {messages.map((m) => {
-                const mine = m.sender === "agent"
-                const doc = m.document_id ? docs.get(m.document_id) : undefined
-                return (
-                  <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-                    {doc ? (
-                      <div className="w-full max-w-sm rounded-2xl rounded-br-md border border-ink/10 bg-white p-4 shadow-sm">
-                        <p className="text-[11px] uppercase tracking-wide text-ink/50">
-                          Document to sign
-                        </p>
-                        <p className="mt-1 font-serif text-lg">{doc.title}</p>
-                        <div className="mt-3 flex items-center gap-3">
-                          {doc.status === "signed" ? (
-                            <span className="rounded-full bg-sage/15 px-3 py-1 text-xs text-sage">
-                              Signed{doc.signed_at ? ` ${fmtDay.format(new Date(doc.signed_at))}` : ""}
-                              {doc.signer_name ? ` by ${doc.signer_name}` : ""}
-                            </span>
-                          ) : (
-                            <>
-                              <span className="rounded-full bg-brass/15 px-3 py-1 text-xs text-brass">
-                                Sent &middot; waiting
-                              </span>
-                              <form action={resendDocument}>
-                                <input type="hidden" name="documentId" value={doc.id} />
-                                <input type="hidden" name="clientId" value={client.id} />
-                                <button className="text-xs text-ink/50 underline hover:text-ink">
-                                  Resend
-                                </button>
-                              </form>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        className={`max-w-[75%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                          mine
-                            ? "rounded-br-md bg-[#e7d3c7]"
-                            : "rounded-bl-md border border-ink/10 bg-white"
-                        }`}
-                      >
-                        {m.body}
-                      </div>
-                    )}
-                    <span className="mx-1 mb-2 mt-1 text-[11px] text-ink/40">
-                      {fmt.format(new Date(m.created_at))}
-                    </span>
-                  </div>
-                )
-              })}
+          <section className="flex min-h-[600px] flex-col bg-white lg:min-h-0">
+            <div className="flex items-center gap-3 border-b border-[#ecebe6] px-6 py-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f2e4dd] font-serif text-base text-[#8a6a5f]">
+                {initials(client.first_name, client.last_name)}
+              </div>
+              <div className="min-w-0">
+                <h1 className="truncate text-[15px] font-semibold">{name}</h1>
+                <p className="text-xs text-[#8c8a83]">{client.phone || client.email || "\u00a0"}</p>
+              </div>
             </div>
 
-            <div className="border-t border-ink/10 p-4">
+            {(sp.updated || banner || error) && (
+              <div className="space-y-2 px-6 pt-4">
+                {sp.updated && (
+                  <p className="rounded-lg bg-[#e4ece7] px-4 py-2.5 text-sm text-sage">Client updated.</p>
+                )}
+                {banner && (
+                  <p
+                    className={`rounded-lg px-4 py-2.5 text-sm ${
+                      banner.ok ? "bg-[#e4ece7] text-sage" : "bg-[#f0e7d6] text-brass"
+                    }`}
+                  >
+                    {banner.text}
+                  </p>
+                )}
+                {error && <p className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-800">{error}</p>}
+              </div>
+            )}
+
+            {/* Newest at the bottom; column-reverse keeps the view pinned there */}
+            <div className="flex flex-1 flex-col-reverse overflow-y-auto">
+              <div className="flex flex-col gap-1 px-6 py-6">
+                {messages.length === 0 && (
+                  <p className="m-auto max-w-xs py-16 text-center text-sm text-[#8c8a83]">
+                    Nothing here yet. Send the agreement to get started.
+                  </p>
+                )}
+                {messages.map((m) => {
+                  const mine = m.sender === "agent"
+                  const doc = m.document_id ? docs.get(m.document_id) : undefined
+                  return (
+                    <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+                      {doc ? (
+                        <div className="w-full max-w-sm rounded-2xl rounded-br-[5px] border border-[#ecebe6] bg-white px-4 py-4 shadow-[0_3px_10px_rgba(0,0,0,0.04)]">
+                          <p className="text-[10px] uppercase tracking-[0.09em] text-[#8c8a83]">
+                            Document to sign
+                          </p>
+                          <p className="mt-1 font-serif text-xl">{doc.title}</p>
+                          <div className="mt-3 flex items-center gap-3">
+                            {doc.status === "signed" ? (
+                              <span className="rounded-full bg-[#e4ece7] px-2.5 py-0.5 text-[11px] text-sage">
+                                Signed{doc.signed_at ? ` \u00b7 ${fmtDay.format(new Date(doc.signed_at))}` : ""}
+                                {doc.signer_name ? ` by ${doc.signer_name}` : ""}
+                              </span>
+                            ) : (
+                              <>
+                                <span className="rounded-full bg-[#f0e7d6] px-2.5 py-0.5 text-[11px] text-brass">
+                                  Sent &middot; waiting
+                                </span>
+                                <form action={resendDocument}>
+                                  <input type="hidden" name="documentId" value={doc.id} />
+                                  <input type="hidden" name="clientId" value={client.id} />
+                                  <button className="text-xs text-[#8c8a83] underline hover:text-ink">
+                                    Resend
+                                  </button>
+                                </form>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          className={`max-w-[74%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                            mine ? "rounded-br-[5px] bg-[#e7d3c7]" : "rounded-bl-[5px] bg-[#f4f3f0]"
+                          }`}
+                        >
+                          {m.body}
+                        </div>
+                      )}
+                      <span className="mx-1 mb-3 mt-1 text-[11px] text-[#b3b1aa]">
+                        {fmt.format(new Date(m.created_at))}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="border-t border-[#ecebe6] px-6 py-4">
               <div className="mb-3">
                 <SendDocument clientId={client.id} templates={templates} />
               </div>
@@ -263,27 +281,27 @@ export default async function ClientJacket({
                 <input type="hidden" name="clientId" value={client.id} />
                 <textarea
                   name="body"
-                  rows={2}
+                  rows={1}
                   required
                   placeholder="Type a message…"
-                  className="flex-1 resize-none rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm outline-none focus:border-sage"
+                  className="flex-1 resize-none rounded-xl border border-[#ecebe6] bg-[#f4f3f0] px-4 py-2.5 text-sm outline-none placeholder:text-[#8c8a83] focus:border-sage focus:bg-white"
                 />
                 <button
                   type="submit"
-                  className="rounded-lg bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+                  className="rounded-[11px] bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
                 >
                   Send
                 </button>
               </form>
-              <p className="mt-2 text-xs text-ink/40">
-                Messages are for your record for now. {client.first_name || "Your client"} will see
-                them once client portals launch. Documents go out by email today.
+              <p className="mt-2 text-[11px] text-[#b3b1aa]">
+                Messages are for your record for now. {client.first_name || "Your client"} will see them once
+                client portals launch. Documents go out by email today.
               </p>
             </div>
           </section>
 
           {/* Client panel */}
-          <aside className="[&>section]:mt-0 [&_form]:!grid-cols-1">
+          <aside className="border-t border-[#ecebe6] bg-white px-5 py-6 lg:overflow-y-auto lg:border-l lg:border-t-0">
             <JacketDetails client={client} />
             <DealPanel
               clientId={client.id}
