@@ -7,6 +7,7 @@ import JacketDetails from "./jacket-details"
 import SendDocument from "./send-document"
 import { sendMessage, resendDocument } from "./actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
+import DealPanel, { type Offer, type Note } from "./deal-panel"
 
 export const dynamic = "force-dynamic"
 
@@ -18,6 +19,9 @@ type Client = {
   phone: string | null
   address: string | null
   created_at: string
+  client_type: string | null
+  budget_min: number | null
+  budget_max: number | null
 }
 
 type Message = {
@@ -55,6 +59,9 @@ const ERRORS: Record<string, string> = {
   msg: "Couldn't send that message. Please try again.",
   task: "Couldn't update that task. Please try again.",
   collected: "Couldn't update that document. Please try again.",
+  deal: "Couldn't save the buying range. Please try again.",
+  offer: "Couldn't save that offer. Add a property address and try again.",
+  note: "Couldn't save that note. Please try again.",
 }
 
 export default async function ClientJacket({
@@ -82,7 +89,7 @@ export default async function ClientJacket({
 
   const { data } = await supabase
     .from("clients")
-    .select("id, first_name, last_name, email, phone, address, created_at")
+    .select("id, first_name, last_name, email, phone, address, created_at, client_type, budget_min, budget_max")
     .eq("id", id)
     .maybeSingle()
   const client = data as Client | null
@@ -94,6 +101,8 @@ export default async function ClientJacket({
     { data: tplData },
     { data: taskData },
     { data: colData },
+    { data: offerData },
+    { data: noteData },
   ] = await Promise.all([
     supabase
       .from("messages")
@@ -119,12 +128,24 @@ export default async function ClientJacket({
       .select("id, title, received")
       .eq("client_id", id)
       .order("created_at", { ascending: true }),
+    supabase
+      .from("offers")
+      .select("id, property_address, amount, other_agent_name, other_agent_email")
+      .eq("client_id", id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("client_notes")
+      .select("id, body, created_at")
+      .eq("client_id", id)
+      .order("created_at", { ascending: false }),
   ])
   const messages = (msgData ?? []) as Message[]
   const docs = new Map(((docData ?? []) as Doc[]).map((d) => [d.id, d]))
   const templates = (tplData ?? []) as { id: string; title: string; body: string }[]
   const tasks = (taskData ?? []) as Task[]
   const collected = (colData ?? []) as Collected[]
+  const offers = (offerData ?? []) as Offer[]
+  const notes = (noteData ?? []) as Note[]
 
   const name = `${client.first_name} ${client.last_name}`.trim() || "Client"
   const fmt = new Intl.DateTimeFormat("en-US", {
@@ -264,6 +285,15 @@ export default async function ClientJacket({
           {/* Client panel */}
           <aside className="[&>section]:mt-0 [&_form]:!grid-cols-1">
             <JacketDetails client={client} />
+            <DealPanel
+              clientId={client.id}
+              clientType={client.client_type}
+              budgetMin={client.budget_min}
+              budgetMax={client.budget_max}
+              offers={offers}
+              notes={notes}
+              timezone={agent.timezone}
+            />
           </aside>
         </div>
       </main>
