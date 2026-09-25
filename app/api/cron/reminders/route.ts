@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { formatSlot } from "@/lib/slots"
-import { sendEmail, clientReminderEmail } from "@/lib/email"
+import { sendEmail, clientReminderEmail, manageUrl } from "@/lib/email"
 
 // Runs once a day (see vercel.json). Finds consultations starting roughly
 // 12 to 36 hours from now that haven't had a reminder yet, and emails each
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 
   const { data: bookings, error } = await admin
     .from("bookings")
-    .select("id, agent_id, first_name, email, meeting_type, slot_start")
+    .select("id, agent_id, first_name, email, meeting_type, slot_start, manage_token")
     .gte("slot_start", from)
     .lt("slot_start", to)
     .is("reminder_sent_at", null)
@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
       meetingType: b.meeting_type as string,
       agentPhone: agent.public_phone || undefined,
       agentEmail: agent.public_email || undefined,
+      manageUrl: b.manage_token ? manageUrl(b.manage_token as string) : undefined,
     })
     const ok = await sendEmail({
       to: b.email as string,
