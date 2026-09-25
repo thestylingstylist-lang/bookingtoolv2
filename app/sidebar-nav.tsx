@@ -93,14 +93,16 @@ export default function SidebarNav({ collapsed = false }: { collapsed?: boolean 
             <Link
               key={item.href}
               href={item.href}
-              title={item.label}
               aria-label={item.label}
               className={
-                "flex h-10 w-10 items-center justify-center rounded-lg transition-colors " +
+                "group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors " +
                 (active ? "bg-white text-[#141210]" : "text-white/60 hover:bg-white/10 hover:text-white")
               }
             >
               <Icon href={item.href} />
+              <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-white px-2.5 py-1 text-xs font-medium text-[#141210] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                {item.label}
+              </span>
             </Link>
           )
         }
