@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import RowMenu from "@/app/row-menu"
+import { deleteClient } from "./actions"
 
 type Client = {
   id: string
@@ -31,12 +33,20 @@ export default function ClientRow({ client }: { client: Client }) {
       </td>
       <td className="px-5 py-4 text-ink/60">{client.address || "\u2014"}</td>
       <td className="px-5 py-4 whitespace-nowrap text-right">
+        <div className="inline-flex items-center gap-1">
         <Link
           href={`/clients/${client.id}`}
           className="rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ink hover:text-paper"
         >
           Open
         </Link>
+        <RowMenu
+          action={deleteClient}
+          id={client.id}
+          label={name}
+          confirmText={`Delete ${name}? This removes their checklist, documents, messages and uploads. It can't be undone.`}
+        />
+        </div>
       </td>
     </tr>
   )
