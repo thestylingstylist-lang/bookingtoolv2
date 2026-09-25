@@ -162,6 +162,14 @@ export default function LeftColumn({
                   View
                 </a>
               )}
+              {d.file_path && (
+                <a
+                  href={`/clients/${clientId}/file/${d.id}?download=1`}
+                  className="text-[11px] text-sage underline-offset-2 hover:underline"
+                >
+                  Download
+                </a>
+              )}
               <form action={toggleCollected}>
                 <Hidden clientId={clientId} id={d.id} />
                 <input type="hidden" name="received" value={d.received ? "0" : "1"} />
