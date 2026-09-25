@@ -6,6 +6,7 @@ import AppShell from "@/app/app-shell"
 import JacketDetails from "./jacket-details"
 import SendDocument from "./send-document"
 import { sendMessage, resendDocument } from "./actions"
+import { sendPortalLink } from "./portal-actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
 import { PHASES, phaseIndex, toPhase } from "@/lib/phases"
@@ -24,6 +25,7 @@ type Client = {
   budget_min: number | null
   budget_max: number | null
   phase: string | null
+  portal_token: string | null
 }
 
 type Message = {
@@ -53,6 +55,9 @@ const BANNERS: Record<string, { text: string; ok: boolean }> = {
     text: "The document is in the thread, but the email didn't go out. Try Resend.",
     ok: false,
   },
+  portalsent: { text: "Portal link sent. Your client can open their page from the email.", ok: true },
+  portalnoemail: { text: "This client has no email. Add one in Details, then send the portal link.", ok: false },
+  portalfail: { text: "The portal link email didn't go out. Please try again.", ok: false },
 }
 
 const ERRORS: Record<string, string> = {
@@ -97,7 +102,7 @@ export default async function ClientJacket({
 
   const { data } = await supabase
     .from("clients")
-    .select("id, first_name, last_name, email, phone, address, created_at, client_type, budget_min, budget_max, phase")
+    .select("id, first_name, last_name, email, phone, address, created_at, client_type, budget_min, budget_max, phase, portal_token")
     .eq("id", id)
     .maybeSingle()
   const client = data as Client | null
@@ -188,6 +193,25 @@ export default async function ClientJacket({
             <h1 className="truncate text-[15px] font-semibold">{name}</h1>
             <p className="text-xs text-[#8c8a83]">{client.phone || client.email || "\u00a0"}</p>
           </div>
+          {client.portal_token && (
+            <a
+              href={`/portal/${client.portal_token}`}
+              target="_blank"
+              rel="noopener"
+              className="text-xs text-[#8c8a83] underline-offset-2 hover:text-ink hover:underline"
+            >
+              Preview portal
+            </a>
+          )}
+          <form action={sendPortalLink}>
+            <input type="hidden" name="clientId" value={client.id} />
+            <button
+              type="submit"
+              className="rounded-[10px] bg-ink px-3.5 py-2 text-xs font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              Send portal link
+            </button>
+          </form>
           <Link
             href="/clients"
             className="text-xs text-[#8c8a83] underline-offset-2 hover:text-ink hover:underline"
@@ -342,8 +366,7 @@ export default async function ClientJacket({
                 </button>
               </form>
               <p className="mt-2 text-[11px] text-[#b3b1aa]">
-                Messages are for your record for now. {client.first_name || "Your client"} will see them once
-                client portals launch. Documents go out by email today.
+                {client.first_name || "Your client"} sees these messages on their portal and can reply there.
               </p>
             </div>
           </section>
