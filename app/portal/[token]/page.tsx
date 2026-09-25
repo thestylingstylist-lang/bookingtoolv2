@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { PHASES, phaseIndex, toPhase, toOwner, OWNER_LABEL_CLIENT } from "@/lib/phases"
 import { clientSendMessage } from "./actions"
+import UploadButton from "./upload-button"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Your home search", robots: { index: false, follow: false } }
@@ -64,7 +65,7 @@ export default async function Portal({
         .order("created_at", { ascending: true }),
       admin
         .from("collected_docs")
-        .select("id, title, received")
+        .select("id, title, received, file_path")
         .eq("client_id", client.id)
         .order("created_at", { ascending: true }),
       admin
@@ -222,9 +223,11 @@ export default async function Portal({
                   <div key={d.id} className="flex items-center justify-between border-b border-[#ecebe6] py-2 text-[13.5px] last:border-0">
                     <span>{d.title}</span>
                     {d.received ? (
-                      <span className="rounded-full bg-[#e4ece7] px-2 py-0.5 text-[10.5px] text-[#5f7266]">Received</span>
+                      <span className="rounded-full bg-[#e4ece7] px-2 py-0.5 text-[10.5px] text-[#5f7266]">
+                        {d.file_path ? "Sent" : "Received"}
+                      </span>
                     ) : (
-                      <span className="rounded-full bg-[#f6f4ee] px-2 py-0.5 text-[10.5px] text-[#8a7872]">Needed</span>
+                      <UploadButton token={token} docId={d.id} />
                     )}
                   </div>
                 ))}
