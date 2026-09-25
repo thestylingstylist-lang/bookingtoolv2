@@ -20,7 +20,7 @@ type Client = {
 export default async function ClientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ added?: string; updated?: string; error?: string }>
+  searchParams: Promise<{ added?: string; updated?: string; deleted?: string; error?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -60,6 +60,16 @@ export default async function ClientsPage({
         {params.updated && (
           <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
             Client updated.
+          </p>
+        )}
+        {params.deleted && (
+          <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+            Client deleted.
+          </p>
+        )}
+        {params.error === "delete" && (
+          <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
+            Couldn&rsquo;t delete that client. Please try again.
           </p>
         )}
         {params.error === "name" && (
@@ -118,7 +128,7 @@ export default async function ClientsPage({
             </p>
           </div>
         ) : (
-          <div className="mt-8 overflow-hidden rounded-2xl border border-ink/10 bg-white/50">
+          <div className="mt-8 rounded-2xl border border-ink/10 bg-white/50">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-ink/10 text-ink/50">
                 <tr>
