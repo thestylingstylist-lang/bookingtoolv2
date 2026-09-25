@@ -59,6 +59,14 @@ export async function sendEmail(args: SendArgs): Promise<boolean> {
 
 // ---- Templates -------------------------------------------------------------
 
+// Private link a client uses to reschedule or cancel their own booking.
+export function manageUrl(token: string) {
+  return `https://marvberry.com/manage/${token}`
+}
+
+const manageBlock = (url: string) =>
+  `<tr><td style="padding:4px 32px 8px;"><p style="margin:0;color:#8a7872;font-size:13px;">Need a different time? <a href="${url}" style="color:#3d3230;">Reschedule or cancel</a></p></td></tr>`
+
 const wrap = (inner: string) => `<!doctype html>
 <html><body style="margin:0;padding:0;background:#f8f3ef;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f3ef;padding:32px 0;">
@@ -85,6 +93,7 @@ export function clientConfirmationEmail(opts: {
   meetingType: string
   agentPhone?: string
   agentEmail?: string
+  manageUrl?: string
 }) {
   const how =
     opts.meetingType === "phone"
@@ -109,6 +118,7 @@ export function clientConfirmationEmail(opts: {
     <tr><td style="padding:0 32px 8px;">
       <p style="margin:0;color:#3d3230;font-size:14px;line-height:1.5;">${how}</p>
     </td></tr>
+    ${opts.manageUrl ? manageBlock(opts.manageUrl) : ""}
     ${
       contact
         ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#8a7872;font-size:13px;">Questions? ${contact}</p></td></tr>`
@@ -123,7 +133,7 @@ Your consultation with ${opts.agentName} is confirmed.
 When: ${opts.whenLabel}
 Type: ${opts.meetingType === "phone" ? "Phone call" : "Video call"}
 
-${how}${contact ? `\n\nQuestions? ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
+${how}${opts.manageUrl ? `\n\nNeed a different time? Reschedule or cancel: ${opts.manageUrl}` : ""}${contact ? `\n\nQuestions? ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
 
   return { subject: `You're booked with ${opts.agentName}`, html, text }
 }
@@ -184,6 +194,7 @@ export function clientReminderEmail(opts: {
   meetingType: string
   agentPhone?: string
   agentEmail?: string
+  manageUrl?: string
 }) {
   const how =
     opts.meetingType === "phone"
@@ -208,9 +219,10 @@ export function clientReminderEmail(opts: {
     <tr><td style="padding:0 32px 8px;">
       <p style="margin:0;color:#3d3230;font-size:14px;line-height:1.5;">${how}</p>
     </td></tr>
+    ${opts.manageUrl ? manageBlock(opts.manageUrl) : ""}
     ${
       contact
-        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#8a7872;font-size:13px;">Need to change something? ${contact}</p></td></tr>`
+        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#8a7872;font-size:13px;">Questions? ${contact}</p></td></tr>`
         : `<tr><td style="height:20px;"></td></tr>`
     }
   `)
@@ -222,7 +234,109 @@ A quick reminder about your consultation with ${opts.agentName}.
 When: ${opts.whenLabel}
 Type: ${opts.meetingType === "phone" ? "Phone call" : "Video call"}
 
-${how}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `\n\nNeed to change something? ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
+${how}${opts.manageUrl ? `\n\nNeed a different time? Reschedule or cancel: ${opts.manageUrl}` : ""}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `\n\nQuestions? ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
 
   return { subject: `Reminder: your consultation with ${opts.agentName}`, html, text }
+}
+
+// Client: confirms a new time after they reschedule themselves.
+export function clientRescheduledEmail(opts: {
+  clientFirstName: string
+  agentName: string
+  whenLabel: string
+  meetingType: string
+  manageUrl: string
+}) {
+  const type = opts.meetingType === "phone" ? "Phone call" : "Video call"
+  const html = wrap(`
+    <tr><td style="background:#b08477;height:6px;"></td></tr>
+    <tr><td style="padding:32px 32px 8px;">
+      <h1 style="margin:0;font-size:22px;color:#1c1a19;font-family:Georgia,serif;">You're all set${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
+      <p style="margin:12px 0 0;color:#3d3230;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} has moved to a new time:</p>
+    </td></tr>
+    <tr><td style="padding:16px 32px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f8f3ef;border-radius:10px;padding:16px;">
+        ${detailRows([
+          ["When", opts.whenLabel],
+          ["Type", type],
+        ])}
+      </table>
+    </td></tr>
+    ${manageBlock(opts.manageUrl)}
+    <tr><td style="height:20px;"></td></tr>
+  `)
+  const text = `You're all set${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
+
+Your consultation with ${opts.agentName} has moved to a new time.
+
+When: ${opts.whenLabel}
+Type: ${type}
+
+Need a different time? Reschedule or cancel: ${opts.manageUrl}`
+  return { subject: `New time with ${opts.agentName}`, html, text }
+}
+
+// Client: confirms their cancellation.
+export function clientCancelledEmail(opts: {
+  clientFirstName: string
+  agentName: string
+  whenLabel: string
+  bookingUrl: string
+}) {
+  const html = wrap(`
+    <tr><td style="background:#b08477;height:6px;"></td></tr>
+    <tr><td style="padding:32px 32px 28px;">
+      <h1 style="margin:0;font-size:22px;color:#1c1a19;font-family:Georgia,serif;">Your consultation is cancelled.</h1>
+      <p style="margin:12px 0 0;color:#3d3230;font-size:15px;line-height:1.5;">Your call with ${opts.agentName} on ${opts.whenLabel} has been cancelled. If you'd like to talk another time, you can <a href="${opts.bookingUrl}" style="color:#3d3230;">book a new time here</a>.</p>
+    </td></tr>
+  `)
+  const text = `Your consultation is cancelled.
+
+Your call with ${opts.agentName} on ${opts.whenLabel} has been cancelled.
+
+Book a new time: ${opts.bookingUrl}`
+  return { subject: `Cancelled: your consultation with ${opts.agentName}`, html, text }
+}
+
+// Agent: a client moved or cancelled their own booking.
+export function agentChangeEmail(opts: {
+  kind: "rescheduled" | "cancelled"
+  clientName: string
+  clientEmail: string
+  clientPhone: string
+  oldWhenLabel: string
+  newWhenLabel?: string
+}) {
+  const moved = opts.kind === "rescheduled"
+  const rows: [string, string][] = [["Client", opts.clientName]]
+  if (moved) {
+    rows.push(["Was", opts.oldWhenLabel], ["Now", opts.newWhenLabel ?? ""])
+  } else {
+    rows.push(["Was", opts.oldWhenLabel])
+  }
+  rows.push(["Phone", opts.clientPhone], ["Email", opts.clientEmail])
+
+  const heading = moved ? "Booking rescheduled" : "Booking cancelled"
+  const line = moved
+    ? `${opts.clientName} moved their consultation to a new time.`
+    : `${opts.clientName} cancelled their consultation. The time is open again on your booking page.`
+
+  const html = wrap(`
+    <tr><td style="background:#1c1a19;height:6px;"></td></tr>
+    <tr><td style="padding:32px 32px 8px;">
+      <h1 style="margin:0;font-size:20px;color:#1c1a19;font-family:Georgia,serif;">${heading}</h1>
+      <p style="margin:10px 0 0;color:#3d3230;font-size:15px;">${line}</p>
+    </td></tr>
+    <tr><td style="padding:16px 32px 28px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f8f3ef;border-radius:10px;padding:16px;">
+        ${detailRows(rows)}
+      </table>
+    </td></tr>
+  `)
+  const text = `${heading}
+
+${line}
+
+${rows.map(([k, v]) => `${k}: ${v}`).join("\n")}`
+  return { subject: `${heading}: ${opts.clientName}`, html, text }
 }
