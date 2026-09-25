@@ -151,13 +151,13 @@ export default function LeftColumn({
         <ul className="mt-3">
           {collected.map((d) => (
             <li key={d.id} className="group flex items-center gap-2 py-2">
-              <span className="flex-1 text-sm">{d.title}</span>
+              <span className="min-w-0 flex-1 text-sm">{d.title}</span>
               {d.file_path && (
                 <a
                   href={`/clients/${clientId}/file/${d.id}`}
                   target="_blank"
                   rel="noopener"
-                  className="text-[11px] text-sage underline-offset-2 hover:underline"
+                  className="shrink-0 whitespace-nowrap text-[11px] text-sage underline-offset-2 hover:underline"
                 >
                   View
                 </a>
@@ -165,9 +165,15 @@ export default function LeftColumn({
               {d.file_path && (
                 <a
                   href={`/clients/${clientId}/file/${d.id}?download=1`}
-                  className="text-[11px] text-sage underline-offset-2 hover:underline"
+                  title="Download"
+                  aria-label={`Download ${d.title}`}
+                  className="shrink-0 text-sage hover:text-ink"
                 >
-                  Download
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 4v11" />
+                    <path d="M7 10l5 5 5-5" />
+                    <path d="M5 20h14" />
+                  </svg>
                 </a>
               )}
               <form action={toggleCollected}>
