@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 // Add a client by hand. Runs as the logged-in agent, so RLS
 // ("agent manages clients") ties the row to them automatically.
@@ -131,4 +132,77 @@ export async function updateClient(formData: FormData): Promise<void> {
     redirect(`${returnTo}?updated=1`)
   }
   redirect("/clients?updated=1")
+}
+
+// Delete a client and everything filed under them. Ownership is checked
+// through RLS first; the cleanup then runs with the admin client so no
+// linked row (messages, notes, offers, uploads) blocks the delete.
+export async function deleteClient(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect("/login")
+
+  const id = String(formData.get("id") ?? "").trim()
+  if (!id) redirect("/clients?error=delete")
+
+  const { data: owned } = await supabase
+    .from("clients")
+    .select("id, agent_id")
+    .eq("id", id)
+    .maybeSingle()
+  if (!owned || owned.agent_id !== user.id) redirect("/clients?error=delete")
+
+  const admin = createAdminClient()
+
+  // Uploaded files live under <agent>/<client>/ in the client-docs bucket.
+  const folder = `${user.id}/${id}`
+  const { data: files } = await admin.storage.from("client-docs").list(folder, { limit: 1000 })
+  if (files && files.length > 0) {
+    await admin.storage.from("client-docs").remove(files.map((f) => `${folder}/${f.name}`))
+  }
+
+  for (const table of ["messages", "client_notes", "offers", "steps", "collected_docs", "documents"]) {
+    const { error } = await admin.from(table).delete().eq("client_id", id)
+    if (error) redirect("/clients?error=delete")
+  }
+  await admin.from("bookings").update({ client_id: null }).eq("client_id", id)
+
+  const { error } = await admin.from("clients").delete().eq("id", id).eq("agent_id", user.id)
+  if (error) redirect("/clients?error=delete")
+
+  revalidatePath("/clients")
+  revalidatePath("/bookings")
+  redirect("/clients?deleted=1")
+}
+
+// Delete a booking. Agents can only read bookings under RLS, so ownership
+// is checked first and the delete runs with the admin client.
+export async function deleteBooking(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect("/login")
+
+  const id = String(formData.get("id") ?? "").trim()
+  if (!id) redirect("/bookings?error=delete")
+
+  const { data: owned } = await supabase
+    .from("bookings")
+    .select("id, agent_id")
+    .eq("id", id)
+    .maybeSingle()
+  if (!owned || owned.agent_id !== user.id) redirect("/bookings?error=delete")
+
+  const admin = createAdminClient()
+  // A client made from this booking stays; it just loses the link.
+  await admin.from("clients").update({ booking_id: null }).eq("booking_id", id)
+  const { error } = await admin.from("bookings").delete().eq("id", id).eq("agent_id", user.id)
+  if (error) redirect("/bookings?error=delete")
+
+  revalidatePath("/bookings")
+  revalidatePath("/clients")
+  redirect("/bookings?deleted=1")
 }
