@@ -80,3 +80,13 @@ export function toOwner(value: unknown): Owner {
 export function phaseIndex(p: Phase) {
   return PHASES.findIndex((x) => x.key === p)
 }
+
+// Documents the buyer hands over for the offer packet. Added to the
+// client's "Documents collected" list when they move into the Offer phase.
+// (The offer letter itself is the agent's to write, so it isn't here.)
+export const OFFER_DOCS: string[] = [
+  "Last two months of bank statements",
+  "Mortgage pre-approval letter",
+  "Last two months of pay stubs",
+  "Letter of employment",
+]
