@@ -77,6 +77,7 @@ export default function BookingForm({
   const [meetingType, setMeetingType] = useState<"phone" | "virtual">("phone")
   const [lookingTo, setLookingTo] = useState("")
   const [firstName, setFirstName] = useState("")
+  const [manageToken, setManageToken] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [pending, startTransition] = useTransition()
   const popRef = useRef<HTMLDivElement>(null)
@@ -166,8 +167,10 @@ export default function BookingForm({
     setFirstName(String(formData.get("firstName") ?? "").trim())
     startTransition(async () => {
       const res = await createBooking(slug, formData)
-      if (res.ok) setStep(3)
-      else setError(res.error)
+      if (res.ok) {
+        setManageToken(res.manageToken)
+        setStep(3)
+      } else setError(res.error)
     })
   }
 
@@ -429,6 +432,7 @@ export default function BookingForm({
           selected={selected}
           meetingType={meetingType}
           slug={slug}
+          manageToken={manageToken}
         />
       )}
     </div>
@@ -444,6 +448,7 @@ function Confirmed({
   selected,
   meetingType,
   slug,
+  manageToken,
 }: {
   firstName: string
   agent: AgentInfo
@@ -453,6 +458,7 @@ function Confirmed({
   selected: string
   meetingType: "phone" | "virtual"
   slug: string
+  manageToken: string | null
 }) {
   const event = consultationEvent({
     agentName: agent.name,
@@ -480,7 +486,7 @@ function Confirmed({
           {firstName && <span className="italic">{firstName}.</span>}
         </h2>
         <p className="text-[17px] leading-relaxed text-[#8a7872]">
-          I&rsquo;m looking forward to talking with you. Add it to your calendar so it doesn&rsquo;t slip.
+          I&rsquo;m looking forward to talking with you. A confirmation is on its way to your email.
         </p>
       </div>
 
@@ -513,9 +519,7 @@ function Confirmed({
       <div className="flex flex-col gap-4">
         <span className="text-[13px] uppercase tracking-[1px] text-[#8a7872]">What happens next</span>
         {[
-          meetingType === "phone"
-            ? "I\u2019ll call you at the number you gave me, right on time."
-            : "I\u2019ll send you the video link before our call.",
+          "You\u2019ll get a reminder the day before our call.",
           "Jot down any questions, neighborhoods, or homes you\u2019ve had your eye on.",
           "After we talk, I\u2019ll send your personalized next steps.",
         ].map((t, i) => (
@@ -528,22 +532,35 @@ function Confirmed({
         ))}
       </div>
 
-      {contact.length > 0 && (
+      {manageToken ? (
         <p className="text-sm text-[#8a7872]">
-          Need a different time? Reach me at{" "}
-          {agent.phone && (
-            <a href={`tel:${agent.phone}`} className="text-[#3d3230] underline">
-              {agent.phone}
-            </a>
-          )}
-          {agent.phone && agent.email && " or "}
-          {agent.email && (
-            <a href={`mailto:${agent.email}`} className="text-[#3d3230] underline">
-              {agent.email}
-            </a>
-          )}
-          .
+          Need a different time?{" "}
+          <a href={`/manage/${manageToken}`} className="text-[#3d3230] underline">
+            Reschedule
+          </a>{" "}
+          or{" "}
+          <a href={`/manage/${manageToken}`} className="text-[#3d3230] underline">
+            cancel
+          </a>
         </p>
+      ) : (
+        contact.length > 0 && (
+          <p className="text-sm text-[#8a7872]">
+            Need a different time? Reach me at{" "}
+            {agent.phone && (
+              <a href={`tel:${agent.phone}`} className="text-[#3d3230] underline">
+                {agent.phone}
+              </a>
+            )}
+            {agent.phone && agent.email && " or "}
+            {agent.email && (
+              <a href={`mailto:${agent.email}`} className="text-[#3d3230] underline">
+                {agent.email}
+              </a>
+            )}
+            .
+          </p>
+        )
       )}
     </div>
   )
