@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { PHASES, toPhase } from "@/lib/phases"
+import { OFFER_DOCS, PHASES, toPhase } from "@/lib/phases"
 
 // Tasks (steps table) and documents collected (collected_docs table)
 // for one client. All run as the logged-in agent under RLS.
@@ -84,6 +84,11 @@ async function seedPhase(
     .eq("phase", phase)
   if ((count ?? 0) > 0) return null
 
+  if (phase === "offer") {
+    const docError = await seedOfferDocs(supabase, userId, clientId)
+    if (docError) return docError
+  }
+
   const steps = PHASES.find((p) => p.key === phase)?.steps ?? []
   const { error } = await supabase.from("steps").insert(
     steps.map((s, position) => ({
@@ -95,6 +100,25 @@ async function seedPhase(
       position,
     }))
   )
+  return error
+}
+
+// Adds the standard offer-packet documents, skipping any already listed.
+async function seedOfferDocs(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  clientId: string
+) {
+  const { data: existing } = await supabase
+    .from("collected_docs")
+    .select("title")
+    .eq("client_id", clientId)
+  const have = new Set((existing ?? []).map((d) => d.title.trim().toLowerCase()))
+  const missing = OFFER_DOCS.filter((t) => !have.has(t.toLowerCase()))
+  if (missing.length === 0) return null
+  const { error } = await supabase
+    .from("collected_docs")
+    .insert(missing.map((title) => ({ agent_id: userId, client_id: clientId, title })))
   return error
 }
 
