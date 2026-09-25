@@ -38,7 +38,7 @@ export default function AppShell({
     <div className="flex min-h-screen">
       <aside
         className={
-          "sticky top-0 hidden h-screen shrink-0 flex-col bg-[#141210] py-6 text-white transition-[width] duration-200 sm:flex " +
+          "sticky top-0 z-40 hidden h-screen shrink-0 flex-col bg-[#141210] py-6 text-white transition-[width] duration-200 sm:flex " +
           (open ? "w-56 px-4" : "w-16 items-center px-2")
         }
       >
