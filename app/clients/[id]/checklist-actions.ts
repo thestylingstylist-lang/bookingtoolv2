@@ -86,10 +86,11 @@ async function seedPhase(
 
   const steps = PHASES.find((p) => p.key === phase)?.steps ?? []
   const { error } = await supabase.from("steps").insert(
-    steps.map((title, position) => ({
+    steps.map((s, position) => ({
       agent_id: userId,
       client_id: clientId,
-      title,
+      title: s.title,
+      owner: s.owner,
       phase,
       position,
     }))
