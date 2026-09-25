@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react"
 import { signOut } from "@/app/login/actions"
 import { type AgentRow } from "@/lib/agent"
+import { PRODUCT_NAME, SUPPORT_EMAIL } from "@/lib/support"
 import SidebarNav from "./sidebar-nav"
 
 const KEY = "mb-menu-open"
+const HELP_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`${PRODUCT_NAME} support`)}`
 
 export default function AppShell({
   agent,
@@ -52,6 +54,21 @@ export default function AppShell({
         <div className="mt-8 flex-1">
           <SidebarNav collapsed={!open} />
         </div>
+
+        {SUPPORT_EMAIL &&
+          (open ? (
+            <a
+              href={HELP_HREF}
+              className="mb-5 flex items-center gap-3 rounded-full bg-white/20 p-1.5 pr-5 transition-colors hover:bg-white/30"
+            >
+              <img src="/support-avatar.jpg" alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+              <span className="font-serif text-lg italic text-white">Need Help?</span>
+            </a>
+          ) : (
+            <a href={HELP_HREF} title="Need help?" aria-label="Need help?" className="mb-5">
+              <img src="/support-avatar.jpg" alt="" className="h-9 w-9 rounded-full object-cover" />
+            </a>
+          ))}
 
         {open && (
           <form action={signOut} className="px-3">
