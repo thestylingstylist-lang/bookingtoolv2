@@ -11,7 +11,7 @@ import {
 import { PHASES, phaseIndex, type Phase } from "@/lib/phases"
 
 export type Task = { id: string; title: string; done: boolean }
-export type Collected = { id: string; title: string; received: boolean }
+export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
 
 const inputClass =
   "min-w-0 flex-1 rounded-lg border border-[#ecebe6] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#8c8a83] focus:border-sage"
@@ -152,6 +152,16 @@ export default function LeftColumn({
           {collected.map((d) => (
             <li key={d.id} className="group flex items-center gap-2 py-2">
               <span className="flex-1 text-sm">{d.title}</span>
+              {d.file_path && (
+                <a
+                  href={`/clients/${clientId}/file/${d.id}`}
+                  target="_blank"
+                  rel="noopener"
+                  className="text-[11px] text-sage underline-offset-2 hover:underline"
+                >
+                  View
+                </a>
+              )}
               <form action={toggleCollected}>
                 <Hidden clientId={clientId} id={d.id} />
                 <input type="hidden" name="received" value={d.received ? "0" : "1"} />
@@ -179,7 +189,7 @@ export default function LeftColumn({
             Add
           </button>
         </form>
-        <p className="mt-2 text-xs text-[#8c8a83]">Tap Waiting to mark it received.</p>
+        <p className="mt-2 text-xs text-[#8c8a83]">Clients can upload these from their portal, or tap Waiting to mark one received.</p>
       </section>
     </div>
   )
