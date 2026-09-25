@@ -138,7 +138,7 @@ export default async function ClientJacket({
       .order("created_at", { ascending: true }),
     supabase
       .from("collected_docs")
-      .select("id, title, received")
+      .select("id, title, received, file_path")
       .eq("client_id", id)
       .order("created_at", { ascending: true }),
     supabase
