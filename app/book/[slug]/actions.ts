@@ -8,9 +8,10 @@ import {
   sendEmail,
   clientConfirmationEmail,
   agentNotificationEmail,
+  manageUrl,
 } from "@/lib/email"
 
-export type BookingResult = { ok: true } | { ok: false; error: string }
+export type BookingResult = { ok: true; manageToken: string | null } | { ok: false; error: string }
 
 const LOOKING_TO = ["Buy", "Sell", "Buy and sell", "Returning client"] as const
 
@@ -72,10 +73,14 @@ export async function createBooking(
 
   // Save the extra answers if the database has the columns; if the
   // columns haven't been added yet, still save the booking itself.
-  let { error } = await admin.from("bookings").insert({ ...base, looking_to: lookingTo, notes })
+  let { data: saved, error } = await admin
+    .from("bookings")
+    .insert({ ...base, looking_to: lookingTo, notes })
+    .select("id")
+    .single()
   const code = (error as { code?: string } | null)?.code
   if (error && (code === "PGRST204" || code === "42703")) {
-    ;({ error } = await admin.from("bookings").insert(base))
+    ;({ data: saved, error } = await admin.from("bookings").insert(base).select("id").single())
   }
 
   if (error) {
@@ -83,6 +88,18 @@ export async function createBooking(
       return { ok: false, error: "That time was just taken. Please pick another slot." }
     }
     return { ok: false, error: "We couldn't save your booking. Please try again." }
+  }
+
+  // The private reschedule/cancel token. Read separately so a database
+  // that hasn't had the manage_token column added still takes bookings.
+  let manageToken: string | null = null
+  if (saved?.id) {
+    const { data: tok } = await admin
+      .from("bookings")
+      .select("manage_token")
+      .eq("id", saved.id)
+      .maybeSingle()
+    manageToken = (tok as { manage_token?: string } | null)?.manage_token ?? null
   }
 
   // Booking is saved. Send the emails, but never let an email failure turn a
@@ -100,6 +117,7 @@ export async function createBooking(
       meetingType,
       agentPhone: agent.public_phone || undefined,
       agentEmail: agent.public_email || undefined,
+      manageUrl: manageToken ? manageUrl(manageToken) : undefined,
     })
     await sendEmail({
       to: email,
@@ -137,5 +155,5 @@ export async function createBooking(
     console.error("[booking] email step failed (booking still saved):", err)
   }
 
-  return { ok: true }
+  return { ok: true, manageToken }
 }
