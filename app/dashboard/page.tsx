@@ -65,6 +65,8 @@ export default async function HomePage() {
       </h1>
       <p className="mt-2 text-ink/60">This is your agenda for today.</p>
 
+      <div className="mt-5"><BookingLink slug={agent.slug} compact /></div>
+
       <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-ink/10 bg-card p-5">
           <p className="font-serif text-4xl text-ox">{clientCount ?? 0}</p>
@@ -90,11 +92,6 @@ export default async function HomePage() {
           <span className="text-sm text-sage">Start here &rarr;</span>
         </Link>
       )}
-
-      <div className="mt-6 rounded-2xl border border-ink/10 bg-card p-5">
-        <p className="text-sm text-ink/60">Your booking link — share this with clients:</p>
-        <BookingLink slug={agent.slug} />
-      </div>
 
       <div className="mt-6">
         <div className="flex items-center justify-between">
