@@ -50,7 +50,7 @@ export default async function TemplatesPage({
           </div>
           <Link
             href="/templates/new"
-            className="rounded-lg bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
           >
             New template
           </Link>

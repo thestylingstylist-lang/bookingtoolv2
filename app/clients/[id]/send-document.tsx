@@ -31,7 +31,7 @@ export default function SendDocument({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-ink/20 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-ink hover:text-paper"
+        className="rounded-lg border border-ink/20 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-ox hover:text-paper"
       >
         Send a document
       </button>
@@ -104,7 +104,7 @@ export default function SendDocument({
 
       <button
         type="submit"
-        className="mt-4 rounded-lg bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+        className="mt-4 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
       >
         Send for signature
       </button>

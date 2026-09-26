@@ -150,7 +150,7 @@ export default function TemplateEditor({
 
       <button
         type="submit"
-        className="mt-6 rounded-lg bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+        className="mt-6 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
       >
         Save template
       </button>

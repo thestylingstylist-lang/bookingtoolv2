@@ -28,7 +28,7 @@ export default function SignupForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-ink px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-xl bg-ox px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Creating your account\u2026" : "Get started free"}
       </button>

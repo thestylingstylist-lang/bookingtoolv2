@@ -103,17 +103,17 @@ export default async function Portal({
   const firstName = client.first_name?.trim() || ""
 
   return (
-    <main className="min-h-screen bg-[#f6f4ee] text-[#3d3230]">
+    <main className="min-h-screen bg-[#f5f0e8] text-[#2b1a1c]">
       <div className="mx-auto max-w-[980px] px-5 pb-8 pt-5">
         {/* Agent */}
-        <div className="flex items-center justify-between border-b border-[#ecebe6] pb-3.5">
+        <div className="flex items-center justify-between border-b border-[#e6dbd0] pb-3.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-[38px] w-[38px] items-center justify-center rounded-full bg-[#f2e4dd] font-serif text-base text-[#8a6a5f]">
+            <div className="flex h-[38px] w-[38px] items-center justify-center rounded-full bg-[#f3e7e3] font-serif text-base text-[#7a2a36]">
               {agentInitials}
             </div>
             <div>
               <p className="text-sm font-semibold">{agentName}</p>
-              <p className="text-[11.5px] text-[#8a7872]">
+              <p className="text-[11.5px] text-[#8a6f6c]">
                 Your agent{agent?.business_name && agent.full_name ? ` · ${agent.business_name}` : ""}
               </p>
             </div>
@@ -124,11 +124,11 @@ export default async function Portal({
           <h1 className="font-serif text-[26px] leading-tight sm:text-[30px]">
             Hi{firstName ? ` ${firstName}` : ""}, here&rsquo;s where your home search stands.
           </h1>
-          <p className="mt-1 text-[13.5px] text-[#8a7872]">Everything about your search, in one place.</p>
+          <p className="mt-1 text-[13.5px] text-[#8a6f6c]">Everything about your search, in one place.</p>
         </div>
 
         {/* Tracker */}
-        <div className="flex items-center rounded-xl border border-[#ecebe6] bg-white px-4 py-[11px]">
+        <div className="flex items-center rounded-xl border border-[#e6dbd0] bg-white px-4 py-[11px]">
           {PHASES.map((p, idx) => (
             <div key={p.key} className={`flex items-center ${idx < PHASES.length - 1 ? "flex-1" : ""}`}>
               <div className="flex items-center gap-2">
@@ -137,15 +137,15 @@ export default async function Portal({
                     idx < pi
                       ? "border-[#5f7266] bg-[#5f7266] text-white"
                       : idx === pi
-                        ? "border-[#3d3230] bg-[#3d3230] text-white"
-                        : "border-[#d9d7d0] bg-white text-[#8a7872]"
+                        ? "border-[#2b1a1c] bg-[#2b1a1c] text-white"
+                        : "border-[#d9c9bc] bg-white text-[#8a6f6c]"
                   }`}
                 >
                   {idx < pi ? "✓" : idx + 1}
                 </span>
-                <span className={`text-xs sm:text-[13px] ${idx === pi ? "font-semibold" : "text-[#8a7872]"}`}>{p.label}</span>
+                <span className={`text-xs sm:text-[13px] ${idx === pi ? "font-semibold" : "text-[#8a6f6c]"}`}>{p.label}</span>
               </div>
-              {idx < PHASES.length - 1 && <div className="mx-2 h-[1.5px] flex-1 bg-[#e4e2dc] sm:mx-3.5" />}
+              {idx < PHASES.length - 1 && <div className="mx-2 h-[1.5px] flex-1 bg-[#e3d7cb] sm:mx-3.5" />}
             </div>
           ))}
         </div>
@@ -165,32 +165,32 @@ export default async function Portal({
                     : `You're all caught up. ${agentFirst} will let you know what's next.`}
               </p>
               {mine && (
-                <a href="#messages" className="inline-block rounded-[9px] bg-[#3d3230] px-[15px] py-2 text-[13px] font-medium text-white">
+                <a href="#messages" className="inline-block rounded-[9px] bg-[#2b1a1c] px-[15px] py-2 text-[13px] font-medium text-white">
                   Message {agentFirst}
                 </a>
               )}
             </div>
 
             {/* Progress */}
-            <div className="rounded-xl border border-[#ecebe6] bg-white px-4 py-3.5">
-              <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a7872]">Your progress</h2>
-              {steps.length === 0 && <p className="py-1.5 text-[13.5px] text-[#8a7872]">{agentFirst} is setting this up.</p>}
+            <div className="rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
+              <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a6f6c]">Your progress</h2>
+              {steps.length === 0 && <p className="py-1.5 text-[13.5px] text-[#8a6f6c]">{agentFirst} is setting this up.</p>}
               {steps.map((s) => {
                 const owner = toOwner(s.owner)
                 return (
-                  <div key={s.id} className="flex items-center gap-2.5 border-b border-[#ecebe6] py-1.5 text-[13.5px] last:border-0">
+                  <div key={s.id} className="flex items-center gap-2.5 border-b border-[#e6dbd0] py-1.5 text-[13.5px] last:border-0">
                     <span
                       className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-[1.5px] text-[9px] text-white ${
-                        s.done ? "border-[#5f7266] bg-[#5f7266]" : "border-[#d6d3cc]"
+                        s.done ? "border-[#5f7266] bg-[#5f7266]" : "border-[#d9c9bc]"
                       }`}
                     >
                       {s.done ? "✓" : ""}
                     </span>
-                    <span className={s.done ? "text-[#8a7872]" : ""}>{clientWording(s.title, agentFirst)}</span>
+                    <span className={s.done ? "text-[#8a6f6c]" : ""}>{clientWording(s.title, agentFirst)}</span>
                     {!s.done && (
                       <span
                         className={`ml-auto whitespace-nowrap rounded-full px-2 py-0.5 text-[10.5px] ${
-                          owner === "client" ? "bg-[#eaf4ec] text-[#3f7a52]" : "bg-[#f6f4ee] text-[#8a7872]"
+                          owner === "client" ? "bg-[#eaf4ec] text-[#3f7a52]" : "bg-[#f5f0e8] text-[#8a6f6c]"
                         }`}
                       >
                         {owner === "agent" ? agentFirst : OWNER_LABEL_CLIENT[owner]}
@@ -203,16 +203,16 @@ export default async function Portal({
 
             {/* Documents */}
             {(signed.length > 0 || toSign.length > 0 || collected.length > 0) && (
-              <div className="rounded-xl border border-[#ecebe6] bg-white px-4 py-3.5">
-                <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a7872]">Your documents</h2>
+              <div className="rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
+                <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a6f6c]">Your documents</h2>
                 {toSign.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between border-b border-[#ecebe6] py-2 text-[13.5px]">
+                  <div key={d.id} className="flex items-center justify-between border-b border-[#e6dbd0] py-2 text-[13.5px]">
                     <span>{d.title}</span>
                     <span className="rounded-full bg-[#eaf4ec] px-2 py-0.5 text-[10.5px] text-[#3f7a52]">Check your email to sign</span>
                   </div>
                 ))}
                 {signed.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between border-b border-[#ecebe6] py-2 text-[13.5px]">
+                  <div key={d.id} className="flex items-center justify-between border-b border-[#e6dbd0] py-2 text-[13.5px]">
                     <span>{d.title}</span>
                     <span className="rounded-full bg-[#e4ece7] px-2 py-0.5 text-[10.5px] text-[#5f7266]">
                       Signed{d.signed_at ? ` ${fmtDay.format(new Date(d.signed_at))}` : ""}
@@ -220,7 +220,7 @@ export default async function Portal({
                   </div>
                 ))}
                 {collected.map((d) => (
-                  <div key={d.id} className="flex items-center justify-between border-b border-[#ecebe6] py-2 text-[13.5px] last:border-0">
+                  <div key={d.id} className="flex items-center justify-between border-b border-[#e6dbd0] py-2 text-[13.5px] last:border-0">
                     <span>{d.title}</span>
                     {d.received ? (
                       <span className="rounded-full bg-[#e4ece7] px-2 py-0.5 text-[10.5px] text-[#5f7266]">
@@ -236,13 +236,13 @@ export default async function Portal({
           </div>
 
           {/* Messages */}
-          <div id="messages" className="flex flex-col rounded-xl border border-[#ecebe6] bg-white px-4 py-3.5">
-            <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a7872]">
+          <div id="messages" className="flex flex-col rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
+            <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a6f6c]">
               Messages with {agentFirst}
             </h2>
             <div className="flex min-h-[220px] flex-1 flex-col justify-end gap-1.5">
               {messages.length === 0 && (
-                <p className="text-center text-[13px] text-[#8a7872]">Say hi to {agentFirst} below.</p>
+                <p className="text-center text-[13px] text-[#8a6f6c]">Say hi to {agentFirst} below.</p>
               )}
               {messages.map((m) => {
                 const me = m.sender === "client"
@@ -250,12 +250,12 @@ export default async function Portal({
                   <div key={m.id} className={`flex flex-col ${me ? "items-end" : "items-start"}`}>
                     <div
                       className={`max-w-[78%] whitespace-pre-wrap rounded-[14px] px-[13px] py-[9px] text-[13.5px] leading-relaxed ${
-                        me ? "rounded-br-[4px] bg-[#e7d3c7]" : "rounded-bl-[4px] bg-[#f6f4ee]"
+                        me ? "rounded-br-[4px] bg-[#efe0dc]" : "rounded-bl-[4px] bg-[#f5f0e8]"
                       }`}
                     >
                       {m.body}
                     </div>
-                    <span className="mb-1 mt-0.5 text-[10.5px] text-[#b5a59f]">{fmt.format(new Date(m.created_at))}</span>
+                    <span className="mb-1 mt-0.5 text-[10.5px] text-[#b39e9a]">{fmt.format(new Date(m.created_at))}</span>
                   </div>
                 )
               })}
@@ -263,16 +263,16 @@ export default async function Portal({
             {sp.error === "msg" && (
               <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800">That didn&rsquo;t send. Please try again.</p>
             )}
-            <form action={clientSendMessage} className="mt-2.5 flex gap-2 border-t border-[#ecebe6] pt-2.5">
+            <form action={clientSendMessage} className="mt-2.5 flex gap-2 border-t border-[#e6dbd0] pt-2.5">
               <input type="hidden" name="token" value={token} />
               <textarea
                 name="body"
                 rows={1}
                 required
                 placeholder={`Message ${agentFirst}…`}
-                className="flex-1 resize-none rounded-[9px] border border-[#ecebe6] bg-[#f6f4ee] px-3 py-2 text-[13.5px] outline-none placeholder:text-[#8a7872] focus:bg-white"
+                className="flex-1 resize-none rounded-[9px] border border-[#e6dbd0] bg-[#f5f0e8] px-3 py-2 text-[13.5px] outline-none placeholder:text-[#8a6f6c] focus:bg-white"
               />
-              <button type="submit" className="rounded-[9px] bg-[#3d3230] px-[15px] py-2 text-[13px] font-medium text-white hover:opacity-90">
+              <button type="submit" className="rounded-[9px] bg-[#2b1a1c] px-[15px] py-2 text-[13px] font-medium text-white hover:opacity-90">
                 Send
               </button>
             </form>

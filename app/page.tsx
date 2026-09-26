@@ -12,7 +12,7 @@ export default function Home() {
           </Link>
           <Link
             href="/signup"
-            className="rounded-xl bg-ink px-5 py-2.5 font-medium text-paper transition-opacity hover:opacity-90"
+            className="rounded-xl bg-ox px-5 py-2.5 font-medium text-paper transition-opacity hover:opacity-90"
           >
             Get started
           </Link>
@@ -54,7 +54,7 @@ export default function Home() {
       </section>
 
       {/* The turn */}
-      <section className="rounded-3xl bg-ink px-8 py-16 text-paper sm:px-14">
+      <section className="rounded-3xl bg-ox px-8 py-16 text-paper sm:px-14">
         <h2 className="max-w-3xl font-serif text-3xl leading-tight sm:text-5xl">
           What if your booking link was the front door to the whole deal?
         </h2>
@@ -139,7 +139,7 @@ function CTA() {
       <div className="flex flex-wrap items-center gap-4">
         <Link
           href="/signup"
-          className="rounded-xl bg-ink px-7 py-4 text-base font-medium text-paper transition-opacity hover:opacity-90"
+          className="rounded-xl bg-ox px-7 py-4 text-base font-medium text-paper transition-opacity hover:opacity-90"
         >
           Get started free
         </Link>

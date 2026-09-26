@@ -5,10 +5,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#14201c",
-        paper: "#f6f4ee",
-        brass: "#9a7b3f",
+        ink: "#2b1a1c",
+        paper: "#f5f0e8",
+        brass: "#9a5a62",
         sage: "#5f7266",
+        ox: "#5c0a17",
       },
       fontFamily: {
         serif: ['"Iowan Old Style"', 'Palatino', '"Palatino Linotype"', 'Georgia', 'serif'],

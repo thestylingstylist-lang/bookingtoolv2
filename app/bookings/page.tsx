@@ -146,7 +146,7 @@ export default async function BookingsPage({
                           <input type="hidden" name="bookingId" value={b.id} />
                           <button
                             type="submit"
-                            className="rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ink hover:text-paper"
+                            className="rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ox hover:text-paper"
                           >
                             Add as client
                           </button>

@@ -44,28 +44,28 @@ export default async function SignPage({
       : ""
 
   return (
-    <main className="min-h-screen bg-[#f8f3ef] px-5 py-12 text-[#3d3230]">
+    <main className="min-h-screen bg-[#f5f0e8] px-5 py-12 text-[#2b1a1c]">
       <div className="mx-auto max-w-2xl">
-        <p className="text-sm text-[#8a7872]">
+        <p className="text-sm text-[#8a6f6c]">
           From {from}
           {agent?.business_name && agent.full_name ? ` · ${agent.business_name}` : ""}
         </p>
-        <h1 className="mt-2 font-serif text-3xl text-[#1c1a19]">{doc.title}</h1>
+        <h1 className="mt-2 font-serif text-3xl text-[#2b1a1c]">{doc.title}</h1>
 
-        <article className="mt-8 whitespace-pre-wrap rounded-2xl border border-[#ece5df] bg-white p-7 text-[15px] leading-relaxed">
+        <article className="mt-8 whitespace-pre-wrap rounded-2xl border border-[#e8ddd2] bg-white p-7 text-[15px] leading-relaxed">
           {doc.body}
         </article>
 
         {signed ? (
-          <div className="mt-8 rounded-2xl bg-[#f2e4dd] p-6">
-            <p className="font-serif text-xl text-[#1c1a19]">Signed. Thank you.</p>
+          <div className="mt-8 rounded-2xl bg-[#f3e7e3] p-6">
+            <p className="font-serif text-xl text-[#2b1a1c]">Signed. Thank you.</p>
             <p className="mt-2 text-sm">
               Signed by <strong>{doc.signer_name}</strong> on {signedLabel}. {from} has been
               notified.
             </p>
           </div>
         ) : (
-          <form action={signDocument} className="mt-8 rounded-2xl border border-[#ece5df] bg-white p-7">
+          <form action={signDocument} className="mt-8 rounded-2xl border border-[#e8ddd2] bg-white p-7">
             <input type="hidden" name="token" value={token} />
             {sp.error && (
               <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -74,13 +74,13 @@ export default async function SignPage({
                   : "Type your full name and check the box to sign."}
               </p>
             )}
-            <label className="block text-sm text-[#8a7872]">Type your full legal name</label>
+            <label className="block text-sm text-[#8a6f6c]">Type your full legal name</label>
             <input
               name="fullName"
               required
               minLength={2}
               autoComplete="name"
-              className="mt-2 w-full rounded-lg border border-[#d8bfb3] bg-white px-4 py-3 font-serif text-xl outline-none focus:border-[#b08477]"
+              className="mt-2 w-full rounded-lg border border-[#d4bcb6] bg-white px-4 py-3 font-serif text-xl outline-none focus:border-[#7a2a36]"
             />
             <label className="mt-5 flex items-start gap-3 text-sm">
               <input type="checkbox" name="agree" required className="mt-1" />
@@ -91,11 +91,11 @@ export default async function SignPage({
             </label>
             <button
               type="submit"
-              className="mt-6 w-full rounded-lg bg-[#3d3230] px-6 py-3.5 text-base text-white transition-opacity hover:opacity-90"
+              className="mt-6 w-full rounded-lg bg-[#2b1a1c] px-6 py-3.5 text-base text-white transition-opacity hover:opacity-90"
             >
               Sign
             </button>
-            <p className="mt-3 text-center text-xs text-[#8a7872]">
+            <p className="mt-3 text-center text-xs text-[#8a6f6c]">
               Your name, the date and time, and your IP address are recorded with your signature.
             </p>
           </form>

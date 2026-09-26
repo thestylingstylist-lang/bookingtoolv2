@@ -184,7 +184,7 @@ export default function BookingForm({
     return (
       <div className="flex flex-col gap-3 pt-6">
         <h2 style={SERIF} className="text-4xl leading-none">No open times right now.</h2>
-        <p className="text-[15px] leading-relaxed text-[#8a7872]">Please check back soon.</p>
+        <p className="text-[15px] leading-relaxed text-[#8a6f6c]">Please check back soon.</p>
       </div>
     )
   }
@@ -200,17 +200,17 @@ export default function BookingForm({
               <h2 style={SERIF} className="text-[40px] font-medium leading-none sm:text-[48px]">
                 Consultation call
               </h2>
-              <span className="flex items-center gap-2 text-[15px] text-[#8a7872]">
+              <span className="flex items-center gap-2 text-[15px] text-[#8a6f6c]">
                 <ClockIcon />
                 {minutes} minutes
               </span>
             </div>
             <div className="flex flex-col gap-2.5 sm:items-end">
-              <label className="relative w-fit text-sm text-[#8a7872]">
+              <label className="relative w-fit text-sm text-[#8a6f6c]">
                 <select
                   value={tz}
                   onChange={(e) => setTz(e.target.value)}
-                  className="cursor-pointer appearance-none bg-transparent pr-5 text-sm text-[#8a7872] outline-none"
+                  className="cursor-pointer appearance-none bg-transparent pr-5 text-sm text-[#8a6f6c] outline-none"
                   aria-label="Timezone"
                 >
                   {Array.from(new Set([tz, agentTz, ...Object.keys(TZ_NAMES)])).map((z) => (
@@ -221,7 +221,7 @@ export default function BookingForm({
                 </select>
                 <span className="pointer-events-none absolute right-0 top-0">▾</span>
               </label>
-              <label className="relative flex w-fit cursor-pointer items-center gap-3 rounded-[10px] border border-[#eadbd3] bg-white px-4 py-2.5 text-[15px]">
+              <label className="relative flex w-fit cursor-pointer items-center gap-3 rounded-[10px] border border-[#e6d6cc] bg-white px-4 py-2.5 text-[15px]">
                 {active ? fmt(active.slots[0].startISO, tz, { month: "short", day: "numeric", year: "numeric" }) : ""}
                 <CalendarIcon />
                 <input
@@ -241,7 +241,7 @@ export default function BookingForm({
             <p style={SERIF} className="text-[28px] leading-none">
               {visible[0]?.month}
             </p>
-            <div className="relative grid grid-cols-[22px_minmax(0,1fr)_22px] items-center gap-3 border-y border-[#eadbd3] py-4 sm:gap-3.5">
+            <div className="relative grid grid-cols-[22px_minmax(0,1fr)_22px] items-center gap-3 border-y border-[#e6d6cc] py-4 sm:gap-3.5">
               <button
                 type="button"
                 aria-label="Earlier dates"
@@ -250,7 +250,7 @@ export default function BookingForm({
                   setPage(safePage - 1)
                   setOpen(false)
                 }}
-                className="text-[#1c1a19] disabled:text-[#d6c6bf]"
+                className="text-[#2b1a1c] disabled:text-[#d9c9bc]"
               >
                 <Chevron dir="left" />
               </button>
@@ -277,8 +277,8 @@ export default function BookingForm({
                       className={
                         "flex h-20 flex-col items-center justify-center gap-1 rounded-[14px] border-[1.5px] transition-colors sm:h-24 " +
                         (isActive
-                          ? "border-[#1c1a19] bg-[#1c1a19] text-white"
-                          : "border-[#1c1a19] text-[#3d3230] hover:bg-[var(--accent-soft)]")
+                          ? "border-[#5c0a17] bg-[#5c0a17] text-white"
+                          : "border-[#5c0a17] text-[#2b1a1c] hover:bg-[var(--accent-soft)]")
                       }
                     >
                       <span className="text-2xl sm:text-[30px]">{d.num}</span>
@@ -296,7 +296,7 @@ export default function BookingForm({
                   setPage(safePage + 1)
                   setOpen(false)
                 }}
-                className="text-[#1c1a19] disabled:text-[#d6c6bf]"
+                className="text-[#2b1a1c] disabled:text-[#d9c9bc]"
               >
                 <Chevron dir="right" />
               </button>
@@ -306,7 +306,7 @@ export default function BookingForm({
                   ref={popRef}
                   role="dialog"
                   aria-label={`Times on ${active.weekday} ${active.num}`}
-                  className="z-20 col-span-3 flex w-full sm:absolute sm:top-[calc(100%-4px)] sm:col-span-1 flex-col gap-3 rounded-[14px] border border-[#eadbd3] bg-white p-4 shadow-[0_18px_40px_rgba(60,50,40,0.12)] sm:w-[280px] sm:p-[18px]"
+                  className="z-20 col-span-3 flex w-full sm:absolute sm:top-[calc(100%-4px)] sm:col-span-1 flex-col gap-3 rounded-[14px] border border-[#e6d6cc] bg-white p-4 shadow-[0_18px_40px_rgba(60,50,40,0.12)] sm:w-[280px] sm:p-[18px]"
                   style={
                     perPage === 7
                       ? {
@@ -325,10 +325,10 @@ export default function BookingForm({
                           onClick={() => setSelected(s.startISO)}
                           aria-pressed={on}
                           className={
-                            "flex h-12 shrink-0 items-center justify-center rounded-[10px] text-[15px] text-[#3d3230] transition-colors " +
+                            "flex h-12 shrink-0 items-center justify-center rounded-[10px] text-[15px] text-[#2b1a1c] transition-colors " +
                             (on
                               ? "border-[1.5px] border-[var(--accent)] bg-[var(--accent-soft)] font-medium"
-                              : "border border-[#eadbd3] bg-white hover:border-[var(--accent)]")
+                              : "border border-[#e6d6cc] bg-white hover:border-[var(--accent)]")
                           }
                         >
                           {timeLabel(s.startISO, tz)}
@@ -343,7 +343,7 @@ export default function BookingForm({
                       setOpen(false)
                       setStep(2)
                     }}
-                    className="mt-1.5 flex h-[52px] items-center justify-center rounded-[10px] bg-[#1c1a19] text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    className="mt-1.5 flex h-[52px] items-center justify-center rounded-[10px] bg-[#5c0a17] text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
                   >
                     Submit and next
                   </button>
@@ -351,7 +351,7 @@ export default function BookingForm({
               )}
             </div>
             {!open && (
-              <p className="text-sm text-[#8a7872]">Pick a day to see open times.</p>
+              <p className="text-sm text-[#8a6f6c]">Pick a day to see open times.</p>
             )}
           </div>
         </>
@@ -362,11 +362,11 @@ export default function BookingForm({
           <div className="flex items-center justify-between gap-4 rounded-[14px] bg-[var(--base)] px-5 py-4 sm:px-[22px]">
             <div className="flex flex-col gap-1">
               <span style={SERIF} className="text-[26px] leading-none">Consultation call</span>
-              <span className="text-[15px] text-[#8a7872]">
+              <span className="text-[15px] text-[#8a6f6c]">
                 {when} · {minutes} minutes
               </span>
             </div>
-            <button type="button" onClick={() => setStep(1)} className="text-sm text-[#3d3230] underline">
+            <button type="button" onClick={() => setStep(1)} className="text-sm text-[#2b1a1c] underline">
               Change
             </button>
           </div>
@@ -389,7 +389,7 @@ export default function BookingForm({
           />
 
           <label className="flex flex-col gap-2">
-            <span className="text-[13px] uppercase tracking-[1px] text-[#8a7872]">
+            <span className="text-[13px] uppercase tracking-[1px] text-[#8a6f6c]">
               Anything I should know? (optional)
             </span>
             <textarea
@@ -397,7 +397,7 @@ export default function BookingForm({
               rows={3}
               maxLength={1000}
               placeholder="Neighborhoods, budget, questions…"
-              className="resize-none rounded-[10px] border border-[#ece5df] bg-white px-4 py-3.5 text-[15px] outline-none placeholder:text-[#b5a7a1] focus:border-[var(--accent)]"
+              className="resize-none rounded-[10px] border border-[#e8ddd2] bg-white px-4 py-3.5 text-[15px] outline-none placeholder:text-[#b39e9a] focus:border-[var(--accent)]"
             />
           </label>
 
@@ -408,13 +408,13 @@ export default function BookingForm({
           )}
 
           <div className="flex items-center justify-between">
-            <button type="button" onClick={() => setStep(1)} className="text-[15px] text-[#8a7872]">
+            <button type="button" onClick={() => setStep(1)} className="text-[15px] text-[#8a6f6c]">
               ← Back
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="flex h-14 items-center rounded-[10px] bg-[#1c1a19] px-8 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:px-11"
+              className="flex h-14 items-center rounded-[10px] bg-[#5c0a17] px-8 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:px-11"
             >
               {pending ? "Booking…" : "Book consultation"}
             </button>
@@ -470,13 +470,13 @@ function Confirmed({
   })
   const icsHref = `/book/${slug}/ics?start=${encodeURIComponent(selected)}&type=${meetingType}`
   const calBtn =
-    "flex h-12 items-center rounded-[10px] border border-[#ece5df] bg-white px-[22px] text-[15px] text-[#3d3230] transition-colors hover:border-[var(--accent)]"
+    "flex h-12 items-center rounded-[10px] border border-[#e8ddd2] bg-white px-[22px] text-[15px] text-[#2b1a1c] transition-colors hover:border-[var(--accent)]"
   const contact = [agent.phone, agent.email].filter(Boolean)
 
   return (
     <div className="flex flex-col gap-7">
       <div className="flex flex-col gap-3.5">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1c1a19]">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#5c0a17]">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M5 12.5l4.5 4.5L19 7.5" />
           </svg>
@@ -485,7 +485,7 @@ function Confirmed({
           You&rsquo;re booked{firstName ? ", " : "."}
           {firstName && <span className="italic">{firstName}.</span>}
         </h2>
-        <p className="text-[17px] leading-relaxed text-[#8a7872]">
+        <p className="text-[17px] leading-relaxed text-[#8a6f6c]">
           I&rsquo;m looking forward to talking with you. A confirmation is on its way to your email.
         </p>
       </div>
@@ -494,13 +494,13 @@ function Confirmed({
         <span style={SERIF} className="text-[26px] leading-none">
           Consultation call with {agentFirst}
         </span>
-        <span className="text-[15px] text-[#8a7872]">
+        <span className="text-[15px] text-[#8a6f6c]">
           {when} · {minutes} minutes · {meetingType === "phone" ? "I\u2019ll call you" : "Video call"}
         </span>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <span className="mr-1.5 w-full text-[13px] uppercase tracking-[1px] text-[#8a7872] sm:w-auto">
+        <span className="mr-1.5 w-full text-[13px] uppercase tracking-[1px] text-[#8a6f6c] sm:w-auto">
           Add to calendar
         </span>
         <a href={googleCalendarUrl(event)} target="_blank" rel="noopener noreferrer" className={calBtn}>
@@ -514,10 +514,10 @@ function Confirmed({
         </a>
       </div>
 
-      <div className="h-px bg-[#ece5df]" />
+      <div className="h-px bg-[#e8ddd2]" />
 
       <div className="flex flex-col gap-4">
-        <span className="text-[13px] uppercase tracking-[1px] text-[#8a7872]">What happens next</span>
+        <span className="text-[13px] uppercase tracking-[1px] text-[#8a6f6c]">What happens next</span>
         {[
           "You\u2019ll get a reminder the day before our call.",
           "Jot down any questions, neighborhoods, or homes you\u2019ve had your eye on.",
@@ -527,34 +527,34 @@ function Confirmed({
             <span style={SERIF} className="min-w-[22px] text-[26px] leading-none text-[var(--accent)]">
               {i + 1}
             </span>
-            <span className="text-base leading-relaxed text-[#3d3230]">{t}</span>
+            <span className="text-base leading-relaxed text-[#2b1a1c]">{t}</span>
           </div>
         ))}
       </div>
 
       {manageToken ? (
-        <p className="text-sm text-[#8a7872]">
+        <p className="text-sm text-[#8a6f6c]">
           Need a different time?{" "}
-          <a href={`/manage/${manageToken}`} className="text-[#3d3230] underline">
+          <a href={`/manage/${manageToken}`} className="text-[#2b1a1c] underline">
             Reschedule
           </a>{" "}
           or{" "}
-          <a href={`/manage/${manageToken}`} className="text-[#3d3230] underline">
+          <a href={`/manage/${manageToken}`} className="text-[#2b1a1c] underline">
             cancel
           </a>
         </p>
       ) : (
         contact.length > 0 && (
-          <p className="text-sm text-[#8a7872]">
+          <p className="text-sm text-[#8a6f6c]">
             Need a different time? Reach me at{" "}
             {agent.phone && (
-              <a href={`tel:${agent.phone}`} className="text-[#3d3230] underline">
+              <a href={`tel:${agent.phone}`} className="text-[#2b1a1c] underline">
                 {agent.phone}
               </a>
             )}
             {agent.phone && agent.email && " or "}
             {agent.email && (
-              <a href={`mailto:${agent.email}`} className="text-[#3d3230] underline">
+              <a href={`mailto:${agent.email}`} className="text-[#2b1a1c] underline">
                 {agent.email}
               </a>
             )}
@@ -586,7 +586,7 @@ function Tabs({
         onClick={() => onGo(n)}
         className={
           "pb-3.5 text-[17px] font-medium " +
-          (current ? "border-b-2 border-[#1c1a19] text-[#3d3230]" : "border-b border-[#ece5df] text-[#8a7872]")
+          (current ? "border-b-2 border-[#5c0a17] text-[#2b1a1c]" : "border-b border-[#e8ddd2] text-[#8a6f6c]")
         }
       >
         {label}
@@ -609,11 +609,11 @@ function Field({
 }: { label: string; name: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-[13px] uppercase tracking-[1px] text-[#8a7872]">{label}</span>
+      <span className="text-[13px] uppercase tracking-[1px] text-[#8a6f6c]">{label}</span>
       <input
         name={name}
         {...rest}
-        className="h-[52px] rounded-[10px] border border-[#ece5df] bg-white px-4 text-[15px] text-[#3d3230] outline-none placeholder:text-[#b5a7a1] focus:border-[var(--accent)]"
+        className="h-[52px] rounded-[10px] border border-[#e8ddd2] bg-white px-4 text-[15px] text-[#2b1a1c] outline-none placeholder:text-[#b39e9a] focus:border-[var(--accent)]"
       />
     </label>
   )
@@ -634,7 +634,7 @@ function ChipGroup({
 }) {
   return (
     <div className="flex flex-col gap-2.5" role="group" aria-label={label}>
-      <span className="text-[13px] uppercase tracking-[1px] text-[#8a7872]">{label}</span>
+      <span className="text-[13px] uppercase tracking-[1px] text-[#8a6f6c]">{label}</span>
       <div className="flex flex-wrap gap-2.5">
         {options.map((o) => {
           const on = value === o
@@ -645,10 +645,10 @@ function ChipGroup({
               aria-pressed={on}
               onClick={() => onChange(on && !required ? "" : o)}
               className={
-                "flex h-11 items-center rounded-full px-5 text-[15px] text-[#3d3230] transition-colors " +
+                "flex h-11 items-center rounded-full px-5 text-[15px] text-[#2b1a1c] transition-colors " +
                 (on
                   ? "border-[1.5px] border-[var(--accent)] bg-[var(--accent-soft)] font-medium"
-                  : "border border-[#ece5df] bg-white hover:border-[var(--accent)]")
+                  : "border border-[#e8ddd2] bg-white hover:border-[var(--accent)]")
               }
             >
               {o}
@@ -662,7 +662,7 @@ function ChipGroup({
 
 function ClockIcon() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1c1a19" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5c0a17" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l3 2" />
     </svg>
@@ -671,7 +671,7 @@ function ClockIcon() {
 
 function CalendarIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1a19" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5c0a17" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
       <rect x="3" y="4" width="18" height="18" rx="2" />
       <path d="M3 9h18M8 2v4M16 2v4" />
     </svg>

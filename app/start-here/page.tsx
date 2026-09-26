@@ -90,7 +90,7 @@ export default async function StartHerePage() {
               {!isDone && (
                 <Link
                   href={step.href}
-                  className="shrink-0 rounded-lg bg-ink px-4 py-2 text-sm text-paper hover:opacity-90"
+                  className="shrink-0 rounded-lg bg-ox px-4 py-2 text-sm text-paper hover:opacity-90"
                 >
                   {step.cta}
                 </Link>

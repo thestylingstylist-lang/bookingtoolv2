@@ -113,7 +113,7 @@ export default async function ClientsPage({
           </div>
           <button
             type="submit"
-            className="mt-5 rounded-lg bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            className="mt-5 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
           >
             Add client
           </button>

@@ -117,7 +117,7 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
                   defaultChecked={agent.weekdays.includes(iso)}
                   className="peer sr-only"
                 />
-                <span className="inline-block rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/70 peer-checked:border-ink peer-checked:bg-ink peer-checked:text-paper">
+                <span className="inline-block rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/70 peer-checked:border-ox peer-checked:bg-ox peer-checked:text-paper">
                   {label}
                 </span>
               </label>
@@ -170,7 +170,7 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-ink px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="rounded-xl bg-ox px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Saving\u2026" : "Save settings"}
       </button>
@@ -240,7 +240,7 @@ function ImageField({
             name={kind}
             accept="image/png,image/jpeg,image/webp,image/gif"
             onChange={onPick}
-            className="block w-full text-sm text-ink/60 file:mr-3 file:rounded-lg file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-sm file:text-paper hover:file:opacity-90"
+            className="block w-full text-sm text-ink/60 file:mr-3 file:rounded-lg file:border-0 file:bg-ox file:px-3 file:py-1.5 file:text-sm file:text-paper hover:file:opacity-90"
           />
           {shown && (
             <button

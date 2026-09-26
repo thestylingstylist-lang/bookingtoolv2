@@ -185,20 +185,20 @@ export default async function ClientJacket({
     <AppShell agent={agent}>
       <main className="flex flex-col bg-white lg:h-screen lg:overflow-hidden">
         {/* Client header */}
-        <div className="flex items-center gap-3 border-b border-[#ecebe6] px-6 py-4">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f2e4dd] font-serif text-base text-[#8a6a5f]">
+        <div className="flex items-center gap-3 border-b border-[#e6dbd0] px-6 py-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f3e7e3] font-serif text-base text-[#7a2a36]">
             {initials(client.first_name, client.last_name)}
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-[15px] font-semibold">{name}</h1>
-            <p className="text-xs text-[#8c8a83]">{client.phone || client.email || "\u00a0"}</p>
+            <p className="text-xs text-[#8a6f6c]">{client.phone || client.email || "\u00a0"}</p>
           </div>
           {client.portal_token && (
             <a
               href={`/portal/${client.portal_token}`}
               target="_blank"
               rel="noopener"
-              className="text-xs text-[#8c8a83] underline-offset-2 hover:text-ink hover:underline"
+              className="text-xs text-[#8a6f6c] underline-offset-2 hover:text-ink hover:underline"
             >
               Preview portal
             </a>
@@ -207,21 +207,21 @@ export default async function ClientJacket({
             <input type="hidden" name="clientId" value={client.id} />
             <button
               type="submit"
-              className="rounded-[10px] bg-ink px-3.5 py-2 text-xs font-medium text-paper transition-opacity hover:opacity-90"
+              className="rounded-[10px] bg-ox px-3.5 py-2 text-xs font-medium text-paper transition-opacity hover:opacity-90"
             >
               Send portal link
             </button>
           </form>
           <Link
             href="/clients"
-            className="text-xs text-[#8c8a83] underline-offset-2 hover:text-ink hover:underline"
+            className="text-xs text-[#8a6f6c] underline-offset-2 hover:text-ink hover:underline"
           >
             &larr; All clients
           </Link>
         </div>
 
         {/* Phase tracker */}
-        <div className="flex items-center border-b border-[#ecebe6] bg-[#fcfbf9] px-6 py-4">
+        <div className="flex items-center border-b border-[#e6dbd0] bg-[#faf6f0] px-6 py-4">
           {PHASES.map((p, idx) => {
             const state = idx < pi ? "done" : idx === pi ? "now" : "later"
             return (
@@ -232,22 +232,22 @@ export default async function ClientJacket({
                       state === "done"
                         ? "border-sage bg-sage text-white"
                         : state === "now"
-                          ? "border-ink bg-ink text-white"
-                          : "border-[#d8d6cf] bg-white text-[#8c8a83]"
+                          ? "border-ink bg-ox text-white"
+                          : "border-[#d9c9bc] bg-white text-[#8a6f6c]"
                     }`}
                   >
                     {state === "done" ? "\u2713" : idx + 1}
                   </span>
                   <span
                     className={`text-[13px] ${
-                      state === "now" ? "font-semibold" : state === "done" ? "" : "text-[#8c8a83]"
+                      state === "now" ? "font-semibold" : state === "done" ? "" : "text-[#8a6f6c]"
                     }`}
                   >
                     {p.label}
                   </span>
                 </div>
                 {idx < PHASES.length - 1 && (
-                  <div className={`mx-4 h-[1.5px] flex-1 ${idx < pi ? "bg-sage" : "bg-[#e2e0d9]"}`} />
+                  <div className={`mx-4 h-[1.5px] flex-1 ${idx < pi ? "bg-sage" : "bg-[#e0d3c7]"}`} />
                 )}
               </div>
             )
@@ -256,7 +256,7 @@ export default async function ClientJacket({
 
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_300px]">
           {/* Tasks + documents collected */}
-          <div className="border-b border-[#ecebe6] bg-[#f4f3f0] px-5 py-6 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+          <div className="border-b border-[#e6dbd0] bg-[#f1ebe2] px-5 py-6 lg:overflow-y-auto lg:border-b-0 lg:border-r">
             <LeftColumn
               clientId={client.id}
               firstName={client.first_name}
@@ -276,7 +276,7 @@ export default async function ClientJacket({
                 {banner && (
                   <p
                     className={`rounded-lg px-4 py-2.5 text-sm ${
-                      banner.ok ? "bg-[#e4ece7] text-sage" : "bg-[#f0e7d6] text-brass"
+                      banner.ok ? "bg-[#e4ece7] text-sage" : "bg-[#f3e7e3] text-brass"
                     }`}
                   >
                     {banner.text}
@@ -290,7 +290,7 @@ export default async function ClientJacket({
             <div className="flex flex-1 flex-col-reverse overflow-y-auto">
               <div className="flex flex-col gap-1 px-6 py-6">
                 {messages.length === 0 && (
-                  <p className="m-auto max-w-xs py-16 text-center text-sm text-[#8c8a83]">
+                  <p className="m-auto max-w-xs py-16 text-center text-sm text-[#8a6f6c]">
                     Nothing here yet. Send the agreement to get started.
                   </p>
                 )}
@@ -300,8 +300,8 @@ export default async function ClientJacket({
                   return (
                     <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
                       {doc ? (
-                        <div className="w-full max-w-sm rounded-2xl rounded-br-[5px] border border-[#ecebe6] bg-white px-4 py-4 shadow-[0_3px_10px_rgba(0,0,0,0.04)]">
-                          <p className="text-[10px] uppercase tracking-[0.09em] text-[#8c8a83]">
+                        <div className="w-full max-w-sm rounded-2xl rounded-br-[5px] border border-[#e6dbd0] bg-white px-4 py-4 shadow-[0_3px_10px_rgba(0,0,0,0.04)]">
+                          <p className="text-[10px] uppercase tracking-[0.09em] text-[#8a6f6c]">
                             Document to sign
                           </p>
                           <p className="mt-1 font-serif text-xl">{doc.title}</p>
@@ -313,13 +313,13 @@ export default async function ClientJacket({
                               </span>
                             ) : (
                               <>
-                                <span className="rounded-full bg-[#f0e7d6] px-2.5 py-0.5 text-[11px] text-brass">
+                                <span className="rounded-full bg-[#f3e7e3] px-2.5 py-0.5 text-[11px] text-brass">
                                   Sent &middot; waiting
                                 </span>
                                 <form action={resendDocument}>
                                   <input type="hidden" name="documentId" value={doc.id} />
                                   <input type="hidden" name="clientId" value={client.id} />
-                                  <button className="text-xs text-[#8c8a83] underline hover:text-ink">
+                                  <button className="text-xs text-[#8a6f6c] underline hover:text-ink">
                                     Resend
                                   </button>
                                 </form>
@@ -330,13 +330,13 @@ export default async function ClientJacket({
                       ) : (
                         <div
                           className={`max-w-[74%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                            mine ? "rounded-br-[5px] bg-[#e7d3c7]" : "rounded-bl-[5px] bg-[#f4f3f0]"
+                            mine ? "rounded-br-[5px] bg-[#efe0dc]" : "rounded-bl-[5px] bg-[#f1ebe2]"
                           }`}
                         >
                           {m.body}
                         </div>
                       )}
-                      <span className="mx-1 mb-3 mt-1 text-[11px] text-[#b3b1aa]">
+                      <span className="mx-1 mb-3 mt-1 text-[11px] text-[#b39e9a]">
                         {fmt.format(new Date(m.created_at))}
                       </span>
                     </div>
@@ -345,7 +345,7 @@ export default async function ClientJacket({
               </div>
             </div>
 
-            <div className="border-t border-[#ecebe6] px-6 py-4">
+            <div className="border-t border-[#e6dbd0] px-6 py-4">
               <div className="mb-3">
                 <SendDocument clientId={client.id} templates={templates} />
               </div>
@@ -356,23 +356,23 @@ export default async function ClientJacket({
                   rows={1}
                   required
                   placeholder="Type a message…"
-                  className="flex-1 resize-none rounded-xl border border-[#ecebe6] bg-[#f4f3f0] px-4 py-2.5 text-sm outline-none placeholder:text-[#8c8a83] focus:border-sage focus:bg-white"
+                  className="flex-1 resize-none rounded-xl border border-[#e6dbd0] bg-[#f1ebe2] px-4 py-2.5 text-sm outline-none placeholder:text-[#8a6f6c] focus:border-sage focus:bg-white"
                 />
                 <button
                   type="submit"
-                  className="rounded-[11px] bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+                  className="rounded-[11px] bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
                 >
                   Send
                 </button>
               </form>
-              <p className="mt-2 text-[11px] text-[#b3b1aa]">
+              <p className="mt-2 text-[11px] text-[#b39e9a]">
                 {client.first_name || "Your client"} sees these messages on their portal and can reply there.
               </p>
             </div>
           </section>
 
           {/* Client panel */}
-          <aside className="border-t border-[#ecebe6] bg-white px-5 py-6 lg:overflow-y-auto lg:border-l lg:border-t-0">
+          <aside className="border-t border-[#e6dbd0] bg-white px-5 py-6 lg:overflow-y-auto lg:border-l lg:border-t-0">
             <JacketDetails client={client} />
             <DealPanel
               clientId={client.id}

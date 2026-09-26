@@ -60,7 +60,7 @@ export default function UploadButton({ token, docId }: { token: string; docId: s
         type="button"
         disabled={busy}
         onClick={() => input.current?.click()}
-        className="text-xs font-medium text-[#b08477] hover:underline disabled:opacity-60"
+        className="text-xs font-medium text-[#7a2a36] hover:underline disabled:opacity-60"
       >
         {busy ? "Uploading…" : "Upload ↑"}
       </button>

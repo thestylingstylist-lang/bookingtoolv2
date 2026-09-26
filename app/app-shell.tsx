@@ -38,7 +38,7 @@ export default function AppShell({
     <div className="flex min-h-screen">
       <aside
         className={
-          "sticky top-0 z-40 hidden h-screen shrink-0 flex-col bg-[#141210] py-6 text-white transition-[width] duration-200 sm:flex " +
+          "sticky top-0 z-40 hidden h-screen shrink-0 flex-col bg-[#5c0a17] py-6 text-white transition-[width] duration-200 sm:flex " +
           (open ? "w-56 px-4" : "w-16 items-center px-2")
         }
       >
@@ -48,7 +48,7 @@ export default function AppShell({
             <p className="mt-0.5 text-xs text-white/40">{agent.full_name}</p>
           </div>
         ) : (
-          <div className="h-9 w-9 rounded-[10px] bg-[#e7d3c7]" aria-hidden />
+          <div className="h-9 w-9 rounded-[10px] bg-[#efe0dc]" aria-hidden />
         )}
 
         <div className="mt-8 flex-1">
