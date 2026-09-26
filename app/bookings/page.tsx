@@ -100,7 +100,7 @@ export default async function BookingsPage({
       ) : (
         <div className="mt-8 overflow-x-auto rounded-2xl border border-ink/10 bg-white/50">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-ink/10 text-ink/70">
+            <thead className="border-b border-ink/10 text-ink">
               <tr>
                 <th className="px-5 py-3 font-medium">When</th>
                 <th className="px-5 py-3 font-medium">Client</th>
@@ -118,7 +118,7 @@ export default async function BookingsPage({
                 return (
                   <tr
                     key={b.id}
-                    className={"border-b border-ink/5 last:border-0 " + (past ? "text-ink/55" : "")}
+                    className={"border-b border-ink/5 last:border-0 " + (past ? "text-ink/70" : "")}
                   >
                     <td className="px-5 py-4 whitespace-nowrap">
                       {formatSlot(b.slot_start, agent.timezone)}
@@ -129,7 +129,7 @@ export default async function BookingsPage({
                     <td className="px-5 py-4">
                       <div className="flex flex-col">
                         {b.phone && <span>{b.phone}</span>}
-                        {b.email && <span className="text-ink/70">{b.email}</span>}
+                        {b.email && <span className="text-ink/80">{b.email}</span>}
                       </div>
                     </td>
                     <td className="px-5 py-4">{b.meeting_type === "phone" ? "Phone" : "Video"}</td>
