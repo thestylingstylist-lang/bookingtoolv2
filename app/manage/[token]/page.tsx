@@ -10,7 +10,7 @@ const SERIF = { fontFamily: "'Cormorant Garamond', Georgia, serif" }
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const THEME = {
-  "--base": "#f5f0e8",
+  "--base": "#f1ece4",
   "--accent": "#7a2a36",
   "--accent-soft": "#f3e7e3",
 } as React.CSSProperties

@@ -11,7 +11,7 @@ const SERIF = { fontFamily: "'Cormorant Garamond', Georgia, serif" }
 
 // Showcase default. Later each realtor picks their own colors in Settings.
 const THEME = {
-  "--base": "#f5f0e8",
+  "--base": "#f1ece4",
   "--panel": "#efe4d6",
   "--photo": "#d9c9bc",
   "--panel-line": "#d4bcb6",

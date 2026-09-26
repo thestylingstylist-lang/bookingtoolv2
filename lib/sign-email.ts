@@ -12,8 +12,8 @@ function esc(s: string) {
 }
 
 const wrap = (inner: string) => `<!doctype html>
-<html><body style="margin:0;padding:0;background:#f5f0e8;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:40px 0;">
+<html><body style="margin:0;padding:0;background:#f1ece4;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1ece4;padding:40px 0;">
 <tr><td align="center">
 <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e6dbd0;border-radius:14px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
 ${inner}

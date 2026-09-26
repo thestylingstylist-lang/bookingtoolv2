@@ -44,7 +44,7 @@ export default async function SignPage({
       : ""
 
   return (
-    <main className="min-h-screen bg-[#f5f0e8] px-5 py-12 text-[#2b1a1c]">
+    <main className="min-h-screen bg-[#f1ece4] px-5 py-12 text-[#2b1a1c]">
       <div className="mx-auto max-w-2xl">
         <p className="text-sm text-[#8a6f6c]">
           From {from}

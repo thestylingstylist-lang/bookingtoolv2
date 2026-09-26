@@ -68,8 +68,8 @@ const manageBlock = (url: string) =>
   `<tr><td style="padding:4px 32px 8px;"><p style="margin:0;color:#8a6f6c;font-size:13px;">Need a different time? <a href="${url}" style="color:#2b1a1c;">Reschedule or cancel</a></p></td></tr>`
 
 const wrap = (inner: string) => `<!doctype html>
-<html><body style="margin:0;padding:0;background:#f5f0e8;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f5f0e8;padding:32px 0;">
+<html><body style="margin:0;padding:0;background:#f1ece4;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1ece4;padding:32px 0;">
 <tr><td align="center">
 <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:14px;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
 ${inner}
@@ -108,7 +108,7 @@ export function clientConfirmationEmail(opts: {
       <p style="margin:12px 0 0;color:#2b1a1c;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} is confirmed. Here are the details:</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f0e8;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
         ${detailRows([
           ["When", opts.whenLabel],
           ["Type", opts.meetingType === "phone" ? "Phone call" : "Video call"],
@@ -164,7 +164,7 @@ export function agentNotificationEmail(opts: {
       <p style="margin:10px 0 0;color:#2b1a1c;font-size:15px;">${opts.clientName} just booked a consultation.</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f0e8;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
         ${detailRows(rows)}
       </table>
     </td></tr>
@@ -209,7 +209,7 @@ export function clientReminderEmail(opts: {
       <p style="margin:12px 0 0;color:#2b1a1c;font-size:15px;line-height:1.5;">A quick reminder about your consultation with ${opts.agentName}:</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f0e8;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
         ${detailRows([
           ["When", opts.whenLabel],
           ["Type", opts.meetingType === "phone" ? "Phone call" : "Video call"],
@@ -255,7 +255,7 @@ export function clientRescheduledEmail(opts: {
       <p style="margin:12px 0 0;color:#2b1a1c;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} has moved to a new time:</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f0e8;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
         ${detailRows([
           ["When", opts.whenLabel],
           ["Type", type],
@@ -328,7 +328,7 @@ export function agentChangeEmail(opts: {
       <p style="margin:10px 0 0;color:#2b1a1c;font-size:15px;">${line}</p>
     </td></tr>
     <tr><td style="padding:16px 32px 28px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f5f0e8;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
         ${detailRows(rows)}
       </table>
     </td></tr>

@@ -103,7 +103,7 @@ export default async function Portal({
   const firstName = client.first_name?.trim() || ""
 
   return (
-    <main className="min-h-screen bg-[#f5f0e8] text-[#2b1a1c]">
+    <main className="min-h-screen bg-[#f1ece4] text-[#2b1a1c]">
       <div className="mx-auto max-w-[980px] px-5 pb-8 pt-5">
         {/* Agent */}
         <div className="flex items-center justify-between border-b border-[#e6dbd0] pb-3.5">
@@ -190,7 +190,7 @@ export default async function Portal({
                     {!s.done && (
                       <span
                         className={`ml-auto whitespace-nowrap rounded-full px-2 py-0.5 text-[10.5px] ${
-                          owner === "client" ? "bg-[#eaf4ec] text-[#3f7a52]" : "bg-[#f5f0e8] text-[#8a6f6c]"
+                          owner === "client" ? "bg-[#eaf4ec] text-[#3f7a52]" : "bg-[#f1ece4] text-[#8a6f6c]"
                         }`}
                       >
                         {owner === "agent" ? agentFirst : OWNER_LABEL_CLIENT[owner]}
@@ -250,7 +250,7 @@ export default async function Portal({
                   <div key={m.id} className={`flex flex-col ${me ? "items-end" : "items-start"}`}>
                     <div
                       className={`max-w-[78%] whitespace-pre-wrap rounded-[14px] px-[13px] py-[9px] text-[13.5px] leading-relaxed ${
-                        me ? "rounded-br-[4px] bg-[#efe0dc]" : "rounded-bl-[4px] bg-[#f5f0e8]"
+                        me ? "rounded-br-[4px] bg-[#efe0dc]" : "rounded-bl-[4px] bg-[#f1ece4]"
                       }`}
                     >
                       {m.body}
@@ -270,7 +270,7 @@ export default async function Portal({
                 rows={1}
                 required
                 placeholder={`Message ${agentFirst}…`}
-                className="flex-1 resize-none rounded-[9px] border border-[#e6dbd0] bg-[#f5f0e8] px-3 py-2 text-[13.5px] outline-none placeholder:text-[#8a6f6c] focus:bg-white"
+                className="flex-1 resize-none rounded-[9px] border border-[#e6dbd0] bg-[#f1ece4] px-3 py-2 text-[13.5px] outline-none placeholder:text-[#8a6f6c] focus:bg-white"
               />
               <button type="submit" className="rounded-[9px] bg-[#2b1a1c] px-[15px] py-2 text-[13px] font-medium text-white hover:opacity-90">
                 Send
