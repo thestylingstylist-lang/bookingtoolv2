@@ -2,13 +2,23 @@
 
 import { useState } from "react"
 
-type Tab = "tasks" | "messages" | "client"
+type Tab = "tasks" | "documents" | "messages" | "client"
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   {
     id: "tasks",
     label: "Tasks",
     icon: <path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />,
+  },
+  {
+    id: "documents",
+    label: "Documents",
+    icon: (
+      <>
+        <path d="M7 3h7l5 5v13H7z" />
+        <path d="M14 3v5h5" />
+      </>
+    ),
   },
   {
     id: "messages",
@@ -31,10 +41,12 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 // On phone/tablet: one column at a time, switched from a bottom tab bar.
 export default function JacketTabs({
   tasks,
+  documents,
   messages,
   client,
 }: {
   tasks: React.ReactNode
+  documents: React.ReactNode
   messages: React.ReactNode
   client: React.ReactNode
 }) {
@@ -48,6 +60,12 @@ export default function JacketTabs({
           className={`flex-col border-[#e6dbd0] bg-[#f1ebe2] px-5 py-6 lg:overflow-y-auto lg:border-r ${show("tasks") || "flex"}`}
         >
           {tasks}
+          <div className="mt-8 hidden lg:block">{documents}</div>
+        </div>
+        <div
+          className={`flex-col bg-[#f1ebe2] px-5 py-6 lg:hidden ${show("documents") || "flex"}`}
+        >
+          {documents}
         </div>
         <section className={`min-h-[70vh] flex-col bg-white lg:min-h-0 ${show("messages") || "flex"}`}>
           {messages}
@@ -59,7 +77,7 @@ export default function JacketTabs({
         </aside>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-[#e6dbd0] bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-[#e6dbd0] bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
         {TABS.map((t) => {
           const on = tab === t.id
           return (

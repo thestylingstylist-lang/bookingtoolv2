@@ -5,6 +5,7 @@ import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import JacketDetails from "./jacket-details"
 import JacketTabs from "./jacket-tabs"
+import DocumentsPanel from "./documents-panel"
 import SendDocument from "./send-document"
 import { sendMessage, resendDocument } from "./actions"
 import { sendPortalLink } from "./portal-actions"
@@ -256,13 +257,13 @@ export default async function ClientJacket({
         </div>
 
         <JacketTabs
+          documents={<DocumentsPanel clientId={client.id} collected={collected} />}
           tasks={<>
             <LeftColumn
               clientId={client.id}
               firstName={client.first_name}
               phase={phase}
               tasks={tasks}
-              collected={collected}
             />
           </>}
           messages={<>
