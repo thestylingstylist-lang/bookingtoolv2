@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import JacketDetails from "./jacket-details"
+import JacketTabs from "./jacket-tabs"
 import SendDocument from "./send-document"
 import { sendMessage, resendDocument } from "./actions"
 import { sendPortalLink } from "./portal-actions"
@@ -254,9 +255,8 @@ export default async function ClientJacket({
           })}
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_300px]">
-          {/* Tasks + documents collected */}
-          <div className="border-b border-[#e6dbd0] bg-[#f1ebe2] px-5 py-6 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+        <JacketTabs
+          tasks={<>
             <LeftColumn
               clientId={client.id}
               firstName={client.first_name}
@@ -264,10 +264,8 @@ export default async function ClientJacket({
               tasks={tasks}
               collected={collected}
             />
-          </div>
-
-          {/* Conversation */}
-          <section className="flex min-h-[600px] flex-col bg-white lg:min-h-0">
+          </>}
+          messages={<>
             {(sp.updated || banner || error) && (
               <div className="space-y-2 px-6 pt-4">
                 {sp.updated && (
@@ -369,10 +367,8 @@ export default async function ClientJacket({
                 {client.first_name || "Your client"} sees these messages on their portal and can reply there.
               </p>
             </div>
-          </section>
-
-          {/* Client panel */}
-          <aside className="border-t border-[#e6dbd0] bg-white px-5 py-6 lg:overflow-y-auto lg:border-l lg:border-t-0">
+          </>}
+          client={<>
             <JacketDetails client={client} />
             <DealPanel
               clientId={client.id}
@@ -383,8 +379,8 @@ export default async function ClientJacket({
               notes={notes}
               timezone={agent.timezone}
             />
-          </aside>
-        </div>
+          </>}
+        />
       </main>
     </AppShell>
   )
