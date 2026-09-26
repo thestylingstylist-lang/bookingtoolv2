@@ -59,7 +59,7 @@ export default async function HomePage() {
 
   return (
     <AppShell agent={agent}>
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
       <h1 className="font-serif text-3xl sm:text-4xl">
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
