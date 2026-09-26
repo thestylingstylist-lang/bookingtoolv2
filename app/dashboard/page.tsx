@@ -63,7 +63,7 @@ export default async function HomePage() {
         </Link>
       )}
 
-      <div className="mt-6 rounded-2xl border border-ink/10 bg-white/50 p-5">
+      <div className="mt-6 rounded-2xl border border-ink/10 bg-card p-5">
         <p className="text-sm text-ink/60">Your booking link — share this with clients:</p>
         <BookingLink slug={agent.slug} />
       </div>
@@ -77,7 +77,7 @@ export default async function HomePage() {
         </div>
 
         {next.length === 0 ? (
-          <div className="mt-3 rounded-2xl border border-ink/10 bg-white/50 p-8 text-center text-ink/60">
+          <div className="mt-3 rounded-2xl border border-ink/10 bg-card p-8 text-center text-ink/60">
             Nothing scheduled yet. Share your link and bookings will show up here.
           </div>
         ) : (
@@ -85,7 +85,7 @@ export default async function HomePage() {
             {next.map((b) => (
               <li
                 key={b.id}
-                className="flex items-center justify-between rounded-xl border border-ink/10 bg-white/50 px-5 py-4"
+                className="flex items-center justify-between rounded-xl border border-ink/10 bg-card px-5 py-4"
               >
                 <div>
                   <p className="font-medium">

@@ -63,7 +63,7 @@ export default async function TemplatesPage({
         )}
 
         {templates.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-ink/10 bg-white/50 p-10 text-center">
+          <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
             <h2 className="font-serif text-xl">No templates yet.</h2>
             <p className="mt-2 text-ink/60">
               Set up a document once with your own wording, then send it to any
@@ -71,7 +71,7 @@ export default async function TemplatesPage({
             </p>
           </div>
         ) : (
-          <div className="mt-8 divide-y divide-ink/5 overflow-hidden rounded-2xl border border-ink/10 bg-white/50">
+          <div className="mt-8 divide-y divide-ink/5 overflow-hidden rounded-2xl border border-ink/10 bg-card">
             {templates.map((t) => (
               <Link
                 key={t.id}

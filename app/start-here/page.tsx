@@ -68,7 +68,7 @@ export default async function StartHerePage() {
                 "flex items-start gap-4 rounded-2xl border p-5 " +
                 (isDone
                   ? "border-sage/30 bg-sage/5"
-                  : "border-ink/10 bg-white/50")
+                  : "border-ink/10 bg-card")
               }
             >
               <span

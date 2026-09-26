@@ -109,7 +109,7 @@ export default function TemplateEditor({
 
       {/* Detected blanks */}
       {placeholders.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-ink/10 bg-white/50 p-5">
+        <div className="mt-6 rounded-2xl border border-ink/10 bg-card p-5">
           <h3 className="font-serif text-lg">Blanks found</h3>
           {autos.length > 0 && (
             <div className="mt-3">

@@ -6,10 +6,11 @@ const config: Config = {
     extend: {
       colors: {
         ink: "#2b1a1c",
-        paper: "#f1ece4",
+        paper: "#faf7f2",
         brass: "#9a5a62",
         sage: "#5f7266",
         ox: "#5c0a17",
+        card: "#ffffff",
       },
       fontFamily: {
         serif: ['"Iowan Old Style"', 'Palatino', '"Palatino Linotype"', 'Georgia', 'serif'],

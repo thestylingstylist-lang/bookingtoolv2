@@ -86,7 +86,7 @@ export default async function ClientsPage({
         {/* Add a client */}
         <form
           action={addClient}
-          className="mt-8 rounded-2xl border border-ink/10 bg-white/50 p-6"
+          className="mt-8 rounded-2xl border border-ink/10 bg-card p-6"
         >
           <h2 className="font-serif text-xl">Add a client</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -121,14 +121,14 @@ export default async function ClientsPage({
 
         {/* List */}
         {clients.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-ink/10 bg-white/50 p-10 text-center">
+          <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
             <h2 className="font-serif text-xl">No clients yet.</h2>
             <p className="mt-2 text-ink/60">
               Add your first client above, and they&rsquo;ll appear here.
             </p>
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-ink/10 bg-white/50">
+          <div className="mt-8 rounded-2xl border border-ink/10 bg-card">
             <table className="w-full text-left text-sm">
               <thead className="border-b border-ink/10 text-ink/50">
                 <tr>

@@ -46,7 +46,7 @@ export default async function SettingsPage() {
               your brand.
             </p>
 
-            <div className="mb-8 mt-6 rounded-2xl border border-ink/10 bg-white/50 p-5">
+            <div className="mb-8 mt-6 rounded-2xl border border-ink/10 bg-card p-5">
               <p className="text-sm text-ink/60">
                 Your booking link &mdash; share this with clients:
               </p>

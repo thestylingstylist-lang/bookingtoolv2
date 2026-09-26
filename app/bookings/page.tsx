@@ -91,14 +91,14 @@ export default async function BookingsPage({
       )}
 
       {bookings.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-ink/10 bg-white/50 p-10 text-center">
+        <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
           <h2 className="font-serif text-xl">No bookings yet.</h2>
           <p className="mt-2 text-ink/60">
             Share your booking link and new consultations will appear here.
           </p>
         </div>
       ) : (
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-ink/10 bg-white/50">
+        <div className="mt-8 overflow-x-auto rounded-2xl border border-ink/10 bg-card">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-ink/10 text-ink">
               <tr>
