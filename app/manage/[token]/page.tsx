@@ -5,6 +5,7 @@ import { generateSlots } from "@/lib/slots"
 import ManageView from "./manage-view"
 
 export const dynamic = "force-dynamic"
+export const metadata = { title: "Your booking", robots: { index: false, follow: false } }
 
 const SERIF = { fontFamily: "'Cormorant Garamond', Georgia, serif" }
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

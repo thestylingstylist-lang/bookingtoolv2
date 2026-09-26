@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
@@ -18,6 +19,27 @@ const THEME = {
   "--accent": "#7a2a36",
   "--accent-soft": "#f3e7e3",
 } as React.CSSProperties
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}): Promise<Metadata> {
+  const { slug } = await params
+  const agent = await getAgentBySlug(slug)
+  if (!agent) return { title: "Booking page not found", robots: { index: false } }
+  const name = agent.full_name || agent.business_name || "your agent"
+  const title = `Book a consultation with ${name}`
+  const description =
+    agent.tagline || `Pick a time that works for you and book a private consultation with ${name}.`
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: `/book/${slug}` },
+    openGraph: { title, description, url: `/book/${slug}`, type: "profile" },
+    twitter: { card: "summary", title, description },
+  }
+}
 
 export default async function BookPage({
   params,

@@ -1,9 +1,25 @@
 import Link from "next/link"
 import AuthFooter from "@/app/auth-footer"
 
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Marvberry",
+  url: "https://marvberry.com",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  description:
+    "Booking page, e-signatures, document collection and a shared client checklist for solo real estate agents.",
+  offers: { "@type": "Offer", price: "47", priceCurrency: "USD" },
+}
+
 export default function Home() {
   return (
     <div className="mx-auto max-w-5xl px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       <nav className="flex items-center justify-between py-6">
         <span className="font-serif text-2xl">Marvberry</span>
         <div className="flex items-center gap-5 text-sm">
