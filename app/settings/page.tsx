@@ -31,7 +31,7 @@ export default async function SettingsPage() {
 
   return (
     <AppShell agent={agent}>
-      <main className="mx-auto max-w-6xl px-6 py-12">
+      <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <p className="text-sm font-medium tracking-wide text-sage">Settings</p>
         <h1 className="mt-2 font-serif text-3xl">Your booking page</h1>
 

@@ -32,7 +32,7 @@ export default async function StartHerePage() {
 
   return (
     <AppShell agent={agent}>
-    <main className="mx-auto max-w-2xl px-6 py-12">
+    <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
       <p className="text-sm font-medium tracking-wide text-sage">Start here</p>
       <h1 className="mt-2 font-serif text-3xl">
         {complete ? "You\u2019re all set." : "Let\u2019s get you set up."}

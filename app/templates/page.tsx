@@ -40,7 +40,7 @@ export default async function TemplatesPage({
 
   return (
     <AppShell agent={agent}>
-      <main className="mx-auto max-w-4xl px-6 py-12">
+      <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium tracking-wide text-sage">

@@ -48,7 +48,7 @@ export default async function ClientsPage({
 
   return (
     <AppShell agent={agent}>
-      <main className="mx-auto max-w-4xl px-6 py-12">
+      <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <p className="text-sm font-medium tracking-wide text-sage">Clients</p>
         <h1 className="mt-2 font-serif text-3xl">Your people</h1>
 
