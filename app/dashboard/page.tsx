@@ -33,6 +33,23 @@ export default async function HomePage() {
     .limit(3)
   const next = upcoming ?? []
 
+  const { count: clientCount } = await supabase
+    .from("clients")
+    .select("id", { count: "exact", head: true })
+
+  // greeting by the agent's own timezone
+  let hour = new Date().getHours()
+  try {
+    hour = Number(
+      new Intl.DateTimeFormat("en-US", { hour: "numeric", hour12: false, timeZone: agent.timezone }).format(new Date())
+    )
+  } catch {}
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
+  const firstName = agent.full_name ? agent.full_name.split(" ")[0] : ""
+
+  // count of upcoming consultations today (in agent tz, approximated by all future today)
+  const upcomingCount = next.length
+
   const { count } = await supabase
     .from("bookings")
     .select("id", { count: "exact", head: true })
@@ -43,10 +60,21 @@ export default async function HomePage() {
   return (
     <AppShell agent={agent}>
     <main className="mx-auto max-w-3xl px-6 py-12">
-      <p className="text-sm font-medium tracking-wide text-sage">Home</p>
-      <h1 className="mt-2 font-serif text-3xl">
-        Welcome{agent.full_name ? `, ${agent.full_name.split(" ")[0]}` : ""}.
+      <h1 className="font-serif text-3xl sm:text-4xl">
+        {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
+      <p className="mt-2 text-ink/60">This is your agenda for today.</p>
+
+      <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-ink/10 bg-card p-5">
+          <p className="font-serif text-4xl text-ox">{clientCount ?? 0}</p>
+          <p className="mt-1 text-sm text-ink/60">Active clients</p>
+        </div>
+        <Link href="/bookings" className="rounded-2xl border border-ink/10 bg-card p-5 transition-colors hover:border-ink/20">
+          <p className="font-serif text-4xl text-ox">{upcomingCount}</p>
+          <p className="mt-1 text-sm text-ink/60">Upcoming consultations</p>
+        </Link>
+      </div>
 
       {!complete && (
         <Link
@@ -70,7 +98,7 @@ export default async function HomePage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl">Coming up</h2>
+          <h2 className="font-serif text-xl">Upcoming</h2>
           <Link href="/bookings" className="text-sm text-ink/60 hover:text-ink">
             All bookings &rarr;
           </Link>
