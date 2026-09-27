@@ -4,7 +4,7 @@ import { useActionState, useState } from "react"
 import { signIn } from "./actions"
 
 const field =
-  "w-full rounded-lg border-2 border-[#e3d3c6] bg-white px-5 py-4 text-base text-black placeholder:text-black/50 outline-none focus:border-[#c9a3a3]"
+  "w-full rounded-lg border-2 border-[#d4d3d6] bg-white px-5 py-4 text-base text-black placeholder:text-black/50 outline-none focus:border-[#b5b3b9]"
 
 export default function LoginForm() {
   const [state, formAction, pending] = useActionState(signIn, null)

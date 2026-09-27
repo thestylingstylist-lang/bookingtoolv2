@@ -50,7 +50,7 @@ export default async function ClientsPage({
     <AppShell agent={agent}>
       <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <p className="text-sm font-medium tracking-wide text-sage">Clients</p>
-        <h1 className="mt-2 font-serif text-3xl">Your people</h1>
+        <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your people</h1>
 
         {params.added && (
           <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
@@ -88,7 +88,7 @@ export default async function ClientsPage({
           action={addClient}
           className="mt-8 rounded-2xl border border-ink/10 bg-card p-6"
         >
-          <h2 className="font-serif text-xl">Add a client</h2>
+          <h2 className="font-serif font-semibold tracking-tight text-xl">Add a client</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm text-ink/60">First name</label>
@@ -122,7 +122,7 @@ export default async function ClientsPage({
         {/* List */}
         {clients.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
-            <h2 className="font-serif text-xl">No clients yet.</h2>
+            <h2 className="font-serif font-semibold tracking-tight text-xl">No clients yet.</h2>
             <p className="mt-2 text-ink/60">
               Add your first client above, and they&rsquo;ll appear here.
             </p>

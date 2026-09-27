@@ -17,7 +17,7 @@ export default async function ResetPasswordPage() {
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
       <header className="mb-8">
         <p className="text-sm font-medium tracking-wide text-sage">Agent access</p>
-        <h1 className="mt-2 font-serif text-3xl">Choose a new password</h1>
+        <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Choose a new password</h1>
       </header>
       <ResetForm />
       <AuthFooter />

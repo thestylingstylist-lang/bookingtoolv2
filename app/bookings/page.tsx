@@ -60,7 +60,7 @@ export default async function BookingsPage({
     <AppShell agent={agent}>
     <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
       <p className="text-sm font-medium tracking-wide text-sage">Bookings</p>
-      <h1 className="mt-2 font-serif text-3xl">Your consultations</h1>
+      <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your consultations</h1>
 
       {params.added === "1" && (
         <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
@@ -92,7 +92,7 @@ export default async function BookingsPage({
 
       {bookings.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
-          <h2 className="font-serif text-xl">No bookings yet.</h2>
+          <h2 className="font-serif font-semibold tracking-tight text-xl">No bookings yet.</h2>
           <p className="mt-2 text-ink/60">
             Share your booking link and new consultations will appear here.
           </p>

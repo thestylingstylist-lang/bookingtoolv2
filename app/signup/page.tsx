@@ -7,7 +7,7 @@ export default function SignupPage() {
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
       <header className="mb-8">
         <p className="text-sm font-medium tracking-wide text-sage">Get started</p>
-        <h1 className="mt-2 font-serif text-3xl">Create your account</h1>
+        <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Create your account</h1>
         <p className="mt-2 text-sm text-ink/60">
           Set up your booking page and client workflow in a couple of minutes.
         </p>

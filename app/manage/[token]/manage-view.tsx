@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useTransition } from "react"
 import type { Slot } from "@/lib/slots"
 import { rescheduleBooking, cancelBooking } from "./actions"
 
-const SERIF = { fontFamily: "'Cormorant Garamond', Georgia, serif" }
+const SERIF = { fontFamily: "var(--font-geist-sans), -apple-system,'Segoe UI',Helvetica,Arial,sans-serif", letterSpacing: "-0.02em" }
 
 function fmt(iso: string, tz: string, opts: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat("en-US", { timeZone: tz, ...opts }).format(new Date(iso))
@@ -122,15 +122,15 @@ export default function ManageView({
   }
 
   const blackBtn =
-    "flex h-12 items-center justify-center rounded-[10px] bg-[#5c0a17] px-6 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-  const quietBtn = "text-[15px] text-[#8a6f6c] underline underline-offset-4 hover:text-[#2b1a1c]"
+    "flex h-12 items-center justify-center rounded-[10px] bg-[#16151a] px-6 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+  const quietBtn = "text-[15px] text-[#5d5b62] underline underline-offset-4 hover:text-[#16151a]"
 
   const summary = (iso: string) => (
     <div className="flex flex-col gap-1.5 rounded-[14px] bg-[var(--base)] px-6 py-5">
       <span style={SERIF} className="text-[26px] leading-none">
         Consultation call with {agentFirst}
       </span>
-      <span className="text-[15px] text-[#8a6f6c]">
+      <span className="text-[15px] text-[#5d5b62]">
         {longWhen(iso, tz)} · {minutes} minutes · {type}
       </span>
     </div>
@@ -147,9 +147,9 @@ export default function ManageView({
       <div className="flex flex-col gap-6">
         <h1 style={SERIF} className="text-[44px] font-medium leading-none">
           You&rsquo;re all set{firstName ? ", " : "."}
-          {firstName && <span className="italic">{firstName}.</span>}
+          {firstName && <span>{firstName}.</span>}
         </h1>
-        <p className="text-[17px] leading-relaxed text-[#8a6f6c]">
+        <p className="text-[17px] leading-relaxed text-[#5d5b62]">
           Your call has moved. A confirmation is on its way to your email.
         </p>
         {summary(selected)}
@@ -163,7 +163,7 @@ export default function ManageView({
         <h1 style={SERIF} className="text-[44px] font-medium leading-none">
           Your call is cancelled.
         </h1>
-        <p className="text-[17px] leading-relaxed text-[#8a6f6c]">
+        <p className="text-[17px] leading-relaxed text-[#5d5b62]">
           {agentFirst} has been told. If you&rsquo;d like to talk another time, you can book again anytime.
         </p>
         <a href={bookUrl} className={`${blackBtn} w-fit`}>
@@ -200,23 +200,23 @@ export default function ManageView({
           <h1 style={SERIF} className="text-[40px] font-medium leading-none">
             Pick a new time
           </h1>
-          <p className="text-[15px] text-[#8a6f6c]">Times shown in {tzAbbr(tz) || tz}.</p>
+          <p className="text-[15px] text-[#5d5b62]">Times shown in {tzAbbr(tz) || tz}.</p>
         </div>
 
         {days.length === 0 ? (
-          <p className="text-[15px] text-[#8a6f6c]">No other open times right now. Please check back soon.</p>
+          <p className="text-[15px] text-[#5d5b62]">No other open times right now. Please check back soon.</p>
         ) : (
           <div className="flex flex-col gap-4">
             <p style={SERIF} className="text-[28px] leading-none">
               {visible[0]?.month}
             </p>
-            <div className="grid grid-cols-[22px_minmax(0,1fr)_22px] items-center gap-3 border-y border-[#e6d6cc] py-4">
+            <div className="grid grid-cols-[22px_minmax(0,1fr)_22px] items-center gap-3 border-y border-[#e2e0dc] py-4">
               <button
                 type="button"
                 aria-label="Earlier dates"
                 disabled={safePage === 0}
                 onClick={() => setPage(safePage - 1)}
-                className="text-[#2b1a1c] disabled:text-[#d9c9bc]"
+                className="text-[#16151a] disabled:text-[#d6d4d0]"
               >
                 <Chevron dir="left" />
               </button>
@@ -230,8 +230,8 @@ export default function ManageView({
                       onClick={() => setActiveDay(d.key)}
                       aria-pressed={on}
                       className={
-                        "flex h-20 flex-col items-center justify-center gap-1 rounded-[14px] border-[1.5px] border-[#5c0a17] transition-colors " +
-                        (on ? "bg-[#5c0a17] text-white" : "text-[#2b1a1c] hover:bg-[var(--accent-soft)]")
+                        "flex h-20 flex-col items-center justify-center gap-1 rounded-[14px] border-[1.5px] border-[#16151a] transition-colors " +
+                        (on ? "bg-[#16151a] text-white" : "text-[#16151a] hover:bg-[var(--accent-soft)]")
                       }
                     >
                       <span className="text-2xl">{d.num}</span>
@@ -245,7 +245,7 @@ export default function ManageView({
                 aria-label="Later dates"
                 disabled={safePage >= pages - 1}
                 onClick={() => setPage(safePage + 1)}
-                className="text-[#2b1a1c] disabled:text-[#d9c9bc]"
+                className="text-[#16151a] disabled:text-[#d6d4d0]"
               >
                 <Chevron dir="right" />
               </button>
@@ -265,7 +265,7 @@ export default function ManageView({
                         "flex h-12 items-center justify-center rounded-[10px] text-[15px] transition-colors " +
                         (on
                           ? "border-[1.5px] border-[var(--accent)] bg-[var(--accent-soft)] font-medium"
-                          : "border border-[#e6d6cc] bg-white hover:border-[var(--accent)]")
+                          : "border border-[#e2e0dc] bg-white hover:border-[var(--accent)]")
                       }
                     >
                       {timeLabel(s.startISO, tz)}
@@ -278,7 +278,7 @@ export default function ManageView({
         )}
 
         {selected && (
-          <p className="text-[15px] text-[#2b1a1c]">
+          <p className="text-[15px] text-[#16151a]">
             New time: <span className="font-medium">{longWhen(selected, tz)}</span>
           </p>
         )}
@@ -308,9 +308,9 @@ export default function ManageView({
       <div className="flex flex-col gap-3">
         <h1 style={SERIF} className="text-[44px] font-medium leading-none">
           Your booking{firstName ? ", " : ""}
-          {firstName && <span className="italic">{firstName}</span>}
+          {firstName && <span>{firstName}</span>}
         </h1>
-        <p className="text-[17px] leading-relaxed text-[#8a6f6c]">Need to change something? Pick a new time or cancel below.</p>
+        <p className="text-[17px] leading-relaxed text-[#5d5b62]">Need to change something? Pick a new time or cancel below.</p>
       </div>
       {summary(current)}
       <div className="flex flex-wrap items-center gap-5">

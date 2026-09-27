@@ -46,7 +46,7 @@ export default async function TemplatesPage({
             <p className="text-sm font-medium tracking-wide text-sage">
               Templates
             </p>
-            <h1 className="mt-2 font-serif text-3xl">Your documents</h1>
+            <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your documents</h1>
           </div>
           <Link
             href="/templates/new"
@@ -64,7 +64,7 @@ export default async function TemplatesPage({
 
         {templates.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
-            <h2 className="font-serif text-xl">No templates yet.</h2>
+            <h2 className="font-serif font-semibold tracking-tight text-xl">No templates yet.</h2>
             <p className="mt-2 text-ink/60">
               Set up a document once with your own wording, then send it to any
               client in seconds.

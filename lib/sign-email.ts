@@ -12,10 +12,10 @@ function esc(s: string) {
 }
 
 const wrap = (inner: string) => `<!doctype html>
-<html><body style="margin:0;padding:0;background:#f1ece4;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1ece4;padding:40px 0;">
+<html><body style="margin:0;padding:0;background:#f1f0ee;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f0ee;padding:40px 0;">
 <tr><td align="center">
-<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e6dbd0;border-radius:14px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e4e3e0;border-radius:14px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
 ${inner}
 </table>
 </td></tr></table>
@@ -31,14 +31,14 @@ export function signRequestEmail(opts: {
   const hi = opts.clientFirstName ? `Hi ${esc(opts.clientFirstName)},` : "Hi,"
   const html = wrap(`
     <tr><td style="padding:36px 36px 8px;">
-      <h1 style="margin:0;font-size:24px;font-weight:normal;color:#2b1a1c;font-family:Georgia,serif;">A document to sign</h1>
-      <p style="margin:14px 0 0;color:#2b1a1c;font-size:15px;line-height:1.55;">${hi} ${esc(opts.agentName)} sent you the <strong>${esc(opts.title)}</strong> to review and sign.</p>
+      <h1 style="margin:0;font-size:24px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">A document to sign</h1>
+      <p style="margin:14px 0 0;color:#16151a;font-size:15px;line-height:1.55;">${hi} ${esc(opts.agentName)} sent you the <strong>${esc(opts.title)}</strong> to review and sign.</p>
     </td></tr>
     <tr><td style="padding:22px 36px 8px;">
-      <a href="${opts.link}" style="display:inline-block;background:#2b1a1c;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px;">Review and sign</a>
+      <a href="${opts.link}" style="display:inline-block;background:#16151a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px;">Review and sign</a>
     </td></tr>
     <tr><td style="padding:14px 36px 32px;">
-      <p style="margin:0;color:#8a6f6c;font-size:13px;line-height:1.5;">This link is private to you. Questions? Just reply to this email.</p>
+      <p style="margin:0;color:#5d5b62;font-size:13px;line-height:1.5;">This link is private to you. Questions? Just reply to this email.</p>
     </td></tr>
   `)
   const text = `${hi}\n\n${opts.agentName} sent you the ${opts.title} to review and sign.\n\nReview and sign: ${opts.link}\n\nThis link is private to you. Questions? Just reply to this email.`
@@ -54,11 +54,11 @@ export function signedNoticeEmail(opts: {
 }) {
   const html = wrap(`
     <tr><td style="padding:36px 36px 8px;">
-      <h1 style="margin:0;font-size:24px;font-weight:normal;color:#2b1a1c;font-family:Georgia,serif;">${esc(opts.clientName)} signed</h1>
-      <p style="margin:14px 0 0;color:#2b1a1c;font-size:15px;line-height:1.55;">The <strong>${esc(opts.title)}</strong> was signed ${esc(opts.signedLabel)}.</p>
+      <h1 style="margin:0;font-size:24px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">${esc(opts.clientName)} signed</h1>
+      <p style="margin:14px 0 0;color:#16151a;font-size:15px;line-height:1.55;">The <strong>${esc(opts.title)}</strong> was signed ${esc(opts.signedLabel)}.</p>
     </td></tr>
     <tr><td style="padding:22px 36px 32px;">
-      <a href="${opts.link}" style="display:inline-block;background:#2b1a1c;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px;">Open client</a>
+      <a href="${opts.link}" style="display:inline-block;background:#16151a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px;">Open client</a>
     </td></tr>
   `)
   const text = `${opts.clientName} signed the ${opts.title} ${opts.signedLabel}.\n\nOpen client: ${opts.link}`

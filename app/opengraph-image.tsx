@@ -16,8 +16,8 @@ export default function OgImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "72px 80px",
-          background: "#5c0a17",
-          color: "#f5ece4",
+          background: "#16151a",
+          color: "#f4f3f1",
           fontFamily: "Georgia, serif",
         }}
       >
@@ -26,7 +26,7 @@ export default function OgImage() {
           <div style={{ fontSize: 76, lineHeight: 1.1, maxWidth: 950 }}>
             Clients book, sign and stay in the loop. You just sell.
           </div>
-          <div style={{ fontSize: 30, marginTop: 28, color: "#d9c9bc" }}>
+          <div style={{ fontSize: 30, marginTop: 28, color: "#d6d4d0" }}>
             Made for real estate agents · 14-day trial
           </div>
         </div>

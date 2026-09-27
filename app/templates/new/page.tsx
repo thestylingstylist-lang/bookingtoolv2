@@ -29,7 +29,7 @@ export default async function NewTemplatePage() {
         <Link href="/templates" className="text-sm text-ink/50 hover:text-ink">
           &larr; Templates
         </Link>
-        <h1 className="mt-2 font-serif text-3xl">New template</h1>
+        <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">New template</h1>
         <div className="mt-8">
           <TemplateEditor action={createTemplate} />
         </div>

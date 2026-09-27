@@ -33,13 +33,13 @@ export default async function SettingsPage() {
     <AppShell agent={agent}>
       <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <p className="text-sm font-medium tracking-wide text-sage">Settings</p>
-        <h1 className="mt-2 font-serif text-3xl">Your booking page</h1>
+        <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your booking page</h1>
 
         {/* Two halves on desktop; they stack on mobile (booking page first). */}
         <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
           {/* LEFT — booking page / brand */}
           <section>
-            <h2 className="font-serif text-2xl">Your booking page</h2>
+            <h2 className="font-serif font-semibold tracking-tight text-2xl">Your booking page</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
               This controls how your booking page appears to your clients on the
               front end. Go ahead and customize it so it feels more aligned to
@@ -58,7 +58,7 @@ export default async function SettingsPage() {
 
           {/* RIGHT — account */}
           <section>
-            <h2 className="font-serif text-2xl">Your account</h2>
+            <h2 className="font-serif font-semibold tracking-tight text-2xl">Your account</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
               This is all of your account information. No one sees this.
               It&rsquo;s what we use to identify you when you reach out for

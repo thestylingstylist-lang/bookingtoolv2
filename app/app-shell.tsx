@@ -9,7 +9,7 @@ import SidebarNav from "./sidebar-nav"
 
 const KEY = "mb-menu-open"
 const HELP_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`${PRODUCT_NAME} support`)}`
-const OX = "bg-[#5c0a17]"
+const OX = "bg-[#16151a]"
 
 export default function AppShell({
   agent,
@@ -56,7 +56,7 @@ export default function AppShell({
     return (
       <>
         <div className="px-3">
-          <p className="font-serif text-lg leading-tight">{businessName}</p>
+          <p className="font-serif font-semibold tracking-tight text-lg leading-tight">{businessName}</p>
           <p className="mt-0.5 text-xs text-white/40">{agent.full_name}</p>
         </div>
 
@@ -70,7 +70,7 @@ export default function AppShell({
             className="mb-5 flex items-center gap-3 rounded-full bg-white/20 p-1.5 pr-5 transition-colors hover:bg-white/30"
           >
             <img src="/support-avatar.jpg" alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
-            <span className="font-serif text-lg italic text-white">Need Help?</span>
+            <span className="text-base font-semibold text-white">Need Help?</span>
           </a>
         )}
 
@@ -101,7 +101,7 @@ export default function AppShell({
             <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
-        <p className="truncate pl-3 font-serif text-lg">{businessName}</p>
+        <p className="truncate pl-3 font-serif font-semibold tracking-tight text-lg">{businessName}</p>
       </header>
 
       {/* ── Phone drawer: slides in from the left over a dim backdrop ── */}
@@ -148,7 +148,7 @@ export default function AppShell({
           <FullMenu />
         ) : (
           <>
-            <div className="h-9 w-9 rounded-[10px] bg-[#efe0dc]" aria-hidden />
+            <div className="h-9 w-9 rounded-[10px] bg-[#eeedeb]" aria-hidden />
             <div className="mt-8 flex-1">
               <SidebarNav collapsed />
             </div>
@@ -196,7 +196,7 @@ function TrialBanner({ endsAt, status }: { endsAt: string | null; status: string
         ? "Last day of your free trial."
         : `${days} days left in your free trial.`
   return (
-    <div className="border-b border-[#ede3da] bg-[#f6f0ea] px-6 py-2.5 text-center text-sm text-[#5c0a17]">
+    <div className="border-b border-[#e6e5e3] bg-[#f4f3f1] px-6 py-2.5 text-center text-sm text-[#16151a]">
       {text}{" "}
       <a href="/billing" className="font-semibold underline underline-offset-2">
         Pick your plan

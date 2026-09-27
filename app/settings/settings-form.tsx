@@ -20,7 +20,7 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
       {/* ---- Your brand ---- */}
       <section className="space-y-6">
         <div>
-          <h2 className="font-serif text-2xl">Your brand</h2>
+          <h2 className="font-serif font-semibold tracking-tight text-2xl">Your brand</h2>
           <p className="mt-1 text-sm text-ink/60">
             This is what clients see on your booking page.
           </p>
@@ -84,7 +84,7 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
       {/* ---- Booking setup ---- */}
       <section className="space-y-8">
         <div>
-          <h2 className="font-serif text-2xl">Booking setup</h2>
+          <h2 className="font-serif font-semibold tracking-tight text-2xl">Booking setup</h2>
           <p className="mt-1 text-sm text-ink/60">Your hours and how clients can book.</p>
         </div>
 

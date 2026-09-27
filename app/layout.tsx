@@ -1,5 +1,8 @@
 import type { Metadata } from "next"
 import "./globals.css"
+import "@fontsource/instrument-serif/400.css"
+import "@fontsource/instrument-serif/400-italic.css"
+import { GeistSans } from "geist/font/sans"
 
 const DESCRIPTION =
   "Clients book themselves, sign without the chase, and always know what's next. Made for solo real estate agents. 14-day trial, no card needed."
@@ -42,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={GeistSans.variable}>
       <body className="font-sans antialiased">{children}</body>
     </html>
   )

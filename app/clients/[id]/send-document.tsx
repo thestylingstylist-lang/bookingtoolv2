@@ -53,7 +53,7 @@ export default function SendDocument({
     <form action={sendDocument} className="w-full rounded-xl border border-ink/10 bg-white p-5">
       <input type="hidden" name="clientId" value={clientId} />
       <div className="flex items-center justify-between">
-        <h3 className="font-serif text-lg">Send a document</h3>
+        <h3 className="font-serif font-semibold tracking-tight text-lg">Send a document</h3>
         <button
           type="button"
           onClick={() => setOpen(false)}

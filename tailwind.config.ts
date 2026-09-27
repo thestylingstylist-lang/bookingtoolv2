@@ -5,16 +5,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#2b1a1c",
-        paper: "#faf7f2",
-        brass: "#9a5a62",
-        sage: "#5f7266",
-        ox: "#5c0a17",
+        ink: "#16151a",
+        paper: "#f4f3f1",
+        brass: "#16151a",
+        sage: "#2f7f7e",
+        ox: "#16151a",
         card: "#ffffff",
       },
       fontFamily: {
-        serif: ['"Iowan Old Style"', 'Palatino', '"Palatino Linotype"', 'Georgia', 'serif'],
-        sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        serif: ['var(--font-geist-sans)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        sans: ['var(--font-geist-sans)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
       },
     },
   },

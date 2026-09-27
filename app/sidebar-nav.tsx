@@ -96,11 +96,11 @@ export default function SidebarNav({ collapsed = false }: { collapsed?: boolean 
               aria-label={item.label}
               className={
                 "group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors " +
-                (active ? "bg-[#f5ece4] text-[#5c0a17]" : "text-white/60 hover:bg-white/10 hover:text-white")
+                (active ? "bg-[#f4f3f1] text-[#16151a]" : "text-white/60 hover:bg-white/10 hover:text-white")
               }
             >
               <Icon href={item.href} />
-              <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-white px-2.5 py-1 text-xs font-medium text-[#5c0a17] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-white px-2.5 py-1 text-xs font-medium text-[#16151a] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                 {item.label}
               </span>
             </Link>
@@ -113,7 +113,7 @@ export default function SidebarNav({ collapsed = false }: { collapsed?: boolean 
             href={item.href}
             className={
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors " +
-              (active ? "bg-[#f5ece4] text-[#5c0a17]" : "text-white/60 hover:bg-white/10 hover:text-white")
+              (active ? "bg-[#f4f3f1] text-[#16151a]" : "text-white/60 hover:bg-white/10 hover:text-white")
             }
           >
             <Icon href={item.href} size={18} />

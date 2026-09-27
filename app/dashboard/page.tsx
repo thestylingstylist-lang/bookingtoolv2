@@ -60,7 +60,7 @@ export default async function HomePage() {
   return (
     <AppShell agent={agent}>
     <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-      <h1 className="font-serif text-3xl sm:text-4xl">
+      <h1 className="font-serif font-semibold tracking-tight text-3xl sm:text-4xl">
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
       <p className="mt-2 text-ink/60">This is your agenda for today.</p>
@@ -69,11 +69,11 @@ export default async function HomePage() {
 
       <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-ink/10 bg-card p-5">
-          <p className="font-serif text-4xl text-ox">{clientCount ?? 0}</p>
+          <p className="font-serif font-semibold tracking-tight text-4xl text-ox">{clientCount ?? 0}</p>
           <p className="mt-1 text-sm text-ink/60">Active clients</p>
         </div>
         <Link href="/bookings" className="rounded-2xl border border-ink/10 bg-card p-5 transition-colors hover:border-ink/20">
-          <p className="font-serif text-4xl text-ox">{upcomingCount}</p>
+          <p className="font-serif font-semibold tracking-tight text-4xl text-ox">{upcomingCount}</p>
           <p className="mt-1 text-sm text-ink/60">Upcoming consultations</p>
         </Link>
       </div>
@@ -95,7 +95,7 @@ export default async function HomePage() {
 
       <div className="mt-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl">Upcoming</h2>
+          <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
           <Link href="/bookings" className="text-sm text-ink/60 hover:text-ink">
             All bookings &rarr;
           </Link>

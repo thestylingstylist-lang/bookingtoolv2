@@ -7,7 +7,7 @@ import {
 export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
 
 const inputClass =
-  "min-w-0 flex-1 rounded-lg border border-[#e6dbd0] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#8a6f6c] focus:border-sage"
+  "min-w-0 flex-1 rounded-lg border border-[#e4e3e0] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#5d5b62] focus:border-sage"
 
 export default function DocumentsPanel({
   clientId,
@@ -18,7 +18,7 @@ export default function DocumentsPanel({
 }) {
   return (
     <section>
-      <h2 className="text-xs uppercase tracking-[0.08em] text-[#8a6f6c]">Documents collected</h2>
+      <h2 className="text-xs uppercase tracking-[0.08em] text-[#5d5b62]">Documents collected</h2>
       <ul className="mt-3">
         {collected.map((d) => (
           <li key={d.id} className="group flex items-center gap-2 py-2">
@@ -55,7 +55,7 @@ export default function DocumentsPanel({
                 type="submit"
                 title={d.received ? "Mark as waiting" : "Mark as received"}
                 className={`rounded-full px-2.5 py-0.5 text-[11px] ${
-                  d.received ? "bg-[#e4ece7] text-sage" : "bg-[#f3e7e3] text-brass"
+                  d.received ? "bg-[#e5f1f0] text-sage" : "bg-[#f1f0ee] text-brass"
                 }`}
               >
                 {d.received ? "Received" : "Waiting"}
@@ -64,7 +64,7 @@ export default function DocumentsPanel({
             <form action={deleteCollected}>
               <input type="hidden" name="clientId" value={clientId} />
               <input type="hidden" name="id" value={d.id} />
-              <button type="submit" aria-label={`Remove ${d.title}`} className="px-1 text-[#8a6f6c] opacity-0 transition-opacity hover:text-ink group-hover:opacity-100">&times;</button>
+              <button type="submit" aria-label={`Remove ${d.title}`} className="px-1 text-[#5d5b62] opacity-0 transition-opacity hover:text-ink group-hover:opacity-100">&times;</button>
             </form>
           </li>
         ))}
@@ -72,9 +72,9 @@ export default function DocumentsPanel({
       <form action={addCollected} className="mt-2 flex gap-2">
         <input type="hidden" name="clientId" value={clientId} />
         <input name="title" placeholder="e.g. Pay stubs" className={inputClass} />
-        <button type="submit" className="rounded-lg border border-[#e6dbd0] bg-white px-3 text-sm hover:bg-[#f1ebe2]">Add</button>
+        <button type="submit" className="rounded-lg border border-[#e4e3e0] bg-white px-3 text-sm hover:bg-[#f1f0ee]">Add</button>
       </form>
-      <p className="mt-2 text-xs text-[#8a6f6c]">Clients can upload these from their portal, or tap Waiting to mark one received.</p>
+      <p className="mt-2 text-xs text-[#5d5b62]">Clients can upload these from their portal, or tap Waiting to mark one received.</p>
     </section>
   )
 }

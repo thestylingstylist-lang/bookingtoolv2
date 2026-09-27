@@ -7,13 +7,13 @@ import ManageView from "./manage-view"
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Your booking", robots: { index: false, follow: false } }
 
-const SERIF = { fontFamily: "'Cormorant Garamond', Georgia, serif" }
+const SERIF = { fontFamily: "var(--font-geist-sans), -apple-system,'Segoe UI',Helvetica,Arial,sans-serif", letterSpacing: "-0.02em" }
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const THEME = {
-  "--base": "#f1ece4",
-  "--accent": "#7a2a36",
-  "--accent-soft": "#f3e7e3",
+  "--base": "#f1f0ee",
+  "--accent": "#16151a",
+  "--accent-soft": "#f1f0ee",
 } as React.CSSProperties
 
 export default async function ManagePage({ params }: { params: Promise<{ token: string }> }) {
@@ -57,7 +57,7 @@ export default async function ManagePage({ params }: { params: Promise<{ token: 
       />
       <div
         style={{ ...THEME, fontFamily: "'DM Sans', system-ui, sans-serif" }}
-        className="min-h-screen bg-[var(--base)] px-4 py-10 text-[#2b1a1c] sm:py-16"
+        className="min-h-screen bg-[var(--base)] px-4 py-10 text-[#16151a] sm:py-16"
       >
         <main className="mx-auto max-w-[760px] rounded-[18px] bg-white px-5 py-10 sm:px-12 sm:py-12">
           {upcoming && booking && agent ? (
@@ -77,13 +77,13 @@ export default async function ManagePage({ params }: { params: Promise<{ token: 
               <h1 style={SERIF} className="text-[40px] font-medium leading-none">
                 This booking isn&rsquo;t active anymore.
               </h1>
-              <p className="text-[15px] leading-relaxed text-[#8a6f6c]">
+              <p className="text-[15px] leading-relaxed text-[#5d5b62]">
                 It may have already happened, been cancelled, or moved.
               </p>
               {agent && (
                 <a
                   href={`/book/${agent.slug}`}
-                  className="mt-2 flex h-12 w-fit items-center rounded-[10px] bg-[#5c0a17] px-6 text-[15px] font-medium text-white hover:opacity-90"
+                  className="mt-2 flex h-12 w-fit items-center rounded-[10px] bg-[#16151a] px-6 text-[15px] font-medium text-white hover:opacity-90"
                 >
                   Book a new time
                 </a>
