@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 type Tab = "next" | "documents" | "messages"
 
@@ -47,6 +47,24 @@ export default function PortalTabs({
 }) {
   const [tab, setTab] = useState<Tab>(startTab)
   const on = (t: Tab) => tab === t
+  const msgRef = useRef<HTMLDivElement>(null)
+
+  // Phone: stretch the Messages card down to just above the bottom bar.
+  useEffect(() => {
+    const fit = () => {
+      const el = msgRef.current
+      if (!el) return
+      if (window.innerWidth >= 768 || tab !== "messages") {
+        el.style.minHeight = ""
+        return
+      }
+      const top = el.getBoundingClientRect().top + window.scrollY
+      el.style.minHeight = Math.max(320, window.innerHeight - top - 88) + "px"
+    }
+    fit()
+    window.addEventListener("resize", fit)
+    return () => window.removeEventListener("resize", fit)
+  }, [tab])
 
   // "#messages" (after sending, or the "Message" button) opens the Messages tab.
   useEffect(() => {
@@ -75,7 +93,7 @@ export default function PortalTabs({
           </div>
           <div className={on("documents") ? "" : "hidden md:block"}>{documents}</div>
         </div>
-        <div className={on("messages") ? "flex flex-col" : "hidden md:flex md:flex-col"}>
+        <div ref={msgRef} className={on("messages") ? "flex flex-col" : "hidden md:flex md:flex-col"}>
           {messages}
         </div>
       </div>

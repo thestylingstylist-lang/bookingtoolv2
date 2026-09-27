@@ -249,7 +249,7 @@ export default async function Portal({
           messages={
             <>
               {/* Messages */}
-          <div id="messages" className="flex flex-col rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
+          <div id="messages" className="flex flex-1 flex-col rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
             <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a6f6c]">
               Messages with {agentFirst}
             </h2>
