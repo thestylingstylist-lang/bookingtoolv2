@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { PHASES, phaseIndex, toPhase, toOwner, OWNER_LABEL_CLIENT } from "@/lib/phases"
 import { clientSendMessage } from "./actions"
 import UploadButton from "./upload-button"
+import PortalTabs from "./portal-tabs"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Your home search", robots: { index: false, follow: false } }
@@ -150,9 +151,10 @@ export default async function Portal({
           ))}
         </div>
 
-        <div className="mt-3 grid items-stretch gap-3 md:grid-cols-[1fr_1.2fr]">
-          <div className="flex flex-col gap-3">
-            {/* Next step */}
+        <PortalTabs
+          next={
+            <>
+              {/* Next step */}
             <div className="rounded-xl border border-[#d9ebdd] bg-[#eaf4ec] px-4 py-3.5">
               <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#3f7a52]">
                 {mine ? "Your next step" : "Right now"}
@@ -200,8 +202,11 @@ export default async function Portal({
                 )
               })}
             </div>
-
-            {/* Documents */}
+            </>
+          }
+          documents={
+            <>
+              {/* Documents */}
             {(signed.length > 0 || toSign.length > 0 || collected.length > 0) && (
               <div className="rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
                 <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a6f6c]">Your documents</h2>
@@ -233,9 +238,17 @@ export default async function Portal({
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Messages */}
+              {!(signed.length > 0 || toSign.length > 0 || collected.length > 0) && (
+              <div className="rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
+                <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a6f6c]">Your documents</h2>
+                <p className="py-1.5 text-[13.5px] text-[#8a6f6c]">Nothing to sign or upload yet. {agentFirst} will add documents here when it&rsquo;s time.</p>
+              </div>
+            )}
+            </>
+          }
+          messages={
+            <>
+              {/* Messages */}
           <div id="messages" className="flex flex-col rounded-xl border border-[#e6dbd0] bg-white px-4 py-3.5">
             <h2 className="mb-1.5 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#8a6f6c]">
               Messages with {agentFirst}
@@ -277,7 +290,9 @@ export default async function Portal({
               </button>
             </form>
           </div>
-        </div>
+            </>
+          }
+        />
       </div>
     </main>
   )
