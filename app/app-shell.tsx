@@ -169,7 +169,31 @@ export default function AppShell({
         </button>
       </aside>
 
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="min-w-0 flex-1">
+        <TrialBanner endsAt={agent.trial_ends_at} />
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// Slim bar at the top of every app page counting down the free trial.
+function TrialBanner({ endsAt }: { endsAt: string | null }) {
+  const [days, setDays] = useState<number | null>(null)
+  useEffect(() => {
+    if (!endsAt) return
+    setDays(Math.ceil((new Date(endsAt).getTime() - Date.now()) / 86_400_000))
+  }, [endsAt])
+  if (days === null) return null
+  const text =
+    days <= 0
+      ? "Your free trial has ended."
+      : days === 1
+        ? "Last day of your free trial."
+        : `${days} days left in your free trial.`
+  return (
+    <div className="border-b border-[#ede3da] bg-[#f6f0ea] px-6 py-2.5 text-center text-sm text-[#5c0a17]">
+      {text}
     </div>
   )
 }

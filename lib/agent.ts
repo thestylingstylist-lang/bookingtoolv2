@@ -19,13 +19,14 @@ export type AgentRow = {
   public_email: string
   logo_url: string
   headshot_url: string
+  trial_ends_at: string | null
 }
 
 // Single source of truth for the columns every page loads. Keeping this in
 // one place stops the dashboard, settings and booking pages from drifting
 // apart when new columns are added.
 export const AGENT_SELECT =
-  "id, business_name, full_name, slug, timezone, weekdays, day_start, day_end, slot_minutes, days_ahead, welcome_message, tagline, public_phone, public_email, logo_url, headshot_url"
+  "id, business_name, full_name, slug, timezone, weekdays, day_start, day_end, slot_minutes, days_ahead, welcome_message, tagline, public_phone, public_email, logo_url, headshot_url, trial_ends_at"
 
 // Public lookup by booking-link slug (used by the public booking page).
 export async function getAgentBySlug(slug: string): Promise<AgentRow | null> {
