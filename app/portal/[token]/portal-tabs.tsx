@@ -98,7 +98,7 @@ export default function PortalTabs({
         </div>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-[#e6dbd0] bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-[#e4e3e0] bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -109,7 +109,7 @@ export default function PortalTabs({
             }}
             className={
               "flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors " +
-              (on(t.id) ? "text-[#5c0a17]" : "text-[#8a6f6c]")
+              (on(t.id) ? "text-[#8e2a4c]" : "text-[#5d5b62]")
             }
             aria-current={on(t.id) ? "page" : undefined}
           >

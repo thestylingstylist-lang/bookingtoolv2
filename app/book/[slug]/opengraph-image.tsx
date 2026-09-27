@@ -65,9 +65,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           width: "100%",
           height: "100%",
           display: "flex",
-          background: "#f6f0ea",
+          background: "#f4f3f1",
           fontFamily: "Georgia, serif",
-          color: "#1c1012",
+          color: "#16151a",
         }}
       >
         {/* Left: the business card */}
@@ -78,20 +78,20 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             flexDirection: "column",
             justifyContent: "center",
             padding: "0 64px",
-            background: "#5c0a17",
-            color: "#fff8f4",
+            background: "#8e2a4c",
+            color: "#ffffff",
           }}
         >
           {photo ? (
-            <img src={photo} width={180} height={180} style={{ borderRadius: 999, objectFit: "cover", border: "6px solid #e9b8ae" }} />
+            <img src={photo} width={180} height={180} style={{ borderRadius: 999, objectFit: "cover", border: "6px solid #e89bb4" }} />
           ) : (
             <div
               style={{
                 width: 180,
                 height: 180,
                 borderRadius: 999,
-                background: "#e9b8ae",
-                color: "#5c0a17",
+                background: "#e89bb4",
+                color: "#8e2a4c",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -102,8 +102,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             </div>
           )}
           <div style={{ fontSize: 56, marginTop: 36, lineHeight: 1.05 }}>{name}</div>
-          {business ? <div style={{ fontSize: 28, marginTop: 10, color: "#e9b8ae" }}>{business}</div> : null}
-          <div style={{ fontSize: 26, marginTop: 22, lineHeight: 1.3, color: "#f0dcd6" }}>{tagline}</div>
+          {business ? <div style={{ fontSize: 28, marginTop: 10, color: "#e89bb4" }}>{business}</div> : null}
+          <div style={{ fontSize: 26, marginTop: 22, lineHeight: 1.3, color: "#e3e2e4" }}>{tagline}</div>
         </div>
 
         {/* Right: their real open times */}
@@ -112,7 +112,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           <div style={{ display: "flex", flexDirection: "column", marginTop: 28 }}>
             {(days.length ? days : [{ label: "Open times", times: ["Tap to see"] }]).map((d) => (
               <div key={d.label} style={{ display: "flex", flexDirection: "column", marginBottom: 22 }}>
-                <div style={{ fontSize: 22, color: "#94807b" }}>{d.label}</div>
+                <div style={{ fontSize: 22, color: "#77757c" }}>{d.label}</div>
                 <div style={{ display: "flex", marginTop: 8 }}>
                   {d.times.map((t, i) => (
                     <div
@@ -122,9 +122,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                         padding: "10px 18px",
                         marginRight: 10,
                         borderRadius: 12,
-                        background: i === 0 ? "#5c0a17" : "#ffffff",
-                        color: i === 0 ? "#fff8f4" : "#1c1012",
-                        border: "1px solid #ede3da",
+                        background: i === 0 ? "#8e2a4c" : "#ffffff",
+                        color: i === 0 ? "#ffffff" : "#16151a",
+                        border: "1px solid #e6e5e3",
                       }}
                     >
                       {t}
@@ -134,7 +134,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 20, color: "#94807b", marginTop: 8 }}>marvberry.com</div>
+          <div style={{ fontSize: 20, color: "#77757c", marginTop: 8 }}>marvberry.com</div>
         </div>
       </div>
     ),

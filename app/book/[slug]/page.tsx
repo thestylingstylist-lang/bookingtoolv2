@@ -12,12 +12,12 @@ const SERIF = { fontFamily: "'Cormorant Garamond', Georgia, serif" }
 
 // Showcase default. Later each realtor picks their own colors in Settings.
 const THEME = {
-  "--base": "#f1ece4",
-  "--panel": "#efe4d6",
-  "--photo": "#d9c9bc",
-  "--panel-line": "#d4bcb6",
-  "--accent": "#7a2a36",
-  "--accent-soft": "#f3e7e3",
+  "--base": "#f1f0ee",
+  "--panel": "#e6e5e3",
+  "--photo": "#d6d4d0",
+  "--panel-line": "#d4d2ce",
+  "--accent": "#8e2a4c",
+  "--accent-soft": "#f8e6ec",
 } as React.CSSProperties
 
 export async function generateMetadata({
@@ -86,7 +86,7 @@ export default async function BookPage({
       />
       <div
         style={{ ...THEME, fontFamily: "'DM Sans', system-ui, sans-serif" }}
-        className="grid min-h-screen bg-[var(--base)] text-[#2b1a1c] lg:grid-cols-[500px_minmax(0,1fr)]"
+        className="grid min-h-screen bg-[var(--base)] text-[#16151a] lg:grid-cols-[500px_minmax(0,1fr)]"
       >
         <aside className="flex flex-col bg-[var(--panel)] p-6 sm:p-10">
           {agent.headshot_url ? (
@@ -99,7 +99,7 @@ export default async function BookPage({
           ) : (
             <div
               style={SERIF}
-              className="flex h-[240px] w-full items-center justify-center rounded-[18px] bg-[var(--photo)] text-6xl text-[#8a6f6c] lg:h-[450px]"
+              className="flex h-[240px] w-full items-center justify-center rounded-[18px] bg-[var(--photo)] text-6xl text-[#5d5b62] lg:h-[450px]"
               aria-hidden
             >
               {initials}
@@ -110,7 +110,7 @@ export default async function BookPage({
             <h1 style={SERIF} className="text-[34px] font-medium leading-[1.05] sm:text-[38px]">
               Thinking about buying <span className="italic">or selling?</span>
             </h1>
-            <p className="whitespace-pre-line text-[15px] leading-relaxed text-[#8a6f6c]">
+            <p className="whitespace-pre-line text-[15px] leading-relaxed text-[#5d5b62]">
               {agent.welcome_message ||
                 "Book a free consultation and let\u2019s map out your next move together."}
             </p>
@@ -122,7 +122,7 @@ export default async function BookPage({
                 </p>
               )}
               {credentials.length > 0 && (
-                <p className="text-xs uppercase leading-[1.8] tracking-[2px] text-[#8a6f6c]">
+                <p className="text-xs uppercase leading-[1.8] tracking-[2px] text-[#5d5b62]">
                   {credentials.map((c, i) => (
                     <span key={i} className="block">
                       {c}
@@ -147,7 +147,7 @@ export default async function BookPage({
                 timezone: agent.timezone,
               }}
             />
-            <p className="mt-14 text-xs text-[#b39e9a]">
+            <p className="mt-14 text-xs text-[#9a989e]">
               Your details are only used to schedule and prepare for your consultation.
             </p>
           </div>

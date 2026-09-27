@@ -9,7 +9,7 @@ import SidebarNav from "./sidebar-nav"
 
 const KEY = "mb-menu-open"
 const HELP_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`${PRODUCT_NAME} support`)}`
-const OX = "bg-[#5c0a17]"
+const OX = "bg-[#8e2a4c]"
 
 export default function AppShell({
   agent,
@@ -148,7 +148,7 @@ export default function AppShell({
           <FullMenu />
         ) : (
           <>
-            <div className="h-9 w-9 rounded-[10px] bg-[#efe0dc]" aria-hidden />
+            <div className="h-9 w-9 rounded-[10px] bg-[#f5dbe3]" aria-hidden />
             <div className="mt-8 flex-1">
               <SidebarNav collapsed />
             </div>
@@ -196,7 +196,7 @@ function TrialBanner({ endsAt, status }: { endsAt: string | null; status: string
         ? "Last day of your free trial."
         : `${days} days left in your free trial.`
   return (
-    <div className="border-b border-[#ede3da] bg-[#f6f0ea] px-6 py-2.5 text-center text-sm text-[#5c0a17]">
+    <div className="border-b border-[#e6e5e3] bg-[#f4f3f1] px-6 py-2.5 text-center text-sm text-[#8e2a4c]">
       {text}{" "}
       <a href="/billing" className="font-semibold underline underline-offset-2">
         Pick your plan

@@ -11,7 +11,7 @@ export type Task = { id: string; title: string; done: boolean }
 export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
 
 const inputClass =
-  "min-w-0 flex-1 rounded-lg border border-[#e6dbd0] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#8a6f6c] focus:border-sage"
+  "min-w-0 flex-1 rounded-lg border border-[#e4e3e0] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#5d5b62] focus:border-sage"
 
 function Hidden({ clientId, id }: { clientId: string; id?: string }) {
   return (
@@ -27,7 +27,7 @@ function RemoveButton({ label }: { label: string }) {
     <button
       type="submit"
       aria-label={`Remove ${label}`}
-      className="px-1 text-[#8a6f6c] opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
+      className="px-1 text-[#5d5b62] opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
     >
       &times;
     </button>
@@ -55,8 +55,8 @@ export default function LeftColumn({
     <div className="space-y-8">
       {/* Right now */}
       {tasks.length > 0 && (
-        <div className="rounded-xl border border-[#e6dbd0] bg-white p-3.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#7a2a36]">Right now</p>
+        <div className="rounded-xl border border-[#e4e3e0] bg-white p-3.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#8e2a4c]">Right now</p>
           <p className="mt-1 text-sm leading-snug">
             {upNext
               ? upNext.title
@@ -69,14 +69,14 @@ export default function LeftColumn({
 
       {/* Checklist for the current phase */}
       <section>
-        <h2 className="text-xs uppercase tracking-[0.08em] text-[#8a6f6c]">{current.label} checklist</h2>
+        <h2 className="text-xs uppercase tracking-[0.08em] text-[#5d5b62]">{current.label} checklist</h2>
         {tasks.length === 0 && (
           <form action={addStandardSteps} className="mt-3">
             <Hidden clientId={clientId} />
             <input type="hidden" name="phase" value={phase} />
             <button
               type="submit"
-              className="w-full rounded-lg border border-dashed border-[#c9b8ae] bg-white px-3 py-2.5 text-sm text-[#8a6f6c] hover:border-ink hover:text-ink"
+              className="w-full rounded-lg border border-dashed border-[#c9c7c3] bg-white px-3 py-2.5 text-sm text-[#5d5b62] hover:border-ink hover:text-ink"
             >
               Add the standard {current.label.toLowerCase()} steps
             </button>
@@ -92,13 +92,13 @@ export default function LeftColumn({
                   type="submit"
                   aria-label={t.done ? "Mark not done" : "Mark done"}
                   className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded-[5px] border-[1.5px] text-[10px] leading-none ${
-                    t.done ? "border-sage bg-sage text-white" : "border-[#c9b8ae] bg-white"
+                    t.done ? "border-sage bg-sage text-white" : "border-[#c9c7c3] bg-white"
                   }`}
                 >
                   {t.done ? "\u2713" : ""}
                 </button>
               </form>
-              <span className={`flex-1 text-sm ${t.done ? "text-[#8a6f6c] line-through" : ""}`}>
+              <span className={`flex-1 text-sm ${t.done ? "text-[#5d5b62] line-through" : ""}`}>
                 {t.title}
               </span>
               <form action={deleteTask}>
@@ -112,7 +112,7 @@ export default function LeftColumn({
           <Hidden clientId={clientId} />
           <input type="hidden" name="phase" value={phase} />
           <input name="title" placeholder="Add a step" className={inputClass} />
-          <button type="submit" className="rounded-lg border border-[#e6dbd0] bg-white px-3 text-sm hover:bg-[#f1ebe2]">
+          <button type="submit" className="rounded-lg border border-[#e4e3e0] bg-white px-3 text-sm hover:bg-[#f1f0ee]">
             Add
           </button>
         </form>
@@ -133,7 +133,7 @@ export default function LeftColumn({
           <form action={movePhase} className="mt-2 text-center">
             <Hidden clientId={clientId} />
             <input type="hidden" name="to" value={prev.key} />
-            <button type="submit" className="text-xs text-[#8a6f6c] hover:text-ink">
+            <button type="submit" className="text-xs text-[#5d5b62] hover:text-ink">
               &larr; Back to {prev.label}
             </button>
           </form>

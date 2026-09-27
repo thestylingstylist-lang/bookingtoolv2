@@ -65,11 +65,11 @@ export function manageUrl(token: string) {
 }
 
 const manageBlock = (url: string) =>
-  `<tr><td style="padding:4px 32px 8px;"><p style="margin:0;color:#8a6f6c;font-size:13px;">Need a different time? <a href="${url}" style="color:#2b1a1c;">Reschedule or cancel</a></p></td></tr>`
+  `<tr><td style="padding:4px 32px 8px;"><p style="margin:0;color:#5d5b62;font-size:13px;">Need a different time? <a href="${url}" style="color:#16151a;">Reschedule or cancel</a></p></td></tr>`
 
 const wrap = (inner: string) => `<!doctype html>
-<html><body style="margin:0;padding:0;background:#f1ece4;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1ece4;padding:32px 0;">
+<html><body style="margin:0;padding:0;background:#f1f0ee;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f0ee;padding:32px 0;">
 <tr><td align="center">
 <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:14px;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
 ${inner}
@@ -81,7 +81,7 @@ function detailRows(rows: [string, string][]) {
   return rows
     .map(
       ([k, v]) =>
-        `<tr><td style="padding:4px 0;color:#8a6f6c;font-size:13px;width:120px;">${k}</td><td style="padding:4px 0;color:#2b1a1c;font-size:14px;font-weight:600;">${v}</td></tr>`
+        `<tr><td style="padding:4px 0;color:#5d5b62;font-size:13px;width:120px;">${k}</td><td style="padding:4px 0;color:#16151a;font-size:14px;font-weight:600;">${v}</td></tr>`
     )
     .join("")
 }
@@ -102,13 +102,13 @@ export function clientConfirmationEmail(opts: {
   const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).join(" &middot; ")
 
   const html = wrap(`
-    <tr><td style="background:#7a2a36;height:6px;"></td></tr>
+    <tr><td style="background:#8e2a4c;height:6px;"></td></tr>
     <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:22px;color:#2b1a1c;font-family:Georgia,serif;">You're booked${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
-      <p style="margin:12px 0 0;color:#2b1a1c;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} is confirmed. Here are the details:</p>
+      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:Georgia,serif;">You're booked${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
+      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} is confirmed. Here are the details:</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
         ${detailRows([
           ["When", opts.whenLabel],
           ["Type", opts.meetingType === "phone" ? "Phone call" : "Video call"],
@@ -116,12 +116,12 @@ export function clientConfirmationEmail(opts: {
       </table>
     </td></tr>
     <tr><td style="padding:0 32px 8px;">
-      <p style="margin:0;color:#2b1a1c;font-size:14px;line-height:1.5;">${how}</p>
+      <p style="margin:0;color:#16151a;font-size:14px;line-height:1.5;">${how}</p>
     </td></tr>
     ${opts.manageUrl ? manageBlock(opts.manageUrl) : ""}
     ${
       contact
-        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#8a6f6c;font-size:13px;">Questions? ${contact}</p></td></tr>`
+        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#5d5b62;font-size:13px;">Questions? ${contact}</p></td></tr>`
         : `<tr><td style="height:20px;"></td></tr>`
     }
   `)
@@ -158,19 +158,19 @@ export function agentNotificationEmail(opts: {
   if (opts.lookingTo) rows.push(["Looking to", opts.lookingTo])
 
   const html = wrap(`
-    <tr><td style="background:#5c0a17;height:6px;"></td></tr>
+    <tr><td style="background:#8e2a4c;height:6px;"></td></tr>
     <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:20px;color:#2b1a1c;font-family:Georgia,serif;">New booking</h1>
-      <p style="margin:10px 0 0;color:#2b1a1c;font-size:15px;">${opts.clientName} just booked a consultation.</p>
+      <h1 style="margin:0;font-size:20px;color:#16151a;font-family:Georgia,serif;">New booking</h1>
+      <p style="margin:10px 0 0;color:#16151a;font-size:15px;">${opts.clientName} just booked a consultation.</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
         ${detailRows(rows)}
       </table>
     </td></tr>
     ${
       opts.notes
-        ? `<tr><td style="padding:0 32px 28px;"><p style="margin:0 0 4px;color:#8a6f6c;font-size:13px;">Notes</p><p style="margin:0;color:#2b1a1c;font-size:14px;line-height:1.5;">${opts.notes.replace(/</g, "&lt;")}</p></td></tr>`
+        ? `<tr><td style="padding:0 32px 28px;"><p style="margin:0 0 4px;color:#5d5b62;font-size:13px;">Notes</p><p style="margin:0;color:#16151a;font-size:14px;line-height:1.5;">${opts.notes.replace(/</g, "&lt;")}</p></td></tr>`
         : `<tr><td style="height:20px;"></td></tr>`
     }
   `)
@@ -203,13 +203,13 @@ export function clientReminderEmail(opts: {
   const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).join(" &middot; ")
 
   const html = wrap(`
-    <tr><td style="background:#7a2a36;height:6px;"></td></tr>
+    <tr><td style="background:#8e2a4c;height:6px;"></td></tr>
     <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:22px;color:#2b1a1c;font-family:Georgia,serif;">See you soon${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
-      <p style="margin:12px 0 0;color:#2b1a1c;font-size:15px;line-height:1.5;">A quick reminder about your consultation with ${opts.agentName}:</p>
+      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:Georgia,serif;">See you soon${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
+      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">A quick reminder about your consultation with ${opts.agentName}:</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
         ${detailRows([
           ["When", opts.whenLabel],
           ["Type", opts.meetingType === "phone" ? "Phone call" : "Video call"],
@@ -217,12 +217,12 @@ export function clientReminderEmail(opts: {
       </table>
     </td></tr>
     <tr><td style="padding:0 32px 8px;">
-      <p style="margin:0;color:#2b1a1c;font-size:14px;line-height:1.5;">${how}</p>
+      <p style="margin:0;color:#16151a;font-size:14px;line-height:1.5;">${how}</p>
     </td></tr>
     ${opts.manageUrl ? manageBlock(opts.manageUrl) : ""}
     ${
       contact
-        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#8a6f6c;font-size:13px;">Questions? ${contact}</p></td></tr>`
+        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#5d5b62;font-size:13px;">Questions? ${contact}</p></td></tr>`
         : `<tr><td style="height:20px;"></td></tr>`
     }
   `)
@@ -249,13 +249,13 @@ export function clientRescheduledEmail(opts: {
 }) {
   const type = opts.meetingType === "phone" ? "Phone call" : "Video call"
   const html = wrap(`
-    <tr><td style="background:#7a2a36;height:6px;"></td></tr>
+    <tr><td style="background:#8e2a4c;height:6px;"></td></tr>
     <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:22px;color:#2b1a1c;font-family:Georgia,serif;">You're all set${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
-      <p style="margin:12px 0 0;color:#2b1a1c;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} has moved to a new time:</p>
+      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:Georgia,serif;">You're all set${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
+      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} has moved to a new time:</p>
     </td></tr>
     <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
         ${detailRows([
           ["When", opts.whenLabel],
           ["Type", type],
@@ -284,10 +284,10 @@ export function clientCancelledEmail(opts: {
   bookingUrl: string
 }) {
   const html = wrap(`
-    <tr><td style="background:#7a2a36;height:6px;"></td></tr>
+    <tr><td style="background:#8e2a4c;height:6px;"></td></tr>
     <tr><td style="padding:32px 32px 28px;">
-      <h1 style="margin:0;font-size:22px;color:#2b1a1c;font-family:Georgia,serif;">Your consultation is cancelled.</h1>
-      <p style="margin:12px 0 0;color:#2b1a1c;font-size:15px;line-height:1.5;">Your call with ${opts.agentName} on ${opts.whenLabel} has been cancelled. If you'd like to talk another time, you can <a href="${opts.bookingUrl}" style="color:#2b1a1c;">book a new time here</a>.</p>
+      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:Georgia,serif;">Your consultation is cancelled.</h1>
+      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">Your call with ${opts.agentName} on ${opts.whenLabel} has been cancelled. If you'd like to talk another time, you can <a href="${opts.bookingUrl}" style="color:#16151a;">book a new time here</a>.</p>
     </td></tr>
   `)
   const text = `Your consultation is cancelled.
@@ -322,13 +322,13 @@ export function agentChangeEmail(opts: {
     : `${opts.clientName} cancelled their consultation. The time is open again on your booking page.`
 
   const html = wrap(`
-    <tr><td style="background:#5c0a17;height:6px;"></td></tr>
+    <tr><td style="background:#8e2a4c;height:6px;"></td></tr>
     <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:20px;color:#2b1a1c;font-family:Georgia,serif;">${heading}</h1>
-      <p style="margin:10px 0 0;color:#2b1a1c;font-size:15px;">${line}</p>
+      <h1 style="margin:0;font-size:20px;color:#16151a;font-family:Georgia,serif;">${heading}</h1>
+      <p style="margin:10px 0 0;color:#16151a;font-size:15px;">${line}</p>
     </td></tr>
     <tr><td style="padding:16px 32px 28px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1ece4;border-radius:10px;padding:16px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
         ${detailRows(rows)}
       </table>
     </td></tr>

@@ -14,19 +14,19 @@ export function portalLinkEmail(opts: { clientFirstName: string; agentName: stri
   const hi = opts.clientFirstName ? `Hi ${esc(opts.clientFirstName)},` : "Hi,"
   const agent = esc(opts.agentName)
   const html = `<!doctype html>
-<html><body style="margin:0;padding:0;background:#f1ece4;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1ece4;padding:40px 0;">
+<html><body style="margin:0;padding:0;background:#f1f0ee;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f0ee;padding:40px 0;">
 <tr><td align="center">
-<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e6dbd0;border-radius:14px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e4e3e0;border-radius:14px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
 <tr><td style="padding:36px 36px 8px;">
-  <h1 style="margin:0;font-size:24px;font-weight:normal;color:#2b1a1c;font-family:Georgia,serif;">Your home search, in one place</h1>
-  <p style="margin:14px 0 0;color:#2b1a1c;font-size:15px;line-height:1.55;">${hi} ${agent} set up a private page for you. See where things stand, what's next, and message ${agent} anytime.</p>
+  <h1 style="margin:0;font-size:24px;font-weight:normal;color:#16151a;font-family:Georgia,serif;">Your home search, in one place</h1>
+  <p style="margin:14px 0 0;color:#16151a;font-size:15px;line-height:1.55;">${hi} ${agent} set up a private page for you. See where things stand, what's next, and message ${agent} anytime.</p>
 </td></tr>
 <tr><td style="padding:22px 36px 8px;">
-  <a href="${opts.link}" style="display:inline-block;background:#2b1a1c;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px;">Open my page</a>
+  <a href="${opts.link}" style="display:inline-block;background:#16151a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px;">Open my page</a>
 </td></tr>
 <tr><td style="padding:14px 36px 32px;">
-  <p style="margin:0;color:#8a6f6c;font-size:13px;line-height:1.5;">No password needed. This link is private to you, so please don't share it. Bookmark it to come back anytime.</p>
+  <p style="margin:0;color:#5d5b62;font-size:13px;line-height:1.5;">No password needed. This link is private to you, so please don't share it. Bookmark it to come back anytime.</p>
 </td></tr>
 </table>
 </td></tr></table>
