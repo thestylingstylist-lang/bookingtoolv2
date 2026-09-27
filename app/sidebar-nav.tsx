@@ -96,7 +96,7 @@ export default function SidebarNav({ collapsed = false }: { collapsed?: boolean 
               aria-label={item.label}
               className={
                 "group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors " +
-                (active ? "bg-[#f4f3f1] text-[#16151a]" : "text-white/60 hover:bg-white/10 hover:text-white")
+                (active ? "bg-[#16151a] text-white shadow-sm" : "text-[#16151a]/60 hover:bg-white/70 hover:text-[#16151a]")
               }
             >
               <Icon href={item.href} />
@@ -113,7 +113,7 @@ export default function SidebarNav({ collapsed = false }: { collapsed?: boolean 
             href={item.href}
             className={
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors " +
-              (active ? "bg-[#f4f3f1] text-[#16151a]" : "text-white/60 hover:bg-white/10 hover:text-white")
+              (active ? "bg-[#16151a] text-white shadow-sm" : "text-[#16151a]/60 hover:bg-white/70 hover:text-[#16151a]")
             }
           >
             <Icon href={item.href} size={18} />

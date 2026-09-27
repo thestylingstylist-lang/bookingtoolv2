@@ -9,7 +9,8 @@ import SidebarNav from "./sidebar-nav"
 
 const KEY = "mb-menu-open"
 const HELP_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`${PRODUCT_NAME} support`)}`
-const OX = "bg-[#16151a]"
+const OX = "bg-white/25 backdrop-blur-2xl backdrop-saturate-150 border-r border-white/80 shadow-[1px_0_0_rgba(22,21,26,0.06)]"
+const GLOW = "radial-gradient(70% 38% at 15% 12%, rgba(232,155,180,1), transparent 70%), radial-gradient(70% 38% at 35% 55%, rgba(217,70,122,.4), transparent 70%), radial-gradient(70% 40% at 20% 90%, rgba(251,201,142,1), transparent 70%)"
 
 export default function AppShell({
   agent,
@@ -57,7 +58,7 @@ export default function AppShell({
       <>
         <div className="px-3">
           <p className="font-serif font-semibold tracking-tight text-lg leading-tight">{businessName}</p>
-          <p className="mt-0.5 text-xs text-white/40">{agent.full_name}</p>
+          <p className="mt-0.5 text-xs text-[#16151a]/45">{agent.full_name}</p>
         </div>
 
         <div className="mt-8 flex-1">
@@ -67,18 +68,18 @@ export default function AppShell({
         {SUPPORT_EMAIL && (
           <a
             href={HELP_HREF}
-            className="mb-5 flex items-center gap-3 rounded-full bg-white/20 p-1.5 pr-5 transition-colors hover:bg-white/30"
+            className="mb-5 flex items-center gap-3 rounded-full border border-white/90 bg-white/70 p-1.5 pr-5 shadow-sm transition-colors hover:bg-white"
           >
             <img src="/support-avatar.jpg" alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
-            <span className="text-base font-semibold text-white">Need Help?</span>
+            <span className="text-base font-semibold text-[#16151a]">Need Help?</span>
           </a>
         )}
 
-        <a href="/billing" className="mb-2 block px-3 text-xs text-white/40 underline underline-offset-2 hover:text-white/80">
+        <a href="/billing" className="mb-2 block px-3 text-xs text-[#16151a]/45 underline underline-offset-2 hover:text-[#16151a]">
           Billing
         </a>
         <form action={signOut} className="px-3">
-          <button className="text-xs text-white/40 underline underline-offset-2 hover:text-white/80">
+          <button className="text-xs text-[#16151a]/45 underline underline-offset-2 hover:text-[#16151a]">
             Sign out
           </button>
         </form>
@@ -90,12 +91,12 @@ export default function AppShell({
     <div className="flex min-h-screen flex-col sm:flex-row">
       {/* ── Phone top bar: menu on the left, name/logo on the right ── */}
       <header
-        className={`sticky top-0 z-40 flex h-14 items-center justify-between px-3 text-white sm:hidden ${OX}`}
+        className={`sticky top-0 z-40 flex h-14 items-center justify-between px-3 text-[#16151a] sm:hidden bg-white/75 backdrop-blur-xl border-b border-[#16151a]/5`}
       >
         <button
           onClick={() => setMobileOpen(true)}
           aria-label="Open menu"
-          className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-white/10"
+          className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-black/5"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
             <path d="M4 7h16M4 12h16M4 17h16" />
@@ -120,27 +121,34 @@ export default function AppShell({
         />
         <aside
           className={
-            `absolute left-0 top-0 flex h-full w-72 max-w-[85vw] flex-col px-4 py-6 text-white shadow-2xl transition-transform duration-200 ${OX} ` +
+            `absolute left-0 top-0 flex h-full w-72 max-w-[85vw] isolate flex-col overflow-hidden px-4 py-6 text-[#16151a] shadow-2xl transition-transform duration-200 bg-[#f7f6f4] ` +
             (mobileOpen ? "translate-x-0" : "-translate-x-full")
           }
         >
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
-            className="absolute right-3 top-4 flex h-9 w-9 items-center justify-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+            className="absolute right-3 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[#16151a]/50 hover:bg-black/5 hover:text-[#16151a]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 opacity-90" style={{ background: GLOW, filter: "blur(24px)" }} />
           <FullMenu />
         </aside>
       </div>
 
+      {/* soft brand wash the frosted rail sits on */}
+      <div
+        aria-hidden
+        className={"pointer-events-none fixed inset-y-0 left-0 z-0 hidden transition-[width] duration-200 sm:block " + (open ? "w-60" : "w-20")}
+        style={{ background: GLOW, filter: "blur(24px)" }}
+      />
       {/* ── Desktop rail (unchanged behavior) ── */}
       <aside
         className={
-          `sticky top-0 z-40 hidden h-screen shrink-0 flex-col py-6 text-white transition-[width] duration-200 sm:flex ${OX} ` +
+          `sticky top-0 z-40 hidden h-screen shrink-0 flex-col py-6 text-[#16151a] transition-[width] duration-200 sm:flex ${OX} ` +
           (open ? "w-56 px-4" : "w-16 items-center px-2")
         }
       >
@@ -148,7 +156,7 @@ export default function AppShell({
           <FullMenu />
         ) : (
           <>
-            <div className="h-9 w-9 rounded-[10px] bg-[#eeedeb]" aria-hidden />
+            <div className="h-9 w-9 rounded-[10px] bg-gradient-to-br from-[#E89BB4] to-[#FBC98E]" aria-hidden />
             <div className="mt-8 flex-1">
               <SidebarNav collapsed />
             </div>
@@ -164,7 +172,7 @@ export default function AppShell({
           onClick={toggle}
           aria-label={open ? "Collapse menu" : "Expand menu"}
           className={
-            "mt-5 flex h-8 w-8 items-center justify-center rounded-full text-white/50 transition-colors hover:bg-white/10 hover:text-white " +
+            "mt-5 flex h-8 w-8 items-center justify-center rounded-full text-[#16151a]/40 transition-colors hover:bg-white/70 hover:text-[#16151a] " +
             (open ? "ml-2" : "")
           }
         >
@@ -172,7 +180,7 @@ export default function AppShell({
         </button>
       </aside>
 
-      <div className="min-w-0 flex-1">
+      <div className="relative z-10 min-w-0 flex-1">
         <TrialBanner endsAt={agent.trial_ends_at} status={agent.subscription_status} />
         {children}
       </div>
