@@ -40,9 +40,26 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/start-here") ||
     path.startsWith("/bookings") ||
     path.startsWith("/clients") ||
-    path.startsWith("/documents")
+    path.startsWith("/documents") ||
+    path.startsWith("/templates") ||
+    path.startsWith("/billing")
   if (!user && guarded) {
     return NextResponse.redirect(new URL("/login", request.url))
+  }
+
+  // Trial over and not paid: the app waits on the billing page.
+  // Clients' booking pages and portals are never touched by this.
+  if (user && guarded && !path.startsWith("/billing")) {
+    const { data: agent } = await supabase
+      .from("agents")
+      .select("trial_ends_at, subscription_status")
+      .eq("id", user.id)
+      .maybeSingle()
+    const ended = !!agent?.trial_ends_at && new Date(agent.trial_ends_at).getTime() <= Date.now()
+    const paid = ["active", "trialing", "past_due"].includes(agent?.subscription_status ?? "")
+    if (ended && !paid) {
+      return NextResponse.redirect(new URL("/billing", request.url))
+    }
   }
   if (user && (path === "/login" || path === "/signup")) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
@@ -59,6 +76,8 @@ export const config = {
     "/bookings/:path*",
     "/clients/:path*",
     "/documents/:path*",
+    "/templates/:path*",
+    "/billing/:path*",
     "/login",
     "/signup",
   ],
