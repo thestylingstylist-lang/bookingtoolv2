@@ -1,13 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 export default function BookingLink({ slug }: { slug: string }) {
-  const [origin, setOrigin] = useState("")
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => setOrigin(window.location.origin), [])
-  const url = `${origin}/book/${slug}`
+  const url = `https://www.marvberry.com/book/${slug}`
 
   async function copy() {
     try {
@@ -25,7 +23,7 @@ export default function BookingLink({ slug }: { slug: string }) {
         href={`/book/${slug}`}
         className="truncate font-medium text-brass hover:underline"
       >
-        {origin ? url : `/book/${slug}`}
+        {url}
       </a>
       <button
         type="button"
