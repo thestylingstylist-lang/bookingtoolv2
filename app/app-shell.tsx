@@ -9,7 +9,7 @@ import SidebarNav from "./sidebar-nav"
 import FeedbackWidget from "./feedback-widget"
 
 const KEY = "mb-menu-open"
-const HELP_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`${PRODUCT_NAME} support`)}`
+const HELP_HREF = "/support"
 const OX = "bg-white/25 backdrop-blur-2xl backdrop-saturate-150 border-r border-white/80 shadow-[1px_0_0_rgba(22,21,26,0.06)]"
 const GLOW = "radial-gradient(70% 38% at 15% 12%, rgba(232,155,180,1), transparent 70%), radial-gradient(70% 38% at 35% 55%, rgba(217,70,122,.4), transparent 70%), radial-gradient(70% 40% at 20% 90%, rgba(251,201,142,1), transparent 70%)"
 

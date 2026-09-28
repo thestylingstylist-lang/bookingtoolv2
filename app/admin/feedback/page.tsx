@@ -32,7 +32,7 @@ export default async function AdminFeedbackPage() {
 
   return (
     <main className="w-full px-6 pb-16 pt-10 sm:px-10 lg:px-16">
-      <p className="text-sm font-semibold tracking-wide text-[#D9467A]">Support</p>
+      <p className="text-sm font-semibold tracking-wide text-[#D9467A]">Feedback</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#16151a]">What agents are <em className="bg-gradient-to-r from-[#D9467A] to-[#EE7C55] bg-clip-text font-serif italic text-transparent">telling us</em></h1>
       <p className="mt-1.5 text-sm text-[#16151a]/60">
         {rows.length} {rows.length === 1 ? "note" : "notes"} from agents.

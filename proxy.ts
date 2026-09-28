@@ -43,14 +43,15 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/documents") ||
     path.startsWith("/templates") ||
     path.startsWith("/billing") ||
-    path.startsWith("/admin")
+    path.startsWith("/admin") ||
+    path.startsWith("/support")
   if (!user && guarded) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
   // Trial over and not paid: the app waits on the billing page.
   // Clients' booking pages and portals are never touched by this.
-  if (user && guarded && !path.startsWith("/billing") && !path.startsWith("/admin")) {
+  if (user && guarded && !path.startsWith("/billing") && !path.startsWith("/admin") && !path.startsWith("/support")) {
     const { data: agent } = await supabase
       .from("agents")
       .select("trial_ends_at, subscription_status")
@@ -80,6 +81,7 @@ export const config = {
     "/templates/:path*",
     "/billing/:path*",
     "/admin/:path*",
+    "/support/:path*",
     "/login",
     "/signup",
   ],

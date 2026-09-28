@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation"
 
 const NAV = [
   { href: "/admin/agents", label: "Agents" },
-  { href: "/admin/feedback", label: "Support" },
+  { href: "/admin/messages", label: "Support" },
+  { href: "/admin/feedback", label: "Feedback" },
 ]
 
 export default function AdminNav() {
