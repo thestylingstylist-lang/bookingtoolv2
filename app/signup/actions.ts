@@ -46,8 +46,8 @@ export async function signUp(
     return fail("Couldn't create your account. Please try again.")
   }
 
-  // Give them a unique booking-link slug and their profile row.
-  const slug = await uniqueSlug(slugify(businessName))
+  // Their booking link is built from their own name (it outlasts a business or brokerage name).
+  const slug = await uniqueSlug(slugify(fullName || businessName))
   const { error: rowErr } = await admin.from("agents").insert({
     id: created.user.id,
     business_name: businessName,

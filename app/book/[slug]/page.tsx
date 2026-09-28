@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
-import { notFound } from "next/navigation"
+import { notFound, permanentRedirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { getAgentBySlug } from "@/lib/agent"
+import { getAgentBySlug, findSlugRedirect } from "@/lib/agent"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import BookingForm from "./booking-form"
@@ -48,7 +48,12 @@ export default async function BookPage({
 }) {
   const { slug } = await params
   const agent = await getAgentBySlug(slug)
-  if (!agent) notFound()
+  if (!agent) {
+    // An old link (e.g. before a rename) forwards to the agent's current page.
+    const current = await findSlugRedirect(slug)
+    if (current) permanentRedirect(`/book/${current}`)
+    notFound()
+  }
 
   const cfg = toAgentConfig(agent)
 

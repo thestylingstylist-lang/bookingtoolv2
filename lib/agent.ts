@@ -43,30 +43,45 @@ export async function getAgentBySlug(slug: string): Promise<AgentRow | null> {
   return data as AgentRow
 }
 
-// Turn a display name into a URL-safe slug base.
+// Turn a display name into a URL-safe slug base ("José Álvarez" -> "jose-alvarez").
 export function slugify(input: string): string {
   const base = input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40)
+    .replace(/-+$/g, "")
   return base || "agent"
 }
 
-// Find a slug not already taken, appending a short suffix if needed.
-export async function uniqueSlug(base: string): Promise<string> {
+async function slugTaken(candidate: string): Promise<boolean> {
   const admin = createAdminClient()
-  let candidate = base
-  for (let i = 0; i < 12; i++) {
-    const { data } = await admin
-      .from("agents")
-      .select("id")
-      .eq("slug", candidate)
-      .maybeSingle()
-    if (!data) return candidate
-    candidate = `${base}-${Math.random().toString(36).slice(2, 6)}`
+  const { data } = await admin.from("agents").select("id").eq("slug", candidate).maybeSingle()
+  if (data) return true
+  // Old links that forward to someone else stay reserved.
+  const { data: old } = await admin.from("slug_redirects").select("old_slug").eq("old_slug", candidate).maybeSingle()
+  return !!old
+}
+
+// Find a slug not already taken: colin-thomas, then colin-thomas-2, -3 …
+export async function uniqueSlug(base: string): Promise<string> {
+  if (!(await slugTaken(base))) return base
+  for (let n = 2; n < 50; n++) {
+    const candidate = `${base}-${n}`
+    if (!(await slugTaken(candidate))) return candidate
   }
   return `${base}-${Date.now().toString(36)}`
+}
+
+// An old booking link that now belongs under a new slug. Returns the current slug, or null.
+export async function findSlugRedirect(oldSlug: string): Promise<string | null> {
+  const admin = createAdminClient()
+  const { data } = await admin.from("slug_redirects").select("agent_id").eq("old_slug", oldSlug).maybeSingle()
+  if (!data?.agent_id) return null
+  const { data: agent } = await admin.from("agents").select("slug").eq("id", data.agent_id).maybeSingle()
+  return agent?.slug && agent.slug !== oldSlug ? agent.slug : null
 }
 
 export { AGENT_DEFAULTS }
