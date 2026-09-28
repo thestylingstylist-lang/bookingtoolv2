@@ -6,6 +6,7 @@ import { signOut } from "@/app/login/actions"
 import { type AgentRow } from "@/lib/agent"
 import { PRODUCT_NAME, SUPPORT_EMAIL } from "@/lib/support"
 import SidebarNav from "./sidebar-nav"
+import FeedbackWidget from "./feedback-widget"
 
 const KEY = "mb-menu-open"
 const HELP_HREF = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`${PRODUCT_NAME} support`)}`
@@ -63,6 +64,9 @@ export default function AppShell({
 
         <div className="mt-8 flex-1">
           <SidebarNav />
+          <div className="mt-2">
+            <FeedbackWidget />
+          </div>
         </div>
 
         {SUPPORT_EMAIL && (
@@ -159,6 +163,9 @@ export default function AppShell({
             <div className="h-9 w-9 rounded-[10px] bg-gradient-to-br from-[#E89BB4] to-[#FBC98E]" aria-hidden />
             <div className="mt-8 flex-1">
               <SidebarNav collapsed />
+              <div className="mt-2">
+                <FeedbackWidget collapsed />
+              </div>
             </div>
             {SUPPORT_EMAIL && (
               <a href={HELP_HREF} title="Need help?" aria-label="Need help?" className="mb-5">
