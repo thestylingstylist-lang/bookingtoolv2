@@ -31,14 +31,14 @@ export default async function AdminFeedbackPage() {
   const rows = (data ?? []) as Row[]
 
   return (
-    <main className="mx-auto max-w-3xl px-6 pb-16 pt-10">
+    <main className="w-full px-6 pb-16 pt-10 sm:px-10 lg:px-16">
       <p className="text-sm font-semibold tracking-wide text-[#D9467A]">Support</p>
       <h1 className="mt-2 text-4xl font-semibold tracking-tight text-[#16151a]">What agents are <em className="bg-gradient-to-r from-[#D9467A] to-[#EE7C55] bg-clip-text font-serif italic text-transparent">telling us</em></h1>
       <p className="mt-1.5 text-sm text-[#16151a]/60">
         {rows.length} {rows.length === 1 ? "note" : "notes"} from agents.
       </p>
 
-      <div className="mt-8 space-y-4">
+      <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {rows.length === 0 && (
           <p className="rounded-2xl border border-[#16151a]/10 bg-white p-6 text-sm text-[#16151a]/60">
             No feedback yet.
