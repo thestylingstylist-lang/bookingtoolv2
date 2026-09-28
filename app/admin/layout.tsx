@@ -1,3 +1,6 @@
+import Link from "next/link"
+import AdminNav from "./admin-nav"
+
 // Internal Marvberry team area. Carries the brand (unlike the neutral realtor app).
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,13 +15,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           filter: "blur(40px)",
         }}
       />
-      <header className="relative flex w-full items-center justify-between px-6 pt-8 sm:px-10 lg:px-16">
-        <p className="text-lg font-semibold tracking-tight">
+      <header className="relative flex w-full flex-wrap items-center gap-x-8 gap-y-4 px-6 pt-8 sm:px-10 lg:px-16">
+        <Link href="/admin/agents" className="text-lg font-semibold tracking-tight">
           Marvberry
           <span className="ml-2 rounded-full bg-gradient-to-r from-[#D9467A] to-[#EE7C55] px-2.5 py-0.5 align-middle text-[11px] font-semibold uppercase tracking-wider text-white">
             Team
           </span>
-        </p>
+        </Link>
+        <AdminNav />
       </header>
       <div className="relative">{children}</div>
     </div>

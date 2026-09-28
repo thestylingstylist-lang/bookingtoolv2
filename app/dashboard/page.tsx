@@ -6,6 +6,7 @@ import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { SETUP_STEPS, setupProgress } from "@/lib/onboarding"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
+import { isAdminEmail } from "@/lib/admin"
 
 export const dynamic = "force-dynamic"
 
@@ -15,6 +16,8 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect("/login")
+  // The team account gets the admin space, not an agent dashboard.
+  if (isAdminEmail(user.email)) redirect("/admin/agents")
 
   const { data: agentData } = await supabase
     .from("agents")
