@@ -57,6 +57,8 @@ export async function saveSettings(
   const dayEnd = Number(formData.get("dayEnd"))
   const slotMinutes = Number(formData.get("slotMinutes"))
   const daysAhead = Number(formData.get("daysAhead"))
+  const minNoticeHours = Number(formData.get("minNoticeHours"))
+  const showContact = formData.get("showContact") === "on"
   const weekdays = formData
     .getAll("weekdays")
     .map((v) => Number(v))
@@ -79,6 +81,8 @@ export async function saveSettings(
     return { ok: false, message: "Pick a valid slot length." }
   if (daysAhead < 1 || daysAhead > 60)
     return { ok: false, message: "Booking window must be between 1 and 60 days." }
+  if (!Number.isFinite(minNoticeHours) || minNoticeHours < 0 || minNoticeHours > 168)
+    return { ok: false, message: "Minimum notice must be between 0 and 168 hours." }
   if (publicEmail && !publicEmail.includes("@"))
     return { ok: false, message: "That public email doesn't look right." }
 
@@ -100,6 +104,8 @@ export async function saveSettings(
     day_end: dayEnd,
     slot_minutes: slotMinutes,
     days_ahead: daysAhead,
+    min_notice_hours: minNoticeHours,
+    show_contact: showContact,
     welcome_message: welcomeMessage,
     tagline,
     public_phone: publicPhone,

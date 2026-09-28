@@ -13,6 +13,8 @@ export type AgentRow = {
   day_end: number
   slot_minutes: number
   days_ahead: number
+  min_notice_hours: number
+  show_contact: boolean
   welcome_message: string
   tagline: string
   public_phone: string
@@ -27,7 +29,7 @@ export type AgentRow = {
 // one place stops the dashboard, settings and booking pages from drifting
 // apart when new columns are added.
 export const AGENT_SELECT =
-  "id, business_name, full_name, slug, timezone, weekdays, day_start, day_end, slot_minutes, days_ahead, welcome_message, tagline, public_phone, public_email, logo_url, headshot_url, trial_ends_at, subscription_status"
+  "id, business_name, full_name, slug, timezone, weekdays, day_start, day_end, slot_minutes, days_ahead, min_notice_hours, show_contact, welcome_message, tagline, public_phone, public_email, logo_url, headshot_url, trial_ends_at, subscription_status"
 
 // Public lookup by booking-link slug (used by the public booking page).
 export async function getAgentBySlug(slug: string): Promise<AgentRow | null> {

@@ -124,6 +124,20 @@ export default async function BookPage({
                   ))}
                 </p>
               )}
+              {agent.show_contact && (agent.public_phone || agent.public_email) && (
+                <div className="mt-1 flex flex-col gap-1 text-[14px] text-[#5d5b62]">
+                  {agent.public_phone && (
+                    <a href={`tel:${agent.public_phone}`} className="hover:text-[#16151a]">
+                      {agent.public_phone}
+                    </a>
+                  )}
+                  {agent.public_email && (
+                    <a href={`mailto:${agent.public_email}`} className="hover:text-[#16151a]">
+                      {agent.public_email}
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </aside>

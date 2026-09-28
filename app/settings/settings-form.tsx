@@ -77,6 +77,21 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
             placeholder="Shown to clients"
           />
         </div>
+
+        <label className="mt-1 flex items-start gap-3">
+          <input
+            type="checkbox"
+            name="showContact"
+            defaultChecked={agent.show_contact}
+            className="mt-0.5 h-4 w-4 rounded border-ink/30 accent-ox"
+          />
+          <span className="text-sm text-ink/70">
+            Show my phone and email on the booking page
+            <span className="mt-0.5 block text-xs text-ink/50">
+              When on, clients see them under your photo before they book.
+            </span>
+          </span>
+        </label>
       </section>
 
       <hr className="border-ink/10" />
@@ -152,6 +167,28 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
             max={60}
             defaultValue={String(agent.days_ahead)}
           />
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1.5 block text-sm text-ink/70">Minimum notice</span>
+            <select
+              name="minNoticeHours"
+              defaultValue={String(agent.min_notice_hours ?? 24)}
+              className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass"
+            >
+              <option value="0">No minimum</option>
+              <option value="1">1 hour before</option>
+              <option value="2">2 hours before</option>
+              <option value="4">4 hours before</option>
+              <option value="12">12 hours before</option>
+              <option value="24">24 hours (next day)</option>
+              <option value="48">48 hours (2 days)</option>
+            </select>
+            <p className="mt-1.5 text-xs text-ink/50">
+              How far ahead clients must book. &ldquo;24 hours&rdquo; stops same-day bookings.
+            </p>
+          </label>
         </div>
       </section>
 

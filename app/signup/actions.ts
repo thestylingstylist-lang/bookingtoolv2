@@ -59,6 +59,8 @@ export async function signUp(
     day_end: AGENT_DEFAULTS.endHour,
     slot_minutes: AGENT_DEFAULTS.slotMinutes,
     days_ahead: AGENT_DEFAULTS.daysAhead,
+    min_notice_hours: AGENT_DEFAULTS.minNoticeHours,
+    show_contact: AGENT_DEFAULTS.showContact,
   })
   if (rowErr) {
     // Roll back the auth user so they can retry cleanly.

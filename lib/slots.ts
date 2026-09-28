@@ -15,6 +15,8 @@ const pad = (n: number) => String(n).padStart(2, "0")
 export function generateSlots(cfg: AgentConfig, takenISO: Set<string> = new Set()): Slot[] {
   const tz = cfg.timezone
   const now = new Date()
+  // Earliest instant a client may book: now plus the agent's minimum notice.
+  const earliest = new Date(now.getTime() + (cfg.minNoticeHours ?? 0) * 60 * 60 * 1000)
   const slots: Slot[] = []
 
   for (let d = 0; d < cfg.daysAhead; d++) {
@@ -31,7 +33,7 @@ export function generateSlots(cfg: AgentConfig, takenISO: Set<string> = new Set(
       const wallClock = `${dateStr}T${pad(hour)}:${pad(minute)}:00`
       const startUTC = fromZonedTime(wallClock, tz)
 
-      if (startUTC.getTime() <= now.getTime()) continue // no past slots
+      if (startUTC.getTime() < earliest.getTime()) continue // past slots + inside the notice window
       const iso = startUTC.toISOString()
       if (takenISO.has(iso)) continue
 

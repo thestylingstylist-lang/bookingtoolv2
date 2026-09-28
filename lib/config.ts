@@ -7,6 +7,8 @@ export const AGENT_DEFAULTS = {
   endHour: 17,
   slotMinutes: 30,
   daysAhead: 14,
+  minNoticeHours: 24,
+  showContact: false,
 } as const
 
 // The shape the slot generator needs. Loaded per-agent from the DB.
@@ -17,6 +19,7 @@ export type AgentConfig = {
   endHour: number
   slotMinutes: number
   daysAhead: number
+  minNoticeHours: number
 }
 
 // Map a raw agents-table row into the config the slot generator expects.
@@ -27,6 +30,7 @@ export function toAgentConfig(row: {
   day_end: number
   slot_minutes: number
   days_ahead: number
+  min_notice_hours: number
 }): AgentConfig {
   return {
     timezone: row.timezone,
@@ -35,6 +39,7 @@ export function toAgentConfig(row: {
     endHour: row.day_end,
     slotMinutes: row.slot_minutes,
     daysAhead: row.days_ahead,
+    minNoticeHours: row.min_notice_hours,
   }
 }
 
