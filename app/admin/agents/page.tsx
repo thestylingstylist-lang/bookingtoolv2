@@ -3,6 +3,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
+import { statusOf, PILL } from "@/lib/admin-status"
 
 export const dynamic = "force-dynamic"
 
@@ -13,24 +14,6 @@ type AgentRow = {
   created_at: string
   trial_ends_at: string | null
   subscription_status: string | null
-}
-
-type StatusKey = "paying" | "trial" | "canceled" | "expired"
-
-function statusOf(a: AgentRow): { key: StatusKey; label: string } {
-  const s = (a.subscription_status || "").toLowerCase()
-  if (s === "active" || s === "trialing") return { key: "paying", label: "Paying" }
-  if (s === "canceled" || s === "cancelled") return { key: "canceled", label: "Canceled" }
-  const ends = a.trial_ends_at ? new Date(a.trial_ends_at).getTime() : 0
-  if (ends && ends > Date.now()) return { key: "trial", label: "On trial" }
-  return { key: "expired", label: "Trial ended" }
-}
-
-const PILL: Record<StatusKey, string> = {
-  paying: "bg-[#16151a] text-white",
-  trial: "bg-[#FBC98E]/40 text-[#8a5a1e]",
-  canceled: "bg-[#D9467A]/10 text-[#D9467A]",
-  expired: "bg-[#16151a]/[0.07] text-[#16151a]/55",
 }
 
 export default async function AdminAgentsPage({
@@ -118,24 +101,32 @@ export default async function AdminAgentsPage({
               <th className="px-5 py-3 font-medium">Email</th>
               <th className="px-5 py-3 font-medium">Joined</th>
               <th className="px-5 py-3 font-medium">Status</th>
+              <th className="px-5 py-3"></th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
-              <tr><td colSpan={5} className="px-5 py-8 text-center text-[#16151a]/50">No agents found.</td></tr>
+              <tr><td colSpan={6} className="px-5 py-8 text-center text-[#16151a]/50">No agents found.</td></tr>
             )}
             {rows.map((a) => {
               const st = statusOf(a)
               return (
-                <tr key={a.id} className="border-b border-[#16151a]/6 last:border-0">
-                  <td className="px-5 py-3.5 font-medium text-[#16151a]">{a.business_name || "—"}</td>
-                  <td className="px-5 py-3.5 text-[#16151a]/70">{a.full_name || "—"}</td>
+                <tr key={a.id} className="border-b border-[#16151a]/6 transition-colors last:border-0 hover:bg-white">
+                  <td className="px-5 py-3.5 font-medium text-[#16151a]">
+                    <Link href={`/admin/agents/${a.id}`} className="hover:text-[#D9467A]">{a.business_name || "—"}</Link>
+                  </td>
+                  <td className="px-5 py-3.5 text-[#16151a]/70">
+                    <Link href={`/admin/agents/${a.id}`} className="hover:text-[#D9467A]">{a.full_name || "—"}</Link>
+                  </td>
                   <td className="px-5 py-3.5 text-[#16151a]/70">{a.email || "—"}</td>
                   <td className="px-5 py-3.5 text-[#16151a]/55">
                     {a.created_at ? new Date(a.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
                   </td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${PILL[st.key]}`}>{st.label}</span>
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <Link href={`/admin/agents/${a.id}`} className="text-sm font-medium text-[#D9467A] hover:underline">Open →</Link>
                   </td>
                 </tr>
               )

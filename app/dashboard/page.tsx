@@ -17,7 +17,7 @@ export default async function HomePage() {
   } = await supabase.auth.getUser()
   if (!user) redirect("/login")
   // The team account gets the admin space, not an agent dashboard.
-  if (isAdminEmail(user.email)) redirect("/admin/agents")
+  if (isAdminEmail(user.email)) redirect("/admin")
 
   const { data: agentData } = await supabase
     .from("agents")

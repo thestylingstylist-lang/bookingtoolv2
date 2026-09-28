@@ -3,6 +3,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 const NAV = [
+  { href: "/admin", label: "Dashboard" },
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/messages", label: "Support" },
   { href: "/admin/feedback", label: "Feedback" },
@@ -13,7 +14,7 @@ export default function AdminNav() {
   return (
     <nav className="flex items-center gap-1 text-sm">
       {NAV.map((n) => {
-        const on = path?.startsWith(n.href)
+        const on = n.href === "/admin" ? path === "/admin" : path?.startsWith(n.href)
         return (
           <Link
             key={n.href}
