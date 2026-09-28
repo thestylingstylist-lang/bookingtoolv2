@@ -28,11 +28,18 @@ export default async function AdminDashboard() {
   if (!isAdminEmail(user.email)) redirect("/dashboard")
 
   const now = new Date()
-  const q = Math.floor(now.getMonth() / 3) + 1
-  const qStart = new Date(now.getFullYear(), (q - 1) * 3, 1)
-  const qEnd = new Date(now.getFullYear(), q * 3, 1)
+  // Marvberry's year starts in October: Q1 Oct–Dec, Q2 Jan–Mar, Q3 Apr–Jun, Q4 Jul–Sep.
+  const m = now.getMonth()
+  const q = Math.floor(((m - 9 + 12) % 12) / 3) + 1
+  const fyStart = m >= 9 ? now.getFullYear() : now.getFullYear() - 1
+  const qStartMonth = (9 + (q - 1) * 3) % 12
+  const qYear = qStartMonth >= 9 ? fyStart : fyStart + 1
+  const qStart = new Date(qYear, qStartMonth, 1)
+  const qEnd = new Date(qYear, qStartMonth + 3, 1)
+  const mon = (d: Date) => d.toLocaleString("en-US", { month: "short" })
+  const qMonths = `${mon(qStart)}–${mon(new Date(qYear, qStartMonth + 2, 1))} ${qYear}`
   const daysLeft = Math.max(0, Math.ceil((qEnd.getTime() - now.getTime()) / 86400000))
-  const goalKey = `goal:${now.getFullYear()}-Q${q}`
+  const goalKey = `goal:fy${fyStart}-Q${q}`
   const weekAgo = new Date(now.getTime() - 7 * 86400000).toISOString()
 
   const admin = createAdminClient()
@@ -100,7 +107,7 @@ export default async function AdminDashboard() {
           </div>
           <div className="text-right">
             <p className="text-xs font-semibold uppercase tracking-wider text-[#16151a]/45">
-              Q{q} {now.getFullYear()} goal
+              Q{q} goal · {qMonths}
             </p>
             <p className="mt-1 text-3xl font-semibold text-[#16151a]">{goal != null ? money(goal) : "Not set"}</p>
             <div className="mt-2 flex justify-end">

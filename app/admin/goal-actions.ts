@@ -15,7 +15,7 @@ export async function setQuarterGoal(_prev: GoalResult | null, formData: FormDat
   if (!user || !isAdminEmail(user.email)) return { ok: false, message: "Not allowed." }
 
   const key = String(formData.get("key") || "")
-  if (!/^goal:\d{4}-Q[1-4]$/.test(key)) return { ok: false, message: "Something went wrong." }
+  if (!/^goal:fy\d{4}-Q[1-4]$/.test(key)) return { ok: false, message: "Something went wrong." }
   const raw = String(formData.get("goal") || "").replace(/[$,\s]/g, "")
   const value = Number(raw)
   if (!raw || !Number.isFinite(value) || value < 0) return { ok: false, message: "Enter a dollar amount, like 5000." }
