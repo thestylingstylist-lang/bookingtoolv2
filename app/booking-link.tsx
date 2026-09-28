@@ -36,7 +36,7 @@ export default function BookingLink({ slug, compact = false }: { slug: string; c
     <div className="mt-2 flex items-center gap-3">
       <a
         href={`/book/${slug}`}
-        className="truncate font-medium text-brass hover:underline"
+        className="min-w-0 truncate font-medium text-brass hover:underline"
       >
         {origin ? url : `/book/${slug}`}
       </a>

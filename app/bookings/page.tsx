@@ -98,8 +98,8 @@ export default async function BookingsPage({
           </p>
         </div>
       ) : (
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-ink/10 bg-card">
-          <table className="w-full text-left text-sm">
+        <div className="mt-8 sm:overflow-x-auto rounded-2xl border border-ink/10 bg-card">
+          <table className="stack-sm w-full text-left text-sm">
             <thead className="border-b border-ink/10 text-ink">
               <tr>
                 <th className="px-5 py-3 font-medium">When</th>
@@ -120,22 +120,22 @@ export default async function BookingsPage({
                     key={b.id}
                     className={"border-b border-ink/5 last:border-0 " + (past ? "text-ink/70" : "")}
                   >
-                    <td className="px-5 py-4 whitespace-nowrap">
+                    <td className="cell-lead px-5 py-4 whitespace-nowrap">
                       {formatSlot(b.slot_start, agent.timezone)}
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 text-[15px] sm:text-sm">
                       {b.first_name} {b.last_name}
                     </td>
-                    <td className="px-5 py-4">
+                    <td data-label="Contact" className={"px-5 py-4" + (b.phone || b.email ? "" : " empty-sm")}>
                       <div className="flex flex-col">
                         {b.phone && <span>{b.phone}</span>}
                         {b.email && <span className="text-ink/80">{b.email}</span>}
                       </div>
                     </td>
-                    <td className="px-5 py-4">{b.meeting_type === "phone" ? "Phone" : "Video"}</td>
-                    <td className="px-5 py-4 whitespace-nowrap">{b.looking_to || "\u2014"}</td>
-                    <td className="min-w-[14rem] max-w-sm px-5 py-4 whitespace-pre-line">{b.notes || "\u2014"}</td>
-                    <td className="px-5 py-4 whitespace-nowrap text-right">
+                    <td data-label="Type" className="px-5 py-4">{b.meeting_type === "phone" ? "Phone" : "Video"}</td>
+                    <td data-label="Looking to" className={"px-5 py-4 whitespace-nowrap" + (b.looking_to ? "" : " empty-sm")}>{b.looking_to || "\u2014"}</td>
+                    <td data-label="Notes" className={"min-w-[14rem] max-w-sm px-5 py-4 whitespace-pre-line" + (b.notes ? "" : " empty-sm")}>{b.notes || "\u2014"}</td>
+                    <td className="cell-act px-5 py-4 whitespace-nowrap text-right">
                       <div className="inline-flex items-center gap-1">
                       {isClient ? (
                         <span className="inline-flex items-center rounded-full bg-sage/10 px-3 py-1 text-xs font-medium text-sage">

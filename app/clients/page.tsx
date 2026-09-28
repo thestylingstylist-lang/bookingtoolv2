@@ -129,7 +129,7 @@ export default async function ClientsPage({
           </div>
         ) : (
           <div className="mt-8 rounded-2xl border border-ink/10 bg-card">
-            <table className="w-full text-left text-sm">
+            <table className="stack-sm w-full text-left text-sm">
               <thead className="border-b border-ink/10 text-ink/50">
                 <tr>
                   <th className="px-5 py-3 font-medium">Name</th>

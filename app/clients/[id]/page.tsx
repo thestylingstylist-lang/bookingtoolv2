@@ -187,39 +187,42 @@ export default async function ClientJacket({
     <AppShell agent={agent}>
       <main className="flex flex-col bg-white lg:h-screen lg:overflow-hidden">
         {/* Client header */}
-        <div className="flex items-center gap-3 border-b border-[#e4e3e0] px-6 py-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-3 border-b border-[#e4e3e0] px-5 py-4 sm:flex-nowrap sm:px-6">
+          <Link
+            href="/clients"
+            className="order-first basis-full text-xs text-[#5d5b62] underline-offset-2 hover:text-ink hover:underline sm:order-last sm:basis-auto"
+          >
+            &larr; All clients
+          </Link>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f1f0ee] font-serif font-semibold tracking-tight text-base text-[#16151a]">
             {initials(client.first_name, client.last_name)}
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[15px] font-semibold">{name}</h1>
-            <p className="text-xs text-[#5d5b62]">{client.phone || client.email || "\u00a0"}</p>
+            <h1 className="truncate text-base font-semibold sm:text-[15px]">{name}</h1>
+            <p className="truncate text-xs text-[#5d5b62]">{client.phone || client.email || "\u00a0"}</p>
           </div>
-          {client.portal_token && (
-            <a
-              href={`/portal/${client.portal_token}`}
-              target="_blank"
-              rel="noopener"
-              className="text-xs text-[#5d5b62] underline-offset-2 hover:text-ink hover:underline"
-            >
-              Preview portal
-            </a>
-          )}
-          <form action={sendPortalLink}>
-            <input type="hidden" name="clientId" value={client.id} />
-            <button
-              type="submit"
-              className="rounded-[10px] bg-ox px-3.5 py-2 text-xs font-medium text-paper transition-opacity hover:opacity-90"
-            >
-              Send portal link
-            </button>
-          </form>
-          <Link
-            href="/clients"
-            className="text-xs text-[#5d5b62] underline-offset-2 hover:text-ink hover:underline"
-          >
-            &larr; All clients
-          </Link>
+          {/* Actions: their own full-width row on phones, inline on desktop */}
+          <div className="flex w-full items-center gap-3 sm:w-auto">
+            <form action={sendPortalLink} className="flex-1 sm:order-last sm:flex-none">
+              <input type="hidden" name="clientId" value={client.id} />
+              <button
+                type="submit"
+                className="w-full rounded-[10px] bg-ox px-3.5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 sm:w-auto sm:py-2 sm:text-xs"
+              >
+                Send portal link
+              </button>
+            </form>
+            {client.portal_token && (
+              <a
+                href={`/portal/${client.portal_token}`}
+                target="_blank"
+                rel="noopener"
+                className="shrink-0 rounded-[10px] border border-[#e4e3e0] px-3.5 py-2.5 text-sm text-[#5d5b62] hover:text-ink sm:border-0 sm:px-0 sm:py-0 sm:text-xs sm:underline-offset-2 sm:hover:underline"
+              >
+                Preview portal
+              </a>
+            )}
+          </div>
         </div>
 
         {/* Phase tracker */}

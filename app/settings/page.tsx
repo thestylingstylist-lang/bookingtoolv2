@@ -38,7 +38,7 @@ export default async function SettingsPage() {
         {/* Two halves on desktop; they stack on mobile (booking page first). */}
         <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
           {/* LEFT — booking page / brand */}
-          <section>
+          <section className="min-w-0">
             <h2 className="font-serif font-semibold tracking-tight text-2xl">Your booking page</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
               This controls how your booking page appears to your clients on the
@@ -57,7 +57,7 @@ export default async function SettingsPage() {
           </section>
 
           {/* RIGHT — account */}
-          <section>
+          <section className="min-w-0">
             <h2 className="font-serif font-semibold tracking-tight text-2xl">Your account</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
               This is all of your account information. No one sees this.
