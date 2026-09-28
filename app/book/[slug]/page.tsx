@@ -78,14 +78,8 @@ export default async function BookPage({
 
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=DM+Sans:wght@400;500&display=swap"
-        precedence="default"
-      />
       <div
-        style={{ ...THEME, fontFamily: "'DM Sans', system-ui, sans-serif" }}
+        style={{ ...THEME, fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
         className="grid min-h-screen bg-[var(--base)] text-[#16151a] lg:grid-cols-[500px_minmax(0,1fr)]"
       >
         <aside className="flex flex-col bg-[var(--panel)] p-6 sm:p-10">

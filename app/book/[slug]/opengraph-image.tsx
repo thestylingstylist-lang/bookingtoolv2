@@ -76,13 +76,16 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     }
   }
 
-  // Show the month holding most of the open days (so late-month links don't look empty).
+  // Always lead with the current month, matching the live booking page. Only jump
+  // ahead if the current month has no open days at all (then use the earliest that does).
   const todayKey = formatInTimeZone(new Date(), tz, "yyyy-MM-dd")
-  const counts = new Map<string, number>()
-  for (const d of openDays) counts.set(d.slice(0, 7), (counts.get(d.slice(0, 7)) ?? 0) + 1)
-  let monthKey = todayKey.slice(0, 7)
-  let best = -1
-  for (const [m, c] of counts) if (c > best) { best = c; monthKey = m }
+  const currentMonth = todayKey.slice(0, 7)
+  const monthsWithOpen = new Set<string>()
+  for (const d of openDays) monthsWithOpen.add(d.slice(0, 7))
+  let monthKey = currentMonth
+  if (!monthsWithOpen.has(currentMonth) && monthsWithOpen.size) {
+    monthKey = [...monthsWithOpen].sort()[0]
+  }
   const [y, mo] = monthKey.split("-").map(Number)
   const first = new Date(Date.UTC(y, mo - 1, 1))
   const daysInMonth = new Date(Date.UTC(y, mo, 0)).getUTCDate()
