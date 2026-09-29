@@ -1,6 +1,7 @@
 // Marvberry home page (marvberry.com). The page itself lives in ./landing.tsx.
 import type { Metadata } from "next";
 import Landing from "./landing";
+import SiteTracker from "./site-tracker";
 
 export const metadata: Metadata = {
   title: { absolute: "Marvberry — Client management built for solo realtors" },
@@ -9,5 +10,10 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
-  return <Landing />;
+  return (
+    <>
+      <Landing />
+      <SiteTracker />
+    </>
+  );
 }
