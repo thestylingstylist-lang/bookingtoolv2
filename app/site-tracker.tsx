@@ -5,10 +5,10 @@
 import { useEffect } from "react"
 
 const SECTION_BY_CLASS: Record<string, string> = {
-  hero: "hero", state: "statement", chase: "chase", portal: "portal", feats: "features", "card-sec": "cards",
+  hero: "hero", state: "statement", chase: "chase", portal: "portal", sign: "signature", feats: "features", "card-sec": "cards",
   bento: "bento", pricing: "pricing", faq: "faq", final: "final",
 }
-const ORDER = ["hero", "statement", "chase", "portal", "features", "cards", "bento", "pricing", "faq", "final"]
+const ORDER = ["hero", "statement", "chase", "portal", "signature", "features", "cards", "bento", "pricing", "faq", "final"]
 
 export default function SiteTracker() {
   useEffect(() => {

@@ -13,6 +13,7 @@ const SECTIONS = [
   { key: "statement", label: "“You close deals most people can’t”" },
   { key: "chase", label: "“End the chase.”" },
   { key: "portal", label: "“Client questions answered before they ask”" },
+  { key: "signature", label: "“Agreement signed with one click”" },
   { key: "features", label: "Features" },
   { key: "cards", label: "Booking link / business card" },
   { key: "bento", label: "“Set your hours”" },
