@@ -7,6 +7,7 @@ const NAV = [
   { href: "/admin/agents", label: "Agents" },
   { href: "/admin/messages", label: "Support" },
   { href: "/admin/feedback", label: "Feedback" },
+  { href: "/admin/site", label: "Site" },
 ]
 
 export default function AdminNav() {
