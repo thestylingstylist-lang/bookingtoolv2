@@ -10,7 +10,9 @@ export const dynamic = "force-dynamic"
 // spend time, and where they leave.
 const SECTIONS = [
   { key: "hero", label: "Headline" },
-  { key: "statement", label: "“One deal used to mean five apps”" },
+  { key: "statement", label: "“You close deals most people can’t”" },
+  { key: "chase", label: "“End the chase.”" },
+  { key: "portal", label: "“Client questions answered before they ask”" },
   { key: "features", label: "Features" },
   { key: "cards", label: "Booking link / business card" },
   { key: "bento", label: "“Set your hours”" },
