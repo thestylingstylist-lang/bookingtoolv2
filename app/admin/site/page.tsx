@@ -14,6 +14,7 @@ const SECTIONS = [
   { key: "chase", label: "“End the chase.”" },
   { key: "portal", label: "“Client questions answered before they ask”" },
   { key: "signature", label: "“Agreement signed with one click”" },
+  { key: "calendar", label: "“Clients check your calendar now”" },
   { key: "features", label: "Features" },
   { key: "cards", label: "Booking link / business card" },
   { key: "bento", label: "“Set your hours”" },

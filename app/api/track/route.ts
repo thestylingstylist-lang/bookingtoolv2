@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 // Visit tracking for the marketing home page. The page sends a snapshot of the
 // visit (time, scroll depth, time per section) every so often and when the
 // visitor leaves; we keep one row per visit and overwrite it with the latest.
-const SECTIONS = ["hero", "statement", "chase", "portal", "signature", "features", "cards", "bento", "pricing", "faq", "final"] as const
+const SECTIONS = ["hero", "statement", "chase", "portal", "signature", "calendar", "features", "cards", "bento", "pricing", "faq", "final"] as const
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|headless|lighthouse/i
 const HOUR = 3_600_000
