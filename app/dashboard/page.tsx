@@ -7,9 +7,8 @@ import { SETUP_STEPS, setupProgress } from "@/lib/onboarding"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
 import { isAdminEmail } from "@/lib/admin"
-import { agentDueLabel, daysUntil, isClose, nudgeDraft, nudgeReady, clientDueLabel } from "@/lib/due"
+import { agentDueLabel, daysUntil, isClose, nudgeDraft, missingThing, nudgeReady, clientDueLabel } from "@/lib/due"
 import { toOwner } from "@/lib/phases"
-import { clientWording } from "@/lib/client-wording"
 import { sendNudge, skipNudge } from "./nudge-actions"
 
 type DueStep = {
@@ -19,7 +18,7 @@ type DueStep = {
   due_on: string
   nudged_at: string | null
   client_id: string
-  clients: { first_name: string | null; last_name: string | null; email: string | null } | null
+  clients: { first_name: string | null; last_name: string | null; email: string | null; portal_token: string | null } | null
 }
 
 export const dynamic = "force-dynamic"
@@ -76,7 +75,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const tz = agent.timezone || "America/New_York"
   const { data: dueData } = await supabase
     .from("steps")
-    .select("id, title, owner, due_on, nudged_at, client_id, clients(first_name, last_name, email)")
+    .select("id, title, owner, due_on, nudged_at, client_id, clients(first_name, last_name, email, portal_token)")
     .eq("done", false)
     .not("due_on", "is", null)
     .order("due_on", { ascending: true })
@@ -141,7 +140,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <ul className="mt-3 space-y-3">
             {ready.map((d) => {
               const first = d.clients?.first_name?.trim() || ""
-              const step = clientWording(d.title, agentFirstName || "I")
+              const thing = missingThing(d.title)
               return (
                 <li key={d.id} className="rounded-2xl border border-ink/10 bg-card p-5">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -160,7 +159,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                         id={`nudge-${d.id}`}
                         name="body"
                         rows={4}
-                        defaultValue={nudgeDraft({ clientFirst: first, step, due: d.due_on, tz, agentFirst: agentFirstName })}
+                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, link: `https://marvberry.com/portal/${d.clients?.portal_token ?? ""}` })}
                         className="w-full resize-y rounded-xl border border-ink/10 bg-[#f7f6f4] px-4 py-3 text-sm leading-relaxed outline-none focus:border-ink/30"
                       />
                       <div className="flex gap-2">
@@ -180,7 +179,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                     <form action={skipNudge} className="mt-3 flex flex-wrap items-center gap-3 text-sm text-ink/60">
                       <input type="hidden" name="stepId" value={d.id} />
                       <span>
-                        {step}.{" "}
+                        Still missing {thing}.{" "}
                         <Link href={`/clients/${d.client_id}`} className="text-ink underline">
                           Add an email for {first || "them"}
                         </Link>{" "}

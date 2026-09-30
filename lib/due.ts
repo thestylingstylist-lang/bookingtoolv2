@@ -63,16 +63,47 @@ export function nudgeReady(due: string, tz: string) {
   return daysUntil(due, tz) <= 2
 }
 
-// The reminder, in the realtor's voice. Full date, no hedging, no pushing.
-export function nudgeDraft(o: { clientFirst: string; step: string; due: string; tz: string; agentFirst: string }) {
-  const hi = o.clientFirst ? `Hi ${o.clientFirst}` : "Hi"
-  const n = daysUntil(o.due, o.tz)
+// The reminder, in the realtor voice: a heads-up about what is still missing,
+// the date as a plain fact, no "need", no pushing, no app-speak. `thing` is the
+// missing item worded for the client ("your documents for the offer"). `link`
+// is where they send it; omitted when the step has no obvious place to do that.
+export function nudgeDraft(o: {
+  clientFirst: string
+  thing: string
+  due: string
+  tz: string
+  agentFirst: string
+  link?: string
+}) {
+  const hi = o.clientFirst ? `Hey ${o.clientFirst}` : "Hey"
   const when = longDate(o.due)
-  const line =
-    n < 0
-      ? `checking in on your next step, "${o.step}." It was due ${when}.`
-      : n === 0
-        ? `quick reminder, your next step, "${o.step}," is due today, ${when}.`
-        : `quick reminder, your next step, "${o.step}," is due ${when}.`
-  return `${hi}, ${line} You'll find it in your portal.\n\n${o.agentFirst}`
+  const past = daysUntil(o.due, o.tz) < 0
+  const dateLine = past
+    ? `The date to have ${itPronoun(o.thing)} in was ${when}.`
+    : `${when} is the date to have ${itPronoun(o.thing)} in.`
+  const send = o.link ? ` You can send ${itPronoun(o.thing)} here: ${o.link}` : ""
+  return `${hi}, just a heads up, we're still missing ${o.thing}. ${dateLine}${send}\n\n${o.agentFirst}`
+}
+
+function itPronoun(thing: string) {
+  // Judge by the main noun: "documents for the offer" -> documents, "proof of funds" -> proof.
+  const head = thing.trim().toLowerCase().split(/\s+(?:for|of|to|you're|that|from)\s+/)[0]
+  const last = head.split(/\s+/).pop() ?? ""
+  if (["funds", "status", "news", "ss"].some((w) => last === w || last.endsWith("ss"))) return "it"
+  return last.endsWith("s") ? "them" : "it"
+}
+
+// A step title turned into what the CLIENT would call the missing thing.
+export function missingThing(title: string) {
+  const t = title.trim().toLowerCase()
+  const map: Record<string, string> = {
+    "collect the client's documents": "your documents for the offer",
+    "buyer sent their criteria": "your wish list",
+    "get their availability": "the times you're free to see homes",
+    "agreement signed": "your signed agreement",
+  }
+  if (map[t]) return map[t]
+  // Custom steps are usually "Send pay stubs": drop the verb, keep the thing.
+  const bare = title.trim().replace(/^(send|upload|sign|get|collect|provide|share|submit|bring|email)\s+/i, "")
+  return bare.replace(/^[A-Z]/, (c) => c.toLowerCase())
 }
