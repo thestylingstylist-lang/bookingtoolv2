@@ -15,6 +15,7 @@ const SECTIONS = [
   { key: "portal", label: "“Client questions answered before they ask”" },
   { key: "signature", label: "“Agreement signed with one click”" },
   { key: "calendar", label: "“Clients check your calendar now”" },
+  { key: "bookingpage", label: "Booking page (slides over)" },
   { key: "features", label: "Features" },
   { key: "cards", label: "Booking link / business card" },
   { key: "bento", label: "“Set your hours”" },
