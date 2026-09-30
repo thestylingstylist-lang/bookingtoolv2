@@ -73,7 +73,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   // Due dates across every deal: what's coming up, and client reminders ready to send.
   const tz = agent.timezone || "America/New_York"
-  const { data: dueData } = await supabase
+  const { data: dueData, error: dueErr } = await supabase
     .from("steps")
     .select("id, title, owner, due_on, nudged_at, client_id, clients(first_name, last_name, email, portal_token)")
     .eq("done", false)
@@ -81,6 +81,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .order("due_on", { ascending: true })
   const dueSteps = ((dueData ?? []) as unknown as DueStep[]).filter((d) => daysUntil(d.due_on, tz) <= 7)
   const ready = dueSteps.filter((d) => toOwner(d.owner) === "client" && !d.nudged_at && nudgeReady(d.due_on, tz))
+    const DBG = `rows=${(dueData??[]).length} within7=${dueSteps.length} ready=${ready.length} err=${dueErr?JSON.stringify(dueErr):"none"} tz=${tz}`
   const agentFirstName = (agent.full_name || "").trim().split(/\s+/)[0] || ""
   const clientName = (d: DueStep) => `${d.clients?.first_name ?? ""} ${d.clients?.last_name ?? ""}`.trim() || "Client"
 
@@ -94,6 +95,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
       <p className="mt-2 text-ink/60">This is your agenda for today.</p>
+      <pre className="mt-2 whitespace-pre-wrap rounded bg-black px-3 py-2 text-xs text-lime-300">{DBG}</pre>
 
       <div className="mt-5"><BookingLink slug={agent.slug} compact /></div>
 
