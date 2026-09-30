@@ -63,17 +63,17 @@ export function nudgeReady(due: string, tz: string) {
   return daysUntil(due, tz) <= 2
 }
 
-// The reminder, in the realtor voice: a heads-up about what is still missing,
-// the date as a plain fact, no "need", no pushing, no app-speak. `thing` is the
-// missing item worded for the client ("your documents for the offer"). `link`
-// is where they send it; omitted when the step has no obvious place to do that.
+// The reminder, in her voice. A heads-up, the date as a plain fact, and — for
+// document steps — the true count still outstanding plus how to send them.
+// `missingDocs` is how many documents are still not received (0 if unknown or
+// not a document step). No "need", no links, no "portal".
 export function nudgeDraft(o: {
   clientFirst: string
   thing: string
   due: string
   tz: string
   agentFirst: string
-  link?: string
+  missingDocs?: number
 }) {
   const hi = o.clientFirst ? `Hey ${o.clientFirst}` : "Hey"
   const when = longDate(o.due)
@@ -81,15 +81,28 @@ export function nudgeDraft(o: {
   const dateLine = past
     ? `The date to have ${itPronoun(o.thing)} in was ${when}.`
     : `${when} is the date to have ${itPronoun(o.thing)} in.`
-  const send = o.link ? ` You can send ${itPronoun(o.thing)} here: ${o.link}` : ""
-  return `${hi}, just a heads up, we're still missing ${o.thing}. ${dateLine}${send}\n\n${o.agentFirst}`
+
+  // Document steps get the real count and the upload instructions.
+  const n = o.missingDocs ?? 0
+  if (n > 0) {
+    const noun = n === 1 ? "one more document" : `${numword(n)} more documents`
+    const them = n === 1 ? "it" : "them"
+    const which = n === 1 ? "the document that's missing" : "the documents that are missing"
+    const oneAtATime = n === 1 ? "" : ", one at a time"
+    return `${hi}, just a heads up, we're still missing ${noun}. ${when} is the date to have ${them} in. It's super easy — on your page just click ${which} and upload ${them}${oneAtATime}. Once you upload ${them}, I get ${them} right away.\n\n${o.agentFirst}`
+  }
+
+  // Everything else: the plain heads-up.
+  return `${hi}, just a heads up, we're still missing ${o.thing}. ${dateLine} You can send ${itPronoun(o.thing)} from your page.\n\n${o.agentFirst}`
+}
+
+function numword(n: number) {
+  return ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][n] ?? String(n)
 }
 
 function itPronoun(thing: string) {
-  // Judge by the main noun: "documents for the offer" -> documents, "proof of funds" -> proof.
   const head = thing.trim().toLowerCase().split(/\s+(?:for|of|to|you're|that|from)\s+/)[0]
   const last = head.split(/\s+/).pop() ?? ""
-  if (["funds", "status", "news", "ss"].some((w) => last === w || last.endsWith("ss"))) return "it"
   return last.endsWith("s") ? "them" : "it"
 }
 

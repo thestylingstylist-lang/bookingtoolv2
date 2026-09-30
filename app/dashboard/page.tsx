@@ -81,6 +81,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .order("due_on", { ascending: true })
   const dueSteps = ((dueData ?? []) as unknown as DueStep[]).filter((d) => daysUntil(d.due_on, tz) <= 7)
   const ready = dueSteps.filter((d) => toOwner(d.owner) === "client" && !d.nudged_at && nudgeReady(d.due_on, tz))
+
+  // Real count of documents still outstanding, per client with a ready reminder.
+  const readyClientIds = [...new Set(ready.map((d) => d.client_id))]
+  const missingByClient = new Map<string, number>()
+  if (readyClientIds.length) {
+    const { data: colRows } = await supabase
+      .from("collected_docs")
+      .select("client_id, received")
+      .in("client_id", readyClientIds)
+    for (const cid of readyClientIds) {
+      const rows = (colRows ?? []).filter((r) => r.client_id === cid)
+      // If we track a document list for them, count the not-yet-received ones.
+      missingByClient.set(cid, rows.filter((r) => !r.received).length)
+    }
+  }
   const agentFirstName = (agent.full_name || "").trim().split(/\s+/)[0] || ""
   const clientName = (d: DueStep) => `${d.clients?.first_name ?? ""} ${d.clients?.last_name ?? ""}`.trim() || "Client"
 
@@ -159,7 +174,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                         id={`nudge-${d.id}`}
                         name="body"
                         rows={4}
-                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, link: `https://marvberry.com/portal/${d.clients?.portal_token ?? ""}` })}
+                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, missingDocs: missingByClient.get(d.client_id) ?? 0 })}
                         className="w-full resize-y rounded-xl border border-ink/10 bg-[#f7f6f4] px-4 py-3 text-sm leading-relaxed outline-none focus:border-ink/30"
                       />
                       <div className="flex gap-2">
