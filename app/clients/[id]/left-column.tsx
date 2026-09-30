@@ -4,10 +4,13 @@ import {
   deleteTask,
   movePhase,
   addStandardSteps,
+  setDueDate,
 } from "./checklist-actions"
-import { PHASES, phaseIndex, type Phase } from "@/lib/phases"
+import { PHASES, phaseIndex, toOwner, type Phase } from "@/lib/phases"
+import { agentDueLabel, isClose } from "@/lib/due"
+import DuePicker from "./due-picker"
 
-export type Task = { id: string; title: string; done: boolean }
+export type Task = { id: string; title: string; done: boolean; owner?: string | null; due_on?: string | null }
 export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
 
 const inputClass =
@@ -39,12 +42,15 @@ export default function LeftColumn({
   firstName,
   phase,
   tasks,
+  tz,
 }: {
   clientId: string
   firstName: string
   phase: Phase
   tasks: Task[]
+  tz: string
 }) {
+  const who = firstName || "Client"
   const i = phaseIndex(phase)
   const current = PHASES[i]
   const next = PHASES[i + 1]
@@ -64,6 +70,11 @@ export default function LeftColumn({
                 ? `${current.label} is done. Move ${firstName || "them"} to ${next.label} when you're ready.`
                 : "Every step is done."}
           </p>
+          {upNext?.due_on && (
+            <p className={`mt-1 text-xs ${isClose(upNext.due_on, tz) ? "font-medium text-ink" : "text-[#5d5b62]"}`}>
+              {agentDueLabel(upNext.due_on, tz)}
+            </p>
+          )}
         </div>
       )}
 
@@ -98,9 +109,22 @@ export default function LeftColumn({
                   {t.done ? "\u2713" : ""}
                 </button>
               </form>
-              <span className={`flex-1 text-sm ${t.done ? "text-[#5d5b62] line-through" : ""}`}>
-                {t.title}
-              </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <span className={`text-sm ${t.done ? "text-[#5d5b62] line-through" : ""}`}>{t.title}</span>
+                {!t.done && (
+                  <form action={setDueDate} className="flex items-center gap-1.5">
+                    <Hidden clientId={clientId} id={t.id} />
+                    {toOwner(t.owner) === "client" && <span className="text-xs text-[#5d5b62]">{who} ·</span>}
+                    <DuePicker
+                      submitOnChange
+                      value={t.due_on}
+                      label={t.due_on ? agentDueLabel(t.due_on, tz) : undefined}
+                      empty="Add a due date"
+                      strong={!!t.due_on && isClose(t.due_on, tz)}
+                    />
+                  </form>
+                )}
+              </div>
               <form action={deleteTask}>
                 <Hidden clientId={clientId} id={t.id} />
                 <RemoveButton label={t.title} />
@@ -108,13 +132,25 @@ export default function LeftColumn({
             </li>
           ))}
         </ul>
-        <form action={addTask} className="mt-2 flex gap-2">
+        <form action={addTask} className="mt-2 space-y-2">
           <Hidden clientId={clientId} />
           <input type="hidden" name="phase" value={phase} />
-          <input name="title" placeholder="Add a step" className={inputClass} />
-          <button type="submit" className="rounded-lg border border-[#e4e3e0] bg-white px-3 text-sm hover:bg-[#f1f0ee]">
-            Add
-          </button>
+          <div className="flex gap-2">
+            <input name="title" placeholder="Add a step" aria-label="Step" className={inputClass} />
+            <button type="submit" className="rounded-lg border border-[#e4e3e0] bg-white px-3 text-sm hover:bg-[#f1f0ee]">
+              Add
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-1.5 text-xs text-[#5d5b62]">
+              For
+              <select name="owner" className="rounded-md border border-[#e4e3e0] bg-white px-1.5 py-0.5 text-xs text-ink">
+                <option value="agent">Me</option>
+                <option value="client">{who}</option>
+              </select>
+            </label>
+            <DuePicker empty="When do you want it by?" />
+          </div>
         </form>
 
         {next && (

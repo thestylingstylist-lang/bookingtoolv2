@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { OFFER_DOCS, PHASES, toPhase } from "@/lib/phases"
+import { toDue } from "@/lib/due"
 
 // Tasks (steps table) and documents collected (collected_docs table)
 // for one client. All run as the logged-in agent under RLS.
@@ -38,13 +39,24 @@ export async function addTask(formData: FormData): Promise<void> {
     .eq("client_id", clientId)
     .eq("phase", phase)
 
+  const owner = formData.get("owner") === "client" ? "client" : "agent"
   const { error } = await supabase.from("steps").insert({
     agent_id: userId,
     client_id: clientId,
     title,
     phase,
+    owner,
+    due_on: toDue(formData.get("due")),
     position: count ?? 0,
   })
+  back(clientId, error ? "task" : undefined)
+}
+
+export async function setDueDate(formData: FormData): Promise<void> {
+  const { supabase } = await agentOrLogin()
+  const clientId = String(formData.get("clientId") ?? "")
+  const id = String(formData.get("id") ?? "")
+  const { error } = await supabase.from("steps").update({ due_on: toDue(formData.get("due")) }).eq("id", id)
   back(clientId, error ? "task" : undefined)
 }
 

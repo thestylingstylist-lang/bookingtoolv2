@@ -134,7 +134,7 @@ export default async function ClientJacket({
       .order("created_at", { ascending: true }),
     supabase
       .from("steps")
-      .select("id, title, done, phase")
+      .select("id, title, done, phase, owner, due_on")
       .eq("client_id", id)
       .order("position", { ascending: true })
       .order("created_at", { ascending: true }),
@@ -267,6 +267,7 @@ export default async function ClientJacket({
               firstName={client.first_name}
               phase={phase}
               tasks={tasks}
+              tz={agent.timezone || "America/New_York"}
             />
           </>}
           messages={<>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { PHASES, phaseIndex, toPhase, toOwner, OWNER_LABEL_CLIENT } from "@/lib/phases"
+import { clientDueLabel } from "@/lib/due"
 import { clientSendMessage } from "./actions"
 import UploadButton from "./upload-button"
 import PortalTabs from "./portal-tabs"
@@ -29,7 +30,7 @@ function clientWording(title: string, agentFirst: string) {
   return map[title] ?? title
 }
 
-type Step = { id: string; title: string; done: boolean; phase: string | null; owner: string | null }
+type Step = { id: string; title: string; done: boolean; phase: string | null; owner: string | null; due_on: string | null }
 
 export default async function Portal({
   params,
@@ -55,7 +56,7 @@ export default async function Portal({
       admin.from("agents").select("full_name, business_name, timezone").eq("id", client.agent_id).maybeSingle(),
       admin
         .from("steps")
-        .select("id, title, done, phase, owner")
+        .select("id, title, done, phase, owner, due_on")
         .eq("client_id", client.id)
         .order("position", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -166,6 +167,9 @@ export default async function Portal({
                     ? `${clientWording(waiting.title, agentFirst)}. Nothing needed from you.`
                     : `You're all caught up. ${agentFirst} will let you know what's next.`}
               </p>
+              {mine?.due_on && (
+                <p className="-mt-1.5 mb-2.5 text-[13.5px] font-medium text-[#2f7f7e]">{clientDueLabel(mine.due_on, tz)}</p>
+              )}
               {mine && (
                 <a href="#messages" className="inline-block rounded-[9px] bg-[#16151a] px-[15px] py-2 text-[13px] font-medium text-white">
                   Message {agentFirst}
@@ -188,7 +192,12 @@ export default async function Portal({
                     >
                       {s.done ? "✓" : ""}
                     </span>
-                    <span className={s.done ? "text-[#5d5b62]" : ""}>{clientWording(s.title, agentFirst)}</span>
+                    <span className="flex flex-col">
+                      <span className={s.done ? "text-[#5d5b62]" : ""}>{clientWording(s.title, agentFirst)}</span>
+                      {!s.done && owner === "client" && s.due_on && (
+                        <span className="text-[12px] text-[#2f7f7e]">{clientDueLabel(s.due_on, tz)}</span>
+                      )}
+                    </span>
                     {!s.done && (
                       <span
                         className={`ml-auto whitespace-nowrap rounded-full px-2 py-0.5 text-[10.5px] ${
