@@ -51,3 +51,28 @@ export function clientDueLabel(due: string, tz: string) {
 export function isClose(due: string, tz: string) {
   return daysUntil(due, tz) <= 1
 }
+
+// The full spoken date, for messages: "Thursday, October 2".
+export function longDate(due: string) {
+  return say(due, "long")
+}
+
+// A client step is ready for a one-tap reminder two days out, and stays
+// ready (if nobody acted) once the date has passed.
+export function nudgeReady(due: string, tz: string) {
+  return daysUntil(due, tz) <= 2
+}
+
+// The reminder, in the realtor's voice. Full date, no hedging, no pushing.
+export function nudgeDraft(o: { clientFirst: string; step: string; due: string; tz: string; agentFirst: string }) {
+  const hi = o.clientFirst ? `Hi ${o.clientFirst}` : "Hi"
+  const n = daysUntil(o.due, o.tz)
+  const when = longDate(o.due)
+  const line =
+    n < 0
+      ? `checking in on your next step, "${o.step}." It was due ${when}.`
+      : n === 0
+        ? `quick reminder, your next step, "${o.step}," is due today, ${when}.`
+        : `quick reminder, your next step, "${o.step}," is due ${when}.`
+  return `${hi}, ${line} You'll find it in your portal.\n\n${o.agentFirst}`
+}

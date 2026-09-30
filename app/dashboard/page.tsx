@@ -7,10 +7,25 @@ import { SETUP_STEPS, setupProgress } from "@/lib/onboarding"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
 import { isAdminEmail } from "@/lib/admin"
+import { agentDueLabel, daysUntil, isClose, nudgeDraft, nudgeReady, clientDueLabel } from "@/lib/due"
+import { toOwner } from "@/lib/phases"
+import { clientWording } from "@/lib/client-wording"
+import { sendNudge, skipNudge } from "./nudge-actions"
+
+type DueStep = {
+  id: string
+  title: string
+  owner: string | null
+  due_on: string
+  nudged_at: string | null
+  client_id: string
+  clients: { first_name: string | null; last_name: string | null; email: string | null } | null
+}
 
 export const dynamic = "force-dynamic"
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ nudge?: string }> }) {
+  const sp = await searchParams
   const supabase = await createClient()
   const {
     data: { user },
@@ -57,6 +72,19 @@ export default async function HomePage() {
     .from("bookings")
     .select("id", { count: "exact", head: true })
 
+  // Due dates across every deal: what's coming up, and client reminders ready to send.
+  const tz = agent.timezone || "America/New_York"
+  const { data: dueData } = await supabase
+    .from("steps")
+    .select("id, title, owner, due_on, nudged_at, client_id, clients(first_name, last_name, email)")
+    .eq("done", false)
+    .not("due_on", "is", null)
+    .order("due_on", { ascending: true })
+  const dueSteps = ((dueData ?? []) as unknown as DueStep[]).filter((d) => daysUntil(d.due_on, tz) <= 7)
+  const ready = dueSteps.filter((d) => toOwner(d.owner) === "client" && !d.nudged_at && nudgeReady(d.due_on, tz))
+  const agentFirstName = (agent.full_name || "").trim().split(/\s+/)[0] || ""
+  const clientName = (d: DueStep) => `${d.clients?.first_name ?? ""} ${d.clients?.last_name ?? ""}`.trim() || "Client"
+
   const signals = { agent, bookingCount: count ?? 0 }
   const { complete, done, total } = setupProgress(SETUP_STEPS, signals)
 
@@ -94,6 +122,104 @@ export default async function HomePage() {
           </div>
           <span className="text-sm text-sage">Start here &rarr;</span>
         </Link>
+      )}
+
+      {sp.nudge && (
+        <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${sp.nudge === "sent" ? "bg-[#e5f1f0] text-sage" : "bg-[#f1f0ee] text-ink"}`}>
+          {sp.nudge === "sent"
+            ? "Sent. It's in their inbox and their thread."
+            : sp.nudge === "noemail"
+              ? "That client has no email on file yet."
+              : "That one didn't go through. Try again in a moment."}
+        </p>
+      )}
+
+      {ready.length > 0 && (
+        <section className="mt-6">
+          <h2 className="font-serif font-semibold tracking-tight text-xl">Ready to send</h2>
+          <p className="mt-1 text-sm text-ink/60">Client reminders, written in your voice. Nothing goes out until you send it.</p>
+          <ul className="mt-3 space-y-3">
+            {ready.map((d) => {
+              const first = d.clients?.first_name?.trim() || ""
+              const step = clientWording(d.title, agentFirstName || "I")
+              return (
+                <li key={d.id} className="rounded-2xl border border-ink/10 bg-card p-5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <Link href={`/clients/${d.client_id}`} className="font-medium hover:underline">
+                      {clientName(d)}
+                    </Link>
+                    <span className={`text-sm ${isClose(d.due_on, tz) ? "font-medium text-ink" : "text-ink/60"}`}>
+                      {clientDueLabel(d.due_on, tz)}
+                    </span>
+                  </div>
+                  {d.clients?.email ? (
+                    <form action={sendNudge} className="mt-3 space-y-3">
+                      <input type="hidden" name="stepId" value={d.id} />
+                      <label className="sr-only" htmlFor={`nudge-${d.id}`}>Reminder to {clientName(d)}</label>
+                      <textarea
+                        id={`nudge-${d.id}`}
+                        name="body"
+                        rows={4}
+                        defaultValue={nudgeDraft({ clientFirst: first, step, due: d.due_on, tz, agentFirst: agentFirstName })}
+                        className="w-full resize-y rounded-xl border border-ink/10 bg-[#f7f6f4] px-4 py-3 text-sm leading-relaxed outline-none focus:border-ink/30"
+                      />
+                      <div className="flex gap-2">
+                        <button type="submit" className="rounded-[10px] bg-ink px-4 py-2.5 text-sm font-medium text-paper hover:opacity-90">
+                          Send{agentFirstName ? ` as ${agentFirstName}` : ""}
+                        </button>
+                        <button
+                          type="submit"
+                          formAction={skipNudge}
+                          className="rounded-[10px] border border-ink/10 px-4 py-2.5 text-sm hover:bg-ink/5"
+                        >
+                          Skip
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <form action={skipNudge} className="mt-3 flex flex-wrap items-center gap-3 text-sm text-ink/60">
+                      <input type="hidden" name="stepId" value={d.id} />
+                      <span>
+                        {step}.{" "}
+                        <Link href={`/clients/${d.client_id}`} className="text-ink underline">
+                          Add an email for {first || "them"}
+                        </Link>{" "}
+                        to send a reminder.
+                      </span>
+                      <button type="submit" className="rounded-[10px] border border-ink/10 px-3 py-1.5 hover:bg-ink/5">
+                        Skip
+                      </button>
+                    </form>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      )}
+
+      {dueSteps.length > 0 && (
+        <section className="mt-6">
+          <h2 className="font-serif font-semibold tracking-tight text-xl">Coming up</h2>
+          <ul className="mt-3 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-card">
+            {dueSteps.map((d) => (
+              <li key={d.id}>
+                <Link href={`/clients/${d.client_id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-ink/[0.02]">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{d.title}</p>
+                    <p className="text-xs text-ink/60">
+                      {clientName(d)}
+                      {toOwner(d.owner) === "client" ? ` · their step` : ""}
+                    </p>
+                  </div>
+                  <span className={`whitespace-nowrap text-sm ${isClose(d.due_on, tz) ? "font-medium text-ink" : "text-ink/60"}`}>
+                    {agentDueLabel(d.due_on, tz)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="mt-6">
