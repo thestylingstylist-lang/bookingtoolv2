@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import Landing from "./landing";
 import SiteTracker from "./site-tracker";
+import Clarity from "./clarity";
 
 export const metadata: Metadata = {
   title: { absolute: "Marvberry — Client management built for solo realtors" },
@@ -14,6 +15,7 @@ export default function Home() {
     <>
       <Landing />
       <SiteTracker />
+      <Clarity />
     </>
   );
 }
