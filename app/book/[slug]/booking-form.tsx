@@ -74,6 +74,7 @@ export default function BookingForm({
   askLookingTo = true,
   copy = {},
   icsPath,
+  solidPick = false,
 }: {
   slots: Slot[]
   slug: string
@@ -82,6 +83,7 @@ export default function BookingForm({
   askLookingTo?: boolean
   copy?: FormCopy
   icsPath?: string
+  solidPick?: boolean
 }) {
   const agentTz = agent.timezone || "America/New_York"
   const [tz, setTz] = useState(agentTz)
@@ -294,7 +296,7 @@ export default function BookingForm({
                       className={
                         "flex h-20 flex-col items-center justify-center gap-1 rounded-[14px] border-[1.5px] transition-colors sm:h-24 " +
                         (isActive
-                          ? "border-[#16151a] bg-[#16151a] text-white"
+                          ? solidPick ? "border-[var(--accent)] bg-[var(--accent)] text-white" : "border-[#16151a] bg-[#16151a] text-white"
                           : "border-[#16151a] text-[#16151a] hover:bg-[var(--accent-soft)]")
                       }
                     >
@@ -344,7 +346,9 @@ export default function BookingForm({
                           className={
                             "flex h-12 shrink-0 items-center justify-center rounded-[10px] text-[15px] text-[#16151a] transition-colors " +
                             (on
-                              ? "border-[1.5px] border-[var(--accent)] bg-[var(--accent-soft)] font-medium"
+                              ? solidPick
+                                ? "border-[1.5px] border-[var(--accent)] bg-[var(--accent)] font-medium !text-white"
+                                : "border-[1.5px] border-[var(--accent)] bg-[var(--accent-soft)] font-medium"
                               : "border border-[#e2e0dc] bg-white hover:border-[var(--accent)]")
                           }
                         >
@@ -360,7 +364,7 @@ export default function BookingForm({
                       setOpen(false)
                       setStep(2)
                     }}
-                    className="mt-1.5 flex h-[52px] items-center justify-center rounded-[10px] bg-[#16151a] text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    className={"mt-1.5 flex h-[52px] items-center justify-center rounded-[10px] text-[15px] " + (solidPick ? "bg-[var(--accent)] " : "bg-[#16151a] ") + " font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"}
                   >
                     Submit and next
                   </button>
@@ -431,7 +435,7 @@ export default function BookingForm({
             <button
               type="submit"
               disabled={pending}
-              className="flex h-14 items-center rounded-[10px] bg-[#16151a] px-8 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:px-11"
+              className={(solidPick ? "bg-[var(--accent)] " : "bg-[#16151a] ") + "flex h-14 items-center rounded-[10px] px-8 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:px-11"}
             >
               {pending ? "Booking…" : copy.button ?? "Book consultation"}
             </button>
