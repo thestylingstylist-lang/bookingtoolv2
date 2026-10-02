@@ -19,12 +19,15 @@ export async function bookChat(formData: FormData): Promise<BookingResult> {
   const meetingType = String(formData.get("meetingType") ?? "").trim() as MeetingType
   const slotStart = String(formData.get("slotStart") ?? "").trim()
   const notes = String(formData.get("notes") ?? "").trim().slice(0, 1000)
+  const role = String(formData.get("role") ?? "").trim()
 
   if (!firstName || !lastName) return { ok: false, error: "Please enter your first and last name." }
   if (!phone) return { ok: false, error: "Please enter a phone number." }
   if (!email || !emailRe.test(email)) return { ok: false, error: "That email doesn't look right. Check it and try again." }
   if (!(MEETING_TYPES as readonly string[]).includes(meetingType))
     return { ok: false, error: "Choose a phone or video call." }
+  if (role !== "Solo realtor" && role !== "Broker")
+    return { ok: false, error: "Tell me if you\u2019re a solo realtor or a broker." }
   if (!slotStart) return { ok: false, error: "Pick a time slot to continue." }
 
   const taken = await takenChatSlots()
@@ -35,7 +38,7 @@ export async function bookChat(formData: FormData): Promise<BookingResult> {
   const admin = createAdminClient()
   const name = `${firstName} ${lastName}`.trim()
   const how = meetingType === "phone" ? "Phone call" : "Video call"
-  const noteLine = [how, notes].filter(Boolean).join(" — ")
+  const noteLine = [role, how, notes].filter(Boolean).join(" — ")
 
   try {
     const { data: existing } = await admin
@@ -83,7 +86,7 @@ export async function bookChat(formData: FormData): Promise<BookingResult> {
       whenLabel,
       meetingType,
       lookingTo: null,
-      notes: notes || null,
+      notes: [role, notes].filter(Boolean).join(" \u2014 ") || null,
     })
     await sendEmail({ to: CHAT_HOST.email, subject: n.subject, html: n.html, text: n.text, fromName: "Marvberry", replyTo: email })
   } catch (err) {

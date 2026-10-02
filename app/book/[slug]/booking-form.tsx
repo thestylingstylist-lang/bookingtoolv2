@@ -75,6 +75,7 @@ export default function BookingForm({
   copy = {},
   icsPath,
   solidPick = false,
+  askRole = false,
 }: {
   slots: Slot[]
   slug: string
@@ -84,6 +85,7 @@ export default function BookingForm({
   copy?: FormCopy
   icsPath?: string
   solidPick?: boolean
+  askRole?: boolean
 }) {
   const agentTz = agent.timezone || "America/New_York"
   const [tz, setTz] = useState(agentTz)
@@ -95,6 +97,7 @@ export default function BookingForm({
   const [perPage, setPerPage] = useState(7)
   const [meetingType, setMeetingType] = useState<"phone" | "virtual">("phone")
   const [lookingTo, setLookingTo] = useState("")
+  const [role, setRole] = useState("")
   const [firstName, setFirstName] = useState("")
   const [manageToken, setManageToken] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -182,7 +185,12 @@ export default function BookingForm({
     }
     formData.set("meetingType", meetingType)
     formData.set("slotStart", selected)
+    if (askRole && !role) {
+      setError("Tell me if you\u2019re a solo realtor or a broker.")
+      return
+    }
     formData.set("lookingTo", lookingTo)
+    if (askRole) formData.set("role", role)
     setFirstName(String(formData.get("firstName") ?? "").trim())
     startTransition(async () => {
       const res = submit ? await submit(formData) : await createBooking(slug, formData)
@@ -219,7 +227,7 @@ export default function BookingForm({
               <h2 style={SERIF} className="text-[40px] font-medium leading-none sm:text-[48px]">
                 {copy.title ?? "Consultation call"}
               </h2>
-              <span className="flex items-center gap-2 text-[15px] text-[#5d5b62]">
+              <span className="bf-sub flex items-center gap-2 text-[15px] text-[#5d5b62]">
                 <ClockIcon />
                 {minutes} minutes
               </span>
@@ -398,6 +406,10 @@ export default function BookingForm({
             <Field label="Email" name="email" type="email" placeholder="you@email.com" autoComplete="email" required />
             <Field label="Phone" name="phone" type="tel" placeholder="(555) 555-0123" autoComplete="tel" required />
           </div>
+
+          {askRole && (
+            <ChipGroup label="I'm a" options={["Solo realtor", "Broker"]} value={role} onChange={setRole} required />
+          )}
 
           {askLookingTo && <ChipGroup label="I'm looking to" options={LOOKING_TO} value={lookingTo} onChange={setLookingTo} />}
 
