@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import type { Slot } from "@/lib/slots"
-import { createBooking } from "./actions"
+import { createBooking, type BookingResult } from "./actions"
 import { consultationEvent, googleCalendarUrl, outlookCalendarUrl } from "@/lib/calendar"
 
 type AgentInfo = {
@@ -57,14 +57,31 @@ const timeLabel = (iso: string, tz: string) =>
 
 type Day = { key: string; num: string; weekday: string; month: string; slots: Slot[] }
 
+// Optional wording overrides so other booking pages (like /chat) can reuse this form.
+export type FormCopy = {
+  title?: string
+  button?: string
+  withWho?: string
+  eventTitle?: string
+  steps?: string[]
+}
+
 export default function BookingForm({
   slots,
   slug,
   agent,
+  submit,
+  askLookingTo = true,
+  copy = {},
+  icsPath,
 }: {
   slots: Slot[]
   slug: string
   agent: AgentInfo
+  submit?: (formData: FormData) => Promise<BookingResult>
+  askLookingTo?: boolean
+  copy?: FormCopy
+  icsPath?: string
 }) {
   const agentTz = agent.timezone || "America/New_York"
   const [tz, setTz] = useState(agentTz)
@@ -166,7 +183,7 @@ export default function BookingForm({
     formData.set("lookingTo", lookingTo)
     setFirstName(String(formData.get("firstName") ?? "").trim())
     startTransition(async () => {
-      const res = await createBooking(slug, formData)
+      const res = submit ? await submit(formData) : await createBooking(slug, formData)
       if (res.ok) {
         setManageToken(res.manageToken)
         setStep(3)
@@ -198,7 +215,7 @@ export default function BookingForm({
           <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-start">
             <div className="flex flex-col gap-3">
               <h2 style={SERIF} className="text-[40px] font-medium leading-none sm:text-[48px]">
-                Consultation call
+                {copy.title ?? "Consultation call"}
               </h2>
               <span className="flex items-center gap-2 text-[15px] text-[#5d5b62]">
                 <ClockIcon />
@@ -361,7 +378,7 @@ export default function BookingForm({
         <form action={onSubmit} className="flex flex-col gap-7">
           <div className="flex items-center justify-between gap-4 rounded-[14px] bg-[var(--base)] px-5 py-4 sm:px-[22px]">
             <div className="flex flex-col gap-1">
-              <span style={SERIF} className="text-[26px] leading-none">Consultation call</span>
+              <span style={SERIF} className="text-[26px] leading-none">{copy.title ?? "Consultation call"}</span>
               <span className="text-[15px] text-[#5d5b62]">
                 {when} · {minutes} minutes
               </span>
@@ -378,7 +395,7 @@ export default function BookingForm({
             <Field label="Phone" name="phone" type="tel" placeholder="(555) 555-0123" autoComplete="tel" required />
           </div>
 
-          <ChipGroup label="I'm looking to" options={LOOKING_TO} value={lookingTo} onChange={setLookingTo} />
+          {askLookingTo && <ChipGroup label="I'm looking to" options={LOOKING_TO} value={lookingTo} onChange={setLookingTo} />}
 
           <ChipGroup
             label="How should we talk?"
@@ -416,7 +433,7 @@ export default function BookingForm({
               disabled={pending}
               className="flex h-14 items-center rounded-[10px] bg-[#16151a] px-8 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:px-11"
             >
-              {pending ? "Booking…" : "Book consultation"}
+              {pending ? "Booking…" : copy.button ?? "Book consultation"}
             </button>
           </div>
         </form>
@@ -433,6 +450,8 @@ export default function BookingForm({
           meetingType={meetingType}
           slug={slug}
           manageToken={manageToken}
+          copy={copy}
+          icsPath={icsPath}
         />
       )}
     </div>
@@ -449,7 +468,11 @@ function Confirmed({
   meetingType,
   slug,
   manageToken,
+  copy,
+  icsPath,
 }: {
+  copy: FormCopy
+  icsPath?: string
   firstName: string
   agent: AgentInfo
   agentFirst: string
@@ -468,7 +491,8 @@ function Confirmed({
     agentPhone: agent.phone,
     agentEmail: agent.email,
   })
-  const icsHref = `/book/${slug}/ics?start=${encodeURIComponent(selected)}&type=${meetingType}`
+  if (copy.eventTitle) event.title = copy.eventTitle
+  const icsHref = `${icsPath ?? `/book/${slug}/ics`}?start=${encodeURIComponent(selected)}&type=${meetingType}`
   const calBtn =
     "flex h-12 items-center rounded-[10px] border border-[#e6e5e3] bg-white px-[22px] text-[15px] text-[#16151a] transition-colors hover:border-[var(--accent)]"
   const contact = [agent.phone, agent.email].filter(Boolean)
@@ -492,7 +516,7 @@ function Confirmed({
 
       <div className="flex flex-col gap-1.5 rounded-[14px] bg-[var(--base)] px-6 py-5">
         <span style={SERIF} className="text-[26px] leading-none">
-          Consultation call with {agentFirst}
+          {copy.withWho ?? `Consultation call with ${agentFirst}`}
         </span>
         <span className="text-[15px] text-[#5d5b62]">
           {when} · {minutes} minutes · {meetingType === "phone" ? "I\u2019ll call you" : "Video call"}
@@ -518,11 +542,11 @@ function Confirmed({
 
       <div className="flex flex-col gap-4">
         <span className="text-[13px] uppercase tracking-[1px] text-[#5d5b62]">What happens next</span>
-        {[
+        {(copy.steps ?? [
           "You\u2019ll get a reminder the day before our call.",
           "Jot down any questions, neighborhoods, or homes you\u2019ve had your eye on.",
           "After we talk, I\u2019ll send your personalized next steps.",
-        ].map((t, i) => (
+        ]).map((t, i) => (
           <div key={i} className="flex items-start gap-4">
             <span style={SERIF} className="min-w-[22px] text-[26px] leading-none text-[var(--accent)]">
               {i + 1}
