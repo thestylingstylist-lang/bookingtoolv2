@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic"
 
 type Lead = {
   id: string; name: string; email: string | null; phone: string | null
-  source: string | null; stage: Stage; next_step: string | null
+  source: string | null; stage: Stage; next_step: string | null; notes: string | null
   call_at: string | null; created_at: string
 }
 
@@ -23,7 +23,7 @@ export default async function AdminSalesPage() {
   const admin = createAdminClient()
   const { data, error } = await admin
     .from("sales_leads")
-    .select("id, name, email, phone, source, stage, next_step, call_at, created_at")
+    .select("id, name, email, phone, source, stage, next_step, notes, call_at, created_at")
     .order("created_at", { ascending: false })
     .limit(500)
 
@@ -85,22 +85,24 @@ export default async function AdminSalesPage() {
         <table className="w-full border-collapse text-left text-sm">
           <thead>
             <tr className="text-xs font-semibold uppercase tracking-wide text-[#16151a]/40">
-              <th className="px-4 py-3">Lead</th>
-              <th className="px-4 py-3">Source</th>
-              <th className="px-4 py-3">Stage</th>
-              <th className="px-4 py-3">Call</th>
-              <th className="px-4 py-3">Next step</th>
-              <th className="px-4 py-3">Added</th>
+              <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Lead</th>
+              <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Source</th>
+              <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Stage</th>
+              <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Call</th>
+              <th className="px-3 py-2.5">Next step</th>
+              <th className="px-3 py-2.5">Notes</th>
+              <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Added</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#16151a]/5 px-4">
             {leads.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-[#16151a]/45">No leads yet.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-[#16151a]/45">No leads yet.</td></tr>
             )}
             {leads.map((l) => (
               <LeadRow
                 key={l.id} id={l.id} name={l.name} email={l.email} phone={l.phone}
                 source={l.source} stage={l.stage} nextStep={l.next_step}
+                notes={l.notes}
                 callAt={l.call_at} createdAt={l.created_at}
               />
             ))}

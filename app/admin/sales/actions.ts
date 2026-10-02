@@ -36,3 +36,9 @@ export async function setNextStep(id: string, next_step: string) {
   await createAdminClient().from("sales_leads").update({ next_step: next_step.trim() || null }).eq("id", id)
   revalidatePath("/admin/sales")
 }
+
+export async function setNotes(id: string, notes: string) {
+  await requireAdmin()
+  await createAdminClient().from("sales_leads").update({ notes: notes.trim() || null }).eq("id", id)
+  revalidatePath("/admin/sales")
+}
