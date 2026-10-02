@@ -80,12 +80,12 @@ export default async function ChatPage() {
                 style={{ objectPosition: "50% 22%", filter: "sepia(.18) saturate(.92) contrast(.96)" }}
               />
             </div>
-            <p className="mt-7 text-[13px] uppercase tracking-[2px] text-[rgba(244,236,222,.72)]">
+            <p className="mt-7 text-[15px] leading-[1.6] text-[rgba(244,236,222,.82)]">
               When a brand is failing, 80% of the time it&rsquo;s not the product. It&rsquo;s the experience.
             </p>
             <p style={SERIF} className="mt-4 text-[30px] leading-[1.14]">
               Start with your client experience.<br />
-              Get that right, and <span className="text-[#FFBD59]">everything else flows.</span>
+              Get that right, and <span style={HAND} className="text-[#FFBD59] not-italic text-[40px] leading-[1]">everything else flows.</span>
             </p>
             <div className="mt-6 border-t border-[rgba(244,236,222,.22)] pt-4">
               <p style={HAND} className="text-[34px] leading-none text-[#F4ECDE]">{CHAT_HOST.name}</p>
