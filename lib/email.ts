@@ -138,6 +138,97 @@ ${how}${opts.manageUrl ? `\n\nNeed a different time? Reschedule or cancel: ${opt
   return { subject: `You're booked with ${opts.agentName}`, html, text }
 }
 
+export function chatConfirmationEmail(opts: {
+  clientFirstName: string
+  whenLabel: string
+  meetingType: string
+}) {
+  const over = opts.meetingType === "phone" ? "by phone" : "over video"
+  const callType = opts.meetingType === "phone" ? "phone call" : "video call"
+  const howLine =
+    opts.meetingType === "phone"
+      ? "Since we're talking by phone, I'll give you a call at the number you provided."
+      : "I'll send you a video link before our call."
+
+  const html = `<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..600;1,400..600&family=Caveat&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#faf7f1;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf7f1;padding:40px 16px;">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
+<tr><td style="padding:0 8px;font-family:Georgia,serif;font-size:11px;letter-spacing:.3em;color:#b89250;">MARVBERRY</td></tr>
+<tr><td style="padding:22px 8px 0;">
+<h1 style="margin:0;font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:30px;line-height:1.22;color:#2b2520;">Your deals are about to get so much simpler.</h1>
+</td></tr>
+<tr><td style="padding:22px 8px 0;">
+<p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">Hi ${opts.clientFirstName},</p>
+<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">I&rsquo;m happy you reached out and booked your setup session. Just so you know, your date is confirmed and we&rsquo;ll be talking ${over}.</p>
+<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">To get us prepared and get the most out of our meeting, please come ready to talk through a few things:</p>
+</td></tr>
+<tr><td style="padding:16px 8px 0;">
+<table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+<tr><td style="font-family:Georgia,serif;font-size:16px;line-height:1.5;color:#4a433b;padding:5px 0;">&middot;&nbsp;&nbsp;Your schedule</td></tr>
+<tr><td style="font-family:Georgia,serif;font-size:16px;line-height:1.5;color:#4a433b;padding:5px 0;">&middot;&nbsp;&nbsp;Your business operations</td></tr>
+<tr><td style="font-family:Georgia,serif;font-size:16px;line-height:1.5;color:#4a433b;padding:5px 0;">&middot;&nbsp;&nbsp;The goals you&rsquo;d like to achieve</td></tr>
+<tr><td style="font-family:Georgia,serif;font-size:16px;line-height:1.5;color:#4a433b;padding:5px 0;">&middot;&nbsp;&nbsp;The customer experience you&rsquo;d like to be known for</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:16px 8px 0;">
+<p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">Also, bring your brand colors. If you don&rsquo;t have brand colors yet, that&rsquo;s okay &mdash; I come from a background in branding, so I can help you with that too.</p>
+</td></tr>
+<tr><td style="padding:26px 8px 0;">
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr><td style="font-family:Georgia,serif;font-size:11px;letter-spacing:.18em;color:#b89250;padding:0 0 3px;">WHEN</td></tr>
+<tr><td style="font-family:'Playfair Display',Georgia,serif;font-size:19px;color:#2b2520;padding:0 0 2px;">${opts.whenLabel}</td></tr>
+<tr><td style="font-family:Georgia,serif;font-size:14px;color:#6d655b;padding:2px 0 0;">A 30-minute ${callType} with Alecia</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:16px 8px 0;">
+<p style="margin:0;font-family:Georgia,serif;font-size:15px;line-height:1.6;color:#6d655b;">${howLine}</p>
+</td></tr>
+<tr><td style="padding:34px 8px 0;">
+<p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">Can&rsquo;t wait to talk,</p>
+<p style="margin:6px 0 0;font-family:'Caveat',cursive;font-size:36px;line-height:1;color:#2b2520;">Alecia</p>
+<p style="margin:4px 0 0;font-family:Georgia,serif;font-size:13px;color:#8a8072;font-style:italic;">Founder, Marvberry</p>
+</td></tr>
+<tr><td style="padding:34px 8px 0;">
+<div style="border-top:1px solid #e6ddce;padding-top:16px;">
+<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:13px;color:#a2977f;">Marvberry. Move forward.</p>
+</div>
+</td></tr>
+</table></td></tr></table>
+</body></html>`
+
+  const text = `Your deals are about to get so much simpler.
+
+Hi ${opts.clientFirstName},
+
+I'm happy you reached out and booked your setup session. Just so you know, your date is confirmed and we'll be talking ${over}.
+
+To get us prepared and get the most out of our meeting, please come ready to talk through a few things:
+- Your schedule
+- Your business operations
+- The goals you'd like to achieve
+- The customer experience you'd like to be known for
+
+Also, bring your brand colors. If you don't have brand colors yet, that's okay - I come from a background in branding, so I can help you with that too.
+
+When: ${opts.whenLabel}
+A 30-minute ${callType} with Alecia
+
+${howLine}
+
+Can't wait to talk,
+Alecia
+Founder, Marvberry
+
+Marvberry. Move forward.`
+
+  return { subject: "Your setup session is confirmed", html, text }
+}
+
 export function agentNotificationEmail(opts: {
   agentName: string
   clientName: string

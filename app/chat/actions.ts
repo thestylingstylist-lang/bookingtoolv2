@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { MEETING_TYPES, type MeetingType } from "@/lib/config"
 import { isValidOpenSlot, formatSlot } from "@/lib/slots"
-import { sendEmail, clientConfirmationEmail, agentNotificationEmail } from "@/lib/email"
+import { sendEmail, chatConfirmationEmail, agentNotificationEmail } from "@/lib/email"
 import type { BookingResult } from "@/app/book/[slug]/actions"
 import { CHAT_CFG, CHAT_HOST } from "./config"
 import { takenChatSlots } from "./taken"
@@ -69,12 +69,10 @@ export async function bookChat(formData: FormData): Promise<BookingResult> {
 
   const whenLabel = formatSlot(slotStart, CHAT_CFG.timezone)
   try {
-    const c = clientConfirmationEmail({
+    const c = chatConfirmationEmail({
       clientFirstName: firstName,
-      agentName: CHAT_HOST.first,
       whenLabel,
       meetingType,
-      agentEmail: CHAT_HOST.email,
     })
     await sendEmail({ to: email, subject: c.subject, html: c.html, text: c.text, fromName: "Alecia at Marvberry", replyTo: CHAT_HOST.email })
 
