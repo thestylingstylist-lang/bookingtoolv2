@@ -42,3 +42,9 @@ export async function setNotes(id: string, notes: string) {
   await createAdminClient().from("sales_leads").update({ notes: notes.trim() || null }).eq("id", id)
   revalidatePath("/admin/sales")
 }
+
+export async function deleteLead(id: string) {
+  await requireAdmin()
+  await createAdminClient().from("sales_leads").delete().eq("id", id)
+  revalidatePath("/admin/sales")
+}

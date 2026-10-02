@@ -88,15 +88,16 @@ export default async function AdminSalesPage() {
               <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Lead</th>
               <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Source</th>
               <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Stage</th>
-              <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Call</th>
+              <th className="px-3 py-2.5 min-w-[150px] whitespace-nowrap">Call</th>
               <th className="px-3 py-2.5 w-[26%]">Next step</th>
               <th className="px-3 py-2.5 w-[26%]">Notes</th>
               <th className="px-3 py-2.5 whitespace-nowrap text-right">Added</th>
+              <th className="px-3 py-2.5 w-[1%]"><span className="sr-only">Delete</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#16151a]/5 px-4">
             {leads.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-sm text-[#16151a]/45">No leads yet.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-sm text-[#16151a]/45">No leads yet.</td></tr>
             )}
             {leads.map((l) => (
               <LeadRow

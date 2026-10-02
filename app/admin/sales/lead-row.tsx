@@ -1,6 +1,6 @@
 "use client"
 import { useState, useTransition } from "react"
-import { setStage, setNextStep, setNotes } from "./actions"
+import { setStage, setNextStep, setNotes, deleteLead } from "./actions"
 import { STAGES, type Stage } from "./stages"
 
 const LABEL: Record<Stage, string> = {
@@ -39,7 +39,7 @@ export default function LeadRow({
           {STAGES.map((s) => <option key={s} value={s}>{LABEL[s]}</option>)}
         </select>
       </td>
-      <td className="px-3 py-2.5 align-top text-xs text-[#16151a]/55">{when(callAt)}</td>
+      <td className="px-3 py-2.5 align-top min-w-[150px] whitespace-nowrap text-xs text-[#16151a]/70">{when(callAt)}</td>
       <td className="px-3 py-2.5 align-top">
         <input
           value={step}
@@ -61,6 +61,16 @@ export default function LeadRow({
         />
       </td>
       <td className="px-3 py-2.5 align-top text-xs text-[#16151a]/40 whitespace-nowrap text-right">{when(createdAt)}</td>
+      <td className="px-3 py-2.5 align-top text-right">
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => { if (confirm(`Delete ${name}? This can\u2019t be undone.`)) start(() => deleteLead(id)) }}
+          className="rounded-full border border-[#16151a]/15 bg-white px-3 py-1 text-xs text-[#16151a]/60 hover:border-[#D9467A] hover:text-[#D9467A]"
+        >
+          Delete
+        </button>
+      </td>
     </tr>
   )
 }
