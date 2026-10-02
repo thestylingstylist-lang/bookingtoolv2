@@ -1,5 +1,5 @@
 import { consultationEvent, icsFile } from "@/lib/calendar"
-import { CHAT_CFG, CHAT_HOST, CHAT_EVENT_TITLE } from "../config"
+import { CHAT_CFG, CHAT_HOST, CHAT_EVENT_TITLE, CHAT_ZOOM } from "../config"
 
 export const dynamic = "force-dynamic"
 
@@ -18,6 +18,9 @@ export async function GET(req: Request) {
     agentEmail: CHAT_HOST.email,
   })
   event.title = CHAT_EVENT_TITLE
+  if (type === "virtual") {
+    event.details = `Join on Zoom: ${CHAT_ZOOM.url}\nMeeting ID ${CHAT_ZOOM.meetingId} · Passcode ${CHAT_ZOOM.passcode}`
+  }
 
   return new Response(icsFile(event, `chat-${when.getTime()}`), {
     headers: {

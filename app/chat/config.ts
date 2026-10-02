@@ -18,3 +18,10 @@ export const CHAT_HOST = {
 }
 
 export const CHAT_EVENT_TITLE = "Marvberry chat with Alecia"
+
+// Alecia's personal Zoom room — used for every video booking until auto-generated links are set up.
+export const CHAT_ZOOM = {
+  url: "https://us06web.zoom.us/j/3835401799?pwd=RWpnWUVIREU2Vy8waEtTZ2IwVzVXUT09",
+  meetingId: "383 540 1799",
+  passcode: "fg6qDe",
+}

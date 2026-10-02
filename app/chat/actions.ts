@@ -6,7 +6,7 @@ import { MEETING_TYPES, type MeetingType } from "@/lib/config"
 import { isValidOpenSlot, formatSlot } from "@/lib/slots"
 import { sendEmail, chatConfirmationEmail, agentNotificationEmail } from "@/lib/email"
 import type { BookingResult } from "@/app/book/[slug]/actions"
-import { CHAT_CFG, CHAT_HOST } from "./config"
+import { CHAT_CFG, CHAT_HOST, CHAT_ZOOM } from "./config"
 import { takenChatSlots } from "./taken"
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -73,6 +73,7 @@ export async function bookChat(formData: FormData): Promise<BookingResult> {
       clientFirstName: firstName,
       whenLabel,
       meetingType,
+      zoom: CHAT_ZOOM,
     })
     await sendEmail({ to: email, subject: c.subject, html: c.html, text: c.text, fromName: "Alecia at Marvberry", replyTo: CHAT_HOST.email })
 

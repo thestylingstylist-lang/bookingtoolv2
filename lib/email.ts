@@ -142,13 +142,14 @@ export function chatConfirmationEmail(opts: {
   clientFirstName: string
   whenLabel: string
   meetingType: string
+  zoom?: { url: string; meetingId: string; passcode: string }
 }) {
   const over = opts.meetingType === "phone" ? "by phone" : "over video"
   const callType = opts.meetingType === "phone" ? "phone call" : "video call"
   const howLine =
     opts.meetingType === "phone"
       ? "Since we're talking by phone, I'll give you a call at the number you provided."
-      : "I'll send you a video link before our call."
+      : "We\u2019ll meet on Zoom. Here\u2019s your link to join:"
 
   const html = `<!doctype html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -187,6 +188,8 @@ export function chatConfirmationEmail(opts: {
 </td></tr>
 <tr><td style="padding:16px 8px 0;">
 <p style="margin:0;font-family:Georgia,serif;font-size:15px;line-height:1.6;color:#6d655b;">${howLine}</p>
+${opts.meetingType !== "phone" && opts.zoom ? `<p style="margin:12px 0 0;"><a href="${opts.zoom.url}" style="font-family:Georgia,serif;font-size:14px;letter-spacing:.06em;color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;padding-bottom:3px;">Join the Zoom call</a></p>
+<p style="margin:10px 0 0;font-family:Georgia,serif;font-size:13px;line-height:1.6;color:#8a8072;">Meeting ID ${opts.zoom.meetingId} &nbsp;&middot;&nbsp; Passcode ${opts.zoom.passcode}</p>` : ""}
 </td></tr>
 <tr><td style="padding:34px 8px 0;">
 <p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">Can&rsquo;t wait to talk,</p>
@@ -218,7 +221,7 @@ Also, bring your brand colors. If you don't have brand colors yet, that's okay -
 When: ${opts.whenLabel}
 A 30-minute ${callType} with Alecia
 
-${howLine}
+${howLine}${opts.meetingType !== "phone" && opts.zoom ? `\n${opts.zoom.url}\nMeeting ID ${opts.zoom.meetingId} · Passcode ${opts.zoom.passcode}` : ""}
 
 Can't wait to talk,
 Alecia
