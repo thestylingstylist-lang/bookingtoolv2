@@ -1,5 +1,6 @@
 import Link from "next/link"
 import AdminNav from "./admin-nav"
+import { signOut } from "@/app/login/actions"
 
 // Internal Marvberry team area. Carries the brand (unlike the neutral realtor app).
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </span>
         </Link>
         <AdminNav />
+        <form action={signOut} className="ml-auto">
+          <button className="rounded-full px-3.5 py-1.5 text-sm font-medium text-[#16151a]/60 transition-colors hover:bg-white/70 hover:text-[#16151a]">
+            Sign out
+          </button>
+        </form>
       </header>
       <div className="relative">{children}</div>
     </div>
