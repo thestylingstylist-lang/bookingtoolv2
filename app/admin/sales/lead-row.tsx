@@ -25,8 +25,8 @@ export default function LeadRow({
     <tr className={pending ? "opacity-50" : ""}>
       <td className="px-3 py-2.5 align-top">
         <p className="font-medium text-[#16151a]">{name}</p>
-        {email && <p className="text-xs text-[#16151a]/50">{email}</p>}
-        {phone && <p className="text-xs text-[#16151a]/50">{phone}</p>}
+        {email && <p className="whitespace-nowrap text-xs text-[#16151a]/50">{email}</p>}
+        {phone && <p className="whitespace-nowrap text-xs text-[#16151a]/50">{phone}</p>}
       </td>
       <td className="px-3 py-2.5 align-top text-xs text-[#16151a]/55">{source || "—"}</td>
       <td className="px-3 py-2.5 align-top">
@@ -60,7 +60,7 @@ export default function LeadRow({
           className="w-full rounded-lg border border-[#16151a]/15 bg-white px-2.5 py-1 text-xs text-[#16151a]"
         />
       </td>
-      <td className="px-3 py-2.5 align-top text-xs text-[#16151a]/40 whitespace-nowrap">{when(createdAt)}</td>
+      <td className="px-3 py-2.5 align-top text-xs text-[#16151a]/40 whitespace-nowrap text-right">{when(createdAt)}</td>
     </tr>
   )
 }

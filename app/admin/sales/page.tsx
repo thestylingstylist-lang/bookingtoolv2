@@ -91,7 +91,7 @@ export default async function AdminSalesPage() {
               <th className="px-3 py-2.5 w-[1%] whitespace-nowrap">Call</th>
               <th className="px-3 py-2.5 w-[26%]">Next step</th>
               <th className="px-3 py-2.5 w-[26%]">Notes</th>
-              <th className="px-3 py-2.5 whitespace-nowrap">Added</th>
+              <th className="px-3 py-2.5 whitespace-nowrap text-right">Added</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#16151a]/5 px-4">
