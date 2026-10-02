@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
 import { toAgentConfig, MEETING_TYPES, type MeetingType } from "@/lib/config"
 import { isValidOpenSlot, formatSlot } from "@/lib/slots"
+import { isAdminEmail } from "@/lib/admin"
 import {
   sendEmail,
   clientConfirmationEmail,
@@ -153,6 +154,35 @@ export async function createBooking(
     }
   } catch (err) {
     console.error("[booking] email step failed (booking still saved):", err)
+  }
+
+  // Sales: when someone books the Marvberry team's own link, they land in
+  // the Sales pipeline as a lead with their call time. Never blocks the booking.
+  try {
+    const { data: owner } = await admin.auth.admin.getUserById(agent.id)
+    if (isAdminEmail(owner?.user?.email)) {
+      const lead = {
+        name: clientName,
+        email,
+        phone,
+        stage: "call_booked",
+        call_at: slotStart,
+        booking_id: saved?.id ?? null,
+      }
+      const { data: existing } = await admin
+        .from("sales_leads")
+        .select("id")
+        .ilike("email", email)
+        .limit(1)
+        .maybeSingle()
+      if (existing?.id) {
+        await admin.from("sales_leads").update(lead).eq("id", existing.id)
+      } else {
+        await admin.from("sales_leads").insert({ ...lead, source: "booking link", notes })
+      }
+    }
+  } catch (err) {
+    console.error("[booking] sales lead step failed (booking still saved):", err)
   }
 
   return { ok: true, manageToken }
