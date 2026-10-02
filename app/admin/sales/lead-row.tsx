@@ -60,7 +60,7 @@ export default function LeadRow({
           className="w-full rounded-lg border border-[#16151a]/15 bg-white px-2.5 py-1 text-xs text-[#16151a]"
         />
       </td>
-      <td className="px-3 py-2.5 align-top text-xs text-[#16151a]/40">{when(createdAt)}</td>
+      <td className="px-3 py-2.5 align-top text-xs text-[#16151a]/40 whitespace-nowrap">{when(createdAt)}</td>
     </tr>
   )
 }
