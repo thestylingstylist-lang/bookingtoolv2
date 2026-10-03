@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { formatSlot } from "@/lib/slots"
 import { sendEmail, clientReminderEmail, manageUrl } from "@/lib/email"
 import { agentDayEmail } from "@/lib/nudge-email"
-import { agentDueLabel, daysUntil, nudgeReady } from "@/lib/due"
+import { agentDueLabel, daysUntil, canNudge } from "@/lib/due"
 import { toOwner } from "@/lib/phases"
 
 // Runs once a day (see vercel.json). Finds consultations starting roughly
@@ -97,7 +97,7 @@ async function sendAgentDays(admin: ReturnType<typeof createAdminClient>) {
     const items = mine
       .filter((s) => {
         const n = daysUntil(s.due_on as string, tz)
-        return n === 0 || n === 1
+        return n <= 7
       })
       .map((s) => {
         const c = s.clients as unknown as { first_name: string | null; last_name: string | null } | null
@@ -108,7 +108,7 @@ async function sendAgentDays(admin: ReturnType<typeof createAdminClient>) {
         }
       })
     const ready = mine.filter(
-      (s) => toOwner(s.owner) === "client" && !s.nudged_at && nudgeReady(s.due_on as string, tz)
+      (s) => toOwner(s.owner) === "client" && canNudge(s.due_on as string, s.nudged_at as string | null, tz)
     ).length
     if (!items.length && !ready) continue
 

@@ -40,17 +40,19 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 // On desktop: the three columns side by side, exactly as before.
 // On phone/tablet: one column at a time, switched from a bottom tab bar.
 export default function JacketTabs({
+  initial,
   tasks,
   documents,
   messages,
   client,
 }: {
+  initial?: Tab
   tasks: React.ReactNode
   documents: React.ReactNode
   messages: React.ReactNode
   client: React.ReactNode
 }) {
-  const [tab, setTab] = useState<Tab>("messages")
+  const [tab, setTab] = useState<Tab>(initial ?? "messages")
   const show = (t: Tab) => (tab === t ? "" : "hidden lg:flex")
 
   return (

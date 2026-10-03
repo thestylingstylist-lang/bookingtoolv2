@@ -17,16 +17,19 @@ export async function sendNudge(formData: FormData): Promise<void> {
 
   const stepId = String(formData.get("stepId") ?? "")
   const body = String(formData.get("body") ?? "").trim()
+  const fromClient = formData.get("from") === "client"
   if (!stepId || !body) redirect("/dashboard")
 
   const { data: step } = await supabase.from("steps").select("id, client_id, done, nudged_at").eq("id", stepId).maybeSingle()
-  if (!step || step.done || step.nudged_at) redirect("/dashboard")
+  if (!step || step.done) redirect("/dashboard")
+  const back = (k: string) =>
+    fromClient ? `/clients/${step.client_id}?step=${stepId}&nudge=${k}#step-${stepId}` : `/dashboard?nudge=${k}`
 
   const [{ data: client }, { data: agent }] = await Promise.all([
     supabase.from("clients").select("email, portal_token").eq("id", step.client_id).maybeSingle(),
     supabase.from("agents").select("full_name, business_name, public_email").eq("id", user.id).maybeSingle(),
   ])
-  if (!client?.email) redirect("/dashboard?nudge=noemail")
+  if (!client?.email) redirect(back("noemail"))
 
   const agentName = agent?.full_name || agent?.business_name || "Your agent"
   const mail = nudgeEmail({ agentName, body, link: `https://marvberry.com/portal/${client.portal_token}` })
@@ -36,14 +39,15 @@ export async function sendNudge(formData: FormData): Promise<void> {
     fromName: agentName,
     replyTo: agent?.public_email || user.email || undefined,
   })
-  if (!ok) redirect("/dashboard?nudge=fail")
+  if (!ok) redirect(back("fail"))
 
   await Promise.all([
     supabase.from("messages").insert({ agent_id: user.id, client_id: step.client_id, sender: "agent", body }),
     supabase.from("steps").update({ nudged_at: new Date().toISOString() }).eq("id", stepId),
   ])
   revalidatePath("/dashboard")
-  redirect("/dashboard?nudge=sent")
+  revalidatePath(`/clients/${step.client_id}`)
+  redirect(back("sent"))
 }
 
 export async function skipNudge(formData: FormData): Promise<void> {

@@ -84,7 +84,7 @@ export default async function ClientJacket({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ updated?: string; doc?: string; error?: string }>
+  searchParams: Promise<{ updated?: string; doc?: string; error?: string; step?: string; nudge?: string }>
 }) {
   const { id } = await params
   const sp = await searchParams
@@ -134,7 +134,7 @@ export default async function ClientJacket({
       .order("created_at", { ascending: true }),
     supabase
       .from("steps")
-      .select("id, title, done, phase, owner, due_on")
+      .select("id, title, done, phase, owner, due_on, nudged_at")
       .eq("client_id", id)
       .order("position", { ascending: true })
       .order("created_at", { ascending: true }),
@@ -260,6 +260,7 @@ export default async function ClientJacket({
         </div>
 
         <JacketTabs
+          initial={sp.step ? "tasks" : undefined}
           documents={<DocumentsPanel clientId={client.id} collected={collected} />}
           tasks={<>
             <LeftColumn
@@ -268,6 +269,11 @@ export default async function ClientJacket({
               phase={phase}
               tasks={tasks}
               tz={agent.timezone || "America/New_York"}
+              focus={sp.step}
+              nudge={sp.nudge}
+              canEmail={!!client.email}
+              agentFirst={(agent.full_name || "").trim().split(/\s+/)[0] || ""}
+              missingDocs={collected.filter((c) => !c.received).length}
             />
           </>}
           messages={<>

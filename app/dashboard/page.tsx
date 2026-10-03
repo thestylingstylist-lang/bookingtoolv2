@@ -7,14 +7,32 @@ import { SETUP_STEPS, setupProgress } from "@/lib/onboarding"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
 import { isAdminEmail } from "@/lib/admin"
-import { agentDueLabel, daysUntil, isClose, nudgeDraft, missingThing, nudgeReady, clientDueLabel } from "@/lib/due"
+import { agentDueLabel, daysUntil, isClose, nudgeDraft, missingThing, canNudge, clientDueLabel } from "@/lib/due"
 import { toOwner } from "@/lib/phases"
 import { sendNudge, skipNudge } from "./nudge-actions"
+import { formatInTimeZone } from "date-fns-tz"
+
+// The client's outstanding item, said about them (agent-facing, calm, no blame).
+function theirThing(title: string, first: string) {
+  const t = title.trim().toLowerCase()
+  const map: Record<string, string> = {
+    "collect the client's documents": "documents",
+    "buyer sent their criteria": "wish list",
+    "get their availability": "showing times",
+    "agreement signed": "signed agreement",
+  }
+  const thing = map[t] ?? title.trim().replace(/^(send|upload|sign|get|collect|provide|share|submit|bring|email)\s+/i, "").replace(/^(the|their|your)\s+/i, "").toLowerCase()
+  const plural = /s$/.test(thing) && !/ss$/.test(thing)
+  return `${first}'s ${thing} ${plural ? "are" : "is"} outstanding.`
+}
+
+type Priority = { key: string; line: string; sub: string; href: string; open: string; action?: string; urgent?: boolean }
 
 type DueStep = {
   id: string
   title: string
   owner: string | null
+  phase: string | null
   due_on: string
   nudged_at: string | null
   client_id: string
@@ -75,12 +93,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const tz = agent.timezone || "America/New_York"
   const { data: dueData } = await supabase
     .from("steps")
-    .select("id, title, owner, due_on, nudged_at, client_id, clients(first_name, last_name, email, portal_token)")
+    .select("id, title, owner, phase, due_on, nudged_at, client_id, clients(first_name, last_name, email, portal_token)")
     .eq("done", false)
     .not("due_on", "is", null)
     .order("due_on", { ascending: true })
   const dueSteps = ((dueData ?? []) as unknown as DueStep[]).filter((d) => daysUntil(d.due_on, tz) <= 7)
-  const ready = dueSteps.filter((d) => toOwner(d.owner) === "client" && !d.nudged_at && nudgeReady(d.due_on, tz))
+  const ready = dueSteps.filter((d) => toOwner(d.owner) === "client" && canNudge(d.due_on, d.nudged_at, tz))
+  const pastDue = dueSteps.filter((d) => daysUntil(d.due_on, tz) < 0)
+  const comingUp = dueSteps.filter((d) => daysUntil(d.due_on, tz) >= 0)
 
   // Real count of documents still outstanding, per client with a ready reminder.
   const readyClientIds = [...new Set(ready.map((d) => d.client_id))]
@@ -99,16 +119,88 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const agentFirstName = (agent.full_name || "").trim().split(/\s+/)[0] || ""
   const clientName = (d: DueStep) => `${d.clients?.first_name ?? ""} ${d.clients?.last_name ?? ""}`.trim() || "Client"
 
+  // The top of home: never more than three, ranked past due, due today, today's calls.
+  const todayKey = formatInTimeZone(new Date(), tz, "yyyy-MM-dd")
+  const firstOf = (d: DueStep) => d.clients?.first_name?.trim() || "your client"
+  const stepPriority = (d: DueStep): Priority => {
+    const first = firstOf(d)
+    const mine = toOwner(d.owner) !== "client"
+    const href = `/clients/${d.client_id}?step=${d.id}#step-${d.id}`
+    const late = daysUntil(d.due_on, tz) < 0
+    const when = late ? agentDueLabel(d.due_on, tz).replace("Past due · ", "Past due since ") : "Due today"
+    const act = !mine && !!d.clients?.email && canNudge(d.due_on, d.nudged_at, tz)
+    return {
+      key: d.id,
+      line: mine ? `Next for ${first}: ${d.title.charAt(0).toLowerCase()}${d.title.slice(1)}.` : theirThing(d.title, first),
+      sub: act ? `I've drafted a message for ${first}. Give it a read, approve it, and hit send.` : when,
+      href,
+      open: act ? when : `Open ${first}`,
+      action: act ? "Read and send" : undefined,
+      urgent: late,
+    }
+  }
+  const todayCalls: Priority[] = next
+    .filter((b) => formatInTimeZone(new Date(b.slot_start), tz, "yyyy-MM-dd") === todayKey)
+    .map((b) => ({
+      key: b.id,
+      line: `Your ${b.meeting_type === "virtual" ? "video call" : "call"} with ${b.first_name} is at ${formatInTimeZone(new Date(b.slot_start), tz, "h:mm a")}.`,
+      sub: b.meeting_type === "virtual" ? "Video" : "Phone",
+      href: "/bookings",
+      open: "See booking",
+    }))
+  const allPriorities: Priority[] = [
+    ...pastDue.map(stepPriority),
+    ...comingUp.filter((d) => daysUntil(d.due_on, tz) === 0).map(stepPriority),
+    ...todayCalls,
+  ]
+  const priorities = allPriorities.slice(0, 3)
+  const more = allPriorities.length > 3
+
   const signals = { agent, bookingCount: count ?? 0 }
   const { complete, done, total } = setupProgress(SETUP_STEPS, signals)
 
   return (
     <AppShell agent={agent}>
     <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-      <h1 className="font-serif font-semibold tracking-tight text-3xl sm:text-4xl">
+      <h1 className="font-[Georgia,serif] tracking-tight text-3xl sm:text-4xl">
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
-      <p className="mt-2 text-ink/60">This is your agenda for today.</p>
+      <p className="mt-2 text-ink/60">
+        {priorities.length ? "Here's what's important today. I'll help you get it handled." : "Nothing pressing today. Everything is on track."}
+      </p>
+
+      {priorities.length > 0 && (
+        <section className="mt-7 max-w-2xl">
+          <ol className="divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-card">
+            {priorities.map((p, i) => (
+              <li key={p.key} className="flex items-start gap-4 p-5">
+                <span className={`font-[Georgia,serif] text-xl leading-6 ${i === 0 ? "text-[#D9467A]" : "text-ink/40"}`}>{i + 1}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{p.line}</p>
+                  {p.action ? (
+                    <>
+                      <p className="mt-1 text-sm text-ink/60">{p.sub}</p>
+                      <p className={`mt-1 text-xs ${p.urgent ? "text-[#D9467A]" : "text-ink/50"}`}>{p.open}</p>
+                      <Link href={p.href} className="mt-3 inline-block rounded-[10px] bg-ink px-4 py-2.5 text-sm font-medium text-paper hover:opacity-90">
+                        {p.action}
+                      </Link>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-sm text-ink/60">
+                      <span className={p.urgent ? "text-[#D9467A]" : ""}>{p.sub}</span> ·{" "}
+                      <Link href={p.href} className="text-ink underline underline-offset-4">{p.open}</Link>
+                    </p>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-4 text-sm text-ink/50">
+            {more ? "There's a little more below." : "Everything else is on track."}{" "}
+            <a href="#coming-up" className="text-ink underline underline-offset-4">See the week</a>
+          </p>
+        </section>
+      )}
 
       <div className="mt-5"><BookingLink slug={agent.slug} compact /></div>
 
@@ -174,7 +266,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                         id={`nudge-${d.id}`}
                         name="body"
                         rows={4}
-                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, missingDocs: missingByClient.get(d.client_id) ?? 0 })}
+                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, missingDocs: missingByClient.get(d.client_id) ?? 0, phase: d.phase })}
                         className="w-full resize-y rounded-xl border border-ink/10 bg-[#f7f6f4] px-4 py-3 text-sm leading-relaxed outline-none focus:border-ink/30"
                       />
                       <div className="flex gap-2">
@@ -212,13 +304,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       )}
 
-      {dueSteps.length > 0 && (
-        <section className="mt-6">
-          <h2 className="font-serif font-semibold tracking-tight text-xl">Coming up</h2>
+      {[["Past due", pastDue], ["Coming up", comingUp]].map(([label, list]) => (list as DueStep[]).length > 0 && (
+        <section key={label as string} id={label === "Coming up" ? "coming-up" : "past-due"} className="mt-6 scroll-mt-24">
+          <h2 className="font-serif font-semibold tracking-tight text-xl">{label as string}</h2>
           <ul className="mt-3 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-card">
-            {dueSteps.map((d) => (
+            {(list as DueStep[]).map((d) => (
               <li key={d.id}>
-                <Link href={`/clients/${d.client_id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-ink/[0.02]">
+                <Link href={`/clients/${d.client_id}?step=${d.id}#step-${d.id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-ink/[0.02]">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{d.title}</p>
                     <p className="text-xs text-ink/60">
@@ -234,7 +326,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ))}
           </ul>
         </section>
-      )}
+      ))}
 
       <div className="mt-6">
         <div className="flex items-center justify-between">

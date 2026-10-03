@@ -7,10 +7,11 @@ import {
   setDueDate,
 } from "./checklist-actions"
 import { PHASES, phaseIndex, toOwner, type Phase } from "@/lib/phases"
-import { agentDueLabel, isClose } from "@/lib/due"
+import { agentDueLabel, isClose, canNudge, nudgeDraft, missingThing } from "@/lib/due"
+import { sendNudge } from "@/app/dashboard/nudge-actions"
 import DuePicker from "./due-picker"
 
-export type Task = { id: string; title: string; done: boolean; owner?: string | null; due_on?: string | null }
+export type Task = { id: string; title: string; done: boolean; owner?: string | null; due_on?: string | null; nudged_at?: string | null; phase?: string | null }
 export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
 
 const inputClass =
@@ -43,12 +44,22 @@ export default function LeftColumn({
   phase,
   tasks,
   tz,
+  focus,
+  nudge,
+  canEmail,
+  agentFirst,
+  missingDocs,
 }: {
   clientId: string
   firstName: string
   phase: Phase
   tasks: Task[]
   tz: string
+  focus?: string
+  nudge?: string
+  canEmail?: boolean
+  agentFirst?: string
+  missingDocs?: number
 }) {
   const who = firstName || "Client"
   const i = phaseIndex(phase)
@@ -95,7 +106,13 @@ export default function LeftColumn({
         )}
         <ul className="mt-3">
           {tasks.map((t) => (
-            <li key={t.id} className="group flex items-start gap-2.5 py-2">
+            <li
+              key={t.id}
+              id={`step-${t.id}`}
+              className={`group flex scroll-mt-24 items-start gap-2.5 py-2 ${
+                focus === t.id ? "-mx-2 rounded-lg bg-[#fdf3e3] px-2 ring-1 ring-[#e8c98f]" : ""
+              }`}
+            >
               <form action={toggleTask}>
                 <Hidden clientId={clientId} id={t.id} />
                 <input type="hidden" name="done" value={t.done ? "0" : "1"} />
@@ -123,6 +140,45 @@ export default function LeftColumn({
                       strong={!!t.due_on && isClose(t.due_on, tz)}
                     />
                   </form>
+                )}
+                {focus === t.id && nudge === "sent" && (
+                  <p className="text-xs text-sage">Reminder sent to {who}.</p>
+                )}
+                {focus === t.id && nudge === "fail" && (
+                  <p className="text-xs text-brass">The reminder didn&apos;t go out. Try again.</p>
+                )}
+                {!t.done && t.due_on && toOwner(t.owner) === "client" && canNudge(t.due_on, t.nudged_at, tz) && (
+                  canEmail ? (
+                    <details open={focus === t.id && nudge !== "sent"} className="mt-1">
+                      <summary className="cursor-pointer list-none text-xs font-medium text-ink underline underline-offset-2">
+                        Send {who} a reminder
+                      </summary>
+                      <form action={sendNudge} className="mt-2 space-y-2">
+                        <input type="hidden" name="stepId" value={t.id} />
+                        <input type="hidden" name="from" value="client" />
+                        <textarea
+                          name="body"
+                          rows={6}
+                          aria-label={`Reminder to ${who}`}
+                          defaultValue={nudgeDraft({
+                            clientFirst: firstName,
+                            thing: missingThing(t.title),
+                            due: t.due_on,
+                            tz,
+                            agentFirst: agentFirst ?? "",
+                            missingDocs: /document/i.test(t.title) ? missingDocs ?? 0 : 0,
+                            phase: t.phase ?? phase,
+                          })}
+                          className="w-full resize-y rounded-lg border border-[#e4e3e0] bg-white px-3 py-2 text-sm leading-relaxed outline-none focus:border-ink/30"
+                        />
+                        <button type="submit" className="rounded-[10px] bg-ink px-3 py-2 text-xs font-medium text-paper hover:opacity-90">
+                          Send{agentFirst ? ` as ${agentFirst}` : ""}
+                        </button>
+                      </form>
+                    </details>
+                  ) : (
+                    <p className="text-xs text-[#5d5b62]">Add an email for {who} to send a reminder.</p>
+                  )
                 )}
               </div>
               <form action={deleteTask}>

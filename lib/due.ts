@@ -33,7 +33,7 @@ function say(due: string, style: "short" | "long") {
 // What the realtor sees. Supportive: the fact and the time, never a push.
 export function agentDueLabel(due: string, tz: string) {
   const n = daysUntil(due, tz)
-  if (n < 0) return `Was due ${say(due, "short")}`
+  if (n < 0) return `Past due · ${say(due, "short")}`
   if (n === 0) return "Due today"
   if (n === 1) return "Due tomorrow"
   return `Due ${say(due, "short")} · ${n} days left`
@@ -42,7 +42,7 @@ export function agentDueLabel(due: string, tz: string) {
 // What the client sees. Always the full day and date, nothing to guess.
 export function clientDueLabel(due: string, tz: string) {
   const n = daysUntil(due, tz)
-  if (n < 0) return `Was due ${say(due, "long")}`
+  if (n < 0) return `Past due, ${say(due, "long")}`
   if (n === 0) return `Due today, ${say(due, "long")}`
   if (n === 1) return `Due tomorrow, ${say(due, "long")}`
   return `Due ${say(due, "long")}`
@@ -63,6 +63,15 @@ export function nudgeReady(due: string, tz: string) {
   return daysUntil(due, tz) <= 2
 }
 
+// Ready to send now: inside the window and not reminded yet — or the date has
+// passed and the only reminder went out BEFORE the deadline, so a past-due
+// heads-up is still owed.
+export function canNudge(due: string, nudgedAt: string | null | undefined, tz: string) {
+  if (!nudgeReady(due, tz)) return false
+  if (!nudgedAt) return true
+  return daysUntil(due, tz) < 0 && nudgedAt.slice(0, 10) <= due
+}
+
 // The reminder, in her voice. A heads-up, the date as a plain fact, and — for
 // document steps — the true count still outstanding plus how to send them.
 // `missingDocs` is how many documents are still not received (0 if unknown or
@@ -74,10 +83,20 @@ export function nudgeDraft(o: {
   tz: string
   agentFirst: string
   missingDocs?: number
+  phase?: string | null
 }) {
   const hi = o.clientFirst ? `Hey ${o.clientFirst}` : "Hey"
   const when = longDate(o.due)
   const past = daysUntil(o.due, o.tz) < 0
+
+  // Past due: a warm heads-up that names what's missing and what it holds up.
+  if (past) {
+    const n = o.missingDocs ?? 0
+    const what = n > 1 ? `${numword(n)} of your documents` : n === 1 ? "one of your documents" : o.thing
+    const it = n > 1 ? "them" : n === 1 ? "it" : itPronoun(o.thing)
+    const holds = o.phase === "offer" ? `, so the offer can go in` : ""
+    return `${hi}, just a quick reminder, I haven't received ${what} yet. Just a heads up, the deal keeps moving, but it might get pushed back a little. The date stays pending until I get ${it}${holds}.\n\n${o.agentFirst}`
+  }
   const dateLine = past
     ? `The date to have ${itPronoun(o.thing)} in was ${when}.`
     : `${when} is the date to have ${itPronoun(o.thing)} in.`
