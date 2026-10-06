@@ -8,7 +8,7 @@ import {
 } from "./checklist-actions"
 import { PHASES, phaseIndex, toOwner, type Phase } from "@/lib/phases"
 import { agentDueLabel, isClose, canNudge, nudgeDraft, missingThing } from "@/lib/due"
-import { sendNudge } from "@/app/dashboard/nudge-actions"
+import ReminderBox from "./reminder-box"
 import DuePicker from "./due-picker"
 
 export type Task = { id: string; title: string; done: boolean; owner?: string | null; due_on?: string | null; nudged_at?: string | null; phase?: string | null }
@@ -149,33 +149,21 @@ export default function LeftColumn({
                 )}
                 {!t.done && t.due_on && toOwner(t.owner) === "client" && canNudge(t.due_on, t.nudged_at, tz) && (
                   canEmail ? (
-                    <details open={focus === t.id && nudge !== "sent"} className="mt-1">
-                      <summary className="cursor-pointer list-none text-xs font-medium text-ink underline underline-offset-2">
-                        Send {who} a reminder
-                      </summary>
-                      <form action={sendNudge} className="mt-2 space-y-2">
-                        <input type="hidden" name="stepId" value={t.id} />
-                        <input type="hidden" name="from" value="client" />
-                        <textarea
-                          name="body"
-                          rows={6}
-                          aria-label={`Reminder to ${who}`}
-                          defaultValue={nudgeDraft({
-                            clientFirst: firstName,
-                            thing: missingThing(t.title),
-                            due: t.due_on,
-                            tz,
-                            agentFirst: agentFirst ?? "",
-                            missingDocs: /document/i.test(t.title) ? missingDocs ?? 0 : 0,
-                            phase: t.phase ?? phase,
-                          })}
-                          className="w-full resize-y rounded-lg border border-[#e4e3e0] bg-white px-3 py-2 text-sm leading-relaxed outline-none focus:border-ink/30"
-                        />
-                        <button type="submit" className="rounded-[10px] bg-ink px-3 py-2 text-xs font-medium text-paper hover:opacity-90">
-                          Send{agentFirst ? ` as ${agentFirst}` : ""}
-                        </button>
-                      </form>
-                    </details>
+                    <ReminderBox
+                      stepId={t.id}
+                      who={who}
+                      agentFirst={agentFirst}
+                      open={focus === t.id && nudge !== "sent"}
+                      fallback={nudgeDraft({
+                        clientFirst: firstName,
+                        thing: missingThing(t.title),
+                        due: t.due_on,
+                        tz,
+                        agentFirst: agentFirst ?? "",
+                        missingDocs: /document/i.test(t.title) ? missingDocs ?? 0 : 0,
+                        phase: t.phase ?? phase,
+                      })}
+                    />
                   ) : (
                     <p className="text-xs text-[#5d5b62]">Add an email for {who} to send a reminder.</p>
                   )
