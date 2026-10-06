@@ -4,38 +4,42 @@ import { useActionState, useState } from "react"
 import { signIn } from "./actions"
 
 const field =
-  "w-full rounded-lg border-2 border-[#d4d3d6] bg-white px-5 py-4 text-base text-black placeholder:text-black/50 outline-none focus:border-[#b5b3b9]"
+  "w-full rounded-xl border border-[#e6ddce] bg-white px-4 py-3 text-base text-[#2b2520] outline-none transition-colors focus:border-[#b89250] focus:ring-2 focus:ring-[#b89250]/15"
+const label = "mb-1.5 block text-[13px] text-[#8a8072]"
 
 export default function LoginForm() {
   const [state, formAction, pending] = useActionState(signIn, null)
   const [show, setShow] = useState(false)
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} className="space-y-5">
+      <div>
+      <label htmlFor="email" className={label}>Email</label>
       <input
+        id="email"
         name="email"
         type="email"
         autoComplete="email"
         required
-        placeholder="Email"
-        aria-label="Email"
         className={field}
       />
+      </div>
+      <div>
+      <label htmlFor="password" className={label}>Password</label>
       <div className="relative">
         <input
+          id="password"
           name="password"
           type={show ? "text" : "password"}
           autoComplete="current-password"
           required
-          placeholder="Password"
-          aria-label="Password"
-          className={`${field} pr-14`}
+          className={`${field} pr-12`}
         />
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? "Hide password" : "Show password"}
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-black/40 hover:text-black/70"
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8a8072] hover:text-[#2b2520]"
         >
           {show ? (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -51,6 +55,7 @@ export default function LoginForm() {
           )}
         </button>
       </div>
+      </div>
       {state?.error && (
         <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
           {state.error}
@@ -59,17 +64,17 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-black px-6 py-4 text-sm font-bold uppercase tracking-[0.2em] text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+        className="!mt-7 w-full rounded-xl bg-[#16151a] px-6 py-3.5 text-[15px] font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
       >
-        {pending ? "Logging in\u2026" : "Log In"}
+        {pending ? "Logging in\u2026" : "Log in"}
       </button>
-      <div className="space-y-3 pt-2 text-center text-sm text-black/60">
-        <a href="/forgot-password" className="block underline underline-offset-4 hover:text-black">
-          Forgot Password?
+      <div className="space-y-2.5 pt-1 text-center text-sm text-[#8a8072]">
+        <a href="/forgot-password" className="block underline underline-offset-4 hover:text-[#2b2520]">
+          Forgot your password?
         </a>
         <p>
           No account yet?{" "}
-          <a href="/signup" className="underline underline-offset-4 hover:text-black">
+          <a href="/signup" className="text-[#2b2520] underline underline-offset-4">
             Create one
           </a>
         </p>
