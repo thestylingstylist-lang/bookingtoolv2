@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { TIMEZONES } from "@/lib/config"
+import { AGREEMENT_LENGTHS } from "@/lib/agreement"
 
 export type SettingsResult = { ok: boolean; message: string }
 
@@ -170,5 +171,31 @@ export async function saveAccount(
 
   revalidatePath("/settings")
   revalidatePath("/dashboard")
+  return { ok: true, message: "Saved." }
+}
+
+// Agreement defaults: how long agreements run and whether they're exclusive.
+export async function saveAgreement(
+  _prev: SettingsResult | null,
+  formData: FormData
+): Promise<SettingsResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, message: "Please sign in again." }
+
+  const days = Number(formData.get("days"))
+  const exclusive = formData.get("exclusive") === "yes"
+  if (!(AGREEMENT_LENGTHS as readonly number[]).includes(days))
+    return { ok: false, message: "Pick how long your agreements run." }
+
+  const { error } = await supabase
+    .from("agents")
+    .update({ agreement_days: days, agreement_exclusive: exclusive })
+    .eq("id", user.id)
+  if (error) return { ok: false, message: "Couldn't save that. Please try again." }
+
+  revalidatePath("/settings")
   return { ok: true, message: "Saved." }
 }

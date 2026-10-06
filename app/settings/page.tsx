@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import SettingsForm from "./settings-form"
 import AccountForm from "./account-form"
+import AgreementForm from "./agreement-form"
+import { toAgreementSettings } from "@/lib/agreement"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
 
@@ -23,6 +25,15 @@ export default async function SettingsPage() {
 
   const agent = data as AgentRow | null
   if (!agent) redirect("/login")
+
+  // Agreement defaults live in their own columns; if they're not there yet,
+  // the defaults (90 days, exclusive) show instead of breaking the page.
+  const { data: agreementRow } = await supabase
+    .from("agents")
+    .select("agreement_days, agreement_exclusive")
+    .eq("id", user.id)
+    .maybeSingle()
+  const agreement = toAgreementSettings(agreementRow)
 
   // Split the stored full name into first / last for the account fields.
   const parts = (agent.full_name || "").trim().split(/\s+/).filter(Boolean)
@@ -71,6 +82,15 @@ export default async function SettingsPage() {
                 lastName={lastName}
                 email={user.email ?? ""}
               />
+            </div>
+
+            <h2 className="mt-14 font-serif font-semibold tracking-tight text-2xl">Your agreements</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
+              Set this once. Every agreement you send fills it in, so the only thing left
+              is the commission.
+            </p>
+            <div className="mt-6">
+              <AgreementForm initial={agreement} />
             </div>
           </section>
         </div>

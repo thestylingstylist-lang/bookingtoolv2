@@ -29,6 +29,9 @@ export const AUTO_FILL: Record<string, string> = {
   "business name": "Brokerage",
   date: "Today's date",
   "today's date": "Today's date",
+  "end date": "End date",
+  "agreement length": "Agreement length",
+  "exclusive or non-exclusive": "Exclusive or non-exclusive",
 }
 
 const PLACEHOLDER_RE = /\[\[([^\]]+)\]\]/g

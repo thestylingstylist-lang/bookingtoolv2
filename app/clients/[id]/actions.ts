@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { AUTO_FILL } from "@/lib/placeholders"
+import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
 import { sendEmail } from "@/lib/email"
 import { signRequestEmail } from "@/lib/sign-email"
 
@@ -103,6 +104,11 @@ export async function sendDocument(formData: FormData): Promise<void> {
       .eq("id", user.id)
       .maybeSingle(),
   ])
+  const { data: agreementRow } = await supabase
+    .from("agents")
+    .select("agreement_days, agreement_exclusive")
+    .eq("id", user.id)
+    .maybeSingle()
   const client = clientData as ClientRow | null
   if (!client || !template || !agent) redirect(`/clients/${clientId}?error=doc`)
 
@@ -119,6 +125,7 @@ export async function sendDocument(formData: FormData): Promise<void> {
     "business name": agent.business_name ?? "",
     date: todayLabel(agent.timezone),
     "today's date": todayLabel(agent.timezone),
+    ...agreementAuto(toAgreementSettings(agreementRow), agent.timezone),
   }
   const deal: Record<string, string> = {}
   for (const [k, v] of formData.entries()) {

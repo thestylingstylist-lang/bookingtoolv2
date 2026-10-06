@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { signDocument } from "./actions"
+import SignBlock from "./sign-block"
+
+const HAND = { fontFamily: "'Caveat', cursive" }
 
 export const dynamic = "force-dynamic"
 export const metadata = { robots: { index: false, follow: false } }
@@ -43,62 +45,69 @@ export default async function SignPage({
         }).format(new Date(doc.signed_at))
       : ""
 
+  const today = new Intl.DateTimeFormat("en-US", {
+    timeZone: agent?.timezone || "America/New_York",
+    dateStyle: "long",
+  }).format(new Date())
+  const signedDate =
+    signed && doc.signed_at
+      ? new Intl.DateTimeFormat("en-US", {
+          timeZone: agent?.timezone || "America/New_York",
+          dateStyle: "long",
+        }).format(new Date(doc.signed_at))
+      : ""
+
   return (
-    <main className="min-h-screen bg-[#f1f0ee] px-5 py-12 text-[#16151a]">
+    <main className="min-h-screen bg-[#f1f0ee] px-5 py-12 text-[#2b2520]">
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap"
+      />
       <div className="mx-auto max-w-2xl">
-        <p className="text-sm text-[#5d5b62]">
+        <p className="text-sm text-[#8a8072]">
           From {from}
           {agent?.business_name && agent.full_name ? ` · ${agent.business_name}` : ""}
         </p>
-        <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl text-[#16151a]">{doc.title}</h1>
+        <h1 className="mt-2 font-[Georgia,serif] text-[28px] leading-tight text-[#2b2520]">{doc.title}</h1>
 
-        <article className="mt-8 whitespace-pre-wrap rounded-2xl border border-[#e6e5e3] bg-white p-7 text-[15px] leading-relaxed">
-          {doc.body}
-        </article>
+        <div className="mt-8 rounded-xl border border-[#e6e5e3] bg-white px-6 py-8 shadow-[0_8px_30px_rgba(43,37,32,0.06)] sm:px-10">
+          <article className="whitespace-pre-wrap font-[Georgia,serif] text-[15px] leading-relaxed text-[#4a433b]">
+            {doc.body}
+          </article>
 
-        {signed ? (
-          <div className="mt-8 rounded-2xl bg-[#f1f0ee] p-6">
-            <p className="font-serif font-semibold tracking-tight text-xl text-[#16151a]">Signed. Thank you.</p>
-            <p className="mt-2 text-sm">
-              Signed by <strong>{doc.signer_name}</strong> on {signedLabel}. {from} has been
-              notified.
-            </p>
-          </div>
-        ) : (
-          <form action={signDocument} className="mt-8 rounded-2xl border border-[#e6e5e3] bg-white p-7">
-            <input type="hidden" name="token" value={token} />
-            {sp.error && (
-              <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-                {sp.error === "save"
-                  ? "Something went wrong. Please try again."
-                  : "Type your full name and check the box to sign."}
-              </p>
-            )}
-            <label className="block text-sm text-[#5d5b62]">Type your full legal name</label>
-            <input
-              name="fullName"
-              required
-              minLength={2}
-              autoComplete="name"
-              className="mt-2 w-full rounded-lg border border-[#d4d2ce] bg-white px-4 py-3 font-serif font-semibold tracking-tight text-xl outline-none focus:border-[#16151a]"
-            />
-            <label className="mt-5 flex items-start gap-3 text-sm">
-              <input type="checkbox" name="agree" required className="mt-1" />
-              <span>
-                I have read this document and agree that typing my name above is my electronic
-                signature.
-              </span>
-            </label>
-            <button
-              type="submit"
-              className="mt-6 w-full rounded-lg bg-[#16151a] px-6 py-3.5 text-base text-white transition-opacity hover:opacity-90"
-            >
-              Sign
-            </button>
-            <p className="mt-3 text-center text-xs text-[#5d5b62]">
-              Your name, the date and time, and your IP address are recorded with your signature.
-            </p>
-          </form>
+          {signed ? (
+            <div className="mt-10 border-t border-[#e6e5e3] pt-8">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-[1fr_170px]">
+                <div>
+                  <p className="text-[13px] text-[#8a8072]">Buyer&rsquo;s signature</p>
+                  <div className="relative mt-1 h-14 border-b border-[#2b2520]/50">
+                    <span
+                      style={HAND}
+                      className="absolute bottom-0.5 left-1 text-[38px] leading-none text-[#1f2a5c]"
+                    >
+                      {doc.signer_name}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-[13px] text-[#4a433b]">{doc.signer_name}</p>
+                </div>
+                <div>
+                  <p className="text-[13px] text-[#8a8072]">Date</p>
+                  <div className="mt-1 flex h-14 items-end border-b border-[#2b2520]/50 pb-2 text-[15px] text-[#2b2520]">
+                    {signedDate}
+                  </div>
+                </div>
+              </div>
+              <p className="mt-5 text-xs text-[#8a8072]">Signed electronically on {signedLabel}.</p>
+            </div>
+          ) : (
+            <SignBlock token={token} today={today} error={sp.error} />
+          )}
+        </div>
+
+        {signed && (
+          <p className="mt-6 text-center font-[Georgia,serif] text-[17px] text-[#2b2520]">
+            Signed. Thank you. {from} has been notified.
+          </p>
         )}
       </div>
     </main>

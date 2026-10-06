@@ -12,6 +12,7 @@ import { sendPortalLink } from "./portal-actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
 import { PHASES, phaseIndex, toPhase } from "@/lib/phases"
+import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
 
 export const dynamic = "force-dynamic"
 
@@ -182,6 +183,13 @@ export default async function ClientJacket({
 
   const banner = sp.doc ? BANNERS[sp.doc] : undefined
   const error = sp.error ? ERRORS[sp.error] : undefined
+
+  const { data: agreementRow } = await supabase
+    .from("agents")
+    .select("agreement_days, agreement_exclusive")
+    .eq("id", user.id)
+    .maybeSingle()
+  const agreementFill = agreementAuto(toAgreementSettings(agreementRow), agent.timezone)
 
   const todayLong = new Intl.DateTimeFormat("en-US", {
     timeZone: agent.timezone || "America/New_York",
@@ -378,6 +386,7 @@ export default async function ClientJacket({
                     "business name": agent.business_name ?? "",
                     date: todayLong,
                     "today's date": todayLong,
+                    ...agreementFill,
                   }}
                 />
               </div>
