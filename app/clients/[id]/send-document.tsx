@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
-import { parsePlaceholders } from "@/lib/placeholders"
+import { AUTO_FILL, parsePlaceholders } from "@/lib/placeholders"
 import { sendDocument } from "./actions"
 
 type Template = { id: string; title: string; body: string }
@@ -10,17 +10,50 @@ type Template = { id: string; title: string; body: string }
 export default function SendDocument({
   clientId,
   templates,
+  auto,
 }: {
   clientId: string
   templates: Template[]
+  auto: Record<string, string>
 }) {
   const [open, setOpen] = useState(false)
+  const [reviewing, setReviewing] = useState(false)
+  const [values, setValues] = useState<Record<string, string>>({})
   const [templateId, setTemplateId] = useState(templates[0]?.id ?? "")
   const template = templates.find((t) => t.id === templateId)
   const deals = useMemo(
     () => parsePlaceholders(template?.body ?? "").filter((p) => p.kind === "deal"),
     [template]
   )
+  const ready = deals.every((p) => (values[p.key] ?? "").trim())
+
+  // The document exactly as the client will see it. Filled spots are tinted
+  // so the realtor can check each one; anything missing shows in rose.
+  const preview = useMemo(() => {
+    const body = template?.body ?? ""
+    const parts: ReactNode[] = []
+    let last = 0
+    let i = 0
+    for (const m of body.matchAll(/\[\[([^\]]+)\]\]/g)) {
+      const at = m.index ?? 0
+      parts.push(body.slice(last, at))
+      const key = m[1].trim().toLowerCase()
+      const v = (AUTO_FILL[key] !== undefined ? auto[key] : values[key])?.trim() ?? ""
+      parts.push(
+        v ? (
+          <mark key={i++} className="rounded bg-[#fdf3e3] px-1 text-[#2b2520]">{v}</mark>
+        ) : (
+          <mark key={i++} className="rounded bg-[#fbe9ef] px-1 italic text-[#c23d6d]">
+            {m[1].trim()} not on file
+          </mark>
+        )
+      )
+      last = at + m[0].length
+    }
+    parts.push(body.slice(last))
+    return parts
+  }, [template, auto, values])
+
   const guessKind = /disclos/i.test(template?.title ?? "") ? "disclosure" : "agreement"
 
   const inputClass =
@@ -56,13 +89,17 @@ export default function SendDocument({
         <h3 className="font-serif font-semibold tracking-tight text-lg">Send a document</h3>
         <button
           type="button"
-          onClick={() => setOpen(false)}
+          onClick={() => {
+            setOpen(false)
+            setReviewing(false)
+          }}
           className="text-sm text-ink/50 hover:text-ink"
         >
           Cancel
         </button>
       </div>
 
+      <div className={reviewing ? "hidden" : ""}>
       <label className="mb-1 mt-4 block text-sm text-ink/60">Template</label>
       <select
         name="templateId"
@@ -90,24 +127,59 @@ export default function SendDocument({
             {deals.map((p) => (
               <div key={templateId + p.key}>
                 <label className="mb-1 block text-sm text-ink/60">{p.label}</label>
-                <input name={`blank:${p.key}`} required className={inputClass} />
+                <input
+                  name={`blank:${p.key}`}
+                  required
+                  value={values[p.key] ?? ""}
+                  onChange={(e) => setValues((v) => ({ ...v, [p.key]: e.target.value }))}
+                  className={inputClass}
+                />
               </div>
             ))}
           </div>
         </div>
       )}
+      </div>
 
-      <p className="mt-4 text-xs text-ink/50">
-        Names, address, and today&rsquo;s date fill in automatically. The client gets a private
-        link by email.
-      </p>
-
-      <button
-        type="submit"
-        className="mt-4 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
-      >
-        Send for signature
-      </button>
+      {!reviewing ? (
+        <>
+          <p className="mt-4 text-xs text-ink/50">
+            Names, address, and today&rsquo;s date fill in automatically.
+          </p>
+          <button
+            type="button"
+            disabled={!ready}
+            onClick={() => setReviewing(true)}
+            className="mt-4 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
+          >
+            Review before sending
+          </button>
+        </>
+      ) : (
+        <>
+          <p className="mt-6 font-[Georgia,serif] text-[17px] text-[#2b2520]">
+            Here&rsquo;s exactly what your client will see.
+          </p>
+          <article className="mt-3 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#e6ddce] bg-[#faf7f1] p-6 font-[Georgia,serif] text-[15px] leading-relaxed text-[#4a433b]">
+            {preview}
+          </article>
+          <div className="mt-4 flex items-center gap-4">
+            <button
+              type="submit"
+              className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              Send for signature
+            </button>
+            <button
+              type="button"
+              onClick={() => setReviewing(false)}
+              className="text-sm text-ink/60 underline underline-offset-2 hover:text-ink"
+            >
+              Make a change
+            </button>
+          </div>
+        </>
+      )}
     </form>
   )
 }

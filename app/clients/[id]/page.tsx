@@ -183,6 +183,13 @@ export default async function ClientJacket({
   const banner = sp.doc ? BANNERS[sp.doc] : undefined
   const error = sp.error ? ERRORS[sp.error] : undefined
 
+  const todayLong = new Intl.DateTimeFormat("en-US", {
+    timeZone: agent.timezone || "America/New_York",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date())
+
   return (
     <AppShell agent={agent}>
       <main className="flex flex-col bg-white lg:h-screen lg:overflow-hidden">
@@ -356,7 +363,23 @@ export default async function ClientJacket({
 
             <div className="border-t border-[#e4e3e0] px-6 py-4">
               <div className="mb-3">
-                <SendDocument clientId={client.id} templates={templates} />
+                <SendDocument
+                  clientId={client.id}
+                  templates={templates}
+                  auto={{
+                    "client name": `${client.first_name} ${client.last_name}`.trim(),
+                    "client first name": client.first_name ?? "",
+                    "client last name": client.last_name ?? "",
+                    "client address": client.address ?? "",
+                    "client email": client.email ?? "",
+                    "client phone": client.phone ?? "",
+                    "agent name": agent.full_name ?? "",
+                    brokerage: agent.business_name ?? "",
+                    "business name": agent.business_name ?? "",
+                    date: todayLong,
+                    "today's date": todayLong,
+                  }}
+                />
               </div>
               <form action={sendMessage} className="flex items-end gap-3">
                 <input type="hidden" name="clientId" value={client.id} />
