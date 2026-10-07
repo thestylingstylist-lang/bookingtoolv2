@@ -9,6 +9,7 @@ import AppShell from "@/app/app-shell"
 import { addClientFromBooking } from "@/app/clients/actions"
 import { CopyButton } from "./phone-link"
 import AddEvent from "./add-event"
+import WeekView, { addDays, type WeekItem, type WeekDue } from "./week-view"
 import { deleteEvent } from "./actions"
 import RowMenu from "@/app/row-menu"
 import { CONSULT_COLOR, kindMeta, lengthLabel } from "@/lib/events"
@@ -34,6 +35,7 @@ type Item = {
   title: string
   sub: string
   line: string // one-line version for "Coming up"
+  tag: string // the short second line on the week grid
   booking?: Booking
   event?: EventRow
 }
@@ -81,7 +83,7 @@ const NOTES: Record<string, { ok: boolean; text: string }> = {
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ added?: string; removed?: string; error?: string }>
+  searchParams: Promise<{ added?: string; removed?: string; error?: string; view?: string; w?: string }>
 }) {
   const sp = await searchParams
   const note = sp.error ? NOTES[sp.error] : sp.added ? NOTES.added : sp.removed ? NOTES.removed : null
@@ -99,13 +101,21 @@ export default async function CalendarPage({
   const now = new Date()
   const todayKey = formatInTimeZone(now, tz, "yyyy-MM-dd")
   const monthStart = fromZonedTime(`${todayKey.slice(0, 8)}01T00:00:00`, tz)
+
+  // Week view: any day in ?w= picks its week, Monday first. No ?w= means this week.
+  const week = sp.view === "week"
+  const anchor = /^\d{4}-\d{2}-\d{2}$/.test(sp.w ?? "") ? (sp.w as string) : todayKey
+  const monday = addDays(anchor, -((new Date(`${anchor}T12:00:00Z`).getUTCDay() + 6) % 7))
+  const thisMonday = addDays(todayKey, -((new Date(`${todayKey}T12:00:00Z`).getUTCDay() + 6) % 7))
+  const weekStart = fromZonedTime(`${monday}T00:00:00`, tz)
+  const rangeStart = week && weekStart < monthStart ? weekStart : monthStart
   const minutes = agent.slot_minutes || 30
 
   const [{ data: bookingData }, { data: clientRows }, { data: dueData }, { data: eventData }] = await Promise.all([
     supabase
       .from("bookings")
       .select("id, first_name, last_name, phone, meeting_type, slot_start, looking_to")
-      .gte("slot_start", monthStart.toISOString())
+      .gte("slot_start", rangeStart.toISOString())
       .order("slot_start", { ascending: true }),
     supabase.from("clients").select("id, first_name, last_name, booking_id").order("first_name", { ascending: true }),
     supabase
@@ -118,7 +128,7 @@ export default async function CalendarPage({
     supabase
       .from("events")
       .select("id, kind, place, starts_at, ends_at, client_id")
-      .gte("ends_at", monthStart.toISOString())
+      .gte("ends_at", rangeStart.toISOString())
       .order("starts_at", { ascending: true }),
   ])
 
@@ -147,6 +157,7 @@ export default async function CalendarPage({
         title: name,
         sub: [b.looking_to ? `Looking to ${b.looking_to.toLowerCase()}` : "Booked from your link", b.phone].filter(Boolean).join(" · "),
         line: `Consultation with ${name}`,
+        tag: "Consultation",
         booking: b,
       }
     }),
@@ -162,6 +173,7 @@ export default async function CalendarPage({
         title: e.place || k.label,
         sub: who ? `With ${who}` : e.place ? "" : "No address yet",
         line: [e.place ? `${k.label} at ${e.place}` : k.label, who ? `with ${who}` : ""].filter(Boolean).join(", "),
+        tag: [k.label, who?.split(" ")[0]].filter(Boolean).join(", "),
         event: e,
       }
     }),
@@ -203,6 +215,47 @@ export default async function CalendarPage({
   const openTail = working && dayEnd.getTime() - cursor.getTime() >= minutes * 60000
   if (openTail) rows.push({ kind: "open", from: cursor, until: null })
 
+  // The week, when that's the view.
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(monday, i))
+  const weekItems = items.filter((it) => weekDays.includes(dayKey(it.start)))
+  const weekGrid: WeekItem[] = weekItems.map((it) => ({
+    id: it.id,
+    start: it.start,
+    end: it.end,
+    color: it.color,
+    title: it.title,
+    tag: it.tag,
+    href: it.booking ? (clientOf.get(it.booking.id) ? `/clients/${clientOf.get(it.booking.id)}` : "/bookings") : it.event?.client_id ? `/clients/${it.event.client_id}` : undefined,
+  }))
+  const weekDue: WeekDue[] = allDue
+    .filter((d) => weekDays.includes(d.due_on))
+    .map((d) => ({
+      id: d.id,
+      day: d.due_on,
+      late: daysUntil(d.due_on, tz) < 0,
+      href: `/clients/${d.client_id}?step=${d.id}#step-${d.id}`,
+      label: `${d.clients?.first_name?.trim() || "Client"}: ${d.title}`,
+    }))
+  const openDays = weekDays.filter(
+    (d, i) => d >= todayKey && agent.weekdays.includes(i + 1) && !weekItems.some((it) => dayKey(it.start) === d)
+  )
+  const openNames = openDays.map((d) => DAY[weekDays.indexOf(d)])
+  const weekTail =
+    weekItems.length === 0 || openNames.length === 0
+      ? ""
+      : openNames.length === 1
+        ? ` ${openNames[0]} is wide open.`
+        : openNames.length === 2
+          ? ` ${openNames[0]} and ${openNames[1]} are wide open.`
+          : ` ${WORDS[openNames.length].replace(" things", "")} days are wide open.`
+  const sunday = weekDays[6]
+  const mName = (k: string) => formatInTimeZone(new Date(`${k}T12:00:00Z`), "UTC", "MMMM")
+  const weekTitle =
+    monday.slice(0, 7) === sunday.slice(0, 7)
+      ? `${mName(monday)} ${Number(monday.slice(8))} to ${Number(sunday.slice(8))}.`
+      : `${mName(monday)} ${Number(monday.slice(8))} to ${mName(sunday)} ${Number(sunday.slice(8))}.`
+  const weekHeadline = `${WORDS[weekItems.length] ?? `${weekItems.length} things`} ${monday === thisMonday ? "this week" : "that week"}.`
+
   const count = today.length
   const headline = `${WORDS[count] ?? `${count} things`} on your calendar today.`
   const tail = !working
@@ -234,23 +287,61 @@ export default async function CalendarPage({
       <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="font-[Georgia,serif] text-3xl tracking-tight sm:text-4xl">{formatInTimeZone(now, tz, "EEEE, MMMM d")}.</h1>
+            <h1 className="font-[Georgia,serif] text-3xl tracking-tight sm:text-4xl">{week ? weekTitle : `${formatInTimeZone(now, tz, "EEEE, MMMM d")}.`}</h1>
             <p className="mt-3 text-[15px] text-[#5d5b62]">
-              {headline}
-              {tail}
+              {week ? weekHeadline : headline}
+              {week ? weekTail : tail}
             </p>
           </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {week && (
+              <div className="flex items-center gap-1 text-[13px] text-[#5d5b62]">
+                <Link href={`/calendar?view=week&w=${addDays(monday, -7)}`} aria-label="Earlier week" className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white hover:text-ink">&lsaquo;</Link>
+                {monday !== thisMonday && (
+                  <Link href="/calendar?view=week" className="px-1 underline underline-offset-4 hover:text-ink">This week</Link>
+                )}
+                <Link href={`/calendar?view=week&w=${addDays(monday, 7)}`} aria-label="Later week" className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white hover:text-ink">&rsaquo;</Link>
+              </div>
+            )}
+            <div className="inline-flex rounded-[10px] bg-[#e9e7e3] p-[3px] text-[13px]">
+              {[
+                { label: "Today", href: "/calendar", on: !week },
+                { label: "Week", href: "/calendar?view=week", on: week },
+              ].map((t) => (
+                <Link
+                  key={t.label}
+                  href={t.href}
+                  className={`rounded-[8px] px-4 py-1.5 ${t.on ? "bg-white font-medium shadow-[0_1px_2px_rgba(22,21,26,.12)]" : "text-[#5d5b62] hover:text-ink"}`}
+                >
+                  {t.label}
+                </Link>
+              ))}
+            </div>
           <AddEvent
             clients={clientList.map((c) => ({ id: c.id, name: nameOf.get(c.id) ?? "Client" }))}
             today={todayKey}
             start={`${pad(Math.min(Number(formatInTimeZone(now, tz, "H")) + 1, 22))}:00`}
             end={`${pad(Math.min(Number(formatInTimeZone(now, tz, "H")) + 2, 23))}:00`}
           />
+          </div>
         </div>
         {note && (
           <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${note.ok ? "bg-[#e5f1f0] text-sage" : "bg-[#fdf1f5] text-[#c23d6d]"}`}>{note.text}</p>
         )}
 
+        {week ? (
+          <WeekView
+            monday={monday}
+            todayKey={todayKey}
+            now={now}
+            tz={tz}
+            items={weekGrid}
+            due={weekDue}
+            weekdays={agent.weekdays}
+            dayStart={agent.day_start}
+            dayEnd={agent.day_end}
+          />
+        ) : (
         <div className="mt-9 flex flex-col gap-8 lg:flex-row">
           <div className="min-w-0 flex-1">
             {due.length > 0 && (
@@ -458,6 +549,7 @@ export default async function CalendarPage({
             </div>
           </div>
         </div>
+        )}
       </main>
     </AppShell>
   )
