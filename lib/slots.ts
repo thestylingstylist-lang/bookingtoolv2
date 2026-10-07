@@ -12,7 +12,11 @@ const pad = (n: number) => String(n).padStart(2, "0")
 
 // Every open slot from now to daysAhead, in the agent's timezone,
 // excluding already-booked instants.
-export function generateSlots(cfg: AgentConfig, takenISO: Set<string> = new Set()): Slot[] {
+export function generateSlots(
+  cfg: AgentConfig,
+  takenISO: Set<string> = new Set(),
+  busy: { start: number; end: number }[] = []
+): Slot[] {
   const tz = cfg.timezone
   const now = new Date()
   // Earliest instant a client may book: now plus the agent's minimum notice.
@@ -36,6 +40,10 @@ export function generateSlots(cfg: AgentConfig, takenISO: Set<string> = new Set(
       if (startUTC.getTime() < earliest.getTime()) continue // past slots + inside the notice window
       const iso = startUTC.toISOString()
       if (takenISO.has(iso)) continue
+      // Skip anything that runs into a showing, closing or open house.
+      const s0 = startUTC.getTime()
+      const s1 = s0 + cfg.slotMinutes * 60000
+      if (busy.some((b) => s0 < b.end && s1 > b.start)) continue
 
       slots.push({
         startISO: iso,
@@ -51,9 +59,10 @@ export function generateSlots(cfg: AgentConfig, takenISO: Set<string> = new Set(
 export function isValidOpenSlot(
   cfg: AgentConfig,
   startISO: string,
-  takenISO: Set<string>
+  takenISO: Set<string>,
+  busy: { start: number; end: number }[] = []
 ): boolean {
-  return generateSlots(cfg, takenISO).some((s) => s.startISO === startISO)
+  return generateSlots(cfg, takenISO, busy).some((s) => s.startISO === startISO)
 }
 
 // Format a stored instant in a given timezone, for dashboard display.

@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { toAgentConfig } from "@/lib/config"
 import { isValidOpenSlot, formatSlot } from "@/lib/slots"
+import { busyRanges } from "@/lib/events"
 import {
   sendEmail,
   manageUrl,
@@ -70,7 +71,7 @@ export async function rescheduleBooking(token: string, slotStart: string): Promi
   if (takenErr) return { ok: false, error: "Something went wrong on our end. Please try again." }
   const taken = new Set((rows ?? []).map((r) => new Date(r.slot_start as string).toISOString()))
 
-  if (!isValidOpenSlot(toAgentConfig(agent), slotStart, taken)) {
+  if (!isValidOpenSlot(toAgentConfig(agent), slotStart, taken, await busyRanges(admin, agent.id))) {
     return { ok: false, error: "That time was just taken. Please pick another." }
   }
 

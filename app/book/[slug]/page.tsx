@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug, findSlugRedirect } from "@/lib/agent"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
+import { busyRanges } from "@/lib/events"
 import BookingForm from "./booking-form"
 
 export const dynamic = "force-dynamic"
@@ -71,7 +72,7 @@ export default async function BookPage({
     // Render anyway; availability is re-checked on submit.
   }
 
-  const slots = generateSlots(cfg, takenISO)
+  const slots = generateSlots(cfg, takenISO, await busyRanges(createAdminClient(), agent.id))
   const name = agent.full_name || agent.business_name || ""
   const initials = name
     .split(/\s+/)

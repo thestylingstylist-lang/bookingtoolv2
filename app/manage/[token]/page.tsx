@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
+import { busyRanges } from "@/lib/events"
 import ManageView from "./manage-view"
 
 export const dynamic = "force-dynamic"
@@ -42,7 +43,7 @@ export default async function ManagePage({ params }: { params: Promise<{ token: 
   if (upcoming && agent) {
     const { data: rows } = await admin.from("bookings").select("slot_start").eq("agent_id", agent.id)
     const taken = new Set((rows ?? []).map((r) => new Date(r.slot_start as string).toISOString()))
-    slots = generateSlots(toAgentConfig(agent), taken)
+    slots = generateSlots(toAgentConfig(agent), taken, await busyRanges(admin, agent.id))
   }
 
   const agentName = agent ? agent.full_name || agent.business_name || "" : ""

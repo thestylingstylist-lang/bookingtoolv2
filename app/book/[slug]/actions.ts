@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
 import { toAgentConfig, MEETING_TYPES, type MeetingType } from "@/lib/config"
 import { isValidOpenSlot, formatSlot } from "@/lib/slots"
+import { busyRanges } from "@/lib/events"
 import { isAdminEmail } from "@/lib/admin"
 import {
   sendEmail,
@@ -58,7 +59,7 @@ export async function createBooking(
     return { ok: false, error: "Something went wrong on our end. Please try again." }
   }
 
-  if (!isValidOpenSlot(cfg, slotStart, taken)) {
+  if (!isValidOpenSlot(cfg, slotStart, taken, await busyRanges(admin, agent.id))) {
     return { ok: false, error: "That time was just taken. Please pick another slot." }
   }
 

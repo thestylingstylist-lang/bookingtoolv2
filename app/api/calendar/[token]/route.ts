@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { readFeedToken } from "@/lib/feed"
+import { kindMeta } from "@/lib/events"
 
 export const dynamic = "force-dynamic"
 
@@ -20,7 +21,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
 
   const admin = createAdminClient()
   const since = new Date(Date.now() - 60 * 86400000).toISOString()
-  const [{ data: agent }, { data: bookings }, { data: steps }] = await Promise.all([
+  const [{ data: agent }, { data: bookings }, { data: steps }, { data: events }] = await Promise.all([
     admin.from("agents").select("slot_minutes").eq("id", agentId).maybeSingle(),
     admin
       .from("bookings")
@@ -34,6 +35,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
       .eq("agent_id", agentId)
       .eq("done", false)
       .not("due_on", "is", null),
+    admin
+      .from("events")
+      .select("id, kind, place, starts_at, ends_at, clients(first_name, last_name)")
+      .eq("agent_id", agentId)
+      .gte("starts_at", since),
   ])
   if (!agent) return new Response("Not found", { status: 404 })
 
@@ -64,6 +70,23 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
       `DTEND:${stamp(end)}`,
       `SUMMARY:${esc(`Consultation with ${name}`)}`,
       `DESCRIPTION:${esc(details)}`,
+      "END:VEVENT"
+    )
+  }
+
+  type Ev = { id: string; kind: string; place: string; starts_at: string; ends_at: string; clients: { first_name: string | null; last_name: string | null } | { first_name: string | null; last_name: string | null }[] | null }
+  for (const e of (events ?? []) as unknown as Ev[]) {
+    const c = Array.isArray(e.clients) ? e.clients[0] : e.clients
+    const who = c ? `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() : ""
+    const label = kindMeta(e.kind).label
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:event-${e.id}@marvberry.com`,
+      `DTSTAMP:${now}`,
+      `DTSTART:${stamp(new Date(e.starts_at))}`,
+      `DTEND:${stamp(new Date(e.ends_at))}`,
+      `SUMMARY:${esc([label, who ? `with ${who}` : ""].filter(Boolean).join(" "))}`,
+      ...(e.place ? [`LOCATION:${esc(e.place)}`] : []),
       "END:VEVENT"
     )
   }
