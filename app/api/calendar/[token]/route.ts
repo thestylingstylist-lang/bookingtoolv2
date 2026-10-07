@@ -78,7 +78,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
   for (const e of (events ?? []) as unknown as Ev[]) {
     const c = Array.isArray(e.clients) ? e.clients[0] : e.clients
     const who = c ? `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() : ""
-    const label = kindMeta(e.kind).label
+    const label = e.kind === "hold" ? e.place || "Personal time" : kindMeta(e.kind).label
     lines.push(
       "BEGIN:VEVENT",
       `UID:event-${e.id}@marvberry.com`,
@@ -86,7 +86,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
       `DTSTART:${stamp(new Date(e.starts_at))}`,
       `DTEND:${stamp(new Date(e.ends_at))}`,
       `SUMMARY:${esc([label, who ? `with ${who}` : ""].filter(Boolean).join(" "))}`,
-      ...(e.place ? [`LOCATION:${esc(e.place)}`] : []),
+      ...(e.place && e.kind !== "hold" ? [`LOCATION:${esc(e.place)}`] : []),
       "END:VEVENT"
     )
   }

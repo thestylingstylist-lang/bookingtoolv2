@@ -40,11 +40,41 @@ export async function addEvent(formData: FormData): Promise<void> {
   })
   if (error) {
     const code = (error as { code?: string }).code
-    redirect(code === "42P01" || code === "PGRST205" ? "/calendar?error=setup" : "/calendar?error=save")
+    redirect(
+      code === "42P01" || code === "PGRST205" ? "/calendar?error=setup" : code === "23514" && kind === "hold" ? "/calendar?error=holdsetup" : "/calendar?error=save"
+    )
   }
 
   revalidatePath("/calendar")
   redirect("/calendar?added=1")
+}
+
+// One tap on an open stretch of today: that time is hers, and clients can't book it.
+export async function holdTime(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect("/login")
+
+  const from = new Date(String(formData.get("from") ?? ""))
+  const until = new Date(String(formData.get("until") ?? ""))
+  if (isNaN(from.getTime()) || isNaN(until.getTime()) || until <= from) redirect("/calendar?error=details")
+
+  const { error } = await supabase.from("events").insert({
+    agent_id: user.id,
+    kind: "hold",
+    place: "",
+    starts_at: from.toISOString(),
+    ends_at: until.toISOString(),
+  })
+  if (error) {
+    const code = (error as { code?: string }).code
+    redirect(code === "42P01" || code === "PGRST205" ? "/calendar?error=setup" : code === "23514" ? "/calendar?error=holdsetup" : "/calendar?error=save")
+  }
+
+  revalidatePath("/calendar")
+  redirect("/calendar?held=1")
 }
 
 export async function deleteEvent(formData: FormData): Promise<void> {

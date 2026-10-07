@@ -1,18 +1,20 @@
 // The things a realtor puts on the calendar by hand. Plain module: safe to
 // import from server and client code.
 
-export type EventKind = "showing" | "closing" | "open_house"
+export type EventKind = "showing" | "closing" | "open_house" | "hold"
 
 export const EVENT_KINDS: { key: EventKind; label: string; color: string; placeLabel: string; placeHint: string }[] = [
   { key: "showing", label: "Showing", color: "#D9467A", placeLabel: "Property address", placeHint: "14 Maple Avenue" },
   { key: "closing", label: "Closing", color: "#EE7C55", placeLabel: "Where", placeHint: "Office or address" },
   { key: "open_house", label: "Open house", color: "#b89250", placeLabel: "Property address", placeHint: "61 Orchard Street" },
+  // Time the realtor keeps for herself. Clients can't book over it.
+  { key: "hold", label: "Personal time", color: "#8e8c93", placeLabel: "What's it for (optional)", placeHint: "Lunch, school pickup" },
 ]
 
 export const CONSULT_COLOR = "#16151a"
 
 export function toKind(v: unknown): EventKind | null {
-  return v === "showing" || v === "closing" || v === "open_house" ? v : null
+  return v === "showing" || v === "closing" || v === "open_house" || v === "hold" ? v : null
 }
 
 export function kindMeta(k: string) {

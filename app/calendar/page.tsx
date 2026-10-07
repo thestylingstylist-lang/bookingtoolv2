@@ -10,7 +10,7 @@ import { addClientFromBooking } from "@/app/clients/actions"
 import { CopyButton } from "./phone-link"
 import AddEvent from "./add-event"
 import WeekView, { addDays, type WeekItem, type WeekDue } from "./week-view"
-import { deleteEvent } from "./actions"
+import { deleteEvent, holdTime } from "./actions"
 import RowMenu from "@/app/row-menu"
 import { CONSULT_COLOR, kindMeta, lengthLabel } from "@/lib/events"
 
@@ -77,16 +77,18 @@ const NOTES: Record<string, { ok: boolean; text: string }> = {
   times: { ok: false, text: "The end time comes after the start time. Give it another go." },
   details: { ok: false, text: "Pick a day, a start and an end, and I'll add it." },
   save: { ok: false, text: "That didn't save. Try again." },
+  held: { ok: true, text: "That time is yours. Clients can't book it." },
+  holdsetup: { ok: false, text: "Holding time switches on with one quick step in Supabase. Once that's done, try again." },
   setup: { ok: false, text: "Showings, closings and open houses switch on with one quick step in Supabase. Once that's done, add it again." },
 }
 
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ added?: string; removed?: string; error?: string; view?: string; w?: string }>
+  searchParams: Promise<{ added?: string; removed?: string; held?: string; error?: string; view?: string; w?: string }>
 }) {
   const sp = await searchParams
-  const note = sp.error ? NOTES[sp.error] : sp.added ? NOTES.added : sp.removed ? NOTES.removed : null
+  const note = sp.error ? NOTES[sp.error] : sp.added ? NOTES.added : sp.held ? NOTES.held : sp.removed ? NOTES.removed : null
   const supabase = await createClient()
   const {
     data: { user },
@@ -170,9 +172,12 @@ export default async function CalendarPage({
         end: new Date(e.ends_at),
         color: k.color,
         meta: k.label,
-        title: e.place || k.label,
-        sub: who ? `With ${who}` : e.place ? "" : "No address yet",
-        line: [e.place ? `${k.label} at ${e.place}` : k.label, who ? `with ${who}` : ""].filter(Boolean).join(", "),
+        title: e.place || (e.kind === "hold" ? "Held" : k.label),
+        sub: e.kind === "hold" ? "Held by you" : who ? `With ${who}` : e.place ? "" : "No address yet",
+        line:
+          e.kind === "hold"
+            ? `Personal time${e.place ? `: ${e.place}` : ""}`
+            : [e.place ? `${k.label} at ${e.place}` : k.label, who ? `with ${who}` : ""].filter(Boolean).join(", "),
         tag: [k.label, who?.split(" ")[0]].filter(Boolean).join(", "),
         event: e,
       }
@@ -236,12 +241,14 @@ export default async function CalendarPage({
       href: `/clients/${d.client_id}?step=${d.id}#step-${d.id}`,
       label: `${d.clients?.first_name?.trim() || "Client"}: ${d.title}`,
     }))
+  // Personal time isn't a "thing on your calendar"; it's time kept for herself.
+  const weekCount = weekItems.filter((it) => it.event?.kind !== "hold").length
   const openDays = weekDays.filter(
     (d, i) => d >= todayKey && agent.weekdays.includes(i + 1) && !weekItems.some((it) => dayKey(it.start) === d)
   )
   const openNames = openDays.map((d) => DAY[weekDays.indexOf(d)])
   const weekTail =
-    weekItems.length === 0 || openNames.length === 0
+    weekCount === 0 || openNames.length === 0
       ? ""
       : openNames.length === 1
         ? ` ${openNames[0]} is wide open.`
@@ -254,9 +261,9 @@ export default async function CalendarPage({
     monday.slice(0, 7) === sunday.slice(0, 7)
       ? `${mName(monday)} ${Number(monday.slice(8))} to ${Number(sunday.slice(8))}.`
       : `${mName(monday)} ${Number(monday.slice(8))} to ${mName(sunday)} ${Number(sunday.slice(8))}.`
-  const weekHeadline = `${WORDS[weekItems.length] ?? `${weekItems.length} things`} ${monday === thisMonday ? "this week" : "that week"}.`
+  const weekHeadline = `${WORDS[weekCount] ?? `${weekCount} things`} ${monday === thisMonday ? "this week" : "that week"}.`
 
-  const count = today.length
+  const count = today.filter((it) => it.event?.kind !== "hold").length
   const headline = `${WORDS[count] ?? `${count} things`} on your calendar today.`
   const tail = !working
     ? " It's your day off."
@@ -386,11 +393,18 @@ export default async function CalendarPage({
                       <div className="w-14 shrink-0 pt-3 text-right sm:w-[76px]">
                         <p className="font-[Georgia,serif] text-[15px] leading-none text-[#8e8c93]">{timeOf(r.from)}</p>
                       </div>
-                      <div className="flex-1 rounded-2xl border border-dashed border-[#d6d2cc] px-5 py-3">
+                      <div className="flex flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl border border-dashed border-[#d6d2cc] px-5 py-3">
                         <p className="font-[Georgia,serif] text-[14px] italic text-[#8a8072]">
                           {r.until ? `Open until ${timeOf(r.until)}.` : "Open the rest of the day."}
                           {canBook ? " Clients can book this." : ""}
                         </p>
+                        <form action={holdTime}>
+                          <input type="hidden" name="from" value={r.from.toISOString()} />
+                          <input type="hidden" name="until" value={(r.until ?? dayEnd).toISOString()} />
+                          <button type="submit" className="text-[12.5px] text-[#5d5b62] underline underline-offset-4 hover:text-ink">
+                            Hold this time
+                          </button>
+                        </form>
                       </div>
                     </div>
                   )
@@ -415,7 +429,7 @@ export default async function CalendarPage({
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        {it.event?.place && (
+                        {it.event?.place && it.event.kind !== "hold" && (
                           <a
                             href={`https://maps.apple.com/?q=${encodeURIComponent(it.event.place)}`}
                             target="_blank"

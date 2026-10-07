@@ -93,7 +93,7 @@ export default function AddEvent({
             </div>
           </div>
 
-          {clients.length > 0 && (
+          {clients.length > 0 && kind !== "hold" && (
             <div>
               <label className={label} htmlFor="ev-client">Client</label>
               <select id="ev-client" name="clientId" defaultValue="" className={field}>
@@ -106,7 +106,7 @@ export default function AddEvent({
           )}
 
           <button type="submit" className="w-full rounded-[10px] bg-ink px-4 py-2.5 text-[13px] font-medium text-paper hover:opacity-90">
-            Add {meta.label.toLowerCase()}
+            {kind === "hold" ? "Hold this time" : `Add ${meta.label.toLowerCase()}`}
           </button>
         </form>
       )}
