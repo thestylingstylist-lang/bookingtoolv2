@@ -37,7 +37,7 @@ const ICONS: Record<string, React.ReactNode> = {
     </>
   ),
   // calendar
-  "/bookings": (
+  "/calendar": (
     <>
       <rect x="3.5" y="5" width="17" height="15.5" rx="1" />
       <path d="M3.5 10h17M8 3v4M16 3v4" />
@@ -75,8 +75,8 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/start-here", label: "Start here" },
   { href: "/dashboard", label: "Home" },
   { href: "/clients", label: "Clients" },
+  { href: "/calendar", label: "Calendar" },
   { href: "/templates", label: "Templates" },
-  { href: "/bookings", label: "Bookings" },
   { href: "/settings", label: "Settings" },
 ]
 

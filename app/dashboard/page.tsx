@@ -145,7 +145,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       key: b.id,
       line: `Your ${b.meeting_type === "virtual" ? "video call" : "call"} with ${b.first_name} is at ${formatInTimeZone(new Date(b.slot_start), tz, "h:mm a")}.`,
       sub: b.meeting_type === "virtual" ? "Video" : "Phone",
-      href: "/bookings",
+      href: "/calendar",
       open: "See booking",
     }))
   const allPriorities: Priority[] = [
@@ -209,7 +209,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <p className="font-serif font-semibold tracking-tight text-4xl text-ox">{clientCount ?? 0}</p>
           <p className="mt-1 text-sm text-ink/60">Active clients</p>
         </div>
-        <Link href="/bookings" className="rounded-2xl border border-ink/10 bg-card p-5 transition-colors hover:border-ink/20">
+        <Link href="/calendar" className="rounded-2xl border border-ink/10 bg-card p-5 transition-colors hover:border-ink/20">
           <p className="font-serif font-semibold tracking-tight text-4xl text-ox">{upcomingCount}</p>
           <p className="mt-1 text-sm text-ink/60">Upcoming consultations</p>
         </Link>
@@ -331,7 +331,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <div className="mt-6">
         <div className="flex items-center justify-between">
           <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
-          <Link href="/bookings" className="text-sm text-ink/60 hover:text-ink">
+          <Link href="/calendar" className="text-sm text-ink/60 hover:text-ink">
             All bookings &rarr;
           </Link>
         </div>

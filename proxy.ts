@@ -39,6 +39,7 @@ export async function proxy(request: NextRequest) {
     path.startsWith("/settings") ||
     path.startsWith("/start-here") ||
     path.startsWith("/bookings") ||
+    path.startsWith("/calendar") ||
     path.startsWith("/clients") ||
     path.startsWith("/documents") ||
     path.startsWith("/templates") ||
@@ -76,6 +77,7 @@ export const config = {
     "/settings/:path*",
     "/start-here/:path*",
     "/bookings/:path*",
+    "/calendar/:path*",
     "/clients/:path*",
     "/documents/:path*",
     "/templates/:path*",
