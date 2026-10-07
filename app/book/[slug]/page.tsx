@@ -80,7 +80,13 @@ export default async function BookPage({
     .slice(0, 2)
     .map((w) => w[0]!.toUpperCase())
     .join("")
-  const credentials = [agent.tagline, agent.business_name !== name ? agent.business_name : ""].filter(Boolean)
+  // Optional. Blank, or not set up yet, means nothing shows.
+  let license = ""
+  try {
+    const { data } = await createAdminClient().from("agents").select("license_number").eq("id", agent.id).maybeSingle()
+    license = ((data as { license_number?: string } | null)?.license_number ?? "").trim()
+  } catch {}
+  const credentials = [agent.tagline, agent.business_name !== name ? agent.business_name : "", license ? `License ${license}` : ""].filter(Boolean)
 
   return (
     <>

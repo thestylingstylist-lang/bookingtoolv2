@@ -35,6 +35,10 @@ export default async function SettingsPage() {
     .maybeSingle()
   const agreement = toAgreementSettings(agreementRow)
 
+  // Same idea for the license number: blank until its column exists.
+  const { data: licenseRow } = await supabase.from("agents").select("license_number").eq("id", user.id).maybeSingle()
+  const license = (licenseRow as { license_number?: string } | null)?.license_number ?? ""
+
   // Split the stored full name into first / last for the account fields.
   const parts = (agent.full_name || "").trim().split(/\s+/).filter(Boolean)
   const firstName = parts.length ? parts[0] : ""
@@ -64,7 +68,7 @@ export default async function SettingsPage() {
               <BookingLink slug={agent.slug} />
             </div>
 
-            <SettingsForm agent={agent} />
+            <SettingsForm agent={agent} license={license} />
           </section>
 
           {/* RIGHT — account */}

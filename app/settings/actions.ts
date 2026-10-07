@@ -119,8 +119,15 @@ export async function saveSettings(
   const { error } = await supabase.from("agents").update(update).eq("id", user.id)
   if (error) return { ok: false, message: "Couldn't save. Please try again." }
 
+  // The license number is optional and lives in its own column, saved on its own
+  // so everything else still saves if that column isn't there yet.
+  const licenseNumber = String(formData.get("licenseNumber") ?? "").trim().slice(0, 40)
+  const { error: licenseError } = await supabase.from("agents").update({ license_number: licenseNumber }).eq("id", user.id)
+
   revalidatePath("/settings")
   revalidatePath("/dashboard")
+  revalidatePath(`/book`, "layout")
+  if (licenseError && licenseNumber) return { ok: true, message: "Saved, except your license number. That one didn't save yet." }
   return { ok: true, message: "Saved." }
 }
 

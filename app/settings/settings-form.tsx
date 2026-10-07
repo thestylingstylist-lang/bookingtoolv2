@@ -9,7 +9,7 @@ const HOURS = Array.from({ length: 25 }, (_, i) => i)
 const label = (h: number) =>
   h === 0 ? "12 AM" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : h === 24 ? "12 AM" : `${h - 12} PM`
 
-export default function SettingsForm({ agent }: { agent: AgentRow }) {
+export default function SettingsForm({ agent, license = "" }: { agent: AgentRow; license?: string }) {
   const [state, formAction, pending] = useActionState<SettingsResult | null, FormData>(
     saveSettings,
     null
@@ -48,6 +48,11 @@ export default function SettingsForm({ agent }: { agent: AgentRow }) {
           defaultValue={agent.tagline}
           placeholder="e.g. Helping first-time buyers feel at home"
         />
+
+        <div>
+          <Text label="License number (optional)" name="licenseNumber" defaultValue={license} maxLength={40} />
+          <p className="mt-1.5 text-xs text-ink/50">Add it and it shows on your booking page, under your name. Leave it blank and nothing shows.</p>
+        </div>
 
         <label className="block">
           <span className="mb-1.5 block text-sm text-ink/70">Welcome message (optional)</span>
