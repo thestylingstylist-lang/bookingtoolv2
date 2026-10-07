@@ -10,12 +10,14 @@ export default function DuePicker({
   empty,
   submitOnChange = false,
   strong = false,
+  late = false,
 }: {
   value?: string | null
   label?: string
   empty: string
   submitOnChange?: boolean
   strong?: boolean
+  late?: boolean
 }) {
   const [picked, setPicked] = useState(value ?? "")
   const shown = submitOnChange
@@ -29,7 +31,7 @@ export default function DuePicker({
   return (
     <span
       className={`relative inline-flex cursor-pointer items-center gap-1 text-xs ${
-        strong ? "font-medium text-ink" : "text-[#5d5b62]"
+        late ? "font-medium text-[#c23d6d]" : strong ? "font-medium text-ink" : "text-[#5d5b62]"
       } hover:text-ink`}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

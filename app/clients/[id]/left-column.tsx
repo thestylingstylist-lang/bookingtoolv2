@@ -7,7 +7,7 @@ import {
   setDueDate,
 } from "./checklist-actions"
 import { PHASES, phaseIndex, toOwner, type Phase } from "@/lib/phases"
-import { agentDueLabel, isClose, canNudge, nudgeDraft, missingThing } from "@/lib/due"
+import { agentDueLabel, isClose, canNudge, nudgeDraft, missingThing, daysUntil } from "@/lib/due"
 import ReminderBox from "./reminder-box"
 import DuePicker from "./due-picker"
 
@@ -49,6 +49,7 @@ export default function LeftColumn({
   canEmail,
   agentFirst,
   missingDocs,
+  collected = [],
 }: {
   clientId: string
   firstName: string
@@ -60,38 +61,23 @@ export default function LeftColumn({
   canEmail?: boolean
   agentFirst?: string
   missingDocs?: number
+  collected?: Collected[]
 }) {
   const who = firstName || "Client"
   const i = phaseIndex(phase)
   const current = PHASES[i]
   const next = PHASES[i + 1]
   const prev = PHASES[i - 1]
-  const upNext = tasks.find((t) => !t.done)
 
   return (
-    <div className="space-y-8">
-      {/* Right now */}
-      {tasks.length > 0 && (
-        <div className="rounded-xl border border-[#e4e3e0] bg-white p-3.5">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#16151a]">Right now</p>
-          <p className="mt-1 text-sm leading-snug">
-            {upNext
-              ? upNext.title
-              : next
-                ? `${current.label} is done. Move ${firstName || "them"} to ${next.label} when you're ready.`
-                : "Every step is done."}
-          </p>
-          {upNext?.due_on && (
-            <p className={`mt-1 text-xs ${isClose(upNext.due_on, tz) ? "font-medium text-ink" : "text-[#5d5b62]"}`}>
-              {agentDueLabel(upNext.due_on, tz)}
-            </p>
-          )}
+    <div className="overflow-hidden rounded-xl border border-[#e6ddce] bg-[#faf7f1]">
+      {PHASES.map((p, n) =>
+        n === i ? (
+      <section key={p.key} className="border-l-[3px] border-[#D9467A] bg-white px-4 pb-5 pt-4 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-t-[#e6ddce]">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold text-ink">{current.label}</h2>
+          <span className="font-[Georgia,serif] text-xs text-[#D9467A]">You&apos;re here</span>
         </div>
-      )}
-
-      {/* Checklist for the current phase */}
-      <section>
-        <h2 className="text-xs uppercase tracking-[0.08em] text-[#5d5b62]">{current.label} checklist</h2>
         {tasks.length === 0 && (
           <form action={addStandardSteps} className="mt-3">
             <Hidden clientId={clientId} />
@@ -138,6 +124,7 @@ export default function LeftColumn({
                       label={t.due_on ? agentDueLabel(t.due_on, tz) : undefined}
                       empty="Add a due date"
                       strong={!!t.due_on && isClose(t.due_on, tz)}
+                      late={!!t.due_on && daysUntil(t.due_on, tz) < 0}
                     />
                   </form>
                 )}
@@ -197,6 +184,22 @@ export default function LeftColumn({
           </div>
         </form>
 
+        {collected.length > 0 && (
+          <div className="mt-5 border-t border-[#ece6da] pt-4">
+            <p className="font-[Georgia,serif] text-xs italic text-[#8a8072]">In the folder</p>
+            <ul className="mt-2 space-y-1.5">
+              {collected.map((d) => (
+                <li key={d.id} className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="min-w-0 truncate">{d.title}</span>
+                  <span className={`shrink-0 text-xs ${d.received ? "text-[#4f6b45]" : "text-[#c23d6d]"}`}>
+                    {d.received ? "Received" : "Waiting"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {next && (
           <form action={movePhase} className="mt-5">
             <Hidden clientId={clientId} />
@@ -205,7 +208,7 @@ export default function LeftColumn({
               type="submit"
               className="w-full rounded-[10px] bg-ox px-3 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
             >
-              Move to {next.label} &rarr;
+              Move to {next.label}
             </button>
           </form>
         )}
@@ -213,13 +216,22 @@ export default function LeftColumn({
           <form action={movePhase} className="mt-2 text-center">
             <Hidden clientId={clientId} />
             <input type="hidden" name="to" value={prev.key} />
-            <button type="submit" className="text-xs text-[#5d5b62] hover:text-ink">
-              &larr; Back to {prev.label}
+            <button type="submit" className="text-xs text-[#5d5b62] underline underline-offset-2 hover:text-ink">
+              Back to {prev.label}
             </button>
           </form>
         )}
       </section>
-
+        ) : (
+          <div
+            key={p.key}
+            className="flex items-baseline justify-between px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-[#e6ddce]"
+          >
+            <span className="text-sm text-[#4a433b]">{p.label}</span>
+            <span className="font-[Georgia,serif] text-xs text-[#8a8072]">{n < i ? "Done" : n === i + 1 ? "Up next" : "Later"}</span>
+          </div>
+        )
+      )}
     </div>
   )
 }

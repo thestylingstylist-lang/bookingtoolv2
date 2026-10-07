@@ -289,6 +289,7 @@ export default async function ClientJacket({
               canEmail={!!client.email}
               agentFirst={(agent.full_name || "").trim().split(/\s+/)[0] || ""}
               missingDocs={collected.filter((c) => !c.received).length}
+              collected={collected}
             />
           </>}
           messages={<>

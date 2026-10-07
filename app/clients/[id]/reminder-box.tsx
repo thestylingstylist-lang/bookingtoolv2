@@ -32,7 +32,7 @@ export default function ReminderBox({
   return (
     <details
       open={open}
-      className="mt-1"
+      className="group/rb mt-1"
       onToggle={(e) => {
         if ((e.currentTarget as HTMLDetailsElement).open && !asked.current) {
           asked.current = true
@@ -40,15 +40,17 @@ export default function ReminderBox({
         }
       }}
     >
-      <summary className="cursor-pointer list-none text-xs font-medium text-ink underline underline-offset-2">
-        Send {who} a reminder
+      <summary className="block cursor-pointer list-none rounded-lg border border-[#e6ddce] bg-[#faf7f1] px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+        <span className="block text-xs font-semibold text-ink">Ready to send</span>
+        <span className="mt-0.5 block font-[Georgia,serif] text-xs text-[#6d655b]">Your client reminder, written in your voice.</span>
+        <span className="mt-2 inline-block rounded-[8px] bg-ink px-2.5 py-1.5 text-xs font-medium text-paper group-open/rb:hidden">
+          Read, edit, send.
+        </span>
       </summary>
       <form action={sendNudge} className="mt-2 space-y-2">
         <input type="hidden" name="stepId" value={stepId} />
         <input type="hidden" name="from" value="client" />
-        <p className="text-xs text-[#5d5b62]">
-          {writing ? "Writing this in your voice…" : "Your client reminder, written in your voice."}
-        </p>
+        {writing && <p className="text-xs text-[#5d5b62]">Writing this in your voice…</p>}
         <textarea
           name="body"
           rows={8}
