@@ -66,7 +66,7 @@ export default function Brand() {
       <section id="top" className="hero photo">
         <div className="hero-copy">
           <p className="hand gold">for solo realtors</p>
-          <h1>Manage every deal — clients, paperwork, and communication, all in one place.</h1>
+          <h1>Ready to handle every client, paperwork, and communication, all in one place.</h1>
           <p className="sub">
             Send your branded booking link, get agreements signed, request documents, and follow up with every client.
             Built for solo realtors. And we set it up for you.
@@ -86,29 +86,46 @@ export default function Brand() {
         </figure>
       </section>
 
-      {/* 2. The problem */}
-      <section className="problem">
-        <p className="hand gold">sound familiar?</p>
-        <h2>It gets messy the second they say yes.</h2>
-        <div className="raw">
-          <p>The showing. The documents. The follow-up.</p>
-          <p>Another agent calling. The lawyer wants something. Your client&rsquo;s texting.</p>
-          <p>And that&rsquo;s one client.</p>
-          <p className="beat">Now run three.</p>
-          <p>You&rsquo;re in your car, talking to somebody about every single one of them.</p>
-          <p>And nothing talks to each other. Their texts are in WhatsApp. The details are in Excel. The agreement is in your email.</p>
-          <p>Two weeks later they call, and you&rsquo;re piecing it together from four places just to see where you stand.</p>
-        </div>
-        <div className="turn">
-          <p className="turn-lead">With Marvberry, every client lives in one place.</p>
-          <p>
-            Open one and you&rsquo;re caught up at a glance. What&rsquo;s done, what&rsquo;s next, what&rsquo;s waiting on
-            you. Handle it, and you&rsquo;re done for the day.
-          </p>
-        </div>
+      {/* 2. The wake-up: three beats that slide over each other */}
+      <div className="stack">
+        <section className="beat-panel one">
+          <div className="beat-inner">
+            <p className="kicker">Every good realtor says real estate isn&rsquo;t transactional. It&rsquo;s relational.</p>
+            <h2>So how many unread texts and emails are on your phone right now?</h2>
+          </div>
+        </section>
+        <section className="beat-panel two">
+          <div className="beat-inner">
+            <h2>
+              That&rsquo;s not busy.
+              <br />
+              <em>That&rsquo;s business without structure.</em>
+            </h2>
+          </div>
+        </section>
+        <section className="beat-panel three">
+          <div className="beat-inner">
+            <h2>And it&rsquo;s costing you.</h2>
+            <ul className="costs">
+              <li>Time with your family.</li>
+              <li>Clients who would have referred you, if they&rsquo;d felt taken care of.</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+
+      {/* 3. The pivot */}
+      <section className="pivot">
+        <p className="hand gold">here&rsquo;s the thing</p>
+        <h2>Working harder won&rsquo;t fix it. Structure will.</h2>
+        <p className="lead">
+          Marvberry is your assistant, without the hire. Every client lives in one place. Open one and you&rsquo;re caught
+          up at a glance: what&rsquo;s done, what&rsquo;s next, what&rsquo;s waiting on you. Handle it, and you&rsquo;re
+          done for the day.
+        </p>
       </section>
 
-      {/* 3. The three jobs */}
+      {/* 4. The three jobs */}
       <section id="how" className="jobs">
         <header className="jobs-head">
           <h2>Everything that takes you from booking to close.</h2>
@@ -200,29 +217,27 @@ export default function Brand() {
         <div className="letter">
           <p className="hand gold">from Alecia</p>
           <p>
-            I trained to become a realtor, and I found out fast that the selling wasn&rsquo;t the hard part. It was
-            everything behind it. The texts, the paperwork, the client who just wanted to know what happens next.
+            Everyone always told me to be a realtor. I bought my own house and ran the whole deal myself. I even took the
+            class. And I found out I don&rsquo;t love the selling. I love the back office, the part that makes the business
+            good.
           </p>
           <p>
-            I&rsquo;ve spent years running operations for large companies, and I kept seeing the same thing: when a
-            business struggles, it&rsquo;s rarely the product. It&rsquo;s the experience. So I built Marvberry to give a
-            solo agent the back office of a full team, without one more thing to learn.
+            I&rsquo;ve been in sales for over two decades. Multi-millions sold, and I&rsquo;ve never lost a client. Not
+            because they were easy. Because I kept them in the loop. I thought ahead for them, so they never had to ask
+            me for anything. And I still took my days off.
           </p>
-          <p>You take care of your clients. Let Marvberry handle the rest.</p>
+          <p>
+            Clients don&rsquo;t rate you on how many houses you sold. They rate you on how taken care of they felt.
+            People forget what you did. They never forget how you made them feel. That&rsquo;s what gets you referred.
+          </p>
+          <p>
+            Real estate is a billion-dollar industry, and every tool is about getting more leads. Nothing helps you take
+            care of the clients you already have. You shouldn&rsquo;t be jumping between fifteen apps to manage one
+            transaction. So I built Marvberry.
+          </p>
           <p className="sign">Alecia Ford</p>
           <p className="role">Founder, Marvberry</p>
         </div>
-      </section>
-
-      {/* 6. What changes */}
-      <section className="change">
-        <h2>What changes</h2>
-        <ul>
-          <li>Every client lives in one place, not in your head.</li>
-          <li>Your client checks their page instead of texting you.</li>
-          <li>Signatures come back without you chasing them.</li>
-        </ul>
-        <p className="lead strong">You get your time back for the part only you can do: taking care of your clients.</p>
       </section>
 
       {/* 7. Pricing */}
@@ -270,7 +285,7 @@ export default function Brand() {
 
       {/* 9. Closing */}
       <section className="closing">
-        <h2>Your clients deserve your best. So do you.</h2>
+        <h2>Busy isn&rsquo;t success. Structure is.</h2>
         <a className="btn" href={START}>
           Get started for free
         </a>
@@ -441,6 +456,23 @@ const CSS = `
 .mb .turn{margin:56px auto 0; max-width:38rem; padding-top:44px; border-top:1px solid var(--rule)}
 .mb .turn-lead{font-family:var(--serif); font-size:clamp(26px,.9rem + 1.6vw,36px); line-height:1.25; color:var(--ink)}
 .mb .turn p:not(.turn-lead){margin-top:18px; font-size:19px; line-height:1.7; color:var(--body)}
+
+/* Wake-up stack: each beat slides up over the last */
+.mb .stack{position:relative}
+.mb .beat-panel{position:sticky; top:0; min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:96px clamp(20px,5vw,72px) !important}
+.mb .beat-panel.one{background:var(--linen)}
+.mb .beat-panel.two{background:var(--cream); border-radius:28px 28px 0 0; box-shadow:0 -24px 60px -30px rgba(42,34,28,.35)}
+.mb .beat-panel.three{background:var(--espresso); color:var(--cream); border-radius:28px 28px 0 0; box-shadow:0 -24px 60px -30px rgba(42,34,28,.5)}
+.mb .beat-inner{max-width:900px}
+.mb .kicker{font-family:var(--hand); font-size:clamp(26px,.8rem + 1.6vw,36px); color:var(--gold); line-height:1.25; margin-bottom:26px}
+.mb .beat-panel h2{font-size:clamp(36px,1.1rem + 3.4vw,76px); line-height:1.08}
+.mb .beat-panel.two em{color:var(--rasp)}
+.mb .beat-panel.three h2{color:#FBF6EE; font-style:italic}
+.mb .costs{list-style:none; padding:0; margin:44px auto 0; max-width:640px}
+.mb .costs li{font-family:var(--serif); font-size:clamp(21px,.9rem + 1vw,28px); line-height:1.45; padding:18px 0; border-top:1px solid rgba(246,239,229,.22); color:rgba(246,239,229,.9)}
+.mb .pivot{text-align:center; max-width:880px; margin:0 auto}
+.mb .pivot .hand{margin-bottom:16px}
+.mb .pivot h2{font-size:clamp(34px,1.1rem + 2.8vw,62px); line-height:1.1}
 .mb .jobs-head{text-align:center}
 .mb .jobs-head h2{font-size:clamp(32px,1rem + 2.4vw,54px); line-height:1.1; max-width:20ch; margin:0 auto}
 .mb .mid-cta{text-align:center}
