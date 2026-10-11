@@ -23,7 +23,7 @@ export default async function SignPage({
   const admin = createAdminClient()
   const { data: doc } = await admin
     .from("documents")
-    .select("id, agent_id, title, body, status, signer_name, signed_at")
+    .select("id, agent_id, client_id, title, body, status, signer_name, signed_at")
     .eq("sign_token", token)
     .maybeSingle()
   if (!doc) notFound()
@@ -36,6 +36,13 @@ export default async function SignPage({
 
   const from = agent?.full_name || agent?.business_name || "Your agent"
   const signed = doc.status === "signed"
+
+  // Once it's signed, point them to their page for what comes next.
+  let portalHref = ""
+  if (signed && doc.client_id) {
+    const { data: client } = await admin.from("clients").select("portal_token").eq("id", doc.client_id).maybeSingle()
+    if (client?.portal_token) portalHref = `/portal/${client.portal_token}`
+  }
   const signedLabel =
     signed && doc.signed_at
       ? new Intl.DateTimeFormat("en-US", {
@@ -69,6 +76,29 @@ export default async function SignPage({
           {agent?.business_name && agent.full_name ? ` · ${agent.business_name}` : ""}
         </p>
         <h1 className="mt-2 font-[Georgia,serif] text-[28px] leading-tight text-[#2b2520]">{doc.title}</h1>
+
+        {signed && (
+          <div className="mt-8 rounded-xl border border-[#e6e5e3] bg-white px-6 py-7 text-center shadow-[0_8px_30px_rgba(43,37,32,0.06)] sm:px-10">
+            <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#4f6b45] text-white" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </span>
+            <p className="mt-4 font-[Georgia,serif] text-[24px] leading-tight text-[#2b2520]">Agreement signed</p>
+            <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-[#4a433b]">
+              You&rsquo;re all set. This agreement is signed below, and {from} has your copy.
+              {portalHref ? " Your next steps are waiting on your page." : ""}
+            </p>
+            {portalHref && (
+              <a
+                href={portalHref}
+                className="mt-6 inline-block rounded-[10px] bg-[#16151a] px-5 py-3 text-[15px] font-medium text-white hover:opacity-90"
+              >
+                Head to your portal
+              </a>
+            )}
+          </div>
+        )}
 
         <div className="mt-8 rounded-xl border border-[#e6e5e3] bg-white px-6 py-8 shadow-[0_8px_30px_rgba(43,37,32,0.06)] sm:px-10">
           <article className="whitespace-pre-wrap font-[Georgia,serif] text-[15px] leading-relaxed text-[#4a433b]">
@@ -104,11 +134,6 @@ export default async function SignPage({
           )}
         </div>
 
-        {signed && (
-          <p className="mt-6 text-center font-[Georgia,serif] text-[17px] text-[#2b2520]">
-            Signed. Thank you. {from} has been notified.
-          </p>
-        )}
       </div>
     </main>
   )
