@@ -476,7 +476,19 @@ export default async function CalendarPage({
                 ) : (
                   <div className="mt-3 divide-y divide-[#ebe8e4] text-[14.5px]">
                     {later.map((it) => (
-                      <div key={it.id} className="flex items-baseline justify-between gap-4 py-2.5">
+                      <Link
+                        key={it.id}
+                        href={
+                          it.booking
+                            ? clientOf.get(it.booking.id)
+                              ? `/clients/${clientOf.get(it.booking.id)}`
+                              : "/bookings"
+                            : it.event?.client_id
+                              ? `/clients/${it.event.client_id}`
+                              : "/calendar?view=week&w=" + formatInTimeZone(it.start, tz, "yyyy-MM-dd")
+                        }
+                        className="-mx-2 flex items-baseline justify-between gap-4 rounded-lg px-2 py-2.5 hover:bg-white"
+                      >
                         <span className="min-w-0">
                           <span className="mr-3 inline-block h-2 w-2 rounded-full align-middle" style={{ background: it.color }} />
                           <span className="mr-4 font-[Georgia,serif] text-[#8e8c93]">{formatInTimeZone(it.start, tz, "EEE, MMM d · h:mm a")}</span>
@@ -485,7 +497,7 @@ export default async function CalendarPage({
                         <span className="shrink-0 text-[13px] text-[#8e8c93]">
                           {it.booking ? (it.booking.meeting_type === "phone" ? "Phone" : "Video") : lengthLabel(it.end.getTime() - it.start.getTime())}
                         </span>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}

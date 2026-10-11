@@ -67,6 +67,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .order("slot_start", { ascending: true })
     .limit(3)
   const next = upcoming ?? []
+  // Bookings already turned into clients open that client; the rest open Bookings, where they become one.
+  const { data: madeClients } = await supabase.from("clients").select("id, booking_id").not("booking_id", "is", null)
+  const clientFor = new Map((madeClients ?? []).map((c) => [c.booking_id as string, c.id as string]))
 
   const { count: clientCount } = await supabase
     .from("clients")
@@ -331,7 +334,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <div className="mt-6">
         <div className="flex items-center justify-between">
           <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
-          <Link href="/calendar" className="text-sm text-ink/60 hover:text-ink">
+          <Link href="/bookings" className="text-sm text-ink/60 hover:text-ink">
             All bookings &rarr;
           </Link>
         </div>
@@ -343,19 +346,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         ) : (
           <ul className="mt-3 space-y-2">
             {next.map((b) => (
-              <li
-                key={b.id}
-                className="flex items-center justify-between rounded-xl border border-ink/10 bg-card px-5 py-4"
-              >
-                <div>
-                  <p className="font-medium">
-                    {b.first_name} {b.last_name}
+              <li key={b.id}>
+                <Link
+                  href={clientFor.get(b.id) ? `/clients/${clientFor.get(b.id)}` : "/bookings"}
+                  className="flex items-center justify-between rounded-xl border border-ink/10 bg-card px-5 py-4 transition-colors hover:border-ink/25"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {b.first_name} {b.last_name}
+                    </p>
+                    <p className="text-sm text-ink/50">{b.meeting_type === "phone" ? "Phone" : "Video"}</p>
+                  </div>
+                  <p className="text-sm text-ink/60 whitespace-nowrap">
+                    {formatSlot(b.slot_start, agent.timezone)}
                   </p>
-                  <p className="text-sm capitalize text-ink/50">{b.meeting_type}</p>
-                </div>
-                <p className="text-sm text-ink/60 whitespace-nowrap">
-                  {formatSlot(b.slot_start, agent.timezone)}
-                </p>
+                </Link>
               </li>
             ))}
           </ul>
