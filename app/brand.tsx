@@ -466,7 +466,7 @@ const CSS = `
 .mb .beat-inner{max-width:900px}
 .mb .kicker{font-family:var(--hand); font-size:clamp(26px,.8rem + 1.6vw,36px); color:var(--gold); line-height:1.25; margin-bottom:26px}
 .mb .beat-panel h2{font-size:clamp(36px,1.1rem + 3.4vw,76px); line-height:1.08}
-.mb .beat-panel.two em{color:var(--rasp)}
+.mb .beat-panel.two em{color:#B08A4E}
 .mb .beat-panel.three h2{color:#FBF6EE; font-style:italic}
 .mb .costs{list-style:none; padding:0; margin:44px auto 0; max-width:640px}
 .mb .costs li{font-family:var(--serif); font-size:clamp(21px,.9rem + 1vw,28px); line-height:1.45; padding:18px 0; border-top:1px solid rgba(246,239,229,.22); color:rgba(246,239,229,.9)}
