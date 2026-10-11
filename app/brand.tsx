@@ -5,7 +5,8 @@ import "@fontsource/playfair-display/400-italic.css"
 import "@fontsource/playfair-display/500.css"
 import "@fontsource/caveat/500.css"
 
-const START = "/chat"
+const START = "/signup"
+const CALL = "/chat"
 
 const PLANS = [
   {
@@ -36,7 +37,7 @@ const PLANS = [
 ]
 
 const FAQ = [
-  ["What happens when I click \u201cGet started for free\u201d?", "You pick a time for your setup call. On the call, we build your booking page, your agreement, and your client steps with you. You leave with it working."],
+  ["What happens when I click \u201cGet started for free\u201d?", "You create your free account. No credit card. If you\u2019d rather have it done for you, book a free setup call and we\u2019ll build your booking page, your agreement, and your client steps with you."],
   ["Do my clients have to make an account?", "No. Your clients get a private link. They book, sign, and send documents without a password or an app."],
   ["Does it work on my phone?", "Yes. Your phone or your computer, same business either way."],
   ["What if it isn\u2019t right for me?", "You have 30 days. If Marvberry isn\u2019t for you, tell us and we\u2019ll refund you in full."],
@@ -66,7 +67,7 @@ export default function Brand() {
       <section id="top" className="hero photo">
         <div className="hero-copy">
           <p className="hand gold">for solo realtors</p>
-          <h1>Ready to handle every client, paperwork, and communication, all in one place.</h1>
+          <h1>Ready to handle every client, paperwork, and communication, all in one place?</h1>
           <p className="sub">
             Send your branded booking link, get agreements signed, request documents, and follow up with every client.
             Built for solo realtors. And we set it up for you.
@@ -188,15 +189,15 @@ export default function Brand() {
       {/* 4. The plan */}
       <section className="plan-band">
         <p className="hand gold">here&rsquo;s how it starts</p>
-        <h2>Three steps, and we take two of them.</h2>
+        <h2>Up and running in three steps.</h2>
         <ol className="steps">
           <li>
             <span className="num">1</span>
-            <p>Get started for free and pick a time for your setup call.</p>
+            <p>Get started for free. No credit card.</p>
           </li>
           <li>
             <span className="num">2</span>
-            <p>We set up your booking page, your agreement, and your client steps while you watch.</p>
+            <p>Set up your booking page, your agreement, and your client steps. Or let us do it with you on a free call.</p>
           </li>
           <li>
             <span className="num">3</span>
@@ -237,6 +238,12 @@ export default function Brand() {
           </p>
           <p className="sign">Alecia Ford</p>
           <p className="role">Founder, Marvberry</p>
+          <div className="letter-cta">
+            <a className="btn" href={CALL}>
+              Let me set it up for you
+            </a>
+            <p className="fine dark">A free call. I&rsquo;ll build it with you.</p>
+          </div>
         </div>
       </section>
 
@@ -260,7 +267,7 @@ export default function Brand() {
                     <li key={it}>{it}</li>
                   ))}
                 </ul>
-                <a className={p.main ? "btn cream" : "btn line"} href={START}>
+                <a className={p.main ? "btn cream" : "btn line"} href={p.main ? START : CALL}>
                   {p.cta}
                 </a>
               </article>
@@ -391,10 +398,14 @@ const CSS = `
 .mb .steps p{margin-top:20px; font-size:18px; line-height:1.6}
 
 /* 5. Founder */
-.mb .founder{display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1fr); gap:clamp(40px,6vw,96px); align-items:center; max-width:1160px; margin:0 auto}
-.mb .founder-pic img{display:block; width:100%; height:auto; border-radius:24px; filter:sepia(.06)}
+.mb .founder{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(40px,6vw,88px); align-items:stretch; max-width:1240px; margin:0 auto}
+.mb .founder-pic{position:relative; min-height:640px}
+.mb .founder-pic img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 30%; border-radius:24px; filter:sepia(.06)}
+.mb .letter{align-self:center}
+.mb .letter-cta{margin-top:30px}
+.mb .letter-cta .fine{margin-top:12px}
 .mb .letter .hand{font-size:36px; margin-bottom:20px}
-.mb .letter p:not(.hand):not(.sign):not(.role){font-family:var(--serif); font-size:19.5px; line-height:1.75; color:#4a3f36; margin-bottom:1em}
+.mb .letter p:not(.hand):not(.sign):not(.role):not(.fine){font-family:var(--serif); font-size:19.5px; line-height:1.75; color:#4a3f36; margin-bottom:1em}
 .mb .sign{font-family:var(--hand); font-size:50px; line-height:1; color:var(--ink); margin-top:10px}
 .mb .role{margin-top:6px; font-size:14px; color:var(--muted)}
 
@@ -441,7 +452,7 @@ const CSS = `
   .mb .job.flip .job-pic{order:0}
   .mb .steps,.mb .plans{grid-template-columns:1fr}
   .mb .tier + .tier{border-left:0; border-top:1px solid rgba(246,239,229,.25)}
-  .mb .founder-pic{max-width:420px}
+  .mb .founder-pic{min-height:0; aspect-ratio:4/5}
   .mb .foot{flex-direction:column; align-items:flex-start}
   .mb .foot a{margin:0 20px 0 0}
 }
