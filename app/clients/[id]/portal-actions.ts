@@ -1,10 +1,12 @@
 "use server"
 
-import { headers } from "next/headers"
+import { randomUUID } from "crypto"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { sendEmail } from "@/lib/email"
 import { portalLinkEmail } from "@/lib/portal-email"
+
+const SITE = "https://www.marvberry.com"
 
 // Email the client their private portal link.
 export async function sendPortalLink(formData: FormData): Promise<void> {
@@ -24,10 +26,16 @@ export async function sendPortalLink(formData: FormData): Promise<void> {
   if (!client) redirect("/clients")
   if (!client.email) redirect(`/clients/${clientId}?doc=portalnoemail`)
 
-  const h = await headers()
-  const host = h.get("x-forwarded-host") ?? h.get("host")
-  const proto = h.get("x-forwarded-proto") ?? "https"
-  const link = `${proto}://${host}/portal/${client.portal_token}`
+  // A client without a private code would get a dead link, so give them one first.
+  let token = client.portal_token as string | null
+  if (!token) {
+    token = randomUUID()
+    const { error } = await supabase.from("clients").update({ portal_token: token }).eq("id", clientId)
+    if (error) redirect(`/clients/${clientId}?doc=portalfail`)
+  }
+
+  // Always the real site, never whatever address the realtor happened to be on.
+  const link = `${SITE}/portal/${token}`
 
   const agentName = agent?.full_name || agent?.business_name || "Your agent"
   const mail = portalLinkEmail({ clientFirstName: client.first_name ?? "", agentName, link })

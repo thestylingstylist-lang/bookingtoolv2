@@ -32,7 +32,7 @@ export async function sendNudge(formData: FormData): Promise<void> {
   if (!client?.email) redirect(back("noemail"))
 
   const agentName = agent?.full_name || agent?.business_name || "Your agent"
-  const mail = nudgeEmail({ agentName, body, link: `https://marvberry.com/portal/${client.portal_token}` })
+  const mail = nudgeEmail({ agentName, body, link: `https://www.marvberry.com/portal/${client.portal_token}` })
   const ok = await sendEmail({
     to: client.email,
     ...mail,
