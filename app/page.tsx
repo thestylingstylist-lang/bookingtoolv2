@@ -1,6 +1,6 @@
-// Marvberry home page (marvberry.com). The page itself lives in ./landing.tsx.
+// Marvberry home page (marvberry.com). The page itself lives in ./editorial.tsx (the older version is ./landing.tsx).
 import type { Metadata } from "next";
-import Landing from "./landing";
+import Editorial from "./editorial";
 import SiteTracker from "./site-tracker";
 import Clarity from "./clarity";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
-      <Landing />
+      <Editorial />
       <SiteTracker />
       <Clarity />
     </>
