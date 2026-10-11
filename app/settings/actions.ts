@@ -203,6 +203,13 @@ export async function saveAgreement(
     .eq("id", user.id)
   if (error) return { ok: false, message: "Couldn't save that. Please try again." }
 
+  // The usual commission lives in its own column, saved on its own, so the
+  // length and type still save even before that column exists.
+  const commission = String(formData.get("commission") ?? "").trim().slice(0, 40)
+  const { error: commissionError } = await supabase.from("agents").update({ default_commission: commission }).eq("id", user.id)
+
   revalidatePath("/settings")
+  revalidatePath("/clients", "layout")
+  if (commissionError && commission) return { ok: true, message: "Saved, except your commission. That one didn't save yet." }
   return { ok: true, message: "Saved." }
 }

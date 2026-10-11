@@ -190,6 +190,8 @@ export default async function ClientJacket({
     .eq("id", user.id)
     .maybeSingle()
   const agreementFill = agreementAuto(toAgreementSettings(agreementRow), agent.timezone)
+  const { data: commissionRow } = await supabase.from("agents").select("default_commission").eq("id", user.id).maybeSingle()
+  const defaultCommission = ((commissionRow as { default_commission?: string } | null)?.default_commission ?? "").trim()
 
   const todayLong = new Intl.DateTimeFormat("en-US", {
     timeZone: agent.timezone || "America/New_York",
@@ -374,6 +376,7 @@ export default async function ClientJacket({
               <div className="mb-3">
                 <SendDocument
                   clientId={client.id}
+                  defaultCommission={defaultCommission}
                   templates={templates}
                   auto={{
                     "client name": `${client.first_name} ${client.last_name}`.trim(),

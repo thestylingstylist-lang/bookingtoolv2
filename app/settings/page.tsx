@@ -34,6 +34,8 @@ export default async function SettingsPage() {
     .eq("id", user.id)
     .maybeSingle()
   const agreement = toAgreementSettings(agreementRow)
+  const { data: commissionRow } = await supabase.from("agents").select("default_commission").eq("id", user.id).maybeSingle()
+  const commission = (commissionRow as { default_commission?: string } | null)?.default_commission ?? ""
 
   // Same idea for the license number: blank until its column exists.
   const { data: licenseRow } = await supabase.from("agents").select("license_number").eq("id", user.id).maybeSingle()
@@ -94,7 +96,7 @@ export default async function SettingsPage() {
               is the commission.
             </p>
             <div className="mt-6">
-              <AgreementForm initial={agreement} />
+              <AgreementForm initial={agreement} commission={commission} />
             </div>
           </section>
         </div>

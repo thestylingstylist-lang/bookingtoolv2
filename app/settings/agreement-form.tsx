@@ -8,7 +8,7 @@ const pill = (on: boolean) =>
   "cursor-pointer rounded-full border px-4 py-2 text-sm transition-colors " +
   (on ? "border-ink bg-ink text-paper" : "border-ink/15 bg-white/70 text-ink/70 hover:border-ink/40")
 
-export default function AgreementForm({ initial }: { initial: AgreementSettings }) {
+export default function AgreementForm({ initial, commission = "" }: { initial: AgreementSettings; commission?: string }) {
   const [state, formAction, pending] = useActionState<SettingsResult | null, FormData>(
     saveAgreement,
     null
@@ -61,6 +61,20 @@ export default function AgreementForm({ initial }: { initial: AgreementSettings 
           ))}
         </div>
       </div>
+
+      <label className="block">
+        <span className="mb-1.5 block text-sm text-ink/70">Your usual commission</span>
+        <input
+          name="commission"
+          defaultValue={commission}
+          placeholder="2%"
+          maxLength={40}
+          className="w-full max-w-[12rem] rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
+        />
+        <span className="mt-1.5 block text-xs text-ink/50">
+          It fills in on every agreement you send. You can still change it for any client.
+        </span>
+      </label>
 
       {state && (
         <p

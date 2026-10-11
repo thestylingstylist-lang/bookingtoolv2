@@ -11,10 +11,12 @@ export default function SendDocument({
   clientId,
   templates,
   auto,
+  defaultCommission = "",
 }: {
   clientId: string
   templates: Template[]
   auto: Record<string, string>
+  defaultCommission?: string
 }) {
   const [open, setOpen] = useState(false)
   const [reviewing, setReviewing] = useState(false)
@@ -25,7 +27,9 @@ export default function SendDocument({
     () => parsePlaceholders(template?.body ?? "").filter((p) => p.kind === "deal"),
     [template]
   )
-  const ready = deals.every((p) => (values[p.key] ?? "").trim())
+  // The usual commission from Settings starts in any commission blank; typing replaces it.
+  const valueOf = (key: string) => values[key] ?? (key.startsWith("commission") ? defaultCommission : "")
+  const ready = deals.every((p) => valueOf(p.key).trim())
 
   // The document exactly as the client will see it. Filled spots are tinted
   // so the realtor can check each one; anything missing shows in rose.
@@ -38,7 +42,7 @@ export default function SendDocument({
       const at = m.index ?? 0
       parts.push(body.slice(last, at))
       const key = m[1].trim().toLowerCase()
-      const v = (AUTO_FILL[key] !== undefined ? auto[key] : values[key])?.trim() ?? ""
+      const v = (AUTO_FILL[key] !== undefined ? auto[key] : valueOf(key))?.trim() ?? ""
       parts.push(
         v ? (
           <mark key={i++} className="rounded bg-[#fdf3e3] px-1 text-[#2b2520]">{v}</mark>
@@ -52,7 +56,7 @@ export default function SendDocument({
     }
     parts.push(body.slice(last))
     return parts
-  }, [template, auto, values])
+  }, [template, auto, values, defaultCommission])
 
   const guessKind = /disclos/i.test(template?.title ?? "") ? "disclosure" : "agreement"
 
@@ -130,7 +134,7 @@ export default function SendDocument({
                 <input
                   name={`blank:${p.key}`}
                   required
-                  value={values[p.key] ?? ""}
+                  value={valueOf(p.key)}
                   onChange={(e) => setValues((v) => ({ ...v, [p.key]: e.target.value }))}
                   className={inputClass}
                 />
