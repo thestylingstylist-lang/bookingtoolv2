@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { formatSlot } from "@/lib/slots"
@@ -50,9 +51,10 @@ export default async function BookingsPage({
   // Which of these bookings have already been turned into a client?
   const { data: clientRows } = await supabase
     .from("clients")
-    .select("booking_id")
+    .select("id, booking_id")
     .not("booking_id", "is", null)
-  const addedIds = new Set((clientRows ?? []).map((c) => c.booking_id as string))
+  // booking id -> the client it became, so that row can open the client page
+  const clientFor = new Map((clientRows ?? []).map((c) => [c.booking_id as string, c.id as string]))
 
   const now = Date.now()
 
@@ -114,7 +116,8 @@ export default async function BookingsPage({
             <tbody>
               {bookings.map((b) => {
                 const past = new Date(b.slot_start).getTime() < now
-                const isClient = addedIds.has(b.id)
+                const clientId = clientFor.get(b.id)
+                const isClient = !!clientId
                 return (
                   <tr
                     key={b.id}
@@ -124,7 +127,15 @@ export default async function BookingsPage({
                       {formatSlot(b.slot_start, agent.timezone)}
                     </td>
                     <td className="px-5 py-4 text-[15px] sm:text-sm">
-                      {b.first_name} {b.last_name}
+                      {clientId ? (
+                        <Link href={`/clients/${clientId}`} className="font-medium underline-offset-4 hover:underline">
+                          {b.first_name} {b.last_name}
+                        </Link>
+                      ) : (
+                        <>
+                          {b.first_name} {b.last_name}
+                        </>
+                      )}
                     </td>
                     <td data-label="Contact" className={"px-5 py-4" + (b.phone || b.email ? "" : " empty-sm")}>
                       <div className="flex flex-col">
@@ -138,9 +149,12 @@ export default async function BookingsPage({
                     <td className="cell-act px-5 py-4 whitespace-nowrap text-right">
                       <div className="inline-flex items-center gap-1">
                       {isClient ? (
-                        <span className="inline-flex items-center rounded-full bg-sage/10 px-3 py-1 text-xs font-medium text-sage">
-                          Client
-                        </span>
+                        <Link
+                          href={`/clients/${clientId}`}
+                          className="inline-flex items-center rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ox hover:text-paper"
+                        >
+                          Open client
+                        </Link>
                       ) : (
                         <form action={addClientFromBooking}>
                           <input type="hidden" name="bookingId" value={b.id} />
