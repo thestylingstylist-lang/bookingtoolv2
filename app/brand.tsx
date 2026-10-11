@@ -14,7 +14,7 @@ const PLANS = [
     per: "a month",
     blurb: "Everything one realtor runs a business on.",
     items: ["Your branded booking page", "Agreements signed from a phone", "A private page for every client", "Free setup call"],
-    cta: "Get started free",
+    cta: "Get started for free",
     main: true,
   },
   {
@@ -35,6 +35,13 @@ const PLANS = [
   },
 ]
 
+const FAQ = [
+  ["What happens when I click \u201cGet started for free\u201d?", "You pick a time for your setup call. On the call, we build your booking page, your agreement, and your client steps with you. You leave with it working."],
+  ["Do my clients have to make an account?", "No. Your clients get a private link. They book, sign, and send documents without a password or an app."],
+  ["Does it work on my phone?", "Yes. Your phone or your computer, same business either way."],
+  ["What if it isn\u2019t right for me?", "You have 30 days. If Marvberry isn\u2019t for you, tell us and we\u2019ll refund you in full."],
+]
+
 export default function Brand() {
   return (
     <div className="mb">
@@ -51,7 +58,7 @@ export default function Brand() {
           <a href="/login">Log in</a>
         </nav>
         <a className="btn cream sm" href={START}>
-          Get started free
+          Get started for free
         </a>
       </header>
 
@@ -66,9 +73,9 @@ export default function Brand() {
           </p>
           <div className="cta-row">
             <a className="btn cream" href={START}>
-              Get started free
+              Get started for free
             </a>
-            <span className="fine">Free setup call. No card required.</span>
+            <span className="fine">No credit card required.</span>
           </div>
         </div>
         <figure className="glass hero-glass">
@@ -82,16 +89,22 @@ export default function Brand() {
       {/* 2. The problem */}
       <section className="problem">
         <p className="hand gold">sound familiar?</p>
-        <h2>You got into real estate for the people.</h2>
-        <p className="lead">
-          Somewhere along the way, the paperwork took over. A text in one app. An agreement in your email. A client
-          asking &ldquo;what&rsquo;s next?&rdquo; at nine at night.
-        </p>
-        <p className="lead strong">You&rsquo;re good at this. You&rsquo;re just doing it with tools that were never built for you.</p>
+        <h2>It gets messy the second they say yes.</h2>
+        <div className="raw">
+          <p>The showing. The documents. The follow-up.</p>
+          <p>Another agent calling. The lawyer wants something. Your client&rsquo;s texting.</p>
+          <p>And that&rsquo;s one deal.</p>
+          <p className="beat">Now run three.</p>
+          <p>You&rsquo;re in your car, talking to somebody about every single one of them.</p>
+          <p>You want help. But you can&rsquo;t hand it off. There&rsquo;s too much, and it&rsquo;s all in your head.</p>
+        </div>
       </section>
 
       {/* 3. The three jobs */}
       <section id="how" className="jobs">
+        <header className="jobs-head">
+          <h2>Everything that takes you from booking to close.</h2>
+        </header>
         <article className="job">
           <div className="job-pic wide">
             <img src="/brand/booking-glass.jpg" alt="A realtor's branded booking page, open on a warm afternoon" />
@@ -138,6 +151,13 @@ export default function Brand() {
             </p>
           </div>
         </article>
+
+        <div className="mid-cta">
+          <a className="btn" href={START}>
+            Get started for free
+          </a>
+          <p className="fine dark">No credit card required.</p>
+        </div>
       </section>
 
       {/* 4. The plan */}
@@ -147,7 +167,7 @@ export default function Brand() {
         <ol className="steps">
           <li>
             <span className="num">1</span>
-            <p>Book your free setup call.</p>
+            <p>Get started for free and pick a time for your setup call.</p>
           </li>
           <li>
             <span className="num">2</span>
@@ -159,8 +179,9 @@ export default function Brand() {
           </li>
         </ol>
         <a className="btn" href={START}>
-          Get started free
+          Get started for free
         </a>
+        <p className="fine dark">No credit card required.</p>
       </section>
 
       {/* 5. The guide */}
@@ -189,11 +210,11 @@ export default function Brand() {
       <section className="change">
         <h2>What changes</h2>
         <ul>
-          <li>Fewer late-night texts.</li>
-          <li>No more chasing a signature twice.</li>
-          <li>No more digging through three apps to find who said what.</li>
+          <li>Every deal lives in one place, not in your head.</li>
+          <li>Your client checks their page instead of texting you.</li>
+          <li>Signatures come back without you chasing them.</li>
         </ul>
-        <p className="lead">You handle more deals, and every client feels looked after.</p>
+        <p className="lead strong">You get your time back for the part only you can do: the deal.</p>
       </section>
 
       {/* 7. Pricing */}
@@ -226,13 +247,26 @@ export default function Brand() {
         </div>
       </section>
 
-      {/* 8. Closing */}
+      {/* 8. Questions */}
+      <section className="faq">
+        <h2>Questions</h2>
+        <div className="qa">
+          {FAQ.map(([q, a]) => (
+            <div key={q}>
+              <h3>{q}</h3>
+              <p>{a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 9. Closing */}
       <section className="closing">
         <h2>Your clients deserve your best. So do you.</h2>
         <a className="btn" href={START}>
-          Get started free
+          Get started for free
         </a>
-        <p className="fine dark">Free setup call. No card required.</p>
+        <p className="fine dark">No credit card required.</p>
       </section>
 
       <footer className="foot">
@@ -391,5 +425,21 @@ const CSS = `
 @media (max-width: 480px){
   .mb .nav .btn{display:none}
 }
+
+.mb .raw{margin:34px auto 0; max-width:36rem}
+.mb .raw p{font-size:20px; line-height:1.6; color:var(--body); margin-bottom:12px}
+.mb .raw .beat{font-family:var(--serif); font-style:italic; font-size:30px; color:var(--ink); margin:28px 0 22px}
+.mb .raw p:last-child{color:var(--ink); font-weight:500; margin-top:22px}
+.mb .jobs-head{text-align:center}
+.mb .jobs-head h2{font-size:clamp(32px,1rem + 2.4vw,54px); line-height:1.1; max-width:20ch; margin:0 auto}
+.mb .mid-cta{text-align:center}
+.mb .faq{max-width:1040px; margin:0 auto}
+.mb .faq h2{font-size:clamp(32px,1rem + 2.4vw,52px); font-style:italic; text-align:center}
+.mb .qa{margin-top:48px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:40px 56px}
+.mb .qa > div{padding-top:22px; border-top:1px solid var(--rule)}
+.mb .qa h3{font-size:21px; line-height:1.3}
+.mb .qa p{margin-top:10px; font-size:16.5px; line-height:1.7; color:var(--body)}
+.mb .closing{background:var(--cream)}
+@media (max-width: 900px){ .mb .qa{grid-template-columns:1fr} }
 @media (prefers-reduced-motion: reduce){ .mb .btn{transition:none} }
 `
