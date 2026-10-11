@@ -43,6 +43,13 @@ const ICONS: Record<string, React.ReactNode> = {
       <path d="M3.5 10h17M8 3v4M16 3v4" />
     </>
   ),
+  // inbox tray: people who booked through your link
+  "/bookings": (
+    <>
+      <path d="M3.5 13.5 6 5h12l2.5 8.5V19a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 19z" />
+      <path d="M3.5 13.5H8.5l1.2 2.5h4.6l1.2-2.5h5" />
+    </>
+  ),
   // gear
   "/settings": (
     <>
@@ -76,6 +83,7 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/dashboard", label: "Home" },
   { href: "/clients", label: "Clients" },
   { href: "/calendar", label: "Calendar" },
+  { href: "/bookings", label: "Bookings" },
   { href: "/templates", label: "Templates" },
   { href: "/settings", label: "Settings" },
 ]
