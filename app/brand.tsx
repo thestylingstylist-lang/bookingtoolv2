@@ -93,10 +93,18 @@ export default function Brand() {
         <div className="raw">
           <p>The showing. The documents. The follow-up.</p>
           <p>Another agent calling. The lawyer wants something. Your client&rsquo;s texting.</p>
-          <p>And that&rsquo;s one deal.</p>
+          <p>And that&rsquo;s one client.</p>
           <p className="beat">Now run three.</p>
           <p>You&rsquo;re in your car, talking to somebody about every single one of them.</p>
-          <p>You want help. But you can&rsquo;t hand it off. There&rsquo;s too much, and it&rsquo;s all in your head.</p>
+          <p>And nothing talks to each other. Their texts are in WhatsApp. The details are in Excel. The agreement is in your email.</p>
+          <p>Two weeks later they call, and you&rsquo;re piecing it together from four places just to see where you stand.</p>
+        </div>
+        <div className="turn">
+          <p className="turn-lead">With Marvberry, every client lives in one place.</p>
+          <p>
+            Open one and you&rsquo;re caught up at a glance. What&rsquo;s done, what&rsquo;s next, what&rsquo;s waiting on
+            you. Handle it, and you&rsquo;re done for the day.
+          </p>
         </div>
       </section>
 
@@ -175,7 +183,7 @@ export default function Brand() {
           </li>
           <li>
             <span className="num">3</span>
-            <p>Start managing every deal from your phone or your computer.</p>
+            <p>Start managing every client from your phone or your computer.</p>
           </li>
         </ol>
         <a className="btn" href={START}>
@@ -210,11 +218,11 @@ export default function Brand() {
       <section className="change">
         <h2>What changes</h2>
         <ul>
-          <li>Every deal lives in one place, not in your head.</li>
+          <li>Every client lives in one place, not in your head.</li>
           <li>Your client checks their page instead of texting you.</li>
           <li>Signatures come back without you chasing them.</li>
         </ul>
-        <p className="lead strong">You get your time back for the part only you can do: the deal.</p>
+        <p className="lead strong">You get your time back for the part only you can do: taking care of your clients.</p>
       </section>
 
       {/* 7. Pricing */}
@@ -429,7 +437,10 @@ const CSS = `
 .mb .raw{margin:34px auto 0; max-width:36rem}
 .mb .raw p{font-size:20px; line-height:1.6; color:var(--body); margin-bottom:12px}
 .mb .raw .beat{font-family:var(--serif); font-style:italic; font-size:30px; color:var(--ink); margin:28px 0 22px}
-.mb .raw p:last-child{color:var(--ink); font-weight:500; margin-top:22px}
+.mb .raw p:last-child{color:var(--ink); font-weight:500}
+.mb .turn{margin:56px auto 0; max-width:38rem; padding-top:44px; border-top:1px solid var(--rule)}
+.mb .turn-lead{font-family:var(--serif); font-size:clamp(26px,.9rem + 1.6vw,36px); line-height:1.25; color:var(--ink)}
+.mb .turn p:not(.turn-lead){margin-top:18px; font-size:19px; line-height:1.7; color:var(--body)}
 .mb .jobs-head{text-align:center}
 .mb .jobs-head h2{font-size:clamp(32px,1rem + 2.4vw,54px); line-height:1.1; max-width:20ch; margin:0 auto}
 .mb .mid-cta{text-align:center}
