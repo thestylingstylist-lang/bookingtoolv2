@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { statusOf, PILL, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
-import { setAssistantPlan } from "./assistant-actions"
+import { setAssistantPlan, extendTrial } from "./assistant-actions"
 
 export const dynamic = "force-dynamic"
 
@@ -167,6 +167,26 @@ export default async function AdminAgentDetail({ params }: { params: Promise<{ i
           <Row label="Status" value={st.label} />
           <Row label="Stripe status" value={a.subscription_status || "none"} />
           <Row label="Trial ends" value={fmtDate(a.trial_ends_at)} />
+          <div className="mt-3 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
+            <p className="text-sm font-medium text-[#16151a]">Give more trial time</p>
+            <p className="text-xs text-[#16151a]/50">
+              Adds days from the trial end date, or from today if it already ended.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[7, 14, 30].map((d) => (
+                <form key={d} action={extendTrial}>
+                  <input type="hidden" name="agentId" value={id} />
+                  <input type="hidden" name="days" value={d} />
+                  <button
+                    type="submit"
+                    className="rounded-full border border-[#16151a]/15 bg-white px-3.5 py-1.5 text-xs font-medium text-[#16151a] hover:border-[#16151a]/40"
+                  >
+                    +{d} days
+                  </button>
+                </form>
+              ))}
+            </div>
+          </div>
           {a.stripe_customer_id && <Row label="Stripe customer" value={a.stripe_customer_id} />}
           <div className="mt-3 flex items-center justify-between gap-4 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
             <div>
