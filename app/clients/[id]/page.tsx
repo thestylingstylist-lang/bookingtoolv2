@@ -7,7 +7,9 @@ import JacketDetails from "./jacket-details"
 import JacketTabs from "./jacket-tabs"
 import DocumentsPanel from "./documents-panel"
 import SendDocument from "./send-document"
-import { sendMessage, resendDocument } from "./actions"
+import { resendDocument } from "./actions"
+import Composer from "./composer"
+import { assistantFor } from "@/lib/assistant"
 import { sendPortalLink } from "./portal-actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
@@ -156,6 +158,7 @@ export default async function ClientJacket({
       .order("created_at", { ascending: false }),
   ])
   const messages = (msgData ?? []) as Message[]
+  const assistant = await assistantFor(supabase, user.id)
   const docs = new Map(((docData ?? []) as Doc[]).map((d) => [d.id, d]))
   const templates = (tplData ?? []) as { id: string; title: string; body: string }[]
   const phase = toPhase(client.phase)
@@ -292,6 +295,7 @@ export default async function ClientJacket({
               agentFirst={(agent.full_name || "").trim().split(/\s+/)[0] || ""}
               missingDocs={collected.filter((c) => !c.received).length}
               collected={collected}
+              assistant={assistant.unlocked}
             />
           </>}
           messages={<>
@@ -394,22 +398,11 @@ export default async function ClientJacket({
                   }}
                 />
               </div>
-              <form action={sendMessage} className="flex items-end gap-3">
-                <input type="hidden" name="clientId" value={client.id} />
-                <textarea
-                  name="body"
-                  rows={1}
-                  required
-                  placeholder="Type a message…"
-                  className="flex-1 resize-none rounded-xl border border-[#e4e3e0] bg-[#f1f0ee] px-4 py-2.5 text-sm outline-none placeholder:text-[#5d5b62] focus:border-sage focus:bg-white"
-                />
-                <button
-                  type="submit"
-                  className="rounded-[11px] bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
-                >
-                  Send
-                </button>
-              </form>
+              <Composer
+                clientId={client.id}
+                clientFirst={client.first_name ?? ""}
+                canDraft={assistant.unlocked && messages.length > 0 && messages[messages.length - 1].sender === "client"}
+              />
               <p className="mt-2 text-[11px] text-[#9a989e]">
                 {client.first_name || "Your client"} sees these messages on their portal and can reply there.
               </p>

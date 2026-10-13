@@ -2,8 +2,9 @@ import { NextResponse, type NextRequest } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { formatSlot } from "@/lib/slots"
 import { sendEmail, clientReminderEmail, manageUrl } from "@/lib/email"
-import { agentDayEmail } from "@/lib/nudge-email"
-import { agentDueLabel, daysUntil, canNudge } from "@/lib/due"
+import { agentDayEmail, nudgeEmail } from "@/lib/nudge-email"
+import { agentDueLabel, daysUntil, canNudge, nudgeDraft, missingThing } from "@/lib/due"
+import { draftReminderFor } from "@/lib/assistant"
 import { toOwner } from "@/lib/phases"
 
 // Runs once a day (see vercel.json). Finds consultations starting roughly
@@ -33,8 +34,11 @@ export async function GET(request: NextRequest) {
     console.error("[reminders] query failed:", error)
     return NextResponse.json({ error: "query failed" }, { status: 500 })
   }
+  // Realtors who chose "Send reminders for me" get theirs sent first, so the
+  // morning note only counts what's still waiting on them.
+  const autoSent = await sendAutoReminders(admin)
   const digests = await sendAgentDays(admin)
-  if (!bookings?.length) return NextResponse.json({ sent: 0, digests })
+  if (!bookings?.length) return NextResponse.json({ sent: 0, digests, autoSent })
 
   const agentIds = [...new Set(bookings.map((b) => b.agent_id as string))]
   const { data: agents } = await admin
@@ -74,7 +78,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ sent, digests })
+  return NextResponse.json({ sent, digests, autoSent })
 }
 
 // Each realtor's own morning note: what's due today and tomorrow across her
@@ -122,6 +126,79 @@ async function sendAgentDays(admin: ReturnType<typeof createAdminClient>) {
       link: "https://marvberry.com/dashboard",
     })
     if (await sendEmail({ to, ...mail, fromName: "Marvberry" })) sent++
+  }
+  return sent
+}
+
+// Marvberry Assistant on auto: for each realtor who has it on her plan and
+// chose "Send reminders for me", send the reminders that are ready today, in
+// her voice and her name — exactly what her one tap would have sent.
+async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
+  const { data: plans, error: planErr } = await admin.from("assistant_plans").select("agent_id")
+  if (planErr || !plans?.length) return 0
+  const { data: agents, error: agentErr } = await admin
+    .from("agents")
+    .select("id, full_name, business_name, public_email, timezone, assistant_auto")
+    .in("id", plans.map((p) => p.agent_id as string))
+  if (agentErr) return 0
+  const autos = (agents ?? []).filter((a) => a.assistant_auto)
+  if (!autos.length) return 0
+
+  const { data: steps } = await admin
+    .from("steps")
+    .select("id, agent_id, client_id, title, owner, phase, due_on, nudged_at, clients(first_name, email, portal_token, phase)")
+    .in("agent_id", autos.map((a) => a.id as string))
+    .eq("done", false)
+    .not("due_on", "is", null)
+  if (!steps?.length) return 0
+
+  let sent = 0
+  for (const agent of autos) {
+    const tz = (agent.timezone as string) || "America/New_York"
+    const agentName = (agent.full_name as string) || (agent.business_name as string) || "Your agent"
+    const agentFirst = ((agent.full_name as string) || "").trim().split(/\s+/)[0] || ""
+    const { data: u } = await admin.auth.admin.getUserById(agent.id as string)
+
+    for (const s of steps.filter((x) => x.agent_id === agent.id)) {
+      if (toOwner(s.owner) !== "client" || !canNudge(s.due_on as string, s.nudged_at as string | null, tz)) continue
+      const c = s.clients as unknown as { first_name: string | null; email: string | null; portal_token: string | null; phase: string | null } | null
+      if (!c?.email || !c.portal_token) continue
+
+      let missingDocs = 0
+      if (/document/i.test(s.title as string)) {
+        const { count } = await admin
+          .from("collected_docs")
+          .select("id", { count: "exact", head: true })
+          .eq("client_id", s.client_id as string)
+          .eq("received", false)
+        missingDocs = count ?? 0
+      }
+      const body =
+        (await draftReminderFor(admin, agent.id as string, s.id as string)) ||
+        nudgeDraft({
+          clientFirst: c.first_name ?? "",
+          thing: missingThing(s.title as string),
+          due: s.due_on as string,
+          tz,
+          agentFirst,
+          missingDocs,
+          phase: (s.phase as string | null) ?? c.phase,
+        })
+
+      const mail = nudgeEmail({ agentName, body, link: `https://www.marvberry.com/portal/${c.portal_token}` })
+      const ok = await sendEmail({
+        to: c.email,
+        ...mail,
+        fromName: agentName,
+        replyTo: (agent.public_email as string) || u?.user?.email || undefined,
+      })
+      if (!ok) continue
+      await Promise.all([
+        admin.from("messages").insert({ agent_id: agent.id, client_id: s.client_id, sender: "agent", body }),
+        admin.from("steps").update({ nudged_at: new Date().toISOString() }).eq("id", s.id as string),
+      ])
+      sent++
+    }
   }
   return sent
 }

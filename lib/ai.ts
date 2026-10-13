@@ -18,7 +18,7 @@ export async function askClaude(system: string, prompt: string): Promise<string 
 // undefined = this model isn't available, try the next one. null = give up quietly.
 async function once(key: string, model: string, system: string, prompt: string): Promise<string | null | undefined> {
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com"}/v1/messages`, {
       method: "POST",
       headers: {
         "content-type": "application/json",

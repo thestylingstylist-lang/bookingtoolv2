@@ -4,6 +4,8 @@ import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import SettingsForm from "./settings-form"
 import AccountForm from "./account-form"
 import AgreementForm from "./agreement-form"
+import AssistantForm from "./assistant-form"
+import { assistantFor } from "@/lib/assistant"
 import { toAgreementSettings } from "@/lib/agreement"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
@@ -40,6 +42,8 @@ export default async function SettingsPage() {
   // Same idea for the license number: blank until its column exists.
   const { data: licenseRow } = await supabase.from("agents").select("license_number").eq("id", user.id).maybeSingle()
   const license = (licenseRow as { license_number?: string } | null)?.license_number ?? ""
+
+  const assistant = await assistantFor(supabase, user.id)
 
   // Split the stored full name into first / last for the account fields.
   const parts = (agent.full_name || "").trim().split(/\s+/).filter(Boolean)
@@ -97,6 +101,14 @@ export default async function SettingsPage() {
             </p>
             <div className="mt-6">
               <AgreementForm initial={agreement} commission={commission} />
+            </div>
+
+            <h2 id="assistant" className="mt-14 font-serif font-semibold tracking-tight text-2xl">Marvberry Assistant</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
+              Your assistant writes to your clients in your voice. Your clients only ever see your name.
+            </p>
+            <div className="mt-6">
+              <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} />
             </div>
           </section>
         </div>

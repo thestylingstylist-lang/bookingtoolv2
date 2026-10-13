@@ -4,20 +4,23 @@ import { useRef, useState, useTransition } from "react"
 import { sendNudge } from "@/app/dashboard/nudge-actions"
 import { draftReminder } from "./draft-actions"
 
-// Opens with the plain draft, then Claude rewrites it in the realtor's voice.
-// She reads it, edits anything, and sends. Nothing goes out without her tap.
+// Opens with the plain draft. With Marvberry Assistant on her plan, the
+// assistant rewrites it in her voice. She reads it, edits anything, and sends.
+// Nothing goes out without her tap.
 export default function ReminderBox({
   stepId,
   who,
   agentFirst,
   fallback,
   open,
+  assistant = false,
 }: {
   stepId: string
   who: string
   agentFirst?: string
   fallback: string
   open?: boolean
+  assistant?: boolean
 }) {
   const [text, setText] = useState(fallback)
   const [writing, start] = useTransition()
@@ -34,7 +37,7 @@ export default function ReminderBox({
       open={open}
       className="group/rb mt-1"
       onToggle={(e) => {
-        if ((e.currentTarget as HTMLDetailsElement).open && !asked.current) {
+        if (assistant && (e.currentTarget as HTMLDetailsElement).open && !asked.current) {
           asked.current = true
           write()
         }
@@ -42,7 +45,9 @@ export default function ReminderBox({
     >
       <summary className="block cursor-pointer list-none rounded-lg border border-[#e6ddce] bg-[#faf7f1] px-3 py-2.5 [&::-webkit-details-marker]:hidden">
         <span className="block text-xs font-semibold text-ink">Ready to send</span>
-        <span className="mt-0.5 block font-[Georgia,serif] text-xs text-[#6d655b]">Your client reminder, written in your voice.</span>
+        <span className="mt-0.5 block font-[Georgia,serif] text-xs text-[#6d655b]">
+          {assistant ? "Your client reminder, written in your voice by Marvberry Assistant." : "Your client reminder."}
+        </span>
         <span className="mt-2 inline-block rounded-[8px] bg-ink px-2.5 py-1.5 text-xs font-medium text-paper group-open/rb:hidden">
           Read, edit, send.
         </span>
@@ -69,14 +74,14 @@ export default function ReminderBox({
           >
             Send{agentFirst ? ` as ${agentFirst}` : ""}
           </button>
-          <button
+          {assistant && <button
             type="button"
             onClick={write}
             disabled={writing}
             className="text-xs text-[#5d5b62] underline underline-offset-2 hover:text-ink disabled:opacity-40"
           >
             Write it again
-          </button>
+          </button>}
         </div>
       </form>
     </details>

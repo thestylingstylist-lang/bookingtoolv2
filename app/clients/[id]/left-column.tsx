@@ -50,6 +50,7 @@ export default function LeftColumn({
   agentFirst,
   missingDocs,
   collected = [],
+  assistant = false,
 }: {
   clientId: string
   firstName: string
@@ -62,6 +63,7 @@ export default function LeftColumn({
   agentFirst?: string
   missingDocs?: number
   collected?: Collected[]
+  assistant?: boolean
 }) {
   const who = firstName || "Client"
   const i = phaseIndex(phase)
@@ -140,6 +142,7 @@ export default function LeftColumn({
                       stepId={t.id}
                       who={who}
                       agentFirst={agentFirst}
+                      assistant={assistant}
                       open={focus === t.id && nudge !== "sent"}
                       fallback={nudgeDraft({
                         clientFirst: firstName,

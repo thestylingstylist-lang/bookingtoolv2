@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { statusOf, PILL, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
+import { setAssistantPlan } from "./assistant-actions"
 
 export const dynamic = "force-dynamic"
 
@@ -48,6 +49,11 @@ export default async function AdminAgentDetail({ params }: { params: Promise<{ i
   const { data: agentData } = await admin.from("agents").select("*").eq("id", id).maybeSingle()
   if (!agentData) notFound()
   const a = agentData as Record<string, any>
+
+  // Marvberry Assistant: on when this realtor has a row in assistant_plans.
+  const { data: planRow, error: planErr } = await admin.from("assistant_plans").select("agent_id").eq("agent_id", id).maybeSingle()
+  const assistantOn = !planErr && !!planRow
+  const assistantReady = !planErr
 
   const nowIso = new Date().toISOString()
   const [authRes, clientsRes, upcomingRes, pastRes, bookingCount, msgRes] = await Promise.all([
@@ -162,6 +168,29 @@ export default async function AdminAgentDetail({ params }: { params: Promise<{ i
           <Row label="Stripe status" value={a.subscription_status || "none"} />
           <Row label="Trial ends" value={fmtDate(a.trial_ends_at)} />
           {a.stripe_customer_id && <Row label="Stripe customer" value={a.stripe_customer_id} />}
+          <div className="mt-3 flex items-center justify-between gap-4 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
+            <div>
+              <p className="text-sm font-medium text-[#16151a]">Marvberry Assistant</p>
+              <p className="text-xs text-[#16151a]/50">
+                {!assistantReady ? "Run assistant.sql in Supabase first." : assistantOn ? "On for this realtor." : "Off. Not on their plan."}
+              </p>
+            </div>
+            {assistantReady && (
+              <form action={setAssistantPlan}>
+                <input type="hidden" name="agentId" value={id} />
+                <input type="hidden" name="on" value={assistantOn ? "0" : "1"} />
+                <button
+                  type="submit"
+                  className={
+                    "rounded-full px-3.5 py-1.5 text-xs font-medium " +
+                    (assistantOn ? "border border-[#16151a]/15 text-[#16151a]" : "bg-[#16151a] text-white")
+                  }
+                >
+                  {assistantOn ? "Turn off" : "Turn on"}
+                </button>
+              </form>
+            )}
+          </div>
         </Card>
 
         <Card title="Contact">
