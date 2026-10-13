@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { isAdminEmail } from "@/lib/admin"
 
 type CookieToSet = { name: string; value: string; options?: Record<string, unknown> }
 
@@ -52,7 +53,13 @@ export async function proxy(request: NextRequest) {
 
   // Trial over and not paid: the app waits on the billing page.
   // Clients' booking pages and portals are never touched by this.
-  if (user && guarded && !path.startsWith("/billing") && !path.startsWith("/admin") && !path.startsWith("/support")) {
+  // The team account never sees realtor billing or the realtor dashboard.
+  const admin = isAdminEmail(user?.email)
+  if (admin && (path.startsWith("/dashboard") || path.startsWith("/billing"))) {
+    return NextResponse.redirect(new URL("/admin", request.url))
+  }
+
+  if (user && !admin && guarded && !path.startsWith("/billing") && !path.startsWith("/admin") && !path.startsWith("/support")) {
     const { data: agent } = await supabase
       .from("agents")
       .select("trial_ends_at, subscription_status")
@@ -64,8 +71,8 @@ export async function proxy(request: NextRequest) {
       return NextResponse.redirect(new URL("/billing", request.url))
     }
   }
-  if (user && (path === "/login" || path === "/signup")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+  if (user && (path === "/login" || path === "/signup" || path === "/team")) {
+    return NextResponse.redirect(new URL(admin ? "/admin" : "/dashboard", request.url))
   }
 
   return response
@@ -86,5 +93,6 @@ export const config = {
     "/support/:path*",
     "/login",
     "/signup",
+    "/team",
   ],
 }

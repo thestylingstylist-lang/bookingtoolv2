@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { isAdminEmail } from "@/lib/admin"
 
 export async function signIn(
   _prev: { error: string } | null,
@@ -14,6 +15,11 @@ export async function signIn(
     return { error: "Enter your email and password." }
   }
 
+  const team = formData.get("team") === "1"
+  if (team && !isAdminEmail(email)) {
+    return { error: "This login is for the Marvberry team. Realtors log in at marvberry.com/login." }
+  }
+
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
@@ -21,7 +27,8 @@ export async function signIn(
     return { error: "That email or password didn't match. Try again." }
   }
 
-  redirect("/dashboard")
+  // The team account goes straight to admin; realtors go to their dashboard.
+  redirect(isAdminEmail(email) ? "/admin" : "/dashboard")
 }
 
 export async function signOut() {

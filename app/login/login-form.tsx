@@ -7,12 +7,13 @@ const field =
   "w-full rounded-xl border border-[#e6ddce] bg-white px-4 py-3 text-base text-[#2b2520] outline-none transition-colors focus:border-[#b89250] focus:ring-2 focus:ring-[#b89250]/15"
 const label = "mb-1.5 block text-[13px] text-[#8a8072]"
 
-export default function LoginForm() {
+export default function LoginForm({ team = false }: { team?: boolean }) {
   const [state, formAction, pending] = useActionState(signIn, null)
   const [show, setShow] = useState(false)
 
   return (
     <form action={formAction} className="space-y-5">
+      {team && <input type="hidden" name="team" value="1" />}
       <div>
       <label htmlFor="email" className={label}>Email</label>
       <input
