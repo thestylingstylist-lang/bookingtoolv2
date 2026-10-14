@@ -11,6 +11,10 @@ import { agentDueLabel, daysUntil, isClose, nudgeDraft, missingThing, canNudge, 
 import { toOwner } from "@/lib/phases"
 import { sendNudge, skipNudge } from "./nudge-actions"
 import { formatInTimeZone } from "date-fns-tz"
+import { cookies } from "next/headers"
+import { whatsNew } from "@/lib/whats-new"
+import { SEEN_COOKIE, sinceFrom } from "@/lib/whats-new-shared"
+import SeenMarker from "./seen-marker"
 
 // The client's outstanding item, said about them (agent-facing, calm, no blame).
 function theirThing(title: string, first: string) {
@@ -159,6 +163,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const priorities = allPriorities.slice(0, 3)
   const more = allPriorities.length > 3
 
+  // What changed since she last looked. Said only when something did.
+  const seenRaw = (await cookies()).get(SEEN_COOKIE)?.value
+  const since = sinceFrom(seenRaw, Date.now())
+  const news = await whatsNew(supabase, new Date(since).toISOString(), tz)
+
   const signals = { agent, bookingCount: count ?? 0 }
   const { complete, done, total } = setupProgress(SETUP_STEPS, signals)
 
@@ -171,6 +180,39 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <p className="mt-2 text-ink/60">
         {priorities.length ? "Here's what's important today. I'll help you get it handled." : "Nothing pressing today. Everything is on track."}
       </p>
+
+      <SeenMarker since={since} />
+
+      {news.items.length > 0 && (
+        <section className="mt-7 max-w-2xl rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
+          <p className="font-[Georgia,serif] text-lg leading-snug text-ink">{news.headline}</p>
+          <ul className="mt-4 space-y-2.5">
+            {news.items.map((n, i) => (
+              <li
+                key={n.key}
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 ${
+                  i === 0 ? "bg-ink text-paper" : "bg-ink/[0.04] text-ink"
+                }`}
+              >
+                <div className="min-w-0">
+                  <p className={`text-[11px] font-semibold uppercase tracking-wider ${i === 0 ? "text-[#EE7C55]" : "text-ink/45"}`}>{n.kind}</p>
+                  <p className="mt-0.5 font-medium">{n.line}</p>
+                  <p className={`text-sm ${i === 0 ? "text-paper/70" : "text-ink/55"}`}>{n.sub}</p>
+                </div>
+                <Link
+                  href={n.href}
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
+                    i === 0 ? "bg-paper text-ink" : "border border-ink/15 text-ink"
+                  }`}
+                >
+                  {n.cta}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {news.more > 0 && <p className="mt-3 text-sm text-ink/50">And {news.more} more.</p>}
+        </section>
+      )}
 
       {priorities.length > 0 && (
         <section className="mt-7 max-w-2xl">
