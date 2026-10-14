@@ -87,16 +87,12 @@ export default function Brand() {
       </section>
 
       {/* Real screens rise over the pinned hero as you scroll */}
-      <div className="float-row" aria-hidden="true">
-        <div className="fl a glass" data-speed="0.35">
-          <img src="/brand/booking-glass.jpg" alt="" />
-        </div>
-        <div className="fl b glass" data-speed="0.6">
-          <img src="/brand/signs.jpg" alt="" />
-        </div>
-        <div className="fl c glass" data-speed="0.45">
-          <img src="/brand/portal.jpg" alt="" />
-        </div>
+      <div className="float-row">
+        <img
+          className="lounge"
+          src="/brand/lounge.webp"
+          alt="A realtor relaxing on her couch while a client books a time on her Marvberry booking page"
+        />
       </div>
 
       {/* 2. The wake-up: three beats that slide over each other */}
@@ -385,25 +381,18 @@ const CSS = `
 .mb .stack{z-index:1}
 /* Narrow sections paint their background edge to edge so the pinned hero never shows at the sides */
 .mb .pivot,.mb .jobs,.mb .founder,.mb .faq{box-shadow:0 0 0 100vmax var(--linen); clip-path:inset(0 -100vmax)}
-.mb .float-row{position:relative; z-index:2; height:70vh; pointer-events:none}
-.mb .fl{position:absolute; margin:0; padding:8px; will-change:transform}
-.mb .fl img{display:block; width:100%; height:auto; border-radius:14px}
-.mb .fl.a{left:4%; top:22%; width:min(40vw,520px)}
-.mb .fl.b{left:46%; top:46%; width:min(17vw,220px)}
-.mb .fl.c{right:5%; top:16%; width:min(22vw,290px)}
+.mb .float-row{position:relative; z-index:1; pointer-events:none; overflow-x:clip}
+.mb .lounge{display:block; width:100%; height:auto}
 .mb .rv{opacity:.12; transform:translateY(26px); transition:opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1)}
 .mb .job-pic.rv{transform:translateX(48px)}
 .mb .job.flip .job-pic.rv{transform:translateX(-48px)}
 .mb .rv.in{opacity:1; transform:none}
 @media (max-width: 900px){
-  .mb .float-row{height:55vh}
-  .mb .fl.a{left:3%; top:18%; width:62vw}
-  .mb .fl.b{left:auto; right:6%; top:40%; width:30vw}
-  .mb .fl.c{display:none}
+  .mb .lounge{width:140vw; max-width:none; margin-left:-20vw}
+}
 }
 @media (prefers-reduced-motion: reduce){
   .mb .hero.light{position:relative}
-  .mb .float-row{display:none}
 }
 
 /* Hero entrance: each piece rises in, line two lands last, then the swoosh draws itself */

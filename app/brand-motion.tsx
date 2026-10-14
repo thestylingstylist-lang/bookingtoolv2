@@ -1,6 +1,5 @@
 "use client"
-// Scroll motion for the brand home page: pieces fade up from pale as they reach the screen,
-// and anything with data-speed drifts faster than the scroll so it rises over the pinned hero.
+// Scroll motion for the brand home page: pieces fade up from pale as they reach the screen.
 import { useEffect } from "react"
 
 const REVEAL = [
@@ -32,22 +31,8 @@ export default function BrandMotion() {
       io.observe(el)
     }
 
-    const drifters = Array.from(root.querySelectorAll<HTMLElement>("[data-speed]"))
-    let frame = 0
-    const drift = () => {
-      frame = 0
-      const y = window.scrollY
-      for (const el of drifters) el.style.transform = `translate3d(0, ${(-y * Number(el.dataset.speed)).toFixed(1)}px, 0)`
-    }
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(drift)
-    }
-    drift()
-    window.addEventListener("scroll", onScroll, { passive: true })
     return () => {
       io.disconnect()
-      window.removeEventListener("scroll", onScroll)
-      if (frame) cancelAnimationFrame(frame)
     }
   }, [])
   return null
