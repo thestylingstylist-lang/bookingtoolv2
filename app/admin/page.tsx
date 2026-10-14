@@ -5,6 +5,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { statusOf, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
 import GoalForm from "./goal-form"
+import { formatInTimeZone } from "date-fns-tz"
+import { CHAT_ZOOM } from "@/app/chat/config"
 
 export const dynamic = "force-dynamic"
 
@@ -51,6 +53,31 @@ export default async function AdminDashboard() {
     admin.from("admin_settings").select("value").eq("key", goalKey).maybeSingle(),
   ])
 
+  // Setup calls booked at marvberry.com/chat, coming up (or started in the last half hour).
+  const { data: callData } = await admin
+    .from("sales_leads")
+    .select("id, name, email, phone, call_at, notes")
+    .gte("call_at", new Date(now.getTime() - 30 * 60000).toISOString())
+    .order("call_at", { ascending: true })
+    .limit(5)
+  const calls = (callData ?? []) as { id: string; name: string; email: string | null; phone: string | null; call_at: string; notes: string | null }[]
+  const TZ = "America/New_York"
+  const dayKey = (d: Date) => formatInTimeZone(d, TZ, "yyyy-MM-dd")
+  const todayKey = dayKey(now)
+  const tomorrowKey = dayKey(new Date(now.getTime() + 86400000))
+  const whenLabel = (iso: string) => {
+    const d = new Date(iso)
+    const k = dayKey(d)
+    const time = formatInTimeZone(d, TZ, "h:mm a")
+    if (k === todayKey) return `Today at ${time}`
+    if (k === tomorrowKey) return `Tomorrow at ${time}`
+    return formatInTimeZone(d, TZ, "EEEE, MMMM d 'at' h:mm a")
+  }
+  const callsToday = calls.filter((c) => dayKey(new Date(c.call_at)) === todayKey).length
+  const howOf = (notes: string | null) => (/phone call/i.test(notes ?? "") ? "Phone call" : "Video call")
+  const hour = Number(formatInTimeZone(now, TZ, "H"))
+  const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
+
   // Leave the team account out — it isn't a customer.
   const teamIds = new Set(
     (usersRes.data?.users ?? []).filter((u: any) => isAdminEmail(u.email)).map((u: any) => u.id as string),
@@ -95,8 +122,64 @@ export default async function AdminDashboard() {
         <em className="bg-gradient-to-r from-[#D9467A] to-[#EE7C55] bg-clip-text pr-1 font-serif italic text-transparent">doing</em>
       </h1>
 
-      {/* Money + goal */}
+      {/* Coming up: setup calls booked at marvberry.com/chat */}
       <section className="mt-8 rounded-3xl border border-white/80 bg-white/75 p-6 backdrop-blur-xl sm:p-8">
+        <p className="font-serif text-2xl text-[#16151a]">{greet}, Alecia.</p>
+        <p className="mt-1 text-sm text-[#16151a]/60">
+          {calls.length === 0
+            ? "No setup calls on the books yet."
+            : callsToday
+              ? `You have ${callsToday} setup ${callsToday === 1 ? "call" : "calls"} today.`
+              : "Here's your next setup call."}
+        </p>
+        {calls.length > 0 && (
+          <div className="mt-5 space-y-3">
+            {calls.map((c, i) => (
+              <div
+                key={c.id}
+                className={
+                  "flex flex-wrap items-center justify-between gap-4 rounded-2xl px-4 py-3 " +
+                  (i === 0 ? "bg-[#16151a] text-white" : "bg-[#16151a]/[0.04] text-[#16151a]")
+                }
+              >
+                <div className="min-w-0">
+                  <p className={"text-xs font-semibold uppercase tracking-wider " + (i === 0 ? "text-[#EE7C55]" : "text-[#16151a]/45")}>
+                    {whenLabel(c.call_at)} · {howOf(c.notes)}
+                  </p>
+                  <p className="mt-1 text-lg font-semibold">{c.name}</p>
+                  <p className={"text-sm [overflow-wrap:anywhere] " + (i === 0 ? "text-white/70" : "text-[#16151a]/55")}>
+                    {[c.email, c.phone].filter(Boolean).join(" · ")}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {i === 0 && howOf(c.notes) === "Video call" && (
+                    <a href={CHAT_ZOOM.url} target="_blank" rel="noreferrer" className="rounded-full bg-white px-4 py-2 text-sm font-medium text-[#16151a]">
+                      Join Zoom
+                    </a>
+                  )}
+                  {i === 0 && howOf(c.notes) === "Phone call" && c.phone && (
+                    <a href={`tel:${c.phone}`} className="rounded-full bg-white px-4 py-2 text-sm font-medium text-[#16151a]">
+                      Call {c.phone}
+                    </a>
+                  )}
+                  <Link
+                    href="/admin/sales"
+                    className={
+                      "rounded-full px-4 py-2 text-sm font-medium " +
+                      (i === 0 ? "border border-white/30 text-white" : "border border-[#16151a]/15 text-[#16151a]")
+                    }
+                  >
+                    Open lead
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Money + goal */}
+      <section className="mt-4 rounded-3xl border border-white/80 bg-white/75 p-6 backdrop-blur-xl sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-[#16151a]/45">Monthly revenue</p>
