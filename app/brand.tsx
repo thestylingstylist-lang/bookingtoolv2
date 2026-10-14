@@ -68,7 +68,7 @@ export default function Brand() {
       <section id="top" className="hero light">
         <p className="eyebrow">for Real Estate Agents</p>
         <h1>
-          <span className="l1">Run the Business like</span>
+          <span className="l1">Run your Business like</span>
           <span className="l2">You&rsquo;ve got a team!</span>
         </h1>
         <p className="sub">
