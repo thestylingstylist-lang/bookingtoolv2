@@ -324,7 +324,7 @@ const GRAIN =
 
 const CSS = `
 .mb{
-  --linen:#FBF9F5; --cream:#F6EFE5; --sand:#EFE6D8; --espresso:#2A221C; --ink:#2A221C; --body:#6B6158; --muted:#9A8F84;
+  --linen:#FFFFFF; --cream:#F6EFE5; --sand:#EFE6D8; --espresso:#2A221C; --ink:#2A221C; --body:#6B6158; --muted:#9A8F84;
   --gold:#C9A46C; --rust:#8F4E2A; --sun:#FFBD59; --rasp:#CE6385; --rule:#E7DED1;
   --serif:'Playfair Display', Georgia, serif; --hand:'Caveat', cursive;
   --sans: var(--font-geist-sans), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -365,14 +365,14 @@ const CSS = `
 .mb .links a:hover{opacity:1}
 
 /* 1. Hero */
-.mb .hero.light{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#F4F0E9; padding:140px clamp(20px,5vw,72px) 96px}
+.mb .hero.light{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:var(--linen); padding:140px clamp(20px,5vw,72px) 96px}
 .mb .hero .eyebrow{font-family:var(--serif); font-size:clamp(17px,.9rem + .4vw,22px); color:var(--rust); align-self:center; width:min(100%,62rem); text-align:left; padding-left:clamp(0px,3vw,48px)}
 .mb .hero h1{font-style:italic; line-height:1.02; margin-top:6px}
 .mb .hero h1 .l1{display:block; font-size:clamp(30px,.5rem + 5.6vw,96px); color:var(--ink)}
 .mb .hero h1 .l2{display:block; font-size:clamp(40px,.5rem + 7.6vw,124px); color:var(--sun); font-weight:500}
 .mb .hero .sub{margin-top:28px; font-size:clamp(18px,.9rem + .7vw,26px); line-height:1.5; color:var(--ink); max-width:46rem}
 .mb .btn.rust{margin-top:44px; background:transparent; color:var(--rust); border:2px solid var(--sun); border-radius:12px; font-family:var(--serif); font-size:clamp(20px,1rem + .6vw,26px); padding:8px 56px}
-.mb .btn.rust:hover{background:var(--rust); color:#F4F0E9}
+.mb .btn.rust:hover{background:var(--rust); color:#FFFFFF}
 .mb .swoosh{width:96px; height:12px; margin-top:8px; fill:none; stroke:var(--rust); stroke-width:1.6; stroke-linecap:round}
 .mb .hero .fine.dark{margin-top:14px; color:var(--ink)}
 /* Scroll: the hero stays pinned while screens rise over it, then each section slides up over the last */
