@@ -5,6 +5,7 @@ import "@fontsource/playfair-display/400-italic.css"
 import "@fontsource/playfair-display/500.css"
 import "@fontsource/playfair-display/500-italic.css"
 import "@fontsource/caveat/500.css"
+import BrandMotion from "./brand-motion"
 
 const START = "/signup"
 const CALL = "/chat"
@@ -48,6 +49,7 @@ export default function Brand() {
   return (
     <div className="mb">
       <style>{CSS}</style>
+      <BrandMotion />
 
       <header className="nav">
         <a href="#top" className="mark">
@@ -83,6 +85,19 @@ export default function Brand() {
         </svg>
         <p className="fine dark">No credit card required.</p>
       </section>
+
+      {/* Real screens rise over the pinned hero as you scroll */}
+      <div className="float-row" aria-hidden="true">
+        <div className="fl a glass" data-speed="0.35">
+          <img src="/brand/booking-glass.jpg" alt="" />
+        </div>
+        <div className="fl b glass" data-speed="0.6">
+          <img src="/brand/signs.jpg" alt="" />
+        </div>
+        <div className="fl c glass" data-speed="0.45">
+          <img src="/brand/portal.jpg" alt="" />
+        </div>
+      </div>
 
       {/* 2. The wake-up: three beats that slide over each other */}
       <div className="stack">
@@ -364,6 +379,33 @@ const CSS = `
 .mb .btn.rust:hover{background:var(--rust); color:#F4F0E9}
 .mb .swoosh{width:96px; height:12px; margin-top:8px; fill:none; stroke:var(--rust); stroke-width:1.6; stroke-linecap:round}
 .mb .hero .fine.dark{margin-top:14px; color:var(--ink)}
+/* Scroll: the hero stays pinned while screens rise over it, then each section slides up over the last */
+.mb .hero.light{position:sticky; top:0; z-index:0}
+:where(.mb > section:not(.hero), .mb > .stack, .mb > footer){position:relative; z-index:1; background-color:var(--linen)}
+.mb .stack{z-index:1}
+/* Narrow sections paint their background edge to edge so the pinned hero never shows at the sides */
+.mb .pivot,.mb .jobs,.mb .founder,.mb .faq{box-shadow:0 0 0 100vmax var(--linen); clip-path:inset(0 -100vmax)}
+.mb .float-row{position:relative; z-index:2; height:70vh; pointer-events:none}
+.mb .fl{position:absolute; margin:0; padding:8px; will-change:transform}
+.mb .fl img{display:block; width:100%; height:auto; border-radius:14px}
+.mb .fl.a{left:4%; top:22%; width:min(40vw,520px)}
+.mb .fl.b{left:46%; top:46%; width:min(17vw,220px)}
+.mb .fl.c{right:5%; top:16%; width:min(22vw,290px)}
+.mb .rv{opacity:.12; transform:translateY(26px); transition:opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1)}
+.mb .job-pic.rv{transform:translateX(48px)}
+.mb .job.flip .job-pic.rv{transform:translateX(-48px)}
+.mb .rv.in{opacity:1; transform:none}
+@media (max-width: 900px){
+  .mb .float-row{height:55vh}
+  .mb .fl.a{left:3%; top:18%; width:62vw}
+  .mb .fl.b{left:auto; right:6%; top:40%; width:30vw}
+  .mb .fl.c{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  .mb .hero.light{position:relative}
+  .mb .float-row{display:none}
+}
+
 /* Hero entrance: each piece rises in, line two lands last, then the swoosh draws itself */
 @keyframes mbRise{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
 @keyframes mbLand{from{opacity:0; transform:translateY(28px) scale(.96)} to{opacity:1; transform:none}}
@@ -462,7 +504,7 @@ const CSS = `
 
 @media (max-width: 900px){
   .mb .links{display:none}
-  .mb .hero.light{padding-top:110px; min-height:auto}
+  .mb .hero.light{padding-top:110px; min-height:100svh}
   .mb .hero .eyebrow{text-align:center; padding-left:0}
   .mb .job,.mb .founder{grid-template-columns:1fr}
   .mb .job.flip .job-pic{order:0}
