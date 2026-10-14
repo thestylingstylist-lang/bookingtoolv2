@@ -364,6 +364,22 @@ const CSS = `
 .mb .btn.rust:hover{background:var(--rust); color:#F4F0E9}
 .mb .swoosh{width:96px; height:12px; margin-top:8px; fill:none; stroke:var(--rust); stroke-width:1.6; stroke-linecap:round}
 .mb .hero .fine.dark{margin-top:14px; color:var(--ink)}
+/* Hero entrance: each piece rises in, line two lands last, then the swoosh draws itself */
+@keyframes mbRise{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
+@keyframes mbLand{from{opacity:0; transform:translateY(28px) scale(.96)} to{opacity:1; transform:none}}
+@keyframes mbDraw{to{stroke-dashoffset:0}}
+.mb .hero .eyebrow,.mb .hero h1 .l1,.mb .hero .sub,.mb .hero .btn.rust,.mb .hero .fine.dark{opacity:0; animation:mbRise .8s cubic-bezier(.2,.7,.2,1) forwards}
+.mb .hero .eyebrow{animation-delay:.1s}
+.mb .hero h1 .l1{animation-delay:.3s}
+.mb .hero h1 .l2{opacity:0; transform-origin:50% 70%; animation:mbLand 1s cubic-bezier(.2,.8,.2,1) .65s forwards}
+.mb .hero .sub{animation-delay:1.2s}
+.mb .hero .btn.rust{animation-delay:1.45s}
+.mb .swoosh path{stroke-dasharray:110; stroke-dashoffset:110; animation:mbDraw .7s ease-out 1.9s forwards}
+.mb .hero .fine.dark{animation-delay:2.1s}
+@media (prefers-reduced-motion: reduce){
+  .mb .hero .eyebrow,.mb .hero h1 .l1,.mb .hero h1 .l2,.mb .hero .sub,.mb .hero .btn.rust,.mb .hero .fine.dark{opacity:1; animation:none; transform:none}
+  .mb .swoosh path{stroke-dashoffset:0; animation:none}
+}
 
 /* 2. Problem: lots of air */
 .mb section:not(.photo){padding:clamp(96px,12vw,168px) clamp(20px,5vw,72px)}
