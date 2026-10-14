@@ -3,6 +3,7 @@
 import "@fontsource/playfair-display/400.css"
 import "@fontsource/playfair-display/400-italic.css"
 import "@fontsource/playfair-display/500.css"
+import "@fontsource/playfair-display/500-italic.css"
 import "@fontsource/caveat/500.css"
 
 const START = "/signup"
@@ -58,32 +59,29 @@ export default function Brand() {
           <a href="#pricing">Pricing</a>
           <a href="/login">Log in</a>
         </nav>
-        <a className="btn cream sm" href={START}>
+        <a className="btn sm" href={START}>
           Get started for free
         </a>
       </header>
 
       {/* 1. What we do */}
-      <section id="top" className="hero photo">
-        <div className="hero-copy">
-          <p className="hand gold">for solo realtors</p>
-          <h1>Run your business like you&rsquo;ve got a team.</h1>
-          <p className="sub">
-            Everything after a client says yes. The scheduling, the signatures, the what&rsquo;s-next. Handled.
-          </p>
-          <div className="cta-row">
-            <a className="btn cream" href={START}>
-              Get started for free
-            </a>
-            <span className="fine">No credit card required.</span>
-          </div>
-        </div>
-        <figure className="glass hero-glass">
-          <video poster="/marvberry-demo-poster.jpg" autoPlay muted loop playsInline preload="metadata" aria-label="A short demo of Marvberry">
-            <source src="/marvberry-demo.mp4" type="video/mp4" />
-            <source src="/marvberry-demo.webm" type="video/webm" />
-          </video>
-        </figure>
+      <section id="top" className="hero light">
+        <p className="eyebrow">for Real Estate Agents</p>
+        <h1>
+          <span className="l1">Run the Business like</span>
+          <span className="l2">You&rsquo;ve got a team!</span>
+        </h1>
+        <p className="sub">
+          Everything after a client says &ldquo;YES!&rdquo; The scheduling, the signature, and the what&rsquo;s next.
+          Handled in one place.
+        </p>
+        <a className="btn rust" href={START}>
+          Start for free
+        </a>
+        <svg className="swoosh" viewBox="0 0 100 12" aria-hidden="true">
+          <path d="M2 4 C 35 0, 70 2, 98 10" />
+        </svg>
+        <p className="fine dark">No credit card required.</p>
       </section>
 
       {/* 2. The wake-up: three beats that slide over each other */}
@@ -316,7 +314,7 @@ const GRAIN =
 const CSS = `
 .mb{
   --linen:#FBF9F5; --cream:#F6EFE5; --sand:#EFE6D8; --espresso:#2A221C; --ink:#2A221C; --body:#6B6158; --muted:#9A8F84;
-  --gold:#C9A46C; --rasp:#CE6385; --rule:#E7DED1;
+  --gold:#C9A46C; --rust:#8F4E2A; --rasp:#CE6385; --rule:#E7DED1;
   --serif:'Playfair Display', Georgia, serif; --hand:'Caveat', cursive;
   --sans: var(--font-geist-sans), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
   color-scheme: light; background:var(--linen); color:var(--ink); font-family:var(--sans);
@@ -348,7 +346,7 @@ const CSS = `
 .mb .glass{background:rgba(250,244,236,.14); border:1px solid rgba(250,244,236,.32); border-radius:22px; backdrop-filter:blur(18px) saturate(1.1); -webkit-backdrop-filter:blur(18px) saturate(1.1); box-shadow:0 30px 80px -30px rgba(20,14,10,.55), inset 0 1px 0 rgba(255,255,255,.25)}
 
 /* Nav floats over the hero */
-.mb .nav{position:absolute; top:0; left:0; right:0; z-index:10; display:flex; align-items:center; gap:28px; padding:22px clamp(20px,5vw,72px); color:var(--cream)}
+.mb .nav{position:absolute; top:0; left:0; right:0; z-index:10; display:flex; align-items:center; gap:28px; padding:22px clamp(20px,5vw,72px); color:var(--ink)}
 .mb .mark{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--serif); font-size:21px; margin-right:auto}
 .mb .mark img{border-radius:7px}
 .mb .links{display:flex; gap:28px; font-size:14.5px}
@@ -356,13 +354,16 @@ const CSS = `
 .mb .links a:hover{opacity:1}
 
 /* 1. Hero */
-.mb .hero{min-height:100vh; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.05fr); gap:clamp(32px,5vw,72px); align-items:center; padding:140px clamp(20px,5vw,72px) 96px}
-.mb .hero-copy .hand{margin-bottom:18px; font-size:32px}
-.mb .hero h1{font-size:clamp(38px,1.2rem + 3vw,68px); line-height:1.08; color:#FBF6EE; max-width:16ch}
-.mb .hero .sub{margin-top:26px; font-size:18.5px; line-height:1.65; color:rgba(246,239,229,.86); max-width:34rem}
-.mb .cta-row{margin-top:34px; display:flex; align-items:center; gap:18px 22px; flex-wrap:wrap}
-.mb .hero-glass{margin:0; padding:clamp(10px,1.4vw,18px)}
-.mb .hero-glass video{display:block; width:100%; height:auto; aspect-ratio:16/9; object-fit:cover; border-radius:12px; background:#5f5853}
+.mb .hero.light{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#F4F0E9; padding:140px clamp(20px,5vw,72px) 96px}
+.mb .hero .eyebrow{font-family:var(--serif); font-size:clamp(17px,.9rem + .4vw,22px); color:var(--rust); align-self:center; width:min(100%,62rem); text-align:left; padding-left:clamp(0px,3vw,48px)}
+.mb .hero h1{font-style:italic; line-height:1.02; margin-top:6px}
+.mb .hero h1 .l1{display:block; font-size:clamp(30px,.5rem + 5.6vw,96px); color:var(--ink)}
+.mb .hero h1 .l2{display:block; font-size:clamp(40px,.5rem + 7.6vw,124px); color:var(--rust); font-weight:500}
+.mb .hero .sub{margin-top:28px; font-size:clamp(18px,.9rem + .7vw,26px); line-height:1.5; color:var(--ink); max-width:46rem}
+.mb .btn.rust{margin-top:44px; background:transparent; color:var(--rust); border:2px solid var(--rust); border-radius:12px; font-family:var(--serif); font-size:clamp(20px,1rem + .6vw,26px); padding:8px 56px}
+.mb .btn.rust:hover{background:var(--rust); color:#F4F0E9}
+.mb .swoosh{width:96px; height:12px; margin-top:8px; fill:none; stroke:var(--rust); stroke-width:1.6; stroke-linecap:round}
+.mb .hero .fine.dark{margin-top:14px; color:var(--ink)}
 
 /* 2. Problem: lots of air */
 .mb section:not(.photo){padding:clamp(96px,12vw,168px) clamp(20px,5vw,72px)}
@@ -445,7 +446,8 @@ const CSS = `
 
 @media (max-width: 900px){
   .mb .links{display:none}
-  .mb .hero{grid-template-columns:1fr; padding-top:110px; min-height:auto}
+  .mb .hero.light{padding-top:110px; min-height:auto}
+  .mb .hero .eyebrow{text-align:center; padding-left:0}
   .mb .job,.mb .founder{grid-template-columns:1fr}
   .mb .job.flip .job-pic{order:0}
   .mb .steps,.mb .plans{grid-template-columns:1fr}
