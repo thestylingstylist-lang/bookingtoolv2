@@ -67,10 +67,9 @@ export default function Brand() {
       <section id="top" className="hero photo">
         <div className="hero-copy">
           <p className="hand gold">for solo realtors</p>
-          <h1>Ready to handle every client, paperwork, and communication, all in one place?</h1>
+          <h1>Run your business like you&rsquo;ve got a team.</h1>
           <p className="sub">
-            Send your branded booking link, get agreements signed, request documents, and follow up with every client.
-            Built for solo realtors. And we set it up for you.
+            Everything after a client says yes. The scheduling, the signatures, the what&rsquo;s-next. Handled.
           </p>
           <div className="cta-row">
             <a className="btn cream" href={START}>
@@ -118,11 +117,10 @@ export default function Brand() {
       {/* 3. The pivot */}
       <section className="pivot">
         <p className="hand gold">here&rsquo;s the thing</p>
-        <h2>Working harder won&rsquo;t fix it. Structure will.</h2>
+        <h2>You went out on your own to build a business, not to be its back office.</h2>
         <p className="lead">
-          Marvberry is your assistant, without the hire. Every client lives in one place. Open one and you&rsquo;re caught
-          up at a glance: what&rsquo;s done, what&rsquo;s next, what&rsquo;s waiting on you. Handle it, and you&rsquo;re
-          done for the day.
+          Meet the manager you never had. You say yes, and Marvberry takes it from there. Every client lives in one
+          file: their messages, documents, offers, and notes, from showing to offer to closing. Nothing to dig for.
         </p>
       </section>
 
@@ -153,10 +151,10 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Agreements and documents</p>
-            <h3>Get it signed.</h3>
+            <h3>From booked to signed in two clicks.</h3>
             <p>
-              When a client says yes, your agreement is already filled in. Check the details, hit send, and they sign
-              from their phone. Request their documents the same way. Everything lands under their name.
+              A client books your link. One click makes them a client. One more sends your buyer agreement, already
+              filled in with your usual terms. You check it, hit send, and they sign from their phone.
             </p>
           </div>
         </article>
@@ -169,16 +167,16 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your client&rsquo;s page</p>
-            <h3>Take care of your client.</h3>
+            <h3>A page that answers &ldquo;what&rsquo;s next?&rdquo;</h3>
             <p>
-              Every client gets a private page with their next steps. No password, no app. Reminders go out for you. Your
-              messages stay in one place. Your client always knows what&rsquo;s next, and you don&rsquo;t have to answer it
-              twice.
+              Every client gets a private page with their next steps and due dates. They don&rsquo;t sign up or use a
+              password. They check it instead of texting you.
             </p>
           </div>
         </article>
 
         <div className="mid-cta">
+          <p className="team-line">That&rsquo;s what having a team feels like. You stay with the client. The back office is handled.</p>
           <a className="btn" href={START}>
             Get started for free
           </a>
@@ -487,6 +485,7 @@ const CSS = `
 .mb .jobs-head{text-align:center}
 .mb .jobs-head h2{font-size:clamp(32px,1rem + 2.4vw,54px); line-height:1.1; max-width:20ch; margin:0 auto}
 .mb .mid-cta{text-align:center}
+.mb .team-line{font-family:var(--serif); font-size:22px; line-height:1.5; color:var(--ink); max-width:34rem; margin:0 auto 28px}
 .mb .faq{max-width:1040px; margin:0 auto}
 .mb .faq h2{font-size:clamp(32px,1rem + 2.4vw,52px); font-style:italic; text-align:center}
 .mb .qa{margin-top:48px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:40px 56px}
