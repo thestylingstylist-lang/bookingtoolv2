@@ -1,4 +1,5 @@
 import "server-only"
+import { letterHtml, teamNote, details, para as lpara, textLink } from "@/lib/letter"
 
 // Sends transactional email via the Resend HTTP API. No SDK needed — we call
 // the REST endpoint directly with the API key already set in the environment.
@@ -64,28 +65,6 @@ export function manageUrl(token: string) {
   return `https://marvberry.com/manage/${token}`
 }
 
-const manageBlock = (url: string) =>
-  `<tr><td style="padding:4px 32px 8px;"><p style="margin:0;color:#5d5b62;font-size:13px;">Need a different time? <a href="${url}" style="color:#16151a;">Reschedule or cancel</a></p></td></tr>`
-
-const wrap = (inner: string) => `<!doctype html>
-<html><body style="margin:0;padding:0;background:#f1f0ee;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f0ee;padding:32px 0;">
-<tr><td align="center">
-<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:14px;overflow:hidden;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
-${inner}
-</table>
-</td></tr></table>
-</body></html>`
-
-function detailRows(rows: [string, string][]) {
-  return rows
-    .map(
-      ([k, v]) =>
-        `<tr><td style="padding:4px 0;color:#5d5b62;font-size:13px;width:120px;">${k}</td><td style="padding:4px 0;color:#16151a;font-size:14px;font-weight:600;">${v}</td></tr>`
-    )
-    .join("")
-}
-
 // ---- Client letters ---------------------------------------------------------
 // What a client gets from their agent: an open, warm note, no boxes. Marvberry
 // stays out of it; it reads like the agent wrote it.
@@ -104,38 +83,21 @@ function letter(o: {
   signoff: string
   contact?: string
 }) {
-  const sig = esc(firstOf(o.agentName))
-  return `<!doctype html>
-<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..600&family=Caveat&display=swap" rel="stylesheet">
-</head>
-<body style="margin:0;padding:0;background:#ffffff;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:40px 16px;">
-<tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
-<tr><td style="padding:0 8px;font-family:Georgia,serif;font-size:11px;letter-spacing:.3em;color:#b89250;text-transform:uppercase;">${esc(o.agentName)}</td></tr>
-<tr><td style="padding:22px 8px 0;">
-<h1 style="margin:0;font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:30px;line-height:1.22;color:#2b2520;">${o.heading}</h1>
-</td></tr>
-<tr><td style="padding:8px 8px 0;">${o.paras.map(P).join("")}</td></tr>
-${
-  o.when
-    ? `<tr><td style="padding:26px 8px 0;">
-<table role="presentation" cellpadding="0" cellspacing="0">
+  const when = o.when
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:26px;">
 <tr><td style="font-family:Georgia,serif;font-size:11px;letter-spacing:.18em;color:#b89250;padding:0 0 3px;">WHEN</td></tr>
 <tr><td style="font-family:'Playfair Display',Georgia,serif;font-size:19px;color:#2b2520;padding:0 0 2px;">${o.when.label}</td></tr>
 <tr><td style="font-family:Georgia,serif;font-size:14px;color:#6d655b;padding:2px 0 0;">${o.when.sub}</td></tr>
-</table></td></tr>`
+</table>`
     : ""
-}
-${o.after ? `<tr><td style="padding:16px 8px 0;">${o.after}</td></tr>` : ""}
-<tr><td style="padding:34px 8px 0;">
-<p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">${o.signoff}</p>
-<p style="margin:6px 0 0;font-family:'Caveat',cursive;font-size:36px;line-height:1;color:#2b2520;">${sig}</p>
-${o.contact ? `<p style="margin:10px 0 0;font-family:Georgia,serif;font-size:13px;color:#8a8072;">${o.contact}</p>` : ""}
-</td></tr>
-</table></td></tr></table>
-</body></html>`
+  return letterHtml({
+    eyebrow: o.agentName,
+    heading: o.heading,
+    body: o.paras.map(P).join("") + when + (o.after ? `<div style="margin-top:16px;">${o.after}</div>` : ""),
+    signoff: o.signoff,
+    signature: firstOf(o.agentName),
+    contact: o.contact,
+  })
 }
 
 const joinLink = (url: string) =>
@@ -310,23 +272,13 @@ export function agentNotificationEmail(opts: {
   ]
   if (opts.lookingTo) rows.push(["Looking to", opts.lookingTo])
 
-  const html = wrap(`
-    <tr><td style="background:#16151a;height:6px;"></td></tr>
-    <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:20px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">New booking</h1>
-      <p style="margin:10px 0 0;color:#16151a;font-size:15px;">${opts.clientName} just booked a consultation.</p>
-    </td></tr>
-    <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
-        ${detailRows(rows)}
-      </table>
-    </td></tr>
-    ${
-      opts.notes
-        ? `<tr><td style="padding:0 32px 28px;"><p style="margin:0 0 4px;color:#5d5b62;font-size:13px;">Notes</p><p style="margin:0;color:#16151a;font-size:14px;line-height:1.5;">${opts.notes.replace(/</g, "&lt;")}</p></td></tr>`
-        : `<tr><td style="height:20px;"></td></tr>`
-    }
-  `)
+  const html = teamNote(
+    `${esc(opts.clientName)} just booked with you.`,
+    lpara("A new consultation is on your calendar. Here are the details.") +
+      details(rows) +
+      (opts.notes ? lpara(`<em>Their note:</em> ${esc(opts.notes)}`) : "") +
+      lpara(textLink("https://www.marvberry.com/bookings", "Open your bookings")),
+  )
 
   const text = `New booking
 
@@ -471,18 +423,10 @@ export function agentChangeEmail(opts: {
     ? `${opts.clientName} moved their consultation to a new time.`
     : `${opts.clientName} cancelled their consultation. The time is open again on your booking page.`
 
-  const html = wrap(`
-    <tr><td style="background:#16151a;height:6px;"></td></tr>
-    <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:20px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">${heading}</h1>
-      <p style="margin:10px 0 0;color:#16151a;font-size:15px;">${line}</p>
-    </td></tr>
-    <tr><td style="padding:16px 32px 28px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
-        ${detailRows(rows)}
-      </table>
-    </td></tr>
-  `)
+  const html = teamNote(
+    moved ? `${esc(opts.clientName)} picked a new time.` : `${esc(opts.clientName)} cancelled.`,
+    lpara(esc(line)) + details(rows.slice(1)) + lpara(textLink("https://www.marvberry.com/calendar", "Open your calendar")),
+  )
   const text = `${heading}
 
 ${line}

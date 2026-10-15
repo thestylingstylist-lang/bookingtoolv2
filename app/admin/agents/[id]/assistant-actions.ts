@@ -8,6 +8,7 @@ import { isAdminEmail } from "@/lib/admin"
 import { stripe, siteUrl, SOLO_PRICE_ID } from "@/lib/stripe"
 import { sendEmail } from "@/lib/email"
 import { sendResetEmail } from "@/lib/password-reset"
+import { letterHtml, para, button, small } from "@/lib/letter"
 
 // The team turns Marvberry Assistant on or off for one realtor.
 export async function setAssistantPlan(formData: FormData): Promise<void> {
@@ -120,12 +121,19 @@ export async function sendPaymentLink(formData: FormData): Promise<void> {
 
   const first = ((agent.full_name as string) || "").trim().split(/\s+/)[0] || "there"
   const text = `Hi ${first},\n\nHere's your link to make Marvberry official. It's $39 a month, and you have 30 days to get every dollar back if it isn't right for you.\n\n${url}\n\nThe link is good for 24 hours. If it runs out, just reply and I'll send a fresh one.\n\nAlecia`
-  const html = `<div style="font-family:Georgia,serif;font-size:16px;line-height:1.6;color:#2a221c;max-width:520px">
-<p>Hi ${first},</p>
-<p>Here's your link to make Marvberry official. It's $39 a month, and you have 30 days to get every dollar back if it isn't right for you.</p>
-<p style="margin:28px 0"><a href="${url}" style="background:#2a221c;color:#f6efe5;text-decoration:none;padding:13px 26px;border-radius:999px;font-family:Arial,sans-serif;font-size:15px">Start my membership</a></p>
-<p>The link is good for 24 hours. If it runs out, just reply and I'll send a fresh one.</p>
-<p>Alecia</p></div>`
+  const html = letterHtml({
+    eyebrow: "Marvberry",
+    heading: "Let&rsquo;s make it official.",
+    body:
+      para(`Hi ${first},`) +
+      para("Here&rsquo;s your link to start your Marvberry membership. It&rsquo;s $39 a month, and you have 30 days to get every dollar back if it isn&rsquo;t right for you.") +
+      button(url!, "Start my membership") +
+      small("The link is good for 24 hours. If it runs out, just reply and I&rsquo;ll send a fresh one."),
+    signoff: "Talk soon,",
+    signature: "Alecia",
+    role: "Founder, Marvberry",
+    footer: "Marvberry. Move forward.",
+  })
   const ok = await sendEmail({ to: email, subject: "Your Marvberry membership link", html, text, fromName: "Alecia at Marvberry", replyTo: "team@marvberry.com" })
   redirect(`/admin/agents/${agentId}?pay=${ok ? "sent" : "made"}&payurl=${encodeURIComponent(url)}`)
 }

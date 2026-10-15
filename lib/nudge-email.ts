@@ -3,27 +3,15 @@ import "server-only"
 // The one-tap reminder, sent in the realtor's name. It reads like she wrote
 // it herself, because she approved every word.
 
-function esc(s: string) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
-}
+import { letterHtml, button, esc } from "@/lib/letter"
 
 export function nudgeEmail(opts: { agentName: string; body: string; link: string }) {
+  // Her own words, exactly as she approved them (they already end with her name).
   const paras = opts.body
     .split(/\n{2,}/)
-    .map((p) => `<p style="margin:0 0 14px;color:#16151a;font-size:15px;line-height:1.55;">${esc(p).replace(/\n/g, "<br>")}</p>`)
+    .map((p) => `<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">${esc(p).replace(/\n/g, "<br>")}</p>`)
     .join("")
-  const html = `<!doctype html>
-<html><body style="margin:0;padding:0;background:#f1f0ee;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f0ee;padding:40px 0;">
-<tr><td align="center">
-<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e4e3e0;border-radius:14px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
-<tr><td style="padding:32px 36px 4px;">${paras}</td></tr>
-<tr><td style="padding:4px 36px 32px;">
-  <a href="${opts.link}" style="display:inline-block;background:#16151a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-size:15px;">Open my page</a>
-</td></tr>
-</table>
-</td></tr></table>
-</body></html>`
+  const html = letterHtml({ eyebrow: opts.agentName, body: paras + button(opts.link, "Open my page") })
   const text = `${opts.body}\n\nOpen my page: ${opts.link}`
   return { subject: `A quick reminder from ${opts.agentName}`, html, text }
 }
@@ -68,8 +56,8 @@ export function agentDayEmail(opts: {
 
   const html = `<!doctype html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&display=swap" rel="stylesheet"></head>
-<body style="margin:0;padding:0;background:#faf7f1;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf7f1;">
+<body style="margin:0;padding:0;background:#ffffff;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
 <tr><td align="center" style="padding:44px 20px;">
 <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
 <tr><td style="padding:0 8px;">
