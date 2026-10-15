@@ -87,10 +87,11 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your bookings</p>
-            <h3>It fills your calendar.</h3>
+            <h3>This is what having it together looks like.</h3>
             <p>
-              One link. Your photo, your hours. Clients pick a time that works for you, and the booking just shows up.
-              No phone tag.
+              One link with your name, your face, and your hours. Clients book themselves into the times you set, and
+              everyone gets a confirmation and a reminder. From the first click, you look like you&rsquo;ve got a front
+              desk.
             </p>
           </div>
         </article>
@@ -103,10 +104,10 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your deals</p>
-            <h3>It gets your paperwork signed.</h3>
+            <h3>They say yes. The deal is handled.</h3>
             <p>
-              The moment a client says yes, your buyer agreement is ready to go, already filled in with your terms. One
-              click and it&rsquo;s sent. They sign from their phone. No printing, no scanning, no chasing.
+              Your agreement is already filled in with your terms. One click, and they sign from their phone. Ask for
+              documents, and they upload them from their page. Every file lands under their name.
             </p>
           </div>
         </article>
@@ -119,46 +120,44 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your relationships</p>
-            <h3>It keeps every client in the loop.</h3>
+            <h3>Your clients always know what&rsquo;s next.</h3>
             <p>
-              Every client gets their own page with their next step and what&rsquo;s due. They check it instead of texting
-              you.
+              Every client gets a private page with their next step and what&rsquo;s due. No app. No password. They check
+              it instead of texting you.
             </p>
           </div>
         </article>
       </section>
 
-      {/* Q3. How is this different from everything I've tried? */}
+      {/* Q3. What makes this different? Beat 1: you're not setting it up */}
       <section className="plan-band">
         <p className="hand gold">here&rsquo;s the difference</p>
-        <h2>
-          You&rsquo;ve bought the tool before. Watched the tutorial. <em>Never opened it again.</em>
-        </h2>
-        <p className="lead strong">This time, you don&rsquo;t set anything up. We do.</p>
+        <h2>And no, you&rsquo;re not setting this up yourself.</h2>
         <p className="lead">
-          One free call, and we build it with you: your booking page, your agreement, your client steps. You don&rsquo;t
-          learn a system. You show up, and it&rsquo;s already running.
+          We set it up for you. Your booking page, your agreements, your client steps, all built with you on one free
+          call. You don&rsquo;t learn a system. You just show up and it&rsquo;s ready.
         </p>
-        <p className="lead guarantee">And if it isn&rsquo;t right for you, you have 30 days to get every dollar back.</p>
         <a className="btn" href={START}>
           Try Marvberry
         </a>
         <p className="fine dark">Free to start. No credit card.</p>
       </section>
 
-      {/* Q4. So what is this, really? */}
+      {/* Q3, beat 2: meet Marvberry, the assistant */}
       <section className="pivot meet">
         <p className="hand gold">meet marvberry</p>
-        <h2>
-          Your first hire.
-        </h2>
-        <p className="lead strong">The assistant that keeps your deals moving forward.</p>
+        <h2>Your assistant. It sounds like you.</h2>
+        <p className="lead">
+          Marvberry learns how you write. When a client messages you, a reply is waiting in your words. You read it,
+          approve it, send it. Reminders are ready before anything is late. And every morning, it tells you what changed
+          and what matters today.
+        </p>
+        <p className="lead strong">Your clients only ever see your name.</p>
         <p className="trio">
           <span>Your bookings.</span>
           <span>Your deals.</span>
           <span>Your relationships.</span>
         </p>
-        <p className="team-line">Three jobs. One hire.</p>
       </section>
 
       {/* Q5. What's this going to cost me? The value stack */}
