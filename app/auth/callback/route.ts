@@ -13,9 +13,9 @@ export async function GET(request: NextRequest) {
   const next = nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/dashboard"
 
   // One-time sign-in link made by the Marvberry team to set up a realtor's account.
-  if (tokenHash && type === "magiclink") {
+  if (tokenHash && (type === "magiclink" || type === "recovery")) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" })
+    const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
     if (!error) return NextResponse.redirect(new URL(next, origin))
     return NextResponse.redirect(new URL("/login?error=link", origin))
   }

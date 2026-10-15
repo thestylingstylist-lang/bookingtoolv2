@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { statusOf, PILL, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
-import { setAssistantPlan, extendTrial, makeSetupLink } from "./assistant-actions"
+import { setAssistantPlan, extendTrial, makeSetupLink, sendPaymentLink, sendPasswordReset } from "./assistant-actions"
 import CopyLink from "./copy-link"
 
 export const dynamic = "force-dynamic"
@@ -41,7 +41,7 @@ export default async function AdminAgentDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ setup?: string }>
+  searchParams: Promise<{ setup?: string; pay?: string; payurl?: string; reset?: string }>
 }) {
   const supabase = await createClient()
   const {
@@ -51,7 +51,7 @@ export default async function AdminAgentDetail({
   if (!isAdminEmail(user.email)) redirect("/dashboard")
 
   const { id } = await params
-  const { setup } = await searchParams
+  const { setup, pay, payurl, reset } = await searchParams
   const setupUrl =
     setup && setup !== "fail"
       ? `https://www.marvberry.com/auth/callback?token_hash=${encodeURIComponent(setup)}&type=magiclink&next=/settings`
@@ -179,6 +179,40 @@ export default async function AdminAgentDetail({
           <Row label="Status" value={st.label} />
           <Row label="Stripe status" value={a.subscription_status || "none"} />
           <Row label="Trial ends" value={fmtDate(a.trial_ends_at)} />
+          <div className="mt-3 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
+            <p className="text-sm font-medium text-[#16151a]">Payment link</p>
+            <p className="text-xs text-[#16151a]/50">
+              Emails them a secure Stripe link for Solo Agent, $39 a month. Good for 24 hours.
+            </p>
+            <form action={sendPaymentLink} className="mt-2">
+              <input type="hidden" name="agentId" value={id} />
+              <button type="submit" className="rounded-full bg-[#16151a] px-3.5 py-1.5 text-xs font-medium text-white">
+                Send payment link
+              </button>
+            </form>
+            {pay === "sent" && <p className="mt-2 text-xs font-medium text-[#16151a]">Sent to {loginEmail}.</p>}
+            {pay === "made" && <p className="mt-2 text-xs text-[#16151a]">The email didn&rsquo;t send, but the link is ready below.</p>}
+            {pay === "fail" && <p className="mt-2 text-xs text-[#D9467A]">That didn&rsquo;t work. Try again.</p>}
+            {payurl && (
+              <p className="mt-1 text-xs [overflow-wrap:anywhere]">
+                <a href={payurl} className="text-[#16151a] underline underline-offset-2">{payurl.slice(0, 48)}…</a>
+              </p>
+            )}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
+            <div>
+              <p className="text-sm font-medium text-[#16151a]">Password reset</p>
+              <p className="text-xs text-[#16151a]/50">
+                {reset === "sent" ? `Sent to ${loginEmail}.` : reset === "fail" ? "That didn't send. Try again." : "Emails them a link to choose a new password."}
+              </p>
+            </div>
+            <form action={sendPasswordReset}>
+              <input type="hidden" name="agentId" value={id} />
+              <button type="submit" className="rounded-full border border-[#16151a]/15 bg-white px-3.5 py-1.5 text-xs font-medium text-[#16151a]">
+                Send password reset
+              </button>
+            </form>
+          </div>
           <div className="mt-3 rounded-xl bg-[#16151a] px-3 py-3 text-white">
             <p className="text-sm font-medium">Set up their account</p>
             <p className="text-xs text-white/60">
