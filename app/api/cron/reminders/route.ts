@@ -52,7 +52,9 @@ export async function GET(request: NextRequest) {
     const agent = byId.get(b.agent_id as string)
     if (!agent) continue
     const agentName = agent.full_name || agent.business_name || "your agent"
+    const { data: linkRow } = await admin.from("agents").select("meeting_link").eq("id", agent.id).maybeSingle()
     const mail = clientReminderEmail({
+      meetingLink: (linkRow as { meeting_link?: string } | null)?.meeting_link || undefined,
       clientFirstName: b.first_name as string,
       agentName,
       whenLabel: formatSlot(b.slot_start as string, agent.timezone || "America/New_York"),

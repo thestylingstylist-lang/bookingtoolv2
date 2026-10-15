@@ -109,8 +109,8 @@ function letter(o: {
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..600&family=Caveat&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background:#faf7f1;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf7f1;padding:40px 16px;">
+<body style="margin:0;padding:0;background:#ffffff;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:40px 16px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
 <tr><td style="padding:0 8px;font-family:Georgia,serif;font-size:11px;letter-spacing:.3em;color:#b89250;text-transform:uppercase;">${esc(o.agentName)}</td></tr>
@@ -138,10 +138,16 @@ ${o.contact ? `<p style="margin:10px 0 0;font-family:Georgia,serif;font-size:13p
 </body></html>`
 }
 
+const joinLink = (url: string) =>
+  url
+    ? `</p><p style="margin:12px 0 0;"><a href="${esc(url)}" style="font-family:Georgia,serif;font-size:15px;letter-spacing:.04em;color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;padding-bottom:3px;">Join the video call</a>`
+    : ""
+
 const manageLine = (url: string, words: string) =>
   `<p style="margin:0;font-family:Georgia,serif;font-size:15px;line-height:1.6;color:#6d655b;">${words} <a href="${url}" style="color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;">Pick a new time or cancel</a></p>`
 
 export function clientConfirmationEmail(opts: {
+  meetingLink?: string
   clientFirstName: string
   agentName: string
   whenLabel: string
@@ -152,7 +158,12 @@ export function clientConfirmationEmail(opts: {
 }) {
   const phone = opts.meetingType === "phone"
   const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
-  const how = phone ? "I'll call you at the number you gave me." : "I'll send you the video link before we meet."
+  const link = !phone && opts.meetingLink ? opts.meetingLink : ""
+  const how = phone
+    ? "I'll call you at the number you gave me."
+    : link
+      ? "We'll meet by video. Here's the link to join:"
+      : "I'll send you the video link before we meet."
   const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).map((v) => esc(v!)).join(" &middot; ")
 
   const html = letter({
@@ -160,7 +171,7 @@ export function clientConfirmationEmail(opts: {
     heading: `You're booked${hi}.`,
     paras: [
       "I&rsquo;m so glad you reached out. Our consultation is confirmed, and I&rsquo;m looking forward to talking with you.",
-      how.replace(/'/g, "&rsquo;"),
+      how.replace(/'/g, "&rsquo;") + joinLink(link),
     ],
     when: { label: opts.whenLabel, sub: `A ${phone ? "phone" : "video"} call with ${esc(opts.agentName)}` },
     after: opts.manageUrl ? manageLine(opts.manageUrl, "If something comes up, no problem.") : undefined,
@@ -203,8 +214,8 @@ export function chatConfirmationEmail(opts: {
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..600;1,400..600&family=Caveat&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background:#faf7f1;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf7f1;padding:40px 16px;">
+<body style="margin:0;padding:0;background:#ffffff;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:40px 16px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
 <tr><td style="padding:0 8px;font-family:Georgia,serif;font-size:11px;letter-spacing:.3em;color:#b89250;">MARVBERRY</td></tr>
@@ -330,6 +341,7 @@ Email: ${opts.clientEmail}${opts.lookingTo ? `\nLooking to: ${opts.lookingTo}` :
 }
 
 export function clientReminderEmail(opts: {
+  meetingLink?: string
   clientFirstName: string
   agentName: string
   whenLabel: string
@@ -340,13 +352,18 @@ export function clientReminderEmail(opts: {
 }) {
   const phone = opts.meetingType === "phone"
   const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
-  const how = phone ? "I'll call you at the number you gave me." : "I'll send you the video link before we meet."
+  const link = !phone && opts.meetingLink ? opts.meetingLink : ""
+  const how = phone
+    ? "I'll call you at the number you gave me."
+    : link
+      ? "We'll meet by video. Here's the link to join:"
+      : "I'll send you the video link before we meet."
   const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).map((v) => esc(v!)).join(" &middot; ")
 
   const html = letter({
     agentName: opts.agentName,
     heading: `See you soon${hi}.`,
-    paras: ["A heads-up that our consultation is coming up. I&rsquo;m looking forward to it.", how.replace(/'/g, "&rsquo;")],
+    paras: ["A heads-up that our consultation is coming up. I&rsquo;m looking forward to it.", how.replace(/'/g, "&rsquo;") + joinLink(link)],
     when: { label: opts.whenLabel, sub: `A ${phone ? "phone" : "video"} call with ${esc(opts.agentName)}` },
     after: opts.manageUrl ? manageLine(opts.manageUrl, "If the time doesn&rsquo;t work anymore, that&rsquo;s okay.") : undefined,
     signoff: "Talk soon,",

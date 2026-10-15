@@ -124,9 +124,18 @@ export async function saveSettings(
   const licenseNumber = String(formData.get("licenseNumber") ?? "").trim().slice(0, 40)
   const { error: licenseError } = await supabase.from("agents").update({ license_number: licenseNumber }).eq("id", user.id)
 
+  // Video meeting link: same idea, its own column. Only real web links are kept.
+  let meetingLink = String(formData.get("meetingLink") ?? "").trim().slice(0, 500)
+  if (meetingLink && !/^https?:\/\//i.test(meetingLink)) meetingLink = `https://${meetingLink}`
+  if (meetingLink && !/^https:\/\/[^\s"<>]+\.[^\s"<>]+$/i.test(meetingLink)) {
+    return { ok: false, message: "That meeting link doesn't look right. Paste the full link from Zoom, Meet, or Teams." }
+  }
+  const { error: linkError } = await supabase.from("agents").update({ meeting_link: meetingLink }).eq("id", user.id)
+
   revalidatePath("/settings")
   revalidatePath("/dashboard")
   revalidatePath(`/book`, "layout")
+  if (linkError && meetingLink) return { ok: true, message: "Saved, except your meeting link. That one didn't save yet." }
   if (licenseError && licenseNumber) return { ok: true, message: "Saved, except your license number. That one didn't save yet." }
   return { ok: true, message: "Saved." }
 }

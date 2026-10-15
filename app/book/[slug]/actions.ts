@@ -111,8 +111,13 @@ export async function createBooking(
   const agentName = agent.full_name || agent.business_name || "your agent"
   const clientName = `${firstName} ${lastName}`.trim()
 
+  // The realtor's own video link, if they've added one (blank until the column exists).
+  const { data: linkRow } = await admin.from("agents").select("meeting_link").eq("id", agent.id).maybeSingle()
+  const meetingLink = (linkRow as { meeting_link?: string } | null)?.meeting_link || undefined
+
   try {
     const client = clientConfirmationEmail({
+      meetingLink,
       clientFirstName: firstName,
       agentName,
       whenLabel,

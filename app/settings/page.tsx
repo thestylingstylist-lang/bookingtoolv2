@@ -42,6 +42,8 @@ export default async function SettingsPage() {
   // Same idea for the license number: blank until its column exists.
   const { data: licenseRow } = await supabase.from("agents").select("license_number").eq("id", user.id).maybeSingle()
   const license = (licenseRow as { license_number?: string } | null)?.license_number ?? ""
+  const { data: linkRow } = await supabase.from("agents").select("meeting_link").eq("id", user.id).maybeSingle()
+  const meetingLink = (linkRow as { meeting_link?: string } | null)?.meeting_link ?? ""
 
   const assistant = await assistantFor(supabase, user.id)
 
@@ -74,7 +76,7 @@ export default async function SettingsPage() {
               <BookingLink slug={agent.slug} />
             </div>
 
-            <SettingsForm agent={agent} license={license} />
+            <SettingsForm agent={agent} license={license} meetingLink={meetingLink} />
           </section>
 
           {/* RIGHT — account */}

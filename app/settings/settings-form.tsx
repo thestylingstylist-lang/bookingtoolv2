@@ -9,7 +9,15 @@ const HOURS = Array.from({ length: 25 }, (_, i) => i)
 const label = (h: number) =>
   h === 0 ? "12 AM" : h < 12 ? `${h} AM` : h === 12 ? "12 PM" : h === 24 ? "12 AM" : `${h - 12} PM`
 
-export default function SettingsForm({ agent, license = "" }: { agent: AgentRow; license?: string }) {
+export default function SettingsForm({
+  agent,
+  license = "",
+  meetingLink = "",
+}: {
+  agent: AgentRow
+  license?: string
+  meetingLink?: string
+}) {
   const [state, formAction, pending] = useActionState<SettingsResult | null, FormData>(
     saveSettings,
     null
@@ -52,6 +60,20 @@ export default function SettingsForm({ agent, license = "" }: { agent: AgentRow;
         <div>
           <Text label="License number (optional)" name="licenseNumber" defaultValue={license} maxLength={40} />
           <p className="mt-1.5 text-xs text-ink/50">Add it and it shows on your booking page, under your name. Leave it blank and nothing shows.</p>
+        </div>
+
+        <div>
+          <Text
+            label="Your video meeting link"
+            name="meetingLink"
+            defaultValue={meetingLink}
+            placeholder="e.g. https://zoom.us/j/1234567890"
+            maxLength={500}
+          />
+          <p className="mt-1.5 text-xs text-ink/50">
+            Your personal Zoom, Google Meet, or Teams link. It goes into every video booking confirmation, so clients have
+            it the moment they book.
+          </p>
         </div>
 
         <label className="block">
