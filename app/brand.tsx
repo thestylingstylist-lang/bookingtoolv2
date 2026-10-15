@@ -97,9 +97,9 @@ export default function Brand() {
         </article>
 
         <article className="job flip slide s2">
-          <div className="job-pic photo-bg">
-            <div className="glass phone">
-              <img src="/brand/signs.jpg" alt="A client signing their agreement on a phone" />
+          <div className="job-pic stage">
+            <div className="device">
+              <img src="/brand/signs-full.jpg" alt="A client signing their agreement on a phone" />
             </div>
           </div>
           <div className="job-copy">
@@ -113,9 +113,9 @@ export default function Brand() {
         </article>
 
         <article className="job slide s3">
-          <div className="job-pic photo-bg">
-            <div className="glass phone">
-              <img src="/brand/portal.jpg" alt="A client's private page showing their next step" />
+          <div className="job-pic stage">
+            <div className="device">
+              <img src="/brand/portal-full.jpg" alt="A client's private page showing their next step" />
             </div>
           </div>
           <div className="job-copy">
@@ -130,7 +130,7 @@ export default function Brand() {
       </section>
 
       {/* 5. The guide */}
-      <section className="founder">
+      <section className="founder dark">
         <div className="founder-pic">
           <img src="/brand/alecia.jpg" alt="Alecia Ford, founder of Marvberry" />
         </div>
@@ -551,6 +551,25 @@ const CSS = `
 .mb .meet-pic img{display:block; width:100%; height:auto; border-radius:14px}
 @media (max-width: 900px){
   .mb .job.slide{position:relative; min-height:0; border-radius:28px 28px 0 0}
+}
+
+/* Q2: the product is the star — big phones, gentle float */
+.mb .job-pic.stage{position:relative; display:flex; justify-content:center; align-items:center; padding:clamp(28px,4vw,56px) 0; border-radius:28px; background:radial-gradient(120% 90% at 50% 20%, #FFFDF9 0%, #F3E9DC 60%, #E9DCC9 100%); overflow:visible}
+.mb .device{height:min(74vh,720px); aspect-ratio:780/1688; border-radius:44px; padding:10px; background:#1d1915; box-shadow:0 40px 80px -30px rgba(42,34,28,.55), 0 0 0 1px rgba(255,255,255,.06) inset; animation:mbfloat 6.5s ease-in-out infinite}
+.mb .job.flip .device{animation-delay:-3s}
+.mb .device img{display:block; width:100%; height:100%; object-fit:cover; object-position:top; border-radius:34px}
+@keyframes mbfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@media (prefers-reduced-motion: reduce){ .mb .device{animation:none} }
+/* Founder: its own color */
+.mb .founder.dark{background:var(--espresso) !important; box-shadow:0 0 0 100vmax var(--espresso) !important}
+.mb .founder.dark .letter p:not(.hand):not(.sign):not(.role):not(.fine){color:rgba(246,239,229,.9)}
+.mb .founder.dark .sign{color:#FBF6EE}
+.mb .founder.dark .role,.mb .founder.dark .fine{color:rgba(246,239,229,.6)}
+.mb .founder.dark .btn{background:var(--cream); color:var(--espresso); border-color:var(--cream)}
+@media (max-width: 900px){
+  .mb .founder-pic{min-height:0 !important; aspect-ratio:auto !important}
+  .mb .founder-pic img{position:relative !important; inset:auto; height:auto !important}
+  .mb .device{height:min(68vh,600px)}
 }
 @media (max-width: 900px){ .mb .hires{grid-template-columns:1fr} .mb .trio{flex-direction:column; gap:6px} }
 `
