@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react"
 import { useFormState, useFormStatus } from "react-dom"
 import { sendTeamReply, type SupportResult } from "@/app/support-actions"
 
-function Send() {
+function Send({ label }: { label: string }) {
   const { pending } = useFormStatus()
   return (
     <button
@@ -12,12 +12,12 @@ function Send() {
       disabled={pending}
       className="rounded-lg bg-gradient-to-r from-[#D9467A] to-[#EE7C55] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
     >
-      {pending ? "Sending…" : "Reply"}
+      {pending ? "Sending…" : label}
     </button>
   )
 }
 
-export default function ReplyForm({ agentId }: { agentId: string }) {
+export default function ReplyForm({ agentId, first = false }: { agentId: string; first?: boolean }) {
   const [state, action] = useFormState<SupportResult | null, FormData>(sendTeamReply, null)
   const ref = useRef<HTMLFormElement>(null)
   useEffect(() => {
@@ -31,12 +31,14 @@ export default function ReplyForm({ agentId }: { agentId: string }) {
         rows={3}
         required
         maxLength={4000}
-        placeholder="Write your reply…"
+        placeholder={first ? "Write to them. It shows in their Marvberry and goes to their email." : "Write your reply…"}
         className="w-full resize-none rounded-xl border border-white/80 bg-white/80 px-3 py-2 text-sm outline-none focus:border-[#D9467A]"
       />
       <div className="mt-2 flex items-center justify-between gap-3">
-        <p className={"text-sm " + (state?.ok ? "text-[#16151a]/55" : "text-[#b42318]")}>{state?.message ?? ""}</p>
-        <Send />
+        <p role="status" className={"text-sm " + (state?.ok && !/didn/.test(state.message) ? "font-medium text-[#1f5b33]" : "text-[#b42318]")}>
+          {state?.ok && !/didn/.test(state.message) ? "\u2713 " : ""}{state?.message ?? ""}
+        </p>
+        <Send label={first ? "Send" : "Reply"} />
       </div>
     </form>
   )

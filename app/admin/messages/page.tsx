@@ -60,8 +60,37 @@ export default async function AdminMessagesPage({
   }
   const list = [...threads.values()].sort((x, y) => (x.last < y.last ? 1 : -1))
 
+  // Threads the team started have no name on the messages yet; fill it in.
+  const nameless = list.filter((t) => !t.name).map((t) => t.agentId)
+  if (nameless.length) {
+    const { data: ags } = await admin.from("agents").select("id, full_name, business_name").in("id", nameless)
+    for (const a of ags ?? []) {
+      const t = threads.get(a.id as string)
+      if (t) t.name = (a.full_name as string) || (a.business_name as string) || ""
+    }
+  }
+
   const selectedId = (await searchParams).a || list[0]?.agentId
-  const selected = list.find((t) => t.agentId === selectedId)
+  let selected = list.find((t) => t.agentId === selectedId)
+
+  // Starting a new conversation from a realtor's page: no messages yet.
+  if (!selected && selectedId) {
+    const [{ data: ag }, { data: au }] = await Promise.all([
+      admin.from("agents").select("full_name, business_name").eq("id", selectedId).maybeSingle(),
+      admin.auth.admin.getUserById(selectedId),
+    ])
+    if (ag || au?.user) {
+      selected = {
+        agentId: selectedId,
+        name: (ag?.full_name as string) || (ag?.business_name as string) || "",
+        email: au?.user?.email || "",
+        msgs: [],
+        unread: 0,
+        last: new Date().toISOString(),
+      }
+      list.unshift(selected)
+    }
+  }
 
   // Opening a thread marks it read.
   if (selected && selected.unread > 0) {
@@ -79,7 +108,7 @@ export default async function AdminMessagesPage({
         Agent <em className="bg-gradient-to-r from-[#D9467A] to-[#EE7C55] bg-clip-text pr-1 font-serif italic text-transparent">conversations</em>
       </h1>
 
-      {list.length === 0 ? (
+      {list.length === 0 && !selected ? (
         <p className="mt-8 rounded-2xl border border-white/80 bg-white/70 p-6 text-sm text-[#16151a]/60 backdrop-blur-xl">
           No messages yet. When an agent writes in, it shows up here.
         </p>
@@ -102,7 +131,7 @@ export default async function AdminMessagesPage({
                     )}
                   </div>
                   <p className="mt-0.5 truncate text-xs text-[#16151a]/50">
-                    {lastMsg.from_team ? "You: " : ""}{lastMsg.body}
+                    {lastMsg ? `${lastMsg.from_team ? "You: " : ""}${lastMsg.body}` : "New conversation"}
                   </p>
                 </Link>
               )
@@ -116,6 +145,11 @@ export default async function AdminMessagesPage({
                 {selected.email && <p className="text-xs text-[#16151a]/50">{selected.email}</p>}
               </div>
               <div className="flex-1 space-y-3 overflow-y-auto p-5">
+                {selected.msgs.length === 0 && (
+                  <p className="text-sm text-[#16151a]/50">
+                    No messages yet. Write the first one. It shows up in their Marvberry and goes to their email, and it stays here on the record.
+                  </p>
+                )}
                 {selected.msgs.map((m) => (
                   <div key={m.id} className={m.from_team ? "flex justify-end" : "flex justify-start"}>
                     <div
@@ -130,7 +164,7 @@ export default async function AdminMessagesPage({
                   </div>
                 ))}
               </div>
-              <ReplyForm agentId={selected.agentId} />
+              <ReplyForm agentId={selected.agentId} first={selected.msgs.length === 0} />
             </div>
           )}
         </div>

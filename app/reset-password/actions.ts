@@ -19,8 +19,15 @@ export async function setNewPassword(
   } = await supabase.auth.getUser()
   if (!user) redirect("/forgot-password?error=link")
 
-  const { error } = await supabase.auth.updateUser({ password })
-  if (error) return { error: "Couldn't update your password. Request a new link and try again." }
+  const { error } = await supabase.auth.updateUser({ password, data: { must_change_password: false } })
+  if (error) {
+    // Say what actually went wrong, so nobody is sent off for a new link they don't need.
+    const code = (error as { code?: string }).code ?? ""
+    if (code === "same_password") return { error: "That's already your password. Pick a different one, or just sign in with it." }
+    if (code === "weak_password") return { error: error.message || "Pick a stronger password, with letters and numbers." }
+    console.error("[reset-password] updateUser failed:", code, error.message)
+    return { error: "Couldn't save that password. Try once more. If it keeps happening, reply to your email and we'll get you in." }
+  }
 
   redirect("/dashboard")
 }

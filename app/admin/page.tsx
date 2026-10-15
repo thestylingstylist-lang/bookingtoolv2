@@ -6,6 +6,8 @@ import { isAdminEmail } from "@/lib/admin"
 import { statusOf, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
 import GoalForm from "./goal-form"
 import { resendCallLink } from "./call-actions"
+import SubmitButton from "./ui/submit-button"
+import SentNote, { sentTime } from "./ui/sent-note"
 import { formatInTimeZone } from "date-fns-tz"
 import { CHAT_ZOOM } from "@/app/chat/config"
 
@@ -22,8 +24,9 @@ type Agent = {
 
 const money = (n: number) => "$" + Math.round(n).toLocaleString("en-US")
 
-export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ resent?: string }> }) {
-  const { resent } = await searchParams
+export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ resent?: string; to?: string; at?: string }> }) {
+  const { resent, to, at } = await searchParams
+  const when = sentTime(at)
   const supabase = await createClient()
   const {
     data: { user },
@@ -135,9 +138,11 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
               : "Here's your next setup call."}
         </p>
         {resent && (
-          <p className="mt-3 text-sm font-medium text-[#16151a]">
-            {resent === "ok" ? "Sent. Their confirmation with the Zoom link is on its way." : "That one didn't send. Try again."}
-          </p>
+          <SentNote ok={resent === "ok"}>
+            {resent === "ok"
+              ? `Zoom link sent${to ? ` to ${to}` : ""}${when ? ` at ${when}` : ""}`
+              : "That one didn't send. Try again"}
+          </SentNote>
         )}
         {calls.length > 0 && (
           <div className="mt-5 space-y-3">
@@ -172,15 +177,14 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                   {c.email && (
                     <form action={resendCallLink}>
                       <input type="hidden" name="leadId" value={c.id} />
-                      <button
-                        type="submit"
+                      <SubmitButton
                         className={
                           "rounded-full px-4 py-2 text-sm font-medium " +
                           (i === 0 ? "border border-white/30 text-white" : "border border-[#16151a]/15 text-[#16151a]")
                         }
                       >
                         Resend Zoom link
-                      </button>
+                      </SubmitButton>
                     </form>
                   )}
                   <Link

@@ -35,6 +35,11 @@ export async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
+  // Signed in with a temporary password from the team: choose your own first.
+  if (user?.user_metadata?.must_change_password && path !== "/reset-password") {
+    return NextResponse.redirect(new URL("/reset-password", request.url))
+  }
+
   const guarded =
     path.startsWith("/dashboard") ||
     path.startsWith("/settings") ||
@@ -94,5 +99,6 @@ export const config = {
     "/login",
     "/signup",
     "/team",
+    "/reset-password",
   ],
 }

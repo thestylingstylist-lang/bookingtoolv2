@@ -35,5 +35,5 @@ export async function resendCallLink(formData: FormData): Promise<void> {
     fromName: "Alecia at Marvberry",
     replyTo: CHAT_HOST.email,
   })
-  redirect(`/admin?resent=${ok ? "ok" : "fail"}`)
+  redirect(`/admin?resent=${ok ? "ok" : "fail"}&to=${encodeURIComponent(lead.email as string)}&at=${Date.now()}`)
 }

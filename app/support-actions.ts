@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
+import { sendEmail } from "@/lib/email"
+import { teamNote, para, button, small, esc } from "@/lib/letter"
 
 export type SupportResult = { ok: boolean; message: string }
 
@@ -79,6 +81,30 @@ export async function sendTeamReply(
     .eq("agent_id", agentId)
     .eq("from_team", false)
 
+  // Also email it, so it reaches them even if they can't sign in.
+  const { data: u } = await admin.auth.admin.getUserById(agentId)
+  const to = u?.user?.email
+  let emailed = false
+  if (to) {
+    const paras = body
+      .split(/\n{2,}/)
+      .map((p) => para(esc(p).replace(/\n/g, "<br>")))
+      .join("")
+    const html = teamNote(
+      "A message from the Marvberry team",
+      paras +
+        button("https://www.marvberry.com/support", "Reply in Marvberry") +
+        small("Or just reply to this email. It comes straight to us."),
+    )
+    const text = `${body}\n\nReply in Marvberry: https://www.marvberry.com/support\nOr just reply to this email.`
+    emailed = await sendEmail({ to, subject: "A message from the Marvberry team", html, text, fromName: "Alecia at Marvberry", replyTo: "team@marvberry.com" })
+  }
+
   revalidatePath("/admin/messages")
-  return { ok: true, message: "Reply sent." }
+  revalidatePath("/support")
+  const at = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).format(new Date())
+  return {
+    ok: true,
+    message: emailed ? `Sent and emailed to ${to} at ${at}.` : "Saved in their Marvberry, but the email didn't go out. Try again.",
+  }
 }

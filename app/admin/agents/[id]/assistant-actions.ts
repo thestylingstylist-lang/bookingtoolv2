@@ -135,7 +135,7 @@ export async function sendPaymentLink(formData: FormData): Promise<void> {
     footer: "Marvberry. Move forward.",
   })
   const ok = await sendEmail({ to: email, subject: "Your Marvberry membership link", html, text, fromName: "Alecia at Marvberry", replyTo: "team@marvberry.com" })
-  redirect(`/admin/agents/${agentId}?pay=${ok ? "sent" : "made"}&payurl=${encodeURIComponent(url)}`)
+  redirect(`/admin/agents/${agentId}?pay=${ok ? "sent" : "made"}&at=${Date.now()}&payurl=${encodeURIComponent(url)}`)
 }
 
 // The team sends a realtor a link to choose a new password. Emailed from Marvberry.
@@ -153,5 +153,36 @@ export async function sendPasswordReset(formData: FormData): Promise<void> {
   if (!email || isAdminEmail(email)) redirect(`/admin/agents/${agentId}?reset=fail`)
 
   const ok = (await sendResetEmail(email!)) === "sent"
-  redirect(`/admin/agents/${agentId}?reset=${ok ? "sent" : "fail"}`)
+  redirect(`/admin/agents/${agentId}?reset=${ok ? "sent" : "fail"}&at=${Date.now()}`)
+}
+
+// A temporary password the team reads to a realtor who's stuck. It also confirms
+// their email, and flags the account so they choose their own password on sign-in.
+export type TempResult = { password?: string; error?: string }
+
+export async function makeTempPassword(_prev: TempResult | null, formData: FormData): Promise<TempResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user || !isAdminEmail(user.email)) return { error: "Not allowed." }
+
+  const agentId = String(formData.get("agentId") ?? "")
+  const admin = createAdminClient()
+  const { data: u } = await admin.auth.admin.getUserById(agentId)
+  if (!u?.user?.email || isAdminEmail(u.user.email)) return { error: "Couldn't find that account." }
+
+  // Easy to read out loud: no 0/O or 1/l look-alikes.
+  const abc = "abcdefghjkmnpqrstuvwxyz23456789"
+  const bytes = crypto.getRandomValues(new Uint8Array(8))
+  const chunk = (a: number, b: number) => Array.from(bytes.slice(a, b), (x) => abc[x % abc.length]).join("")
+  const password = `Marv-${chunk(0, 4)}-${chunk(4, 8)}`
+
+  const { error } = await admin.auth.admin.updateUserById(agentId, {
+    password,
+    email_confirm: true,
+    user_metadata: { ...(u.user.user_metadata ?? {}), must_change_password: true },
+  })
+  if (error) return { error: "That didn't work. Try again." }
+  return { password }
 }

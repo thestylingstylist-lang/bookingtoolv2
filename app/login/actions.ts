@@ -24,6 +24,9 @@ export async function signIn(
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
+    if ((error as { code?: string }).code === "email_not_confirmed") {
+      return { error: "Your email isn't confirmed yet. Reply to your welcome email, or contact team@marvberry.com, and we'll get you in." }
+    }
     return { error: "That email or password didn't match. Try again." }
   }
 

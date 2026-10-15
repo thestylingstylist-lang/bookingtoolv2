@@ -6,6 +6,9 @@ import { isAdminEmail } from "@/lib/admin"
 import { statusOf, PILL, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
 import { setAssistantPlan, extendTrial, makeSetupLink, sendPaymentLink, sendPasswordReset } from "./assistant-actions"
 import CopyLink from "./copy-link"
+import TempPassword from "./temp-password"
+import SubmitButton from "@/app/admin/ui/submit-button"
+import SentNote, { sentTime } from "@/app/admin/ui/sent-note"
 
 export const dynamic = "force-dynamic"
 
@@ -41,7 +44,7 @@ export default async function AdminAgentDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ setup?: string; pay?: string; payurl?: string; reset?: string }>
+  searchParams: Promise<{ setup?: string; pay?: string; payurl?: string; reset?: string; at?: string }>
 }) {
   const supabase = await createClient()
   const {
@@ -51,7 +54,8 @@ export default async function AdminAgentDetail({
   if (!isAdminEmail(user.email)) redirect("/dashboard")
 
   const { id } = await params
-  const { setup, pay, payurl, reset } = await searchParams
+  const { setup, pay, payurl, reset, at } = await searchParams
+  const when = sentTime(at)
   const setupUrl =
     setup && setup !== "fail"
       ? `https://www.marvberry.com/auth/callback?token_hash=${encodeURIComponent(setup)}&type=magiclink&next=/settings`
@@ -186,33 +190,32 @@ export default async function AdminAgentDetail({
             </p>
             <form action={sendPaymentLink} className="mt-2">
               <input type="hidden" name="agentId" value={id} />
-              <button type="submit" className="rounded-full bg-[#16151a] px-3.5 py-1.5 text-xs font-medium text-white">
+              <SubmitButton className="rounded-full bg-[#16151a] px-3.5 py-1.5 text-xs font-medium text-white">
                 Send payment link
-              </button>
+              </SubmitButton>
             </form>
-            {pay === "sent" && <p className="mt-2 text-xs font-medium text-[#16151a]">Sent to {loginEmail}.</p>}
-            {pay === "made" && <p className="mt-2 text-xs text-[#16151a]">The email didn&rsquo;t send, but the link is ready below.</p>}
-            {pay === "fail" && <p className="mt-2 text-xs text-[#D9467A]">That didn&rsquo;t work. Try again.</p>}
+            {pay === "sent" && <SentNote ok>Sent to {loginEmail}{when ? ` at ${when}` : ""}</SentNote>}
+            {pay === "made" && <SentNote ok={false}>The email didn&rsquo;t send, but the link is ready below</SentNote>}
+            {pay === "fail" && <SentNote ok={false}>That didn&rsquo;t work. Try again</SentNote>}
             {payurl && (
               <p className="mt-1 text-xs [overflow-wrap:anywhere]">
                 <a href={payurl} className="text-[#16151a] underline underline-offset-2">{payurl.slice(0, 48)}…</a>
               </p>
             )}
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
-            <div>
-              <p className="text-sm font-medium text-[#16151a]">Password reset</p>
-              <p className="text-xs text-[#16151a]/50">
-                {reset === "sent" ? `Sent to ${loginEmail}.` : reset === "fail" ? "That didn't send. Try again." : "Emails them a link to choose a new password."}
-              </p>
-            </div>
-            <form action={sendPasswordReset}>
+          <div className="mt-3 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
+            <p className="text-sm font-medium text-[#16151a]">Password reset</p>
+            <p className="text-xs text-[#16151a]/50">Emails them a link to choose a new password.</p>
+            <form action={sendPasswordReset} className="mt-2">
               <input type="hidden" name="agentId" value={id} />
-              <button type="submit" className="rounded-full border border-[#16151a]/15 bg-white px-3.5 py-1.5 text-xs font-medium text-[#16151a]">
+              <SubmitButton className="rounded-full border border-[#16151a]/15 bg-white px-3.5 py-1.5 text-xs font-medium text-[#16151a]">
                 Send password reset
-              </button>
+              </SubmitButton>
             </form>
+            {reset === "sent" && <SentNote ok>Sent to {loginEmail}{when ? ` at ${when}` : ""}</SentNote>}
+            {reset === "fail" && <SentNote ok={false}>That didn&rsquo;t send. Try again</SentNote>}
           </div>
+          {loginEmail && <TempPassword agentId={id} email={loginEmail} />}
           <div className="mt-3 rounded-xl bg-[#16151a] px-3 py-3 text-white">
             <p className="text-sm font-medium">Set up their account</p>
             <p className="text-xs text-white/60">
@@ -227,9 +230,9 @@ export default async function AdminAgentDetail({
             ) : (
               <form action={makeSetupLink} className="mt-2">
                 <input type="hidden" name="agentId" value={id} />
-                <button type="submit" className="rounded-full bg-white px-3.5 py-1.5 text-xs font-medium text-[#16151a]">
+                <SubmitButton pendingLabel={"Making it\u2026"} className="rounded-full bg-white px-3.5 py-1.5 text-xs font-medium text-[#16151a]">
                   Get a setup link
-                </button>
+                </SubmitButton>
                 {setup === "fail" && <span className="ml-2 text-xs text-[#EE7C55]">That didn&rsquo;t work. Try again.</span>}
               </form>
             )}
