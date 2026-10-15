@@ -56,8 +56,8 @@ export function agentDayEmail(opts: {
 
   const html = `<!doctype html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,500&display=swap" rel="stylesheet"></head>
-<body style="margin:0;padding:0;background:#ffffff;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
+<body style="margin:0;padding:0;background:#f2f0ee;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f0ee;">
 <tr><td align="center" style="padding:44px 20px;">
 <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
 <tr><td style="padding:0 8px;">

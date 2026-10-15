@@ -280,8 +280,8 @@ const GRAIN =
 
 const CSS = `
 .mb{
-  --linen:#FFFFFF; --cream:#F6EFE5; --sand:#EFE6D8; --espresso:#2A221C; --ink:#2A221C; --body:#6B6158; --muted:#9A8F84;
-  --gold:#C9A46C; --rust:#8F4E2A; --sun:#FFBD59; --rasp:#CE6385; --rule:#E7DED1;
+  --linen:#FFFFFF; --cream:#F6EFE5; --espresso:#2A221C; --ink:#2A221C; --body:#6B6158; --muted:#9A8F84;
+  --gold:#C9A46C; --rust:#8F4E2A; --sun:#FFBD59; --rule:#E7DED1;
   --serif:'Playfair Display', Georgia, serif; --hand:'Caveat', cursive;
   --sans: var(--font-geist-sans), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
   color-scheme: light; background:var(--linen); color:var(--ink); font-family:var(--sans);
