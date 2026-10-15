@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { statusOf, PILL, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
-import { setAssistantPlan, extendTrial } from "./assistant-actions"
+import { setAssistantPlan, extendTrial, makeSetupLink } from "./assistant-actions"
+import CopyLink from "./copy-link"
 
 export const dynamic = "force-dynamic"
 
@@ -35,7 +36,13 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-export default async function AdminAgentDetail({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdminAgentDetail({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ setup?: string }>
+}) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -44,6 +51,11 @@ export default async function AdminAgentDetail({ params }: { params: Promise<{ i
   if (!isAdminEmail(user.email)) redirect("/dashboard")
 
   const { id } = await params
+  const { setup } = await searchParams
+  const setupUrl =
+    setup && setup !== "fail"
+      ? `https://www.marvberry.com/auth/callback?token_hash=${encodeURIComponent(setup)}&type=magiclink&next=/settings`
+      : null
   const admin = createAdminClient()
 
   const { data: agentData } = await admin.from("agents").select("*").eq("id", id).maybeSingle()
@@ -167,6 +179,27 @@ export default async function AdminAgentDetail({ params }: { params: Promise<{ i
           <Row label="Status" value={st.label} />
           <Row label="Stripe status" value={a.subscription_status || "none"} />
           <Row label="Trial ends" value={fmtDate(a.trial_ends_at)} />
+          <div className="mt-3 rounded-xl bg-[#16151a] px-3 py-3 text-white">
+            <p className="text-sm font-medium">Set up their account</p>
+            <p className="text-xs text-white/60">
+              Opens their own Marvberry, Settings first, so you can set everything up for them. Use a private window so
+              you stay logged in here.
+            </p>
+            {setupUrl ? (
+              <div className="mt-2">
+                <CopyLink url={setupUrl} />
+                <p className="mt-1.5 text-[11px] text-white/50">Works once, within the hour.</p>
+              </div>
+            ) : (
+              <form action={makeSetupLink} className="mt-2">
+                <input type="hidden" name="agentId" value={id} />
+                <button type="submit" className="rounded-full bg-white px-3.5 py-1.5 text-xs font-medium text-[#16151a]">
+                  Get a setup link
+                </button>
+                {setup === "fail" && <span className="ml-2 text-xs text-[#EE7C55]">That didn&rsquo;t work. Try again.</span>}
+              </form>
+            )}
+          </div>
           <div className="mt-3 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
             <p className="text-sm font-medium text-[#16151a]">Give more trial time</p>
             <p className="text-xs text-[#16151a]/50">

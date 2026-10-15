@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
@@ -44,4 +45,26 @@ export async function extendTrial(formData: FormData): Promise<void> {
   await admin.from("agents").update({ trial_ends_at: ends }).eq("id", agentId)
   revalidatePath(`/admin/agents/${agentId}`)
   revalidatePath("/admin/agents")
+}
+
+// The team makes a one-time link that signs into this realtor's own account,
+// so setup can be done for them on a call. Single use, expires within the hour.
+export async function makeSetupLink(formData: FormData): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user || !isAdminEmail(user.email)) throw new Error("Not allowed")
+
+  const agentId = String(formData.get("agentId") ?? "")
+  if (!agentId) return
+  const admin = createAdminClient()
+  const { data: u } = await admin.auth.admin.getUserById(agentId)
+  const email = u?.user?.email
+  if (!email || isAdminEmail(email)) redirect(`/admin/agents/${agentId}?setup=fail`)
+
+  const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email })
+  const hash = data?.properties?.hashed_token
+  if (error || !hash) redirect(`/admin/agents/${agentId}?setup=fail`)
+  redirect(`/admin/agents/${agentId}?setup=${encodeURIComponent(hash)}`)
 }
