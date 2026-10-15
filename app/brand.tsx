@@ -5,6 +5,7 @@ import "@fontsource/playfair-display/400-italic.css"
 import "@fontsource/playfair-display/500.css"
 import "@fontsource/playfair-display/500-italic.css"
 import "@fontsource/caveat/500.css"
+import BrandMotion from "./brand-motion"
 
 const START = "/signup"
 const CALL = "/chat"
@@ -16,7 +17,7 @@ const PLANS = [
     per: "a month",
     blurb: "Everything one realtor runs a business on.",
     items: ["Your branded booking page", "Agreements signed from a phone", "A private page for every client", "Free setup call"],
-    cta: "Get started for free",
+    cta: "Try Marvberry",
     main: true,
   },
   {
@@ -38,7 +39,7 @@ const PLANS = [
 ]
 
 const FAQ = [
-  ["What happens when I click \u201cGet started for free\u201d?", "You create your free account. No credit card. If you\u2019d rather have it done for you, book a free setup call and we\u2019ll build your booking page, your agreement, and your client steps with you."],
+  ["What happens when I click \u201cTry Marvberry\u201d?", "You create your free account. No credit card. If you\u2019d rather have it done for you, book a free setup call and we\u2019ll build your booking page, your agreement, and your client steps with you."],
   ["Do my clients have to make an account?", "No. Your clients get a private link. They book, sign, and send documents without a password or an app."],
   ["Does it work on my phone?", "Yes. Your phone or your computer, same business either way."],
   ["What if it isn\u2019t right for me?", "You have 30 days. If Marvberry isn\u2019t for you, tell us and we\u2019ll refund you in full."],
@@ -48,6 +49,7 @@ export default function Brand() {
   return (
     <div className="mb">
       <style>{CSS}</style>
+      <BrandMotion />
 
       <header className="nav">
         <a href="#top" className="mark">
@@ -60,7 +62,7 @@ export default function Brand() {
           <a href="/login">Log in</a>
         </nav>
         <a className="btn sm" href={START}>
-          Get started for free
+          Try Marvberry
         </a>
       </header>
 
@@ -76,13 +78,22 @@ export default function Brand() {
           Handled in one place.
         </p>
         <a className="btn rust" href={START}>
-          Start for free
+          Try Marvberry
         </a>
         <svg className="swoosh" viewBox="0 0 100 12" aria-hidden="true">
           <path d="M2 4 C 35 0, 70 2, 98 10" />
         </svg>
         <p className="fine dark">No credit card required.</p>
       </section>
+
+      {/* Real screens rise over the pinned hero as you scroll */}
+      <div className="float-row">
+        <img
+          className="lounge"
+          src="/brand/lounge.webp"
+          alt="A realtor relaxing on her couch while a client books a time on her Marvberry booking page"
+        />
+      </div>
 
       {/* 2. The wake-up: three beats that slide over each other */}
       <div className="stack">
@@ -176,7 +187,7 @@ export default function Brand() {
         <div className="mid-cta">
           <p className="team-line">That&rsquo;s what having a team feels like. You stay with the client. The back office is handled.</p>
           <a className="btn" href={START}>
-            Get started for free
+            Try Marvberry
           </a>
           <p className="fine dark">No credit card required.</p>
         </div>
@@ -189,7 +200,7 @@ export default function Brand() {
         <ol className="steps">
           <li>
             <span className="num">1</span>
-            <p>Get started for free. No credit card.</p>
+            <p>Try Marvberry. Free to start, no credit card.</p>
           </li>
           <li>
             <span className="num">2</span>
@@ -201,7 +212,7 @@ export default function Brand() {
           </li>
         </ol>
         <a className="btn" href={START}>
-          Get started for free
+          Try Marvberry
         </a>
         <p className="fine dark">No credit card required.</p>
       </section>
@@ -290,7 +301,7 @@ export default function Brand() {
       <section className="closing">
         <h2>Busy isn&rsquo;t success. Structure is.</h2>
         <a className="btn" href={START}>
-          Get started for free
+          Try Marvberry
         </a>
         <p className="fine dark">No credit card required.</p>
       </section>
@@ -313,7 +324,7 @@ const GRAIN =
 
 const CSS = `
 .mb{
-  --linen:#FBF9F5; --cream:#F6EFE5; --sand:#EFE6D8; --espresso:#2A221C; --ink:#2A221C; --body:#6B6158; --muted:#9A8F84;
+  --linen:#FFFFFF; --cream:#F6EFE5; --sand:#EFE6D8; --espresso:#2A221C; --ink:#2A221C; --body:#6B6158; --muted:#9A8F84;
   --gold:#C9A46C; --rust:#8F4E2A; --sun:#FFBD59; --rasp:#CE6385; --rule:#E7DED1;
   --serif:'Playfair Display', Georgia, serif; --hand:'Caveat', cursive;
   --sans: var(--font-geist-sans), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
@@ -354,16 +365,36 @@ const CSS = `
 .mb .links a:hover{opacity:1}
 
 /* 1. Hero */
-.mb .hero.light{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#F4F0E9; padding:140px clamp(20px,5vw,72px) 96px}
+.mb .hero.light{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:var(--linen); padding:140px clamp(20px,5vw,72px) 96px}
 .mb .hero .eyebrow{font-family:var(--serif); font-size:clamp(17px,.9rem + .4vw,22px); color:var(--rust); align-self:center; width:min(100%,62rem); text-align:left; padding-left:clamp(0px,3vw,48px)}
 .mb .hero h1{font-style:italic; line-height:1.02; margin-top:6px}
 .mb .hero h1 .l1{display:block; font-size:clamp(30px,.5rem + 5.6vw,96px); color:var(--ink)}
 .mb .hero h1 .l2{display:block; font-size:clamp(40px,.5rem + 7.6vw,124px); color:var(--sun); font-weight:500}
 .mb .hero .sub{margin-top:28px; font-size:clamp(18px,.9rem + .7vw,26px); line-height:1.5; color:var(--ink); max-width:46rem}
 .mb .btn.rust{margin-top:44px; background:transparent; color:var(--rust); border:2px solid var(--sun); border-radius:12px; font-family:var(--serif); font-size:clamp(20px,1rem + .6vw,26px); padding:8px 56px}
-.mb .btn.rust:hover{background:var(--rust); color:#F4F0E9}
+.mb .btn.rust:hover{background:var(--rust); color:#FFFFFF}
 .mb .swoosh{width:96px; height:12px; margin-top:8px; fill:none; stroke:var(--rust); stroke-width:1.6; stroke-linecap:round}
 .mb .hero .fine.dark{margin-top:14px; color:var(--ink)}
+/* Scroll: the hero stays pinned while screens rise over it, then each section slides up over the last */
+.mb .hero.light{position:sticky; top:0; z-index:0}
+:where(.mb > section:not(.hero), .mb > .stack, .mb > footer){position:relative; z-index:1; background-color:var(--linen)}
+.mb .stack{z-index:1}
+/* Narrow sections paint their background edge to edge so the pinned hero never shows at the sides */
+.mb .pivot,.mb .jobs,.mb .founder,.mb .faq{box-shadow:0 0 0 100vmax var(--linen); clip-path:inset(0 -100vmax)}
+.mb .float-row{position:relative; z-index:1; pointer-events:none; overflow-x:clip}
+.mb .lounge{display:block; width:100%; height:auto}
+.mb .rv{opacity:.12; transform:translateY(26px); transition:opacity .9s ease, transform .9s cubic-bezier(.2,.7,.2,1)}
+.mb .job-pic.rv{transform:translateX(48px)}
+.mb .job.flip .job-pic.rv{transform:translateX(-48px)}
+.mb .rv.in{opacity:1; transform:none}
+@media (max-width: 900px){
+  .mb .lounge{width:140vw; max-width:none; margin-left:-20vw}
+}
+}
+@media (prefers-reduced-motion: reduce){
+  .mb .hero.light{position:relative}
+}
+
 /* Hero entrance: each piece rises in, line two lands last, then the swoosh draws itself */
 @keyframes mbRise{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
 @keyframes mbLand{from{opacity:0; transform:translateY(28px) scale(.96)} to{opacity:1; transform:none}}
@@ -462,7 +493,7 @@ const CSS = `
 
 @media (max-width: 900px){
   .mb .links{display:none}
-  .mb .hero.light{padding-top:110px; min-height:auto}
+  .mb .hero.light{padding-top:110px; min-height:100svh}
   .mb .hero .eyebrow{text-align:center; padding-left:0}
   .mb .job,.mb .founder{grid-template-columns:1fr}
   .mb .job.flip .job-pic{order:0}
