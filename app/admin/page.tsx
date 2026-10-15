@@ -58,6 +58,23 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     admin.from("admin_settings").select("value").eq("key", goalKey).maybeSingle(),
   ])
 
+  // Unanswered messages from realtors, newest first, one line per realtor.
+  const { data: unreadData } = await admin
+    .from("support_messages")
+    .select("agent_id, agent_name, agent_email, body, created_at")
+    .eq("from_team", false)
+    .eq("read_by_team", false)
+    .order("created_at", { ascending: false })
+    .limit(50)
+  const inbox = new Map<string, { id: string; name: string; body: string; at: string; count: number }>()
+  for (const r of (unreadData ?? []) as { agent_id: string; agent_name: string | null; agent_email: string | null; body: string; created_at: string }[]) {
+    const t = inbox.get(r.agent_id)
+    if (t) t.count++
+    else inbox.set(r.agent_id, { id: r.agent_id, name: r.agent_name || r.agent_email || "A realtor", body: r.body, at: r.created_at, count: 1 })
+  }
+  const newMsgs = [...inbox.values()]
+  const msgTime = (iso: string) => formatInTimeZone(new Date(iso), "America/New_York", "MMM d 'at' h:mm a")
+
   // Setup calls booked at marvberry.com/chat, coming up (or started in the last half hour).
   const { data: callData } = await admin
     .from("sales_leads")
@@ -130,7 +147,37 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       {/* Coming up: setup calls booked at marvberry.com/chat */}
       <section className="mt-8 rounded-3xl border border-white/80 bg-white/75 p-6 backdrop-blur-xl sm:p-8">
         <p className="font-serif text-2xl text-[#16151a]">{greet}, Alecia.</p>
-        <p className="mt-1 text-sm text-[#16151a]/60">
+        {newMsgs.length > 0 && (
+          <div className="mt-4 rounded-2xl border border-[#D9467A]/25 bg-[#fdf1f5] p-4">
+            <p className="text-sm font-semibold text-[#16151a]">
+              {newMsgs.length === 1
+                ? `You have a new message from ${newMsgs[0].name.split(" ")[0]}.`
+                : `You have new messages from ${newMsgs.length} realtors.`}
+            </p>
+            <div className="mt-3 space-y-2">
+              {newMsgs.map((m) => (
+                <Link
+                  key={m.id}
+                  href={`/admin/messages?a=${m.id}`}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-white px-4 py-3 transition-colors hover:bg-white/70"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-[#16151a]">
+                      {m.name}
+                      {m.count > 1 && <span className="ml-2 text-xs font-normal text-[#16151a]/50">{m.count} new</span>}
+                    </p>
+                    <p className="truncate text-sm text-[#16151a]/60">{m.body}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs text-[#16151a]/45">{msgTime(m.at)}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-[#D9467A]">Reply &rarr;</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+        <p className={(newMsgs.length ? "mt-5" : "mt-1") + " text-sm text-[#16151a]/60"}>
           {calls.length === 0
             ? "No setup calls on the books yet."
             : callsToday

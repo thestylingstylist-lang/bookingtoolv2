@@ -11,7 +11,7 @@ const NAV = [
   { href: "/admin/site", label: "Site" },
 ]
 
-export default function AdminNav() {
+export default function AdminNav({ unread = 0 }: { unread?: number }) {
   const path = usePathname()
   return (
     <nav className="flex items-center gap-1 text-sm">
@@ -28,6 +28,11 @@ export default function AdminNav() {
             }
           >
             {n.label}
+            {n.href === "/admin/messages" && unread > 0 && (
+              <span className="ml-1.5 inline-flex min-w-[18px] items-center justify-center rounded-full bg-[#D9467A] px-1.5 text-[11px] font-semibold leading-[18px] text-white">
+                {unread}
+              </span>
+            )}
           </Link>
         )
       })}

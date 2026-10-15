@@ -1,9 +1,27 @@
 import Link from "next/link"
 import AdminNav from "./admin-nav"
 import { signOut } from "@/app/login/actions"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { isAdminEmail } from "@/lib/admin"
 
 // Internal Marvberry team area. Carries the brand (unlike the neutral realtor app).
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Unread realtor messages, shown as a badge on Support.
+  let unread = 0
+  try {
+    const {
+      data: { user },
+    } = await (await createClient()).auth.getUser()
+    if (user && isAdminEmail(user.email)) {
+      const { count } = await createAdminClient()
+        .from("support_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("from_team", false)
+        .eq("read_by_team", false)
+      unread = count ?? 0
+    }
+  } catch {}
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#F4F3F1] text-[#16151A]">
       {/* brand glow */}
@@ -23,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Team
           </span>
         </Link>
-        <AdminNav />
+        <AdminNav unread={unread} />
         <form action={signOut} className="ml-auto">
           <button className="rounded-full px-3.5 py-1.5 text-sm font-medium text-[#16151a]/60 transition-colors hover:bg-white/70 hover:text-[#16151a]">
             Sign out
