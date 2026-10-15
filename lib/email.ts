@@ -1,5 +1,5 @@
 import "server-only"
-import { letterHtml, teamNote, details, para as lpara, textLink } from "@/lib/letter"
+import { letterHtml, teamNote, details, para as lpara, textLink, withCard, type AgentCard } from "@/lib/letter"
 
 // Sends transactional email via the Resend HTTP API. No SDK needed — we call
 // the REST endpoint directly with the API key already set in the environment.
@@ -22,6 +22,8 @@ type SendArgs = {
   text: string
   replyTo?: string
   fromName?: string
+  // The realtor's signature, for letters that go to their client.
+  card?: AgentCard | null
 }
 
 export async function sendEmail(args: SendArgs): Promise<boolean> {
@@ -30,6 +32,7 @@ export async function sendEmail(args: SendArgs): Promise<boolean> {
     console.error("[email] RESEND_API_KEY is not set — skipping send")
     return false
   }
+  const { html, text } = withCard(args.html, args.text, args.card)
   try {
     const res = await fetch(RESEND_ENDPOINT, {
       method: "POST",
@@ -41,8 +44,8 @@ export async function sendEmail(args: SendArgs): Promise<boolean> {
         from: fromLine(args.fromName ?? ""),
         to: [args.to],
         subject: args.subject,
-        html: args.html,
-        text: args.text,
+        html,
+        text,
         ...(args.replyTo ? { reply_to: args.replyTo } : {}),
       }),
     })

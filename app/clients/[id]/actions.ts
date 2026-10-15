@@ -8,6 +8,7 @@ import { AUTO_FILL } from "@/lib/placeholders"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
 import { sendEmail } from "@/lib/email"
 import { signRequestEmail } from "@/lib/sign-email"
+import { agentCard } from "@/lib/agent-card"
 
 type ClientRow = {
   id: string
@@ -171,6 +172,7 @@ export async function sendDocument(formData: FormData): Promise<void> {
     to: client.email,
     ...mail,
     fromName: agent.full_name || agent.business_name,
+    card: await agentCard(user.id),
     replyTo: user.email ?? undefined,
   })
   redirect(`/clients/${clientId}?doc=${ok ? "sent" : "mailfail"}`)
@@ -210,6 +212,7 @@ export async function resendDocument(formData: FormData): Promise<void> {
     to: client.email,
     ...mail,
     fromName: agent.full_name || agent.business_name,
+    card: await agentCard(user.id),
     replyTo: user.email ?? undefined,
   })
   redirect(`/clients/${clientId}?doc=${ok ? "resent" : "mailfail"}`)

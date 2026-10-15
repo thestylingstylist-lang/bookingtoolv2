@@ -13,10 +13,12 @@ export default function SettingsForm({
   agent,
   license = "",
   meetingLink = "",
+  signaturePhoto = false,
 }: {
   agent: AgentRow
   license?: string
   meetingLink?: string
+  signaturePhoto?: boolean
 }) {
   const [state, formAction, pending] = useActionState<SettingsResult | null, FormData>(
     saveSettings,
@@ -75,6 +77,8 @@ export default function SettingsForm({
             it the moment they book.
           </p>
         </div>
+
+        <SignaturePicker name={agent.full_name || agent.business_name} photo={agent.headshot_url} initial={signaturePhoto} />
 
         <label className="block">
           <span className="mb-1.5 block text-sm text-ink/70">Welcome message (optional)</span>
@@ -362,5 +366,61 @@ function Select({
         {children}
       </select>
     </label>
+  )
+}
+
+// Email signature: two layouts. The photo one is optional.
+function SignaturePicker({ name, photo, initial }: { name: string; photo: string; initial: boolean }) {
+  const [withPhoto, setWithPhoto] = useState(initial)
+  const lines = (
+    <div className="min-w-0">
+      <div className="font-serif text-[15px] text-ink">{name || "Your name"}</div>
+      <div className="mt-1 h-1.5 w-24 rounded-full bg-ink/15" />
+      <div className="mt-1.5 h-1.5 w-16 rounded-full bg-ink/10" />
+      <div className="mt-1.5 h-1.5 w-28 rounded-full bg-ink/10" />
+    </div>
+  )
+  const option = (value: boolean, title: string, body: React.ReactNode) => (
+    <label
+      className={`block cursor-pointer rounded-2xl border p-4 transition ${
+        withPhoto === value ? "border-brass bg-white ring-2 ring-brass/20" : "border-ink/15 bg-white/60 hover:border-ink/30"
+      }`}
+    >
+      <input
+        type="radio"
+        name="signaturePhoto"
+        value={value ? "1" : "0"}
+        checked={withPhoto === value}
+        onChange={() => setWithPhoto(value)}
+        className="sr-only"
+      />
+      <div className="mb-3 text-sm text-ink/70">{title}</div>
+      {body}
+    </label>
+  )
+  return (
+    <div>
+      <span className="mb-1.5 block text-sm text-ink/70">Your email signature</span>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {option(false, "Name and details", lines)}
+        {option(
+          true,
+          "With my photo",
+          <div className="flex items-center gap-3">
+            {photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photo} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
+            ) : (
+              <div className="h-12 w-12 shrink-0 rounded-full bg-ink/10" />
+            )}
+            {lines}
+          </div>,
+        )}
+      </div>
+      <p className="mt-1.5 text-xs text-ink/50">
+        It goes under every email you send a client, with your name, business, license, phone, email and booking link.
+        {withPhoto && !photo ? " Add a headshot above and it shows here." : ""}
+      </p>
+    </div>
   )
 }

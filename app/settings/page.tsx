@@ -44,6 +44,8 @@ export default async function SettingsPage() {
   const license = (licenseRow as { license_number?: string } | null)?.license_number ?? ""
   const { data: linkRow } = await supabase.from("agents").select("meeting_link").eq("id", user.id).maybeSingle()
   const meetingLink = (linkRow as { meeting_link?: string } | null)?.meeting_link ?? ""
+  const { data: sigRow } = await supabase.from("agents").select("signature_photo").eq("id", user.id).maybeSingle()
+  const signaturePhoto = !!(sigRow as { signature_photo?: boolean } | null)?.signature_photo
 
   const assistant = await assistantFor(supabase, user.id)
 
@@ -76,7 +78,7 @@ export default async function SettingsPage() {
               <BookingLink slug={agent.slug} />
             </div>
 
-            <SettingsForm agent={agent} license={license} meetingLink={meetingLink} />
+            <SettingsForm agent={agent} license={license} meetingLink={meetingLink} signaturePhoto={signaturePhoto} />
           </section>
 
           {/* RIGHT — account */}

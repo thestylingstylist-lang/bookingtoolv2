@@ -1,5 +1,6 @@
 "use server"
 
+import { agentCard } from "@/lib/agent-card"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
 import { toAgentConfig, MEETING_TYPES, type MeetingType } from "@/lib/config"
@@ -132,6 +133,7 @@ export async function createBooking(
       html: client.html,
       text: client.text,
       fromName: agentName,
+      card: await agentCard(agent.id),
       replyTo: agent.public_email || undefined,
     })
 

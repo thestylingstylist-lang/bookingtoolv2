@@ -57,12 +57,13 @@ ${
   o.signoff || o.signature
     ? `<tr><td style="padding:32px 8px 0;">
 ${o.signoff ? `<p style="margin:0;font-family:${FONT};font-size:16px;line-height:1.65;color:#4a433b;">${o.signoff}</p>` : ""}
-${o.signature ? `<p style="margin:6px 0 0;font-family:'Caveat',cursive;font-size:36px;line-height:1;color:#2b2520;">${esc(o.signature)}</p>` : ""}
+${o.signature ? `<!--sig--><p style="margin:6px 0 0;font-family:'Caveat',cursive;font-size:36px;line-height:1;color:#2b2520;">${esc(o.signature)}</p><!--/sig-->` : ""}
 ${o.role ? `<p style="margin:4px 0 0;font-family:${FONT};font-size:13px;color:#8a8072;font-style:italic;">${o.role}</p>` : ""}
-${o.contact ? `<p style="margin:10px 0 0;font-family:${FONT};font-size:13px;color:#8a8072;">${o.contact}</p>` : ""}
+${o.contact ? `<!--contact--><p style="margin:10px 0 0;font-family:${FONT};font-size:13px;color:#8a8072;">${o.contact}</p><!--/contact-->` : ""}
 </td></tr>`
     : ""
 }
+<!--card-->
 ${o.footer ? `<tr><td style="padding:34px 8px 0;"><div style="border-top:1px solid #ece6da;padding-top:16px;font-family:${SERIF};font-style:italic;font-size:13px;color:#a2977f;">${o.footer}</div></td></tr>` : ""}
 </table></td></tr></table>
 </body></html>`
@@ -71,3 +72,56 @@ ${o.footer ? `<tr><td style="padding:34px 8px 0;"><div style="border-top:1px sol
 // A note from Marvberry to a realtor.
 export const teamNote = (heading: string, body: string) =>
   letterHtml({ eyebrow: "Marvberry", heading, body, footer: "Marvberry. Move forward." })
+
+// The realtor's email signature, added under every letter they send a client.
+export type AgentCard = {
+  name: string
+  business?: string
+  license?: string
+  phone?: string
+  email?: string
+  photo?: string
+  site?: string
+}
+
+export function cardHtml(c: AgentCard) {
+  const pic = c.photo
+  const line = (t: string, size = 14, color = "#6b6158") =>
+    `<div style="margin-top:3px;font-family:${FONT};font-size:${size}px;line-height:1.5;color:${color};">${t}</div>`
+  const reach = [
+    c.phone ? `<a href="tel:${esc(c.phone.replace(/[^+\d]/g, ""))}" style="color:#6b6158;text-decoration:none;">${esc(c.phone)}</a>` : "",
+    c.email ? `<a href="mailto:${esc(c.email)}" style="color:#6b6158;text-decoration:none;">${esc(c.email)}</a>` : "",
+  ].filter(Boolean)
+  return `<tr><td style="padding:0 8px;">
+<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;"><tr>
+${pic ? `<td width="76" valign="top" style="padding:14px 16px 0 0;"><img src="${esc(pic)}" width="72" height="72" alt="${esc(c.name)}" style="display:block;width:72px;height:72px;border-radius:50%;object-fit:cover;"></td>` : ""}
+<td valign="top" style="padding-top:14px;">
+<div style="font-family:${SERIF};font-size:19px;color:#2b2520;">${esc(c.name)}</div>
+${c.business && c.business !== c.name ? line(esc(c.business), 14, "#2b2520") : ""}
+${line(["Real Estate Agent", c.license ? `License #${esc(c.license)}` : ""].filter(Boolean).join(" &nbsp;&middot;&nbsp; "), 12, "#9a8f84")}
+${reach.length ? line(reach.join(" &nbsp;&middot;&nbsp; "), 13) : ""}
+${c.site ? `<div style="margin-top:6px;"><a href="${esc(c.site)}" style="font-family:${FONT};font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#b89250;text-decoration:none;">Book a time with me</a></div>` : ""}
+</td></tr></table>
+</td></tr>`
+}
+
+export function cardText(c: AgentCard) {
+  return ["", "--", c.name, c.business && c.business !== c.name ? c.business : "", ["Real Estate Agent", c.license ? `License #${c.license}` : ""].filter(Boolean).join(" · "), [c.phone, c.email].filter(Boolean).join(" · "), c.site ? `Book a time: ${c.site}` : ""]
+    .filter((l, i) => i < 2 || l)
+    .join("\n")
+}
+
+// The plain-text letter's own phone/email line, which the signature now covers.
+function dropContact(text: string, c: AgentCard) {
+  const line = [c.phone, c.email].filter(Boolean).join(" · ")
+  return line && text.trimEnd().endsWith(line) ? text.trimEnd().slice(0, -line.length).trimEnd() : text
+}
+
+// Puts the signature into a finished letter (and drops the plain contact line it replaces).
+export function withCard(html: string, text: string, c: AgentCard | null | undefined) {
+  if (!c || !html.includes("<!--card-->")) return { html, text }
+  return {
+    html: html.replace(/<!--contact-->[\s\S]*?<!--\/contact-->/, "").replace(/<!--sig-->[\s\S]*?<!--\/sig-->/, "").replace("<!--card-->", cardHtml(c)),
+    text: dropContact(text, c) + "\n" + cardText(c),
+  }
+}

@@ -6,6 +6,7 @@ import { agentDayEmail, nudgeEmail } from "@/lib/nudge-email"
 import { agentDueLabel, daysUntil, canNudge, nudgeDraft, missingThing } from "@/lib/due"
 import { draftReminderFor } from "@/lib/assistant"
 import { toOwner } from "@/lib/phases"
+import { agentCard } from "@/lib/agent-card"
 
 // Runs once a day (see vercel.json). Finds consultations starting roughly
 // 12 to 36 hours from now that haven't had a reminder yet, and emails each
@@ -69,6 +70,7 @@ export async function GET(request: NextRequest) {
       html: mail.html,
       text: mail.text,
       fromName: agentName,
+      card: await agentCard(agent.id),
       replyTo: agent.public_email || undefined,
     })
     if (ok) {
@@ -192,6 +194,7 @@ async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
         to: c.email,
         ...mail,
         fromName: agentName,
+        card: await agentCard(agent.id as string),
         replyTo: (agent.public_email as string) || u?.user?.email || undefined,
       })
       if (!ok) continue

@@ -132,6 +132,9 @@ export async function saveSettings(
   }
   const { error: linkError } = await supabase.from("agents").update({ meeting_link: meetingLink }).eq("id", user.id)
 
+  // Email signature layout, its own column too.
+  await supabase.from("agents").update({ signature_photo: formData.get("signaturePhoto") === "1" }).eq("id", user.id)
+
   revalidatePath("/settings")
   revalidatePath("/dashboard")
   revalidatePath(`/book`, "layout")

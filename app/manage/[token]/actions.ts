@@ -1,5 +1,6 @@
 "use server"
 
+import { agentCard } from "@/lib/agent-card"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { toAgentConfig } from "@/lib/config"
@@ -103,6 +104,7 @@ export async function rescheduleBooking(token: string, slotStart: string): Promi
       to: booking.email,
       ...client,
       fromName: agentName,
+      card: await agentCard(agent.id),
       replyTo: agent.public_email || undefined,
     })
     const note = agentChangeEmail({
@@ -147,6 +149,7 @@ export async function cancelBooking(token: string): Promise<ManageResult> {
       to: booking.email,
       ...client,
       fromName: agentName,
+      card: await agentCard(agent.id),
       replyTo: agent.public_email || undefined,
     })
     const note = agentChangeEmail({

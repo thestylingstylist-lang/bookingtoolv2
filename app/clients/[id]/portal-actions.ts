@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { sendEmail } from "@/lib/email"
 import { portalLinkEmail } from "@/lib/portal-email"
+import { agentCard } from "@/lib/agent-card"
 
 const SITE = "https://www.marvberry.com"
 
@@ -43,6 +44,7 @@ export async function sendPortalLink(formData: FormData): Promise<void> {
     to: client.email,
     ...mail,
     fromName: agentName,
+    card: await agentCard(user.id),
     replyTo: user.email ?? undefined,
   })
   redirect(`/clients/${clientId}?doc=${ok ? "portalsent" : "portalfail"}`)

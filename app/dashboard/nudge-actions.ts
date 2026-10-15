@@ -5,6 +5,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { sendEmail } from "@/lib/email"
 import { nudgeEmail } from "@/lib/nudge-email"
+import { agentCard } from "@/lib/agent-card"
 
 // One tap: the reminder goes into the client's thread and to their inbox, in
 // the realtor's name. Nothing is ever sent without this tap.
@@ -37,6 +38,7 @@ export async function sendNudge(formData: FormData): Promise<void> {
     to: client.email,
     ...mail,
     fromName: agentName,
+    card: await agentCard(user.id),
     replyTo: agent?.public_email || user.email || undefined,
   })
   if (!ok) redirect(back("fail"))
