@@ -81,7 +81,7 @@ export default function Brand() {
         <header className="jobs-head">
           <h2>So here&rsquo;s what it does.</h2>
         </header>
-        <article className="job">
+        <article className="job slide s1">
           <div className="job-pic wide">
             <img src="/brand/booking-glass.jpg" alt="A realtor's branded booking page, open on a warm afternoon" />
           </div>
@@ -96,7 +96,7 @@ export default function Brand() {
           </div>
         </article>
 
-        <article className="job flip">
+        <article className="job flip slide s2">
           <div className="job-pic photo-bg">
             <div className="glass phone">
               <img src="/brand/signs.jpg" alt="A client signing their agreement on a phone" />
@@ -112,7 +112,7 @@ export default function Brand() {
           </div>
         </article>
 
-        <article className="job">
+        <article className="job slide s3">
           <div className="job-pic photo-bg">
             <div className="glass phone">
               <img src="/brand/portal.jpg" alt="A client's private page showing their next step" />
@@ -127,6 +127,43 @@ export default function Brand() {
             </p>
           </div>
         </article>
+      </section>
+
+      {/* 5. The guide */}
+      <section className="founder">
+        <div className="founder-pic">
+          <img src="/brand/alecia.jpg" alt="Alecia Ford, founder of Marvberry" />
+        </div>
+        <div className="letter">
+          <p className="hand gold">from Alecia</p>
+          <p>
+            Everyone always told me to be a realtor. I bought my own house and ran the whole deal myself. I even took the
+            class. And I found out I don&rsquo;t love the selling. I love the back office, the part that makes the business
+            good.
+          </p>
+          <p>
+            I&rsquo;ve been in sales for over two decades. Multi-millions sold, and I&rsquo;ve never lost a client. Not
+            because they were easy. Because I kept them in the loop. I thought ahead for them, so they never had to ask
+            me for anything. And I still took my days off.
+          </p>
+          <p>
+            Clients don&rsquo;t rate you on how many houses you sold. They rate you on how taken care of they felt.
+            People forget what you did. They never forget how you made them feel. That&rsquo;s what gets you referred.
+          </p>
+          <p>
+            Real estate is a billion-dollar industry, and every tool is about getting more leads. Nothing helps you take
+            care of the clients you already have. You shouldn&rsquo;t be jumping between fifteen apps to manage one
+            transaction. So I built Marvberry.
+          </p>
+          <p className="sign">Alecia Ford</p>
+          <p className="role">Founder, Marvberry</p>
+          <div className="letter-cta">
+            <a className="btn" href={CALL}>
+              Let me set it up for you
+            </a>
+            <p className="fine dark">A free call. I&rsquo;ll build it with you.</p>
+          </div>
+        </div>
       </section>
 
       {/* Q3. What makes this different? Beat 1: you're not setting it up */}
@@ -153,6 +190,11 @@ export default function Brand() {
           and what matters today.
         </p>
         <p className="lead strong">Your clients only ever see your name.</p>
+        <div className="meet-pic photo-bg">
+          <div className="glass">
+            <img src="/brand/assistant-draft.jpg" alt="A reply drafted by Marvberry in the realtor's voice, ready to approve and send" />
+          </div>
+        </div>
         <p className="trio">
           <span>Your bookings.</span>
           <span>Your deals.</span>
@@ -195,43 +237,6 @@ export default function Brand() {
           <p className="brokerage">
             Running a brokerage? <a href={CALL}>Talk to us</a>.
           </p>
-        </div>
-      </section>
-
-      {/* 5. The guide */}
-      <section className="founder">
-        <div className="founder-pic">
-          <img src="/brand/alecia.jpg" alt="Alecia Ford, founder of Marvberry" />
-        </div>
-        <div className="letter">
-          <p className="hand gold">from Alecia</p>
-          <p>
-            Everyone always told me to be a realtor. I bought my own house and ran the whole deal myself. I even took the
-            class. And I found out I don&rsquo;t love the selling. I love the back office, the part that makes the business
-            good.
-          </p>
-          <p>
-            I&rsquo;ve been in sales for over two decades. Multi-millions sold, and I&rsquo;ve never lost a client. Not
-            because they were easy. Because I kept them in the loop. I thought ahead for them, so they never had to ask
-            me for anything. And I still took my days off.
-          </p>
-          <p>
-            Clients don&rsquo;t rate you on how many houses you sold. They rate you on how taken care of they felt.
-            People forget what you did. They never forget how you made them feel. That&rsquo;s what gets you referred.
-          </p>
-          <p>
-            Real estate is a billion-dollar industry, and every tool is about getting more leads. Nothing helps you take
-            care of the clients you already have. You shouldn&rsquo;t be jumping between fifteen apps to manage one
-            transaction. So I built Marvberry.
-          </p>
-          <p className="sign">Alecia Ford</p>
-          <p className="role">Founder, Marvberry</p>
-          <div className="letter-cta">
-            <a className="btn" href={CALL}>
-              Let me set it up for you
-            </a>
-            <p className="fine dark">A free call. I&rsquo;ll build it with you.</p>
-          </div>
         </div>
       </section>
 
@@ -526,5 +531,26 @@ const CSS = `
 .mb .reveal .daily{font-size:17px; color:var(--body); margin-bottom:30px}
 .mb .reveal .brokerage{margin-top:22px; font-size:15px; color:var(--muted)}
 .mb .reveal .brokerage a{color:var(--rust)}
+
+/* Q2: each beat slides up over the last */
+.mb .jobs{max-width:none !important; display:block !important; padding:0 !important; box-shadow:none !important; clip-path:none !important}
+.mb .jobs .jobs-head{padding:clamp(72px,9vw,128px) 20px clamp(40px,5vw,64px); background:var(--linen)}
+.mb .job.slide{position:sticky; top:0; min-height:100vh; box-sizing:border-box; padding:clamp(48px,6vw,96px) max(clamp(20px,5vw,72px), calc((100vw - 1240px) / 2)); background:var(--linen); border-radius:36px 36px 0 0; box-shadow:0 -34px 70px -40px rgba(42,34,28,.45)}
+.mb .job.slide.s1{border-radius:0; box-shadow:none}
+.mb .job.slide.s2{background:var(--cream)}
+.mb .job.slide.s3{background:#EFE6D8}
+.mb .job.slide .job-pic.wide img{max-height:70vh; object-fit:cover}
+.mb .job.slide .glass.phone img{max-height:62vh}
+/* Founder sits in its own warm band */
+.mb .founder{box-shadow:0 0 0 100vmax #EFE6D8 !important; background:#EFE6D8}
+/* Meet Marvberry: the assistant, shown */
+.mb .meet{max-width:1040px !important}
+.mb .meet-pic{position:relative; margin:44px auto 0; max-width:820px; border-radius:24px; overflow:hidden; background:#3a2d22 url(/brand/room.jpg) center/cover; padding:clamp(20px,4vw,48px); isolation:isolate}
+.mb .meet-pic::before{content:""; position:absolute; inset:0; z-index:-1; background:rgba(34,26,20,.25)}
+.mb .meet-pic .glass{padding:10px; border-radius:20px}
+.mb .meet-pic img{display:block; width:100%; height:auto; border-radius:14px}
+@media (max-width: 900px){
+  .mb .job.slide{position:relative; min-height:0; border-radius:28px 28px 0 0}
+}
 @media (max-width: 900px){ .mb .hires{grid-template-columns:1fr} .mb .trio{flex-direction:column; gap:6px} }
 `
