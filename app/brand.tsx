@@ -52,7 +52,7 @@ export default function Brand() {
           <span className="l2">You&rsquo;ve got a team!</span>
         </h1>
         <p className="sub">
-          Your showings, booked. Your agreements, signed. Every client knowing what&rsquo;s next, without texting you to
+          Your bookings, handled. Your agreements, signed. Every client knowing what&rsquo;s next, without texting you to
           ask.
         </p>
         <p className="identity">
@@ -89,7 +89,7 @@ export default function Brand() {
             <p className="tag">Your bookings</p>
             <h3>Clients book themselves.</h3>
             <p>
-              One link. Your photo, your hours. They pick a time that works for you, and the showing is on your calendar
+              One link. Your photo, your hours. They pick a time that works for you, and the booking is on your calendar
               before you&rsquo;d have called them back. No phone tag.
             </p>
           </div>
