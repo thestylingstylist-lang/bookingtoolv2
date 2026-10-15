@@ -79,7 +79,7 @@ export default function Brand() {
       {/* Q2. What can it actually do? */}
       <section id="how" className="jobs">
         <header className="jobs-head">
-          <h2>Here&rsquo;s what your week looks like now.</h2>
+          <h2>So here&rsquo;s what it does.</h2>
         </header>
         <article className="job">
           <div className="job-pic wide">
@@ -87,10 +87,10 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your bookings</p>
-            <h3>Clients book themselves.</h3>
+            <h3>It fills your calendar.</h3>
             <p>
-              One link. Your photo, your hours. They pick a time that works for you, and the booking is on your calendar
-              before you&rsquo;d have called them back. No phone tag.
+              One link. Your photo, your hours. Clients pick a time that works for you, and the booking just shows up.
+              No phone tag.
             </p>
           </div>
         </article>
@@ -103,10 +103,10 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your deals</p>
-            <h3>Agreements come back signed.</h3>
+            <h3>It gets your paperwork signed.</h3>
             <p>
-              The moment a client says yes, your buyer agreement is ready, already filled in with your terms. You glance at
-              it and hit send. They sign from their phone. No printing. No scanning. No chasing.
+              The moment a client says yes, your buyer agreement is ready to go, already filled in with your terms. One
+              click and it&rsquo;s sent. They sign from their phone. No printing, no scanning, no chasing.
             </p>
           </div>
         </article>
@@ -119,10 +119,10 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your relationships</p>
-            <h3>Clients stop asking &ldquo;what&rsquo;s next?&rdquo;</h3>
+            <h3>It keeps every client in the loop.</h3>
             <p>
-              Every client gets their own page with their next step and what&rsquo;s due. No app, no password. They check
-              it instead of texting you. And they feel taken care of, which is exactly what gets you referred.
+              Every client gets their own page with their next step and what&rsquo;s due. They check it instead of texting
+              you.
             </p>
           </div>
         </article>
