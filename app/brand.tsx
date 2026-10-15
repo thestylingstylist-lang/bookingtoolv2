@@ -17,7 +17,7 @@ const PLANS = [
     per: "a month",
     blurb: "Everything one realtor runs a business on.",
     items: ["Your branded booking page", "Agreements signed from a phone", "A private page for every client", "Free setup call"],
-    cta: "Get started for free",
+    cta: "Try Marvberry",
     main: true,
   },
   {
@@ -39,7 +39,7 @@ const PLANS = [
 ]
 
 const FAQ = [
-  ["What happens when I click \u201cGet started for free\u201d?", "You create your free account. No credit card. If you\u2019d rather have it done for you, book a free setup call and we\u2019ll build your booking page, your agreement, and your client steps with you."],
+  ["What happens when I click \u201cTry Marvberry\u201d?", "You create your free account. No credit card. If you\u2019d rather have it done for you, book a free setup call and we\u2019ll build your booking page, your agreement, and your client steps with you."],
   ["Do my clients have to make an account?", "No. Your clients get a private link. They book, sign, and send documents without a password or an app."],
   ["Does it work on my phone?", "Yes. Your phone or your computer, same business either way."],
   ["What if it isn\u2019t right for me?", "You have 30 days. If Marvberry isn\u2019t for you, tell us and we\u2019ll refund you in full."],
@@ -62,7 +62,7 @@ export default function Brand() {
           <a href="/login">Log in</a>
         </nav>
         <a className="btn sm" href={START}>
-          Get started for free
+          Try Marvberry
         </a>
       </header>
 
@@ -78,7 +78,7 @@ export default function Brand() {
           Handled in one place.
         </p>
         <a className="btn rust" href={START}>
-          Start for free
+          Try Marvberry
         </a>
         <svg className="swoosh" viewBox="0 0 100 12" aria-hidden="true">
           <path d="M2 4 C 35 0, 70 2, 98 10" />
@@ -187,7 +187,7 @@ export default function Brand() {
         <div className="mid-cta">
           <p className="team-line">That&rsquo;s what having a team feels like. You stay with the client. The back office is handled.</p>
           <a className="btn" href={START}>
-            Get started for free
+            Try Marvberry
           </a>
           <p className="fine dark">No credit card required.</p>
         </div>
@@ -200,7 +200,7 @@ export default function Brand() {
         <ol className="steps">
           <li>
             <span className="num">1</span>
-            <p>Get started for free. No credit card.</p>
+            <p>Try Marvberry. Free to start, no credit card.</p>
           </li>
           <li>
             <span className="num">2</span>
@@ -212,7 +212,7 @@ export default function Brand() {
           </li>
         </ol>
         <a className="btn" href={START}>
-          Get started for free
+          Try Marvberry
         </a>
         <p className="fine dark">No credit card required.</p>
       </section>
@@ -301,7 +301,7 @@ export default function Brand() {
       <section className="closing">
         <h2>Busy isn&rsquo;t success. Structure is.</h2>
         <a className="btn" href={START}>
-          Get started for free
+          Try Marvberry
         </a>
         <p className="fine dark">No credit card required.</p>
       </section>
