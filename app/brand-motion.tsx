@@ -4,7 +4,7 @@ import { useEffect } from "react"
 
 const REVEAL = [
   ".beat-inner > *", ".pivot > *", ".jobs-head h2", ".job-copy > *", ".job-pic", ".mid-cta > *",
-  ".plan-band > *", ".founder-pic", ".letter > *", ".masthead > *", ".tier", ".faq h2", ".qa > div", ".closing > *",
+  ".plan-band > *", ".founder-pic", ".letter > *", ".masthead > *", ".tier", ".faq h2", ".qa > div", ".closing > *", ".hire", ".total > *", ".reveal", ".value-head > *",
 ]
 
 export default function BrandMotion() {

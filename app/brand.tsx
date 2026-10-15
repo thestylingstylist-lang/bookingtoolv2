@@ -10,32 +10,10 @@ import BrandMotion from "./brand-motion"
 const START = "/signup"
 const CALL = "/chat"
 
-const PLANS = [
-  {
-    name: "Solo Agent",
-    price: "$39",
-    per: "a month",
-    blurb: "Everything one realtor runs a business on.",
-    items: ["Your branded booking page", "Agreements signed from a phone", "A private page for every client", "Free setup call"],
-    cta: "Try Marvberry",
-    main: true,
-  },
-  {
-    name: "Brokerage",
-    price: "From $149",
-    per: "a month",
-    blurb: "Your whole team, set up around how you work.",
-    items: ["First five agents included", "About $30 for each agent after", "Your agreements and steps for the team", "Setup for every agent"],
-    cta: "Talk to us",
-  },
-  {
-    name: "Brand Touch",
-    price: "From $1,200",
-    per: "one time",
-    blurb: "Your client emails, texts, and booking page, written in your voice.",
-    items: ["A session on how you sound", "Every client message rewritten", "Your booking page words", "Added to any plan"],
-    cta: "Ask about it",
-  },
+const HIRES = [
+  { job: "Your bookings", role: "A front desk receptionist", cost: "About $39,000 a year" },
+  { job: "Your deals", role: "A transaction coordinator", cost: "$250 to $600 a file", note: "or $40,000 to $65,000 a year full time" },
+  { job: "Your relationships", role: "A part-time client assistant", cost: "About $1,000 a month" },
 ]
 
 const FAQ = [
@@ -74,8 +52,11 @@ export default function Brand() {
           <span className="l2">You&rsquo;ve got a team!</span>
         </h1>
         <p className="sub">
-          Everything after a client says &ldquo;YES!&rdquo; The scheduling, the signature, and the what&rsquo;s next.
-          Handled in one place.
+          Your showings, booked. Your agreements, signed. Every client knowing what&rsquo;s next, without texting you to
+          ask.
+        </p>
+        <p className="identity">
+          Be the agent who looks completely buttoned-up. <em>And still has a life.</em>
         </p>
         <a className="btn rust" href={START}>
           Try Marvberry
@@ -83,7 +64,7 @@ export default function Brand() {
         <svg className="swoosh" viewBox="0 0 100 12" aria-hidden="true">
           <path d="M2 4 C 35 0, 70 2, 98 10" />
         </svg>
-        <p className="fine dark">No credit card required.</p>
+        <p className="fine dark">Free to start. No credit card.</p>
       </section>
 
       {/* Real screens rise over the pinned hero as you scroll */}
@@ -95,59 +76,21 @@ export default function Brand() {
         />
       </div>
 
-      {/* 2. The wake-up: three beats that slide over each other */}
-      <div className="stack">
-        <section className="beat-panel one">
-          <div className="beat-inner">
-            <p className="kicker">Every good realtor says real estate isn&rsquo;t transactional. It&rsquo;s relational.</p>
-            <h2>So how many unread texts and emails are on your phone right now?</h2>
-          </div>
-        </section>
-        <section className="beat-panel two">
-          <div className="beat-inner">
-            <h2>
-              That&rsquo;s not busy.
-              <br />
-              <em>That&rsquo;s business without structure.</em>
-            </h2>
-          </div>
-        </section>
-        <section className="beat-panel three">
-          <div className="beat-inner">
-            <h2>And it&rsquo;s costing you.</h2>
-            <ul className="costs">
-              <li>Time with your family.</li>
-              <li>Clients who would have referred you, if they&rsquo;d felt taken care of.</li>
-            </ul>
-          </div>
-        </section>
-      </div>
-
-      {/* 3. The pivot */}
-      <section className="pivot">
-        <p className="hand gold">here&rsquo;s the thing</p>
-        <h2>You went out on your own to build a business, not to be its back office.</h2>
-        <p className="lead">
-          Meet the manager you never had. You say yes, and Marvberry takes it from there. Every client lives in one
-          file: their messages, documents, offers, and notes, from showing to offer to closing. Nothing to dig for.
-        </p>
-      </section>
-
-      {/* 4. The three jobs */}
+      {/* Q2. What can it actually do? */}
       <section id="how" className="jobs">
         <header className="jobs-head">
-          <h2>Everything that takes you from booking to close.</h2>
+          <h2>Here&rsquo;s what your week looks like now.</h2>
         </header>
         <article className="job">
           <div className="job-pic wide">
             <img src="/brand/booking-glass.jpg" alt="A realtor's branded booking page, open on a warm afternoon" />
           </div>
           <div className="job-copy">
-            <p className="tag">Your booking page</p>
-            <h3>Show up like a brand, on your time.</h3>
+            <p className="tag">Your bookings</p>
+            <h3>Clients book themselves.</h3>
             <p>
-              Your own booking page, with your photo, your name, and your hours. Clients pick a time that works for you.
-              You look like a full operation from the first click.
+              One link. Your photo, your hours. They pick a time that works for you, and the showing is on your calendar
+              before you&rsquo;d have called them back. No phone tag.
             </p>
           </div>
         </article>
@@ -159,11 +102,11 @@ export default function Brand() {
             </div>
           </div>
           <div className="job-copy">
-            <p className="tag">Agreements and documents</p>
-            <h3>From booked to signed in two clicks.</h3>
+            <p className="tag">Your deals</p>
+            <h3>Agreements come back signed.</h3>
             <p>
-              A client books your link. One click makes them a client. One more sends your buyer agreement, already
-              filled in with your usual terms. You check it, hit send, and they sign from their phone.
+              The moment a client says yes, your buyer agreement is ready, already filled in with your terms. You glance at
+              it and hit send. They sign from their phone. No printing. No scanning. No chasing.
             </p>
           </div>
         </article>
@@ -175,46 +118,85 @@ export default function Brand() {
             </div>
           </div>
           <div className="job-copy">
-            <p className="tag">Your client&rsquo;s page</p>
-            <h3>A page that answers &ldquo;what&rsquo;s next?&rdquo;</h3>
+            <p className="tag">Your relationships</p>
+            <h3>Clients stop asking &ldquo;what&rsquo;s next?&rdquo;</h3>
             <p>
-              Every client gets a private page with their next steps and due dates. They don&rsquo;t sign up or use a
-              password. They check it instead of texting you.
+              Every client gets their own page with their next step and what&rsquo;s due. No app, no password. They check
+              it instead of texting you. And they feel taken care of, which is exactly what gets you referred.
             </p>
           </div>
         </article>
-
-        <div className="mid-cta">
-          <p className="team-line">That&rsquo;s what having a team feels like. You stay with the client. The back office is handled.</p>
-          <a className="btn" href={START}>
-            Try Marvberry
-          </a>
-          <p className="fine dark">No credit card required.</p>
-        </div>
       </section>
 
-      {/* 4. The plan */}
+      {/* Q3. How is this different from everything I've tried? */}
       <section className="plan-band">
-        <p className="hand gold">here&rsquo;s how it starts</p>
-        <h2>Up and running in three steps.</h2>
-        <ol className="steps">
-          <li>
-            <span className="num">1</span>
-            <p>Try Marvberry. Free to start, no credit card.</p>
-          </li>
-          <li>
-            <span className="num">2</span>
-            <p>Set up your booking page, your agreement, and your client steps. Or let us do it with you on a free call.</p>
-          </li>
-          <li>
-            <span className="num">3</span>
-            <p>Start managing every client from your phone or your computer.</p>
-          </li>
-        </ol>
+        <p className="hand gold">here&rsquo;s the difference</p>
+        <h2>
+          You&rsquo;ve bought the tool before. Watched the tutorial. <em>Never opened it again.</em>
+        </h2>
+        <p className="lead strong">This time, you don&rsquo;t set anything up. We do.</p>
+        <p className="lead">
+          One free call, and we build it with you: your booking page, your agreement, your client steps. You don&rsquo;t
+          learn a system. You show up, and it&rsquo;s already running.
+        </p>
+        <p className="lead guarantee">And if it isn&rsquo;t right for you, you have 30 days to get every dollar back.</p>
         <a className="btn" href={START}>
           Try Marvberry
         </a>
-        <p className="fine dark">No credit card required.</p>
+        <p className="fine dark">Free to start. No credit card.</p>
+      </section>
+
+      {/* Q4. So what is this, really? */}
+      <section className="pivot meet">
+        <p className="hand gold">meet marvberry</p>
+        <h2>
+          Your first hire.
+        </h2>
+        <p className="lead strong">The assistant that keeps your deals moving forward.</p>
+        <p className="trio">
+          <span>Your bookings.</span>
+          <span>Your deals.</span>
+          <span>Your relationships.</span>
+        </p>
+        <p className="team-line">Three jobs. One hire.</p>
+      </section>
+
+      {/* Q5. What's this going to cost me? The value stack */}
+      <section id="pricing" className="value">
+        <header className="value-head">
+          <p className="hand gold">the math</p>
+          <h2>So what would it cost to hire this team?</h2>
+        </header>
+        <div className="hires">
+          {HIRES.map((h) => (
+            <div key={h.role} className="hire">
+              <p className="tag">{h.job}</p>
+              <h3>{h.role}</h3>
+              <p className="cost">{h.cost}</p>
+              {h.note && <p className="note">{h.note}</p>}
+            </div>
+          ))}
+        </div>
+        <div className="total">
+          <p className="sum">
+            That&rsquo;s over <strong>$5,000 a month.</strong>
+          </p>
+          <p className="hidden-cost">Before you&rsquo;ve hired, trained, or covered a single sick day.</p>
+        </div>
+        <div className="reveal">
+          <p className="does">Marvberry does all three jobs for</p>
+          <p className="price-big">
+            $39<span>a month</span>
+          </p>
+          <p className="daily">About $1.30 a day. Early price, and you keep it as the price goes up.</p>
+          <a className="btn" href={START}>
+            Try Marvberry
+          </a>
+          <p className="fine dark">Free to start. No credit card. 30-day money-back guarantee.</p>
+          <p className="brokerage">
+            Running a brokerage? <a href={CALL}>Talk to us</a>.
+          </p>
+        </div>
       </section>
 
       {/* 5. The guide */}
@@ -254,36 +236,6 @@ export default function Brand() {
         </div>
       </section>
 
-      {/* 7. Pricing */}
-      <section id="pricing" className="pricing photo">
-        <div className="glass frame">
-          <header className="masthead">
-            <p className="hand gold">pricing</p>
-            <h2>Simple, and set up for you.</h2>
-          </header>
-          <div className="plans">
-            {PLANS.map((p) => (
-              <article key={p.name} className="tier">
-                <h3>{p.name}</h3>
-                <p className="price">
-                  {p.price} <span>{p.per}</span>
-                </p>
-                <p className="blurb">{p.blurb}</p>
-                <ul>
-                  {p.items.map((it) => (
-                    <li key={it}>{it}</li>
-                  ))}
-                </ul>
-                <a className={p.main ? "btn cream" : "btn line"} href={p.main ? START : CALL}>
-                  {p.cta}
-                </a>
-              </article>
-            ))}
-          </div>
-          <p className="frame-foot">Every plan comes with a 30-day money-back guarantee.</p>
-        </div>
-      </section>
-
       {/* 8. Questions */}
       <section className="faq">
         <h2>Questions</h2>
@@ -303,7 +255,7 @@ export default function Brand() {
         <a className="btn" href={START}>
           Try Marvberry
         </a>
-        <p className="fine dark">No credit card required.</p>
+        <p className="fine dark">Free to start. No credit card.</p>
       </section>
 
       <footer className="foot">
@@ -544,4 +496,36 @@ const CSS = `
 .mb .closing{background:var(--cream)}
 @media (max-width: 900px){ .mb .qa{grid-template-columns:1fr} }
 @media (prefers-reduced-motion: reduce){ .mb .btn{transition:none} }
+/* Elevated script */
+.mb .hero .identity{margin-top:22px; font-family:var(--serif); font-size:clamp(19px,.9rem + .6vw,24px); line-height:1.4; color:var(--rust); max-width:40rem}
+.mb .hero .identity em{font-style:italic; white-space:nowrap}
+.mb .hero .identity{opacity:0; animation:mbRise .8s cubic-bezier(.2,.7,.2,1) 1.35s forwards}
+@media (prefers-reduced-motion: reduce){ .mb .hero .identity{opacity:1; animation:none; transform:none} }
+.mb .plan-band h2{max-width:22ch; margin:0 auto}
+.mb .plan-band h2 em{font-style:italic; color:var(--rust)}
+.mb .plan-band .lead.guarantee{font-size:16.5px; color:var(--muted); margin-bottom:36px}
+.mb .meet h2{font-size:clamp(44px,1.4rem + 4vw,96px); font-style:italic}
+.mb .trio{margin:44px 0 0; display:flex; justify-content:center; gap:clamp(14px,3vw,40px); flex-wrap:wrap; font-family:var(--serif); font-size:clamp(22px,1rem + 1vw,32px); color:var(--ink)}
+.mb .trio span:nth-child(2){color:var(--rust)}
+.mb .jobs .jobs-head{padding-top:56px}
+.mb .meet{padding-bottom:24px !important}
+.mb .meet .team-line{margin-top:36px; font-style:italic; color:var(--muted)}
+.mb .value{text-align:center; box-shadow:0 0 0 100vmax var(--linen); clip-path:inset(0 -100vmax)}
+.mb .value-head h2{font-size:clamp(32px,1rem + 2.4vw,54px); line-height:1.1; max-width:18ch; margin:14px auto 0}
+.mb .hires{max-width:1040px; margin:56px auto 0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; text-align:left}
+.mb .hire{border:1px solid var(--rule); border-radius:20px; padding:28px 26px 30px; background:var(--linen)}
+.mb .hire h3{margin-top:12px; font-family:var(--serif); font-size:24px; font-weight:400; line-height:1.25; color:var(--ink)}
+.mb .hire .cost{margin-top:18px; font-size:20px; font-weight:600; color:var(--ink); text-decoration:line-through; text-decoration-color:rgba(143,78,42,.55); text-decoration-thickness:2px}
+.mb .hire .note{margin-top:6px; font-size:14.5px; color:var(--muted)}
+.mb .total{margin:48px auto 0; max-width:40rem}
+.mb .total .sum{font-family:var(--serif); font-size:clamp(26px,1rem + 1.6vw,40px); color:var(--ink)}
+.mb .total .hidden-cost{margin-top:10px; font-size:17px; color:var(--body)}
+.mb .reveal{margin:64px auto 0; max-width:640px; background:var(--cream); border-radius:28px; padding:48px 28px 44px}
+.mb .reveal .does{font-family:var(--serif); font-style:italic; font-size:24px; color:var(--ink)}
+.mb .reveal .price-big{font-family:var(--serif); font-size:clamp(80px,3rem + 6vw,140px); line-height:1; color:var(--rust); margin:10px 0 6px}
+.mb .reveal .price-big span{font-size:22px; color:var(--body); margin-left:10px; font-style:italic}
+.mb .reveal .daily{font-size:17px; color:var(--body); margin-bottom:30px}
+.mb .reveal .brokerage{margin-top:22px; font-size:15px; color:var(--muted)}
+.mb .reveal .brokerage a{color:var(--rust)}
+@media (max-width: 900px){ .mb .hires{grid-template-columns:1fr} .mb .trio{flex-direction:column; gap:6px} }
 `
