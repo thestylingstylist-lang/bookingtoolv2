@@ -86,6 +86,61 @@ function detailRows(rows: [string, string][]) {
     .join("")
 }
 
+// ---- Client letters ---------------------------------------------------------
+// What a client gets from their agent: an open, warm note, no boxes. Marvberry
+// stays out of it; it reads like the agent wrote it.
+
+const firstOf = (name: string) => name.trim().split(/\s+/)[0] || name
+const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+const P = (t: string) =>
+  `<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">${t}</p>`
+
+function letter(o: {
+  agentName: string
+  heading: string
+  paras: string[]
+  when?: { label: string; sub: string }
+  after?: string
+  signoff: string
+  contact?: string
+}) {
+  const sig = esc(firstOf(o.agentName))
+  return `<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..600&family=Caveat&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:#faf7f1;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf7f1;padding:40px 16px;">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
+<tr><td style="padding:0 8px;font-family:Georgia,serif;font-size:11px;letter-spacing:.3em;color:#b89250;text-transform:uppercase;">${esc(o.agentName)}</td></tr>
+<tr><td style="padding:22px 8px 0;">
+<h1 style="margin:0;font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:30px;line-height:1.22;color:#2b2520;">${o.heading}</h1>
+</td></tr>
+<tr><td style="padding:8px 8px 0;">${o.paras.map(P).join("")}</td></tr>
+${
+  o.when
+    ? `<tr><td style="padding:26px 8px 0;">
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr><td style="font-family:Georgia,serif;font-size:11px;letter-spacing:.18em;color:#b89250;padding:0 0 3px;">WHEN</td></tr>
+<tr><td style="font-family:'Playfair Display',Georgia,serif;font-size:19px;color:#2b2520;padding:0 0 2px;">${o.when.label}</td></tr>
+<tr><td style="font-family:Georgia,serif;font-size:14px;color:#6d655b;padding:2px 0 0;">${o.when.sub}</td></tr>
+</table></td></tr>`
+    : ""
+}
+${o.after ? `<tr><td style="padding:16px 8px 0;">${o.after}</td></tr>` : ""}
+<tr><td style="padding:34px 8px 0;">
+<p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">${o.signoff}</p>
+<p style="margin:6px 0 0;font-family:'Caveat',cursive;font-size:36px;line-height:1;color:#2b2520;">${sig}</p>
+${o.contact ? `<p style="margin:10px 0 0;font-family:Georgia,serif;font-size:13px;color:#8a8072;">${o.contact}</p>` : ""}
+</td></tr>
+</table></td></tr></table>
+</body></html>`
+}
+
+const manageLine = (url: string, words: string) =>
+  `<p style="margin:0;font-family:Georgia,serif;font-size:15px;line-height:1.6;color:#6d655b;">${words} <a href="${url}" style="color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;">Pick a new time or cancel</a></p>`
+
 export function clientConfirmationEmail(opts: {
   clientFirstName: string
   agentName: string
@@ -95,45 +150,38 @@ export function clientConfirmationEmail(opts: {
   agentEmail?: string
   manageUrl?: string
 }) {
-  const how =
-    opts.meetingType === "phone"
-      ? `${opts.agentName} will call you at the number you gave.`
-      : `${opts.agentName} will send a video link before your call.`
-  const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).join(" &middot; ")
+  const phone = opts.meetingType === "phone"
+  const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
+  const how = phone ? "I'll call you at the number you gave me." : "I'll send you the video link before we meet."
+  const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).map((v) => esc(v!)).join(" &middot; ")
 
-  const html = wrap(`
-    <tr><td style="background:#16151a;height:6px;"></td></tr>
-    <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">You're booked${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
-      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} is confirmed. Here are the details:</p>
-    </td></tr>
-    <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
-        ${detailRows([
-          ["When", opts.whenLabel],
-          ["Type", opts.meetingType === "phone" ? "Phone call" : "Video call"],
-        ])}
-      </table>
-    </td></tr>
-    <tr><td style="padding:0 32px 8px;">
-      <p style="margin:0;color:#16151a;font-size:14px;line-height:1.5;">${how}</p>
-    </td></tr>
-    ${opts.manageUrl ? manageBlock(opts.manageUrl) : ""}
-    ${
-      contact
-        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#5d5b62;font-size:13px;">Questions? ${contact}</p></td></tr>`
-        : `<tr><td style="height:20px;"></td></tr>`
-    }
-  `)
+  const html = letter({
+    agentName: opts.agentName,
+    heading: `You're booked${hi}.`,
+    paras: [
+      "I&rsquo;m so glad you reached out. Our consultation is confirmed, and I&rsquo;m looking forward to talking with you.",
+      how.replace(/'/g, "&rsquo;"),
+    ],
+    when: { label: opts.whenLabel, sub: `A ${phone ? "phone" : "video"} call with ${esc(opts.agentName)}` },
+    after: opts.manageUrl ? manageLine(opts.manageUrl, "If something comes up, no problem.") : undefined,
+    signoff: "Talk soon,",
+    contact,
+  })
 
   const text = `You're booked${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
 
-Your consultation with ${opts.agentName} is confirmed.
+I'm so glad you reached out. Our consultation is confirmed, and I'm looking forward to talking with you.
+
+${how}
 
 When: ${opts.whenLabel}
-Type: ${opts.meetingType === "phone" ? "Phone call" : "Video call"}
+A ${phone ? "phone" : "video"} call with ${opts.agentName}${opts.manageUrl ? `
 
-${how}${opts.manageUrl ? `\n\nNeed a different time? Reschedule or cancel: ${opts.manageUrl}` : ""}${contact ? `\n\nQuestions? ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
+If something comes up, no problem. Pick a new time or cancel: ${opts.manageUrl}` : ""}
+
+Talk soon,
+${firstOf(opts.agentName)}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `
+${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
 
   return { subject: `You're booked with ${opts.agentName}`, html, text }
 }
@@ -290,47 +338,37 @@ export function clientReminderEmail(opts: {
   agentEmail?: string
   manageUrl?: string
 }) {
-  const how =
-    opts.meetingType === "phone"
-      ? `${opts.agentName} will call you at the number you gave.`
-      : `${opts.agentName} will send a video link before your call.`
-  const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).join(" &middot; ")
+  const phone = opts.meetingType === "phone"
+  const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
+  const how = phone ? "I'll call you at the number you gave me." : "I'll send you the video link before we meet."
+  const contact = [opts.agentPhone, opts.agentEmail].filter(Boolean).map((v) => esc(v!)).join(" &middot; ")
 
-  const html = wrap(`
-    <tr><td style="background:#16151a;height:6px;"></td></tr>
-    <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">See you soon${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
-      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">A quick reminder about your consultation with ${opts.agentName}:</p>
-    </td></tr>
-    <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
-        ${detailRows([
-          ["When", opts.whenLabel],
-          ["Type", opts.meetingType === "phone" ? "Phone call" : "Video call"],
-        ])}
-      </table>
-    </td></tr>
-    <tr><td style="padding:0 32px 8px;">
-      <p style="margin:0;color:#16151a;font-size:14px;line-height:1.5;">${how}</p>
-    </td></tr>
-    ${opts.manageUrl ? manageBlock(opts.manageUrl) : ""}
-    ${
-      contact
-        ? `<tr><td style="padding:8px 32px 28px;"><p style="margin:0;color:#5d5b62;font-size:13px;">Questions? ${contact}</p></td></tr>`
-        : `<tr><td style="height:20px;"></td></tr>`
-    }
-  `)
+  const html = letter({
+    agentName: opts.agentName,
+    heading: `See you soon${hi}.`,
+    paras: ["A heads-up that our consultation is coming up. I&rsquo;m looking forward to it.", how.replace(/'/g, "&rsquo;")],
+    when: { label: opts.whenLabel, sub: `A ${phone ? "phone" : "video"} call with ${esc(opts.agentName)}` },
+    after: opts.manageUrl ? manageLine(opts.manageUrl, "If the time doesn&rsquo;t work anymore, that&rsquo;s okay.") : undefined,
+    signoff: "Talk soon,",
+    contact,
+  })
 
   const text = `See you soon${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
 
-A quick reminder about your consultation with ${opts.agentName}.
+A heads-up that our consultation is coming up. I'm looking forward to it.
+
+${how}
 
 When: ${opts.whenLabel}
-Type: ${opts.meetingType === "phone" ? "Phone call" : "Video call"}
+A ${phone ? "phone" : "video"} call with ${opts.agentName}${opts.manageUrl ? `
 
-${how}${opts.manageUrl ? `\n\nNeed a different time? Reschedule or cancel: ${opts.manageUrl}` : ""}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `\n\nQuestions? ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
+If the time doesn't work anymore, that's okay. Pick a new time or cancel: ${opts.manageUrl}` : ""}
 
-  return { subject: `Reminder: your consultation with ${opts.agentName}`, html, text }
+Talk soon,
+${firstOf(opts.agentName)}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `
+${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
+
+  return { subject: `See you soon: your consultation with ${opts.agentName}`, html, text }
 }
 
 // Client: confirms a new time after they reschedule themselves.
@@ -341,32 +379,27 @@ export function clientRescheduledEmail(opts: {
   meetingType: string
   manageUrl: string
 }) {
-  const type = opts.meetingType === "phone" ? "Phone call" : "Video call"
-  const html = wrap(`
-    <tr><td style="background:#16151a;height:6px;"></td></tr>
-    <tr><td style="padding:32px 32px 8px;">
-      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">You're all set${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.</h1>
-      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">Your consultation with ${opts.agentName} has moved to a new time:</p>
-    </td></tr>
-    <tr><td style="padding:16px 32px;">
-      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#f1f0ee;border-radius:10px;padding:16px;">
-        ${detailRows([
-          ["When", opts.whenLabel],
-          ["Type", type],
-        ])}
-      </table>
-    </td></tr>
-    ${manageBlock(opts.manageUrl)}
-    <tr><td style="height:20px;"></td></tr>
-  `)
+  const phone = opts.meetingType === "phone"
+  const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
+  const html = letter({
+    agentName: opts.agentName,
+    heading: `You're all set${hi}.`,
+    paras: ["Our consultation has moved to the new time below. Thank you for letting me know."],
+    when: { label: opts.whenLabel, sub: `A ${phone ? "phone" : "video"} call with ${esc(opts.agentName)}` },
+    after: manageLine(opts.manageUrl, "Need to change it again?"),
+    signoff: "Talk soon,",
+  })
   const text = `You're all set${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
 
-Your consultation with ${opts.agentName} has moved to a new time.
+Our consultation has moved to the new time below. Thank you for letting me know.
 
 When: ${opts.whenLabel}
-Type: ${type}
+A ${phone ? "phone" : "video"} call with ${opts.agentName}
 
-Need a different time? Reschedule or cancel: ${opts.manageUrl}`
+Need to change it again? Pick a new time or cancel: ${opts.manageUrl}
+
+Talk soon,
+${firstOf(opts.agentName)}`
   return { subject: `New time with ${opts.agentName}`, html, text }
 }
 
@@ -377,18 +410,24 @@ export function clientCancelledEmail(opts: {
   whenLabel: string
   bookingUrl: string
 }) {
-  const html = wrap(`
-    <tr><td style="background:#16151a;height:6px;"></td></tr>
-    <tr><td style="padding:32px 32px 28px;">
-      <h1 style="margin:0;font-size:22px;color:#16151a;font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-0.01em;">Your consultation is cancelled.</h1>
-      <p style="margin:12px 0 0;color:#16151a;font-size:15px;line-height:1.5;">Your call with ${opts.agentName} on ${opts.whenLabel} has been cancelled. If you'd like to talk another time, you can <a href="${opts.bookingUrl}" style="color:#16151a;">book a new time here</a>.</p>
-    </td></tr>
-  `)
-  const text = `Your consultation is cancelled.
+  const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
+  const html = letter({
+    agentName: opts.agentName,
+    heading: `No problem${hi}.`,
+    paras: [
+      `Our consultation on ${opts.whenLabel} is cancelled. Whenever you&rsquo;re ready to talk, I&rsquo;m here.`,
+    ],
+    after: `<p style="margin:0;"><a href="${opts.bookingUrl}" style="font-family:Georgia,serif;font-size:15px;color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;">Pick a new time</a></p>`,
+    signoff: "Warmly,",
+  })
+  const text = `No problem${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
 
-Your call with ${opts.agentName} on ${opts.whenLabel} has been cancelled.
+Our consultation on ${opts.whenLabel} is cancelled. Whenever you're ready to talk, I'm here.
 
-Book a new time: ${opts.bookingUrl}`
+Pick a new time: ${opts.bookingUrl}
+
+Warmly,
+${firstOf(opts.agentName)}`
   return { subject: `Cancelled: your consultation with ${opts.agentName}`, html, text }
 }
 
