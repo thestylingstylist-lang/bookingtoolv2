@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { stripe, siteUrl, SOLO_PRICE_ID } from "@/lib/stripe"
 import { sendEmail } from "@/lib/email"
+import { sendResetEmail } from "@/lib/password-reset"
 
 // The team turns Marvberry Assistant on or off for one realtor.
 export async function setAssistantPlan(formData: FormData): Promise<void> {
@@ -143,16 +144,6 @@ export async function sendPasswordReset(formData: FormData): Promise<void> {
   const email = u?.user?.email
   if (!email || isAdminEmail(email)) redirect(`/admin/agents/${agentId}?reset=fail`)
 
-  const { data, error } = await admin.auth.admin.generateLink({ type: "recovery", email })
-  const hash = data?.properties?.hashed_token
-  if (error || !hash) redirect(`/admin/agents/${agentId}?reset=fail`)
-
-  const url = `${siteUrl()}/auth/callback?token_hash=${encodeURIComponent(hash)}&type=recovery&next=/reset-password`
-  const text = `Hi,\n\nHere's your link to set a new password for Marvberry:\n\n${url}\n\nIt works once and expires within the hour. If you didn't ask for this, you can ignore it.\n\nThe Marvberry team`
-  const html = `<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#2a221c;max-width:520px">
-<p>Hi,</p><p>Here's your link to set a new password for Marvberry.</p>
-<p style="margin:26px 0"><a href="${url}" style="background:#2a221c;color:#f6efe5;text-decoration:none;padding:12px 24px;border-radius:999px">Set a new password</a></p>
-<p>It works once and expires within the hour. If you didn't ask for this, you can ignore it.</p><p>The Marvberry team</p></div>`
-  const ok = await sendEmail({ to: email, subject: "Set a new Marvberry password", html, text, fromName: "Marvberry", replyTo: "team@marvberry.com" })
+  const ok = (await sendResetEmail(email!)) === "sent"
   redirect(`/admin/agents/${agentId}?reset=${ok ? "sent" : "fail"}`)
 }
