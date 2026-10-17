@@ -46,6 +46,7 @@ export async function sendSupportMessage(
   if (error) return { ok: false, message: "Something went wrong — please try again." }
 
   revalidatePath("/support")
+  revalidatePath("/dashboard")
   return { ok: true, message: "Got it — we'll get back to you soon." }
 }
 
@@ -101,7 +102,9 @@ export async function sendTeamReply(
   }
 
   revalidatePath("/admin/messages")
+  revalidatePath("/admin/onboarding")
   revalidatePath("/support")
+  revalidatePath("/dashboard")
   const at = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).format(new Date())
   return {
     ok: true,

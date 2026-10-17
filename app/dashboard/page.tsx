@@ -15,6 +15,9 @@ import { cookies } from "next/headers"
 import { whatsNew } from "@/lib/whats-new"
 import { SEEN_COOKIE, sinceFrom } from "@/lib/whats-new-shared"
 import SeenMarker from "./seen-marker"
+import { createAdminClient } from "@/lib/supabase/admin"
+import SupportThread, { type Msg } from "@/app/support/support-thread"
+import SetupUpload from "./setup-upload"
 
 // The client's outstanding item, said about them (agent-facing, calm, no blame).
 function theirThing(title: string, first: string) {
@@ -168,6 +171,30 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const since = sinceFrom(seenRaw, Date.now())
   const news = await whatsNew(supabase, new Date(since).toISOString(), tz)
 
+  // Onboarding with the Marvberry team: the "Your setup" card and the chat with
+  // their owner. Gone once the team marks onboarding complete.
+  const admin = createAdminClient()
+  const { data: ob } = await admin
+    .from("onboarding")
+    .select("owner, completed_at")
+    .eq("agent_id", user.id)
+    .maybeSingle()
+  const onboarding = ob && !ob.completed_at ? { owner: (ob.owner as string) || "Alecia" } : null
+  let setupDocs: { id: string; title: string; file_path: string | null; file_name: string | null; template_built: boolean }[] = []
+  let setupThread: Msg[] = []
+  if (onboarding) {
+    const [{ data: d }, { data: m }] = await Promise.all([
+      admin.from("onboarding_docs").select("id, title, file_path, file_name, template_built").eq("agent_id", user.id).order("created_at", { ascending: true }),
+      admin.from("support_messages").select("id, body, from_team, created_at").eq("agent_id", user.id).order("created_at", { ascending: true }).limit(200),
+    ])
+    setupDocs = d ?? []
+    setupThread = (m ?? []) as Msg[]
+    if (setupThread.some((x) => x.from_team)) {
+      await admin.from("support_messages").update({ read_by_agent: true }).eq("agent_id", user.id).eq("from_team", true)
+    }
+  }
+  const sentCount = setupDocs.filter((d) => d.file_path).length
+
   const signals = { agent, bookingCount: count ?? 0 }
   const { complete, done, total } = setupProgress(SETUP_STEPS, signals)
 
@@ -182,6 +209,61 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       </p>
 
       <SeenMarker since={since} />
+
+      {onboarding && (
+        <section className="mt-7 grid gap-5 lg:grid-cols-[1fr_380px]">
+          <div className="rounded-2xl border-[1.5px] border-[#C9A24A]/70 bg-card p-5 sm:p-6">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="font-[Georgia,serif] text-xl text-ink">Your setup</h2>
+              {setupDocs.length > 0 && <span className="text-sm text-ink/55">{sentCount} of {setupDocs.length} sent</span>}
+            </div>
+            <p className="mt-1 text-sm text-ink/60">
+              {setupDocs.length
+                ? `Upload these and ${onboarding.owner} turns them into ready-to-use templates for you.`
+                : `${onboarding.owner} is setting up your account. Anything we need from you shows up here.`}
+            </p>
+            {setupDocs.length > 0 && (
+              <>
+                <div className="mt-4 h-1.5 rounded-full bg-ink/[0.07]">
+                  <div className="h-1.5 rounded-full bg-[#C9A24A]" style={{ width: `${(sentCount / setupDocs.length) * 100}%` }} />
+                </div>
+                <ul className="mt-3 divide-y divide-ink/[0.07]">
+                  {setupDocs.map((d) => (
+                    <li key={d.id} className="flex items-center justify-between gap-4 py-3.5">
+                      <div className="min-w-0">
+                        <p className="font-medium">{d.title}</p>
+                        <p className="text-xs text-ink/55">
+                          {!d.file_path ? "Waiting for your file" : d.template_built ? "Your template is ready" : "Received · we're building your template"}
+                        </p>
+                      </div>
+                      {d.file_path ? (
+                        <span className="flex flex-col items-end gap-1">
+                          <span className="text-sm font-medium text-[#1f5b33]">✓ Sent</span>
+                          {!d.template_built && <SetupUpload docId={d.id} title={d.title} replace />}
+                        </span>
+                      ) : (
+                        <SetupUpload docId={d.id} title={d.title} />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+          <div>
+            <div className="mb-2 flex items-center gap-2.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A24A] text-xs font-semibold text-white">
+                {onboarding.owner.slice(0, 2).toUpperCase()}
+              </span>
+              <div>
+                <p className="text-sm font-semibold leading-tight">{onboarding.owner}</p>
+                <p className="text-xs text-ink/55">Your onboarding owner</p>
+              </div>
+            </div>
+            <SupportThread messages={setupThread} teamName={onboarding.owner} compact />
+          </div>
+        </section>
+      )}
 
       {news.items.length > 0 && (
         <section className="mt-7 max-w-2xl rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">

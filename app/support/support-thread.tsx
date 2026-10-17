@@ -23,24 +23,34 @@ function Send() {
   )
 }
 
-export default function SupportThread({ messages }: { messages: Msg[] }) {
+export default function SupportThread({
+  messages,
+  teamName = "Marvberry team",
+  compact = false,
+}: {
+  messages: Msg[]
+  teamName?: string
+  compact?: boolean
+}) {
   const [state, action] = useFormState<SupportResult | null, FormData>(sendSupportMessage, null)
   const formRef = useRef<HTMLFormElement>(null)
-  const endRef = useRef<HTMLDivElement>(null)
+  const boxRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (state?.ok) formRef.current?.reset()
   }, [state])
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" })
+    // Scroll the thread itself, never the page.
+    const box = boxRef.current
+    if (box) box.scrollTop = box.scrollHeight
   }, [messages.length])
 
   return (
-    <div className="mt-8 rounded-2xl border border-[#16151a]/10 bg-white">
-      <div className="max-h-[55vh] space-y-3 overflow-y-auto p-5">
+    <div className={(compact ? "" : "mt-8 ") + "rounded-2xl border border-[#16151a]/10 bg-white"}>
+      <div ref={boxRef} className={(compact ? "h-[300px]" : "max-h-[55vh]") + " space-y-3 overflow-y-auto p-5"}>
         {messages.length === 0 && (
           <p className="py-6 text-center text-sm text-[#16151a]/50">
-            No messages yet. Ask us anything — setup, a client, a bug, an idea.
+            {compact ? `Questions about your setup? Ask ${teamName} here.` : "No messages yet. Ask us anything — setup, a client, a bug, an idea."}
           </p>
         )}
         {messages.map((m) => (
@@ -51,18 +61,17 @@ export default function SupportThread({ messages }: { messages: Msg[] }) {
                 (m.from_team ? "bg-[#f4f3f1] text-[#16151a]" : "bg-[#16151a] text-white")
               }
             >
-              {m.from_team && <p className="mb-0.5 text-xs font-semibold text-[#16151a]/55">Marvberry team</p>}
+              {m.from_team && <p className="mb-0.5 text-xs font-semibold text-[#16151a]/55">{teamName}</p>}
               <p className="whitespace-pre-wrap">{m.body}</p>
               <p className={"mt-1 text-[11px] " + (m.from_team ? "text-[#16151a]/40" : "text-white/55")}>{when(m.created_at)}</p>
             </div>
           </div>
         ))}
-        <div ref={endRef} />
       </div>
       <form ref={formRef} action={action} className="border-t border-[#16151a]/10 p-4">
         <textarea
           name="body"
-          rows={3}
+          rows={compact ? 2 : 3}
           maxLength={4000}
           required
           placeholder="Type your message…"
