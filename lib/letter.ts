@@ -34,6 +34,7 @@ export function details(rows: [string, string][]) {
 
 export function letterHtml(o: {
   eyebrow: string
+  wordmark?: boolean
   heading?: string
   body: string
   signoff?: string
@@ -50,7 +51,7 @@ export function letterHtml(o: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f0ee;padding:40px 16px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
-<tr><td style="padding:0 8px;font-family:${FONT};font-size:11px;letter-spacing:.3em;color:#b89250;text-transform:uppercase;">${esc(o.eyebrow)}</td></tr>
+<tr><td style="padding:0 8px;${o.wordmark ? "" : `font-family:${FONT};font-size:11px;letter-spacing:.3em;color:#b89250;text-transform:uppercase;`}">${o.wordmark ? `<img src="https://www.marvberry.com/marvberry-wordmark.png" width="118" height="24" alt="Marvberry" style="display:block;height:24px;width:auto;border:0;">` : esc(o.eyebrow)}</td></tr>
 ${o.heading ? `<tr><td style="padding:22px 8px 0;"><h1 style="margin:0;font-family:${SERIF};font-weight:500;font-size:30px;line-height:1.22;color:#2b2520;">${o.heading}</h1></td></tr>` : ""}
 <tr><td style="padding:${o.heading ? "8px" : "10px"} 8px 0;">${o.body}</td></tr>
 ${
@@ -71,7 +72,7 @@ ${o.footer ? `<tr><td style="padding:34px 8px 0;"><div style="border-top:1px sol
 
 // A note from Marvberry to a realtor.
 export const teamNote = (heading: string, body: string) =>
-  letterHtml({ eyebrow: "Marvberry", heading, body, footer: "Marvberry. Move forward." })
+  letterHtml({ eyebrow: "Marvberry", wordmark: true, heading, body, footer: "Marvberry. The Realtor&rsquo;s Client Experience Assistant." })
 
 // The realtor's email signature, added under every letter they send a client.
 export type AgentCard = {

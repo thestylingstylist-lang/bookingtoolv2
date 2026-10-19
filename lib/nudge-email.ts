@@ -61,7 +61,7 @@ export function agentDayEmail(opts: {
 <tr><td align="center" style="padding:44px 20px;">
 <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
 <tr><td style="padding:0 8px;">
-  <p style="margin:0 0 22px;font-family:Georgia,serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#b89250;">Marvberry</p>
+  <p style="margin:0 0 22px;"><img src="https://www.marvberry.com/marvberry-wordmark.png" width="118" height="24" alt="Marvberry" style="display:block;height:24px;width:auto;border:0;"></p>
   <p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.6;color:#4a433b;">${hi}</p>
   <p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.6;color:#4a433b;">Welcome to a brand new day. I\u2019ve taken a look at your agenda, and here\u2019s what you have.</p>
   ${agenda}
@@ -69,7 +69,7 @@ export function agentDayEmail(opts: {
   <p style="margin:30px 0 0;">
     <a href="${opts.link}" style="font-family:Georgia,serif;font-size:14px;letter-spacing:.04em;color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;padding-bottom:3px;">Open Marvberry</a>
   </p>
-  <p style="margin:34px 0 0;border-top:1px solid #e6ddce;padding-top:16px;font-family:Georgia,serif;font-size:12px;letter-spacing:.04em;color:#a2977f;font-style:italic;">Marvberry. Move forward.</p>
+  <p style="margin:34px 0 0;border-top:1px solid #e6ddce;padding-top:16px;font-family:Georgia,serif;font-size:12px;letter-spacing:.04em;color:#a2977f;font-style:italic;">Marvberry. The Realtor&rsquo;s Client Experience Assistant.</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -99,7 +99,7 @@ export function agentDayEmail(opts: {
   if (opts.ready > 0) {
     textLines.push("", `${opts.ready} client reminder(s) ready. One tap and they go out in your name.`)
   }
-  textLines.push("", `Open Marvberry: ${opts.link}`, "", "Marvberry. Move forward.")
+  textLines.push("", `Open Marvberry: ${opts.link}`, "", "Marvberry. The Realtor's Client Experience Assistant.")
   const text = textLines.join("\n")
 
   return { subject: opts.items.length ? "Here's what's on your agenda today" : "You're all caught up", html, text }

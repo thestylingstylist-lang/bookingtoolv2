@@ -10,7 +10,7 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL("https://marvberry.com"),
   title: {
-    default: "Marvberry · Booking & client portal for real estate agents",
+    default: "Marvberry · The Realtor\u2019s Client Experience Assistant",
     template: "%s · Marvberry",
   },
   description: DESCRIPTION,
@@ -27,13 +27,13 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Marvberry",
     url: "https://marvberry.com",
-    title: "Marvberry · Booking & client portal for real estate agents",
+    title: "Marvberry · The Realtor\u2019s Client Experience Assistant",
     description: DESCRIPTION,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Marvberry · Booking & client portal for real estate agents",
+    title: "Marvberry · The Realtor\u2019s Client Experience Assistant",
     description: DESCRIPTION,
   },
   alternates: { canonical: "/" },

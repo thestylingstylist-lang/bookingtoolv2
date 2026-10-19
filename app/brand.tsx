@@ -31,7 +31,7 @@ export default function Brand() {
 
       <header className="nav">
         <a href="#top" className="mark">
-          <img src="/marvberry-mark.png" alt="" width={26} height={26} />
+          <img src="/marvberry-icon.png" alt="" width={21} height={44} className="mbicon" />
           <span>Marvberry</span>
         </a>
         <nav className="links">
@@ -264,7 +264,7 @@ export default function Brand() {
 
       <footer className="foot">
         <p className="foot-mark">
-          <img src="/marvberry-mark.png" alt="" width={22} height={22} /> Marvberry. <em>Move forward.</em>
+          <img src="/marvberry-icon-light.png" alt="" width={16} height={34} className="mbicon" /> Marvberry. <em>The Realtor&rsquo;s Client Experience Assistant</em>
         </p>
         <p>
           <a href="/login">Log in</a>
@@ -315,7 +315,7 @@ const CSS = `
 /* Nav floats over the hero */
 .mb .nav{position:absolute; top:0; left:0; right:0; z-index:10; display:flex; align-items:center; gap:28px; padding:22px clamp(20px,5vw,72px); color:var(--ink)}
 .mb .mark{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--serif); font-size:21px; margin-right:auto}
-.mb .mark img{border-radius:7px}
+.mb .mark img{border-radius:0}
 .mb .links{display:flex; gap:28px; font-size:14.5px}
 .mb .links a{text-decoration:none; opacity:.85}
 .mb .links a:hover{opacity:1}
@@ -443,7 +443,7 @@ const CSS = `
 .mb .closing h2{font-size:clamp(38px,1.3rem + 3.4vw,78px); line-height:1.06; font-style:italic; max-width:16ch; margin:0 auto 40px}
 .mb .foot{display:flex; justify-content:space-between; align-items:center; gap:20px; padding:36px clamp(20px,5vw,72px) 44px; background:var(--espresso); font-size:14px; color:rgba(246,239,229,.7)}
 .mb .foot-mark{display:flex; align-items:center; gap:10px; font-family:var(--serif); font-size:17px; color:var(--cream)}
-.mb .foot-mark img{border-radius:6px}
+.mb .foot-mark img{border-radius:0}
 .mb .foot-mark em{color:var(--gold)}
 .mb .foot a{margin-left:22px; text-decoration:none}
 

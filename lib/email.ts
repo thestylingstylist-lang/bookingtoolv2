@@ -183,7 +183,7 @@ export function chatConfirmationEmail(opts: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f0ee;padding:40px 16px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
-<tr><td style="padding:0 8px;font-family:Georgia,serif;font-size:11px;letter-spacing:.3em;color:#b89250;">MARVBERRY</td></tr>
+<tr><td style="padding:0 8px;"><img src="https://www.marvberry.com/marvberry-wordmark.png" width="118" height="24" alt="Marvberry" style="display:block;height:24px;width:auto;border:0;"></td></tr>
 <tr><td style="padding:22px 8px 0;">
 <h1 style="margin:0;font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:30px;line-height:1.22;color:#2b2520;">Your deals are about to get so much simpler.</h1>
 </td></tr>
@@ -222,7 +222,7 @@ ${opts.meetingType !== "phone" && opts.zoom ? `<p style="margin:12px 0 0;"><a hr
 </td></tr>
 <tr><td style="padding:34px 8px 0;">
 <div style="border-top:1px solid #e6ddce;padding-top:16px;">
-<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:13px;color:#a2977f;">Marvberry. Move forward.</p>
+<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:13px;color:#a2977f;">Marvberry. The Realtor&rsquo;s Client Experience Assistant.</p>
 </div>
 </td></tr>
 </table></td></tr></table>
@@ -251,7 +251,7 @@ Can't wait to talk,
 Alecia
 Founder, Marvberry
 
-Marvberry. Move forward.`
+Marvberry. The Realtor's Client Experience Assistant.`
 
   return { subject: "Your setup session is confirmed", html, text }
 }

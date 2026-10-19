@@ -160,7 +160,7 @@ export default function AppShell({
           <FullMenu />
         ) : (
           <>
-            <div className="h-9 w-9 rounded-[10px] bg-gradient-to-br from-[#E89BB4] to-[#FBC98E]" aria-hidden />
+            <img src="/marvberry-icon.png" alt="Marvberry" width={17} height={36} className="h-9 w-auto" />
             <div className="mt-8 flex-1">
               <SidebarNav collapsed />
               <div className="mt-2">

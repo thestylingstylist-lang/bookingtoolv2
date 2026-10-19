@@ -123,6 +123,7 @@ export async function sendPaymentLink(formData: FormData): Promise<void> {
   const text = `Hi ${first},\n\nHere's your link to make Marvberry official. It's $39 a month, and you have 30 days to get every dollar back if it isn't right for you.\n\n${url}\n\nThe link is good for 24 hours. If it runs out, just reply and I'll send a fresh one.\n\nAlecia`
   const html = letterHtml({
     eyebrow: "Marvberry",
+    wordmark: true,
     heading: "Let&rsquo;s make it official.",
     body:
       para(`Hi ${first},`) +
@@ -132,7 +133,7 @@ export async function sendPaymentLink(formData: FormData): Promise<void> {
     signoff: "Talk soon,",
     signature: "Alecia",
     role: "Founder, Marvberry",
-    footer: "Marvberry. Move forward.",
+    footer: "Marvberry. The Realtor&rsquo;s Client Experience Assistant.",
   })
   const ok = await sendEmail({ to: email, subject: "Your Marvberry membership link", html, text, fromName: "Alecia at Marvberry", replyTo: "team@marvberry.com" })
   redirect(`/admin/agents/${agentId}?pay=${ok ? "sent" : "made"}&at=${Date.now()}&payurl=${encodeURIComponent(url)}`)

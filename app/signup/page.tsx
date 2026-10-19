@@ -6,6 +6,7 @@ export default function SignupPage() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
       <header className="mb-8">
+        <img src="/marvberry-wordmark.png" alt="Marvberry" width={130} height={26} className="mb-8 h-[26px] w-auto" />
         <p className="text-sm font-medium tracking-wide text-sage">Get started</p>
         <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Create your account</h1>
         <p className="mt-2 text-sm text-ink/60">
