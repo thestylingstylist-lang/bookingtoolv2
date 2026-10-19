@@ -59,7 +59,10 @@ export default async function KitThanks({ searchParams }: { searchParams: Promis
             That&rsquo;s just you saying yes to hearing from me. Your kit comes right after.
           </p>
           <p className="sig">Alecia</p>
-          <p className="note">Don&rsquo;t see it? Check spam or promotions.</p>
+          <p className="note">
+            Don&rsquo;t see it? Check spam or promotions, or just email us at{" "}
+            <a href="mailto:team@marvberry.com">team@marvberry.com</a>.
+          </p>
         </section>
 
         <section className="intro">
@@ -137,7 +140,8 @@ const CSS = `
 .kt .big strong{font-weight:500; font-style:italic; color:var(--rust)}
 .kt .why{margin:18px auto 0; max-width:34rem; font-size:clamp(17px,.9rem + .35vw,20px); line-height:1.65; color:var(--body)}
 .kt .sig{margin-top:18px; font-family:var(--hand); font-size:40px; line-height:1; color:var(--ink)}
-.kt .note{display:inline-block; margin-top:36px; padding:10px 18px; border:1px solid var(--rule); border-radius:999px; font-size:14px; color:var(--body)}
+.kt .note a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--gold)}
+.kt .note{display:inline-block; max-width:100%; margin-top:36px; padding:10px 18px; border:1px solid var(--rule); border-radius:999px; font-size:14px; color:var(--body)}
 
 /* Secondary: a soft Marvberry intro */
 .kt .intro{background:var(--cream); text-align:center; padding:clamp(80px,10vw,128px) 20px}
@@ -156,11 +160,12 @@ const CSS = `
 .kt .btn{display:inline-block; margin-top:44px; background:var(--ink); color:var(--cream); text-decoration:none; font-size:15.5px; font-weight:500; padding:15px 30px; border-radius:999px; transition:background .2s}
 .kt .btn:hover{background:#433730}
 
-.kt .foot{display:flex; align-items:center; justify-content:center; gap:8px; padding:36px 20px 44px; font-family:var(--serif); font-size:16px; color:var(--ink)}
+.kt .foot{display:flex; flex-wrap:wrap; text-align:center; align-items:center; justify-content:center; gap:4px 8px; padding:36px 20px 44px; font-family:var(--serif); font-size:16px; color:var(--ink)}
 .kt .foot img{border-radius:0}
 .kt .foot em{font-style:italic; color:var(--muted)}
 
 @media (max-width:560px){
+  .kt .foot em{flex-basis:100%}
   .kt .shots .wide{width:92%}
   .kt .shots .phone{width:34%; border-radius:18px; padding:4px}
   .kt .shots .phone img{border-radius:14px}
