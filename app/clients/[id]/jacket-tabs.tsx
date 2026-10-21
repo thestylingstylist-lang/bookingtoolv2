@@ -47,8 +47,10 @@ export default function JacketTabs({
   messages,
   client,
   summary,
+  late = 0,
 }: {
   summary?: string
+  late?: number
   initial?: Tab
   tasks: React.ReactNode
   documents: React.ReactNode
@@ -75,11 +77,19 @@ export default function JacketTabs({
           <button
             type="button"
             onClick={() => setSteps(true)}
-            className="hidden items-center gap-3 border-b border-[#e4e3e0] px-6 py-3 text-left text-sm hover:bg-[#fafaf9] lg:flex"
+            className={`hidden items-center gap-3 border-b px-6 py-3 text-left text-sm lg:flex ${
+              late ? "border-[#f0c9d7] bg-[#fdf1f5] hover:bg-[#fbe9ef]" : "border-[#e4e3e0] hover:bg-[#fafaf9]"
+            }`}
           >
+            {late > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-[#D9467A]" aria-hidden />}
             <span className="font-semibold">Steps &amp; documents</span>
+            {late > 0 && (
+              <span className="shrink-0 font-semibold text-[#a3305d]">
+                {late} {late === 1 ? "step" : "steps"} overdue
+              </span>
+            )}
             {summary && <span className="min-w-0 flex-1 truncate text-[#5d5b62]">{summary}</span>}
-            <span className="ml-auto shrink-0 text-[#5d5b62]">Open &rsaquo;</span>
+            <span className={`ml-auto shrink-0 ${late ? "font-medium text-[#a3305d]" : "text-[#5d5b62]"}`}>Open &rsaquo;</span>
           </button>
           {messages}
         </section>

@@ -7,6 +7,7 @@ import JacketDetails from "./jacket-details"
 import JacketTabs from "./jacket-tabs"
 import Homes, { type HomeView } from "./homes"
 import { movePhase } from "./checklist-actions"
+import { daysUntil } from "@/lib/due"
 import { formatInTimeZone } from "date-fns-tz"
 import DocumentsPanel from "./documents-panel"
 import SendDocument from "./send-document"
@@ -320,6 +321,7 @@ export default async function ClientJacket({
 
         <JacketTabs
           initial={sp.step ? "tasks" : undefined}
+          late={tasks.filter((t) => !t.done && t.due_on && daysUntil(t.due_on, agent.timezone || "America/New_York") < 0).length}
           summary={(() => {
             const now = tasks.filter((t) => (t.phase || "showing") === phase)
             const doneN = now.filter((t) => t.done).length
