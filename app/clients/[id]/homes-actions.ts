@@ -57,6 +57,7 @@ export async function saveHome(_prev: HomeResult | null, formData: FormData): Pr
   // Showing time -> also on the calendar, so it's never in two places.
   const date = s(formData.get("showDate"), 10)
   const time = s(formData.get("showTime"), 5)
+  if (!!date !== !!time) return { ok: false, message: "Add both a date and a time for the showing." }
   let showingAt: string | null = null
   if (date && time) showingAt = fromZonedTime(`${date}T${time}:00`, tz).toISOString()
   let eventId = (home.event_id as string | null) ?? null

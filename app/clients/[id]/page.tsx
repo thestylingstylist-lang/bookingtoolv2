@@ -6,6 +6,7 @@ import AppShell from "@/app/app-shell"
 import JacketDetails from "./jacket-details"
 import JacketTabs from "./jacket-tabs"
 import Homes, { type HomeView } from "./homes"
+import { movePhase } from "./checklist-actions"
 import { formatInTimeZone } from "date-fns-tz"
 import DocumentsPanel from "./documents-panel"
 import SendDocument from "./send-document"
@@ -278,7 +279,15 @@ export default async function ClientJacket({
             const state = idx < pi ? "done" : idx === pi ? "now" : "later"
             return (
               <div key={p.key} className={`flex items-center ${idx < PHASES.length - 1 ? "flex-1" : ""}`}>
-                <div className="flex items-center gap-2.5">
+                <form action={movePhase}>
+                <input type="hidden" name="clientId" value={client.id} />
+                <input type="hidden" name="to" value={p.key} />
+                <button
+                  type="submit"
+                  disabled={state === "now"}
+                  title={state === "now" ? undefined : `Move ${client.first_name || "this client"} to ${p.label}`}
+                  className="group flex items-center gap-2.5 rounded-full py-1 pr-2 enabled:cursor-pointer enabled:hover:bg-white"
+                >
                   <span
                     className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-[1.5px] text-xs font-semibold ${
                       state === "done"
@@ -297,7 +306,8 @@ export default async function ClientJacket({
                   >
                     {p.label}
                   </span>
-                </div>
+                </button>
+                </form>
                 {idx < PHASES.length - 1 && (
                   <div className={`mx-4 h-[1.5px] flex-1 ${idx < pi ? "bg-sage" : "bg-[#d3d2d5]"}`} />
                 )}
