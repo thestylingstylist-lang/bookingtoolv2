@@ -12,8 +12,11 @@ import AppShell from "@/app/app-shell"
 
 export const dynamic = "force-dynamic"
 
-export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  const tab = (await searchParams).tab === "company" ? "company" : "account"
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string; section?: string }> }) {
+  const sp = await searchParams
+  // Marvberry AI lives under Company. Old links to /settings?tab=ai or #assistant still land there.
+  const tab = sp.tab === "company" || sp.tab === "ai" ? "company" : "account"
+  const section = sp.tab === "ai" || sp.section === "ai" ? "ai" : "brand"
   const supabase = await createClient()
   const {
     data: { user },
@@ -91,16 +94,38 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               </div>
               <a href="/billing" className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium hover:bg-ink/[0.03]">Open billing</a>
             </section>
+
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-6 lg:grid-cols-[200px_minmax(0,42rem)] lg:gap-10">
+            <nav className="flex gap-2 lg:flex-col lg:gap-1">
+              {[
+                ["brand", "Company brand"],
+                ["ai", "Marvberry AI"],
+              ].map(([k, l]) => (
+                <a
+                  key={k}
+                  href={`/settings?tab=company&section=${k}`}
+                  className={`rounded-full px-4 py-2 text-[15px] lg:rounded-xl ${
+                    section === k ? "bg-ink/[0.06] font-semibold text-ink" : "text-ink/55 hover:text-ink"
+                  }`}
+                >
+                  {l}
+                </a>
+              ))}
+            </nav>
+            {section === "ai" ? (
+          <div className="space-y-6">
             <section id="assistant" className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
-              <h2 className="font-serif font-semibold tracking-tight text-xl">Marvberry Assistant</h2>
+              <h2 className="font-serif font-semibold tracking-tight text-xl">Marvberry AI</h2>
               <p className="mt-1 text-sm text-ink/60">Your assistant writes to your clients in your voice. Your clients only ever see your name.</p>
               <div className="mt-6">
                 <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} />
               </div>
             </section>
           </div>
-        ) : (
-          <div className="mt-8 max-w-2xl space-y-6">
+            ) : (
+          <div className="space-y-6">
             <SettingsForm
               agent={agent}
               license={license}
@@ -121,6 +146,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               </div>
             </section>
 
+          </div>
+            )}
           </div>
         )}
       </main>
