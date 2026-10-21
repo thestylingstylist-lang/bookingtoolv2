@@ -132,7 +132,7 @@ export default function Brand() {
       {/* 5. The guide */}
       <section className="founder dark">
         <div className="founder-pic">
-          <img src="/brand/alecia.jpg" alt="Alecia Ford, founder of Marvberry" />
+          <img src="/brand/alecia-founder.jpg" alt="Alecia Ford, founder of Marvberry" />
         </div>
         <div className="letter">
           <p className="hand gold">from Alecia</p>
