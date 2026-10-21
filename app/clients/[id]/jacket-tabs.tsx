@@ -60,13 +60,26 @@ export default function JacketTabs({
   const [tab, setTab] = useState<Tab>(initial ?? "messages")
   // Desktop: steps and documents open as a pop-out, so the conversation has the room.
   const [steps, setSteps] = useState(initial === "tasks")
+  // Adding or checking off a step reloads the page; keep the panel open through it.
+  const KEY = "marvberry-steps-open"
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(KEY) === window.location.pathname) setSteps(true)
+    } catch {}
+  }, [])
+  useEffect(() => {
+    try {
+      if (steps) sessionStorage.setItem(KEY, window.location.pathname)
+      else sessionStorage.removeItem(KEY)
+    } catch {}
+  }, [steps])
   useEffect(() => {
     if (!steps) return
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSteps(false)
     window.addEventListener("keydown", onKey)
     // Hold the page still while the panel is open, so the wheel scrolls the panel.
     const prev = document.body.style.overflow
-    document.body.style.overflow = "hidden"
+    if (window.innerWidth >= 1024) document.body.style.overflow = "hidden"
     return () => {
       window.removeEventListener("keydown", onKey)
       document.body.style.overflow = prev

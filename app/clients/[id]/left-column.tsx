@@ -187,22 +187,6 @@ export default function LeftColumn({
           </div>
         </form>
 
-        {collected.length > 0 && (
-          <div className="mt-5 border-t border-[#ece6da] pt-4">
-            <p className="font-[Georgia,serif] text-xs italic text-[#8a8072]">In the folder</p>
-            <ul className="mt-2 space-y-1.5">
-              {collected.map((d) => (
-                <li key={d.id} className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="min-w-0 truncate">{d.title}</span>
-                  <span className={`shrink-0 text-xs ${d.received ? "text-[#4f6b45]" : "text-[#c23d6d]"}`}>
-                    {d.received ? "Received" : "Waiting"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         {next && (
           <form action={movePhase} className="mt-5">
             <Hidden clientId={clientId} />
