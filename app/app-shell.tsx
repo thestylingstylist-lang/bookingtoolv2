@@ -58,8 +58,10 @@ export default function AppShell({
     return (
       <>
         <div className="px-3">
-          <p className="font-serif font-semibold tracking-tight text-lg leading-tight">{businessName}</p>
-          <p className="mt-0.5 text-xs text-[#16151a]/45">{agent.full_name}</p>
+          <p className="font-serif font-semibold tracking-tight text-lg leading-tight">{agent.full_name || businessName}</p>
+          {agent.full_name && agent.business_name && (
+            <p className="mt-0.5 text-xs text-[#16151a]/45">{agent.business_name}</p>
+          )}
         </div>
 
         <div className="mt-8 flex-1">
@@ -106,7 +108,7 @@ export default function AppShell({
             <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
-        <p className="truncate pl-3 font-serif font-semibold tracking-tight text-lg">{businessName}</p>
+        <p className="truncate pl-3 font-serif font-semibold tracking-tight text-lg">{agent.full_name || businessName}</p>
       </header>
 
       {/* ── Phone drawer: slides in from the left over a dim backdrop ── */}
