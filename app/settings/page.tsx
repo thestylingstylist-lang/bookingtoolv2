@@ -84,6 +84,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 <AccountForm firstName={firstName} lastName={lastName} email={user.email ?? ""} />
               </div>
             </section>
+<section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="font-serif font-semibold tracking-tight text-xl">Billing</h2>
+                <p className="mt-1 text-sm text-ink/60">Your plan, your payment card, and canceling.</p>
+              </div>
+              <a href="/billing" className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium hover:bg-ink/[0.03]">Open billing</a>
+            </section>
             <section id="assistant" className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
               <h2 className="font-serif font-semibold tracking-tight text-xl">Marvberry Assistant</h2>
               <p className="mt-1 text-sm text-ink/60">Your assistant writes to your clients in your voice. Your clients only ever see your name.</p>
@@ -113,13 +120,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                 <AgreementForm initial={agreement} commission={commission} />
               </div>
             </section>
-            <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="font-serif font-semibold tracking-tight text-xl">Billing</h2>
-                <p className="mt-1 text-sm text-ink/60">Your plan and your payment card.</p>
-              </div>
-              <a href="/billing" className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium hover:bg-ink/[0.03]">Open billing</a>
-            </section>
+
           </div>
         )}
       </main>
