@@ -144,9 +144,9 @@ export default async function Portal({
             </div>
             <div>
               <p className="text-sm font-semibold">{agentName}</p>
-              <p className="text-[11.5px] text-[#5d5b62]">
-                Your agent{agent?.business_name && agent.full_name ? ` · ${agent.business_name}` : ""}
-              </p>
+              {agent?.business_name && agent.full_name && (
+                <p className="text-[11.5px] text-[#5d5b62]">{agent.business_name}</p>
+              )}
             </div>
           </div>
         </div>
