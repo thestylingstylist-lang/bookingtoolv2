@@ -312,7 +312,8 @@ const CSS = `
 .mb .glass{background:rgba(250,244,236,.14); border:1px solid rgba(250,244,236,.32); border-radius:22px; backdrop-filter:blur(18px) saturate(1.1); -webkit-backdrop-filter:blur(18px) saturate(1.1); box-shadow:0 30px 80px -30px rgba(20,14,10,.55), inset 0 1px 0 rgba(255,255,255,.25)}
 
 /* Nav floats over the hero */
-.mb .nav{position:absolute; top:0; left:0; right:0; z-index:10; display:flex; align-items:center; gap:28px; padding:22px clamp(20px,5vw,72px); color:var(--ink)}
+.mb .nav{position:fixed; top:0; left:0; right:0; z-index:60; display:flex; align-items:center; gap:28px; padding:22px clamp(20px,5vw,72px); color:var(--ink); border-bottom:1px solid transparent; transition:background .35s ease, padding .35s ease, border-color .35s ease, backdrop-filter .35s ease}
+.mb .nav.frost{padding-top:14px; padding-bottom:14px; background:rgba(246,239,229,.72); -webkit-backdrop-filter:saturate(1.5) blur(18px); backdrop-filter:saturate(1.5) blur(18px); border-bottom-color:rgba(231,222,209,.7)}
 .mb .mark{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--serif); font-size:21px; margin-right:auto}
 .mb .mark img{border-radius:0}
 .mb .links{display:flex; gap:28px; font-size:14.5px}

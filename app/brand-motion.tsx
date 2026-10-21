@@ -8,6 +8,16 @@ const REVEAL = [
 ]
 
 export default function BrandMotion() {
+  // Sticky menu: clear over the hero, frosted once the page scrolls under it.
+  useEffect(() => {
+    const nav = document.querySelector(".mb .nav")
+    if (!nav) return
+    const on = () => nav.classList.toggle("frost", window.scrollY > 24)
+    on()
+    window.addEventListener("scroll", on, { passive: true })
+    return () => window.removeEventListener("scroll", on)
+  }, [])
+
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
     const root = document.querySelector(".mb")
