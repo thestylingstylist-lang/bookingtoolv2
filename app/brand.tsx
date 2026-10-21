@@ -11,9 +11,7 @@ const START = "/signup"
 const CALL = "/chat"
 
 const HIRES = [
-  { job: "Your bookings", role: "A front desk receptionist", cost: "About $39,000 a year" },
   { job: "Your deals", role: "A transaction coordinator", cost: "$250 to $600 a file", note: "or $40,000 to $65,000 a year full time" },
-  { job: "Your relationships", role: "A part-time client assistant", cost: "About $1,000 a month" },
 ]
 
 const FAQ = [
@@ -204,7 +202,7 @@ export default function Brand() {
       <section id="pricing" className="value">
         <header className="value-head">
           <p className="hand gold">the math</p>
-          <h2>So what would it cost to hire this team?</h2>
+          <h2>So what would it cost to hire one?</h2>
         </header>
         <div className="hires">
           {HIRES.map((h) => (
@@ -218,12 +216,12 @@ export default function Brand() {
         </div>
         <div className="total">
           <p className="sum">
-            That&rsquo;s over <strong>$5,000 a month.</strong>
+            That&rsquo;s up to <strong>$600 on every deal.</strong>
           </p>
           <p className="hidden-cost">Before you&rsquo;ve hired, trained, or covered a single sick day.</p>
         </div>
         <div className="reveal">
-          <p className="does">Marvberry does all three jobs for</p>
+          <p className="does">Marvberry does it all for</p>
           <p className="price-big">
             $67<span>a month</span>
           </p>
@@ -518,6 +516,7 @@ const CSS = `
 .mb .value{text-align:center; box-shadow:0 0 0 100vmax var(--linen); clip-path:inset(0 -100vmax)}
 .mb .value-head h2{font-size:clamp(32px,1rem + 2.4vw,54px); line-height:1.1; max-width:18ch; margin:14px auto 0}
 .mb .hires{max-width:1040px; margin:56px auto 0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; text-align:left}
+.mb .hires:has(> :only-child){grid-template-columns:minmax(0,340px); justify-content:center}
 .mb .hire{border:1px solid var(--rule); border-radius:20px; padding:28px 26px 30px; background:var(--linen)}
 .mb .hire h3{margin-top:12px; font-family:var(--serif); font-size:24px; font-weight:400; line-height:1.25; color:var(--ink)}
 .mb .hire .cost{margin-top:18px; font-size:20px; font-weight:600; color:var(--ink); text-decoration:line-through; text-decoration-color:rgba(143,78,42,.55); text-decoration-thickness:2px}
