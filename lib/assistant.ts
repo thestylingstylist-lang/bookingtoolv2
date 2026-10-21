@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { askClaude } from "@/lib/ai"
 import { longDate, daysUntil, missingThing } from "@/lib/due"
 import { formatSlot } from "@/lib/slots"
+import { aiPrefsFor } from "@/lib/ai-prefs"
 
 // Marvberry Assistant: drafts the realtor's client messages in her own voice.
 // Who has it: a row in assistant_plans (only the team can add one).
@@ -82,6 +83,7 @@ export async function draftReminderFor(db: SupabaseClient, agentId: string, step
     assistantFor(db, agentId),
   ])
   if (!settings.unlocked) return null
+  if (!(await aiPrefsFor(db, agentId)).reminders) return null
 
   const tz = agent?.timezone || "America/New_York"
   const agentFirst = ((agent?.full_name as string) || "").trim().split(/\s+/)[0] || ""
@@ -108,6 +110,7 @@ export async function draftReminderFor(db: SupabaseClient, agentId: string, step
 export async function draftReplyFor(db: SupabaseClient, agentId: string, clientId: string): Promise<string | null> {
   const settings = await assistantFor(db, agentId)
   if (!settings.unlocked) return null
+  if (!(await aiPrefsFor(db, agentId)).replies) return null
 
   const [{ data: client }, { data: agent }, { data: thread }, { data: steps }] = await Promise.all([
     db.from("clients").select("first_name, agent_id, phase").eq("id", clientId).maybeSingle(),

@@ -15,6 +15,7 @@ import SendDocument from "./send-document"
 import { resendDocument } from "./actions"
 import Composer from "./composer"
 import { assistantFor } from "@/lib/assistant"
+import { aiPrefsFor } from "@/lib/ai-prefs"
 import { sendPortalLink } from "./portal-actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
@@ -131,6 +132,7 @@ export default async function ClientJacket({
     .select("id, home_id, amount, status, created_at, good_until, followed_up_at")
     .eq("client_id", id)
     .order("created_at", { ascending: false })
+  const ai = await aiPrefsFor(supabase, user.id)
   const latestOffer = new Map<string, OfferView>()
   for (const o of (offerRows ?? []) as Record<string, string | number | null>[]) {
     if (latestOffer.has(o.home_id as string)) continue
@@ -142,7 +144,7 @@ export default async function ClientJacket({
       goodLabel: good ? formatInTimeZone(good, homeTz, "EEEE 'at' h:mm a").replace(":00 ", " ") : "",
       status: (["sent", "countered", "accepted", "declined"].includes(o.status as string) ? o.status : "sent") as OfferView["status"],
       // Flag it once it's within a day of running out (or past).
-      soon: !!good && good.getTime() - Date.now() < 24 * 60 * 60 * 1000,
+      soon: ai.offerNudges && !!good && good.getTime() - Date.now() < 24 * 60 * 60 * 1000,
       followedUp: !!o.followed_up_at,
     })
   }
@@ -377,7 +379,7 @@ export default async function ClientJacket({
               agentFirst={(agent.full_name || "").trim().split(/\s+/)[0] || ""}
               missingDocs={collected.filter((c) => !c.received).length}
               collected={collected}
-              assistant={assistant.unlocked}
+              assistant={assistant.unlocked && ai.reminders}
             />
           </>}
           messages={<>
@@ -483,7 +485,7 @@ export default async function ClientJacket({
               <Composer
                 clientId={client.id}
                 clientFirst={client.first_name ?? ""}
-                canDraft={assistant.unlocked && messages.length > 0 && messages[messages.length - 1].sender === "client"}
+                canDraft={assistant.unlocked && ai.replies && messages.length > 0 && messages[messages.length - 1].sender === "client"}
               />
               <p className="mt-2 text-[11px] text-[#9a989e]">
                 {client.first_name || "Your client"} sees these messages on their portal and can reply there.

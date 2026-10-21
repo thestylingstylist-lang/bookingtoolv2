@@ -6,6 +6,7 @@ import AccountForm from "./account-form"
 import AgreementForm from "./agreement-form"
 import AssistantForm from "./assistant-form"
 import { assistantFor } from "@/lib/assistant"
+import { aiPrefsFor } from "@/lib/ai-prefs"
 import { toAgreementSettings } from "@/lib/agreement"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
@@ -52,6 +53,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const signaturePhoto = !!(sigRow as { signature_photo?: boolean } | null)?.signature_photo
 
   const assistant = await assistantFor(supabase, user.id)
+  const aiPrefs = await aiPrefsFor(supabase, user.id)
 
   // Split the stored full name into first / last for the account fields.
   const parts = (agent.full_name || "").trim().split(/\s+/).filter(Boolean)
@@ -118,9 +120,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div className="space-y-6">
             <section id="assistant" className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
               <h2 className="font-serif font-semibold tracking-tight text-xl">Marvberry AI</h2>
-              <p className="mt-1 text-sm text-ink/60">Your assistant writes to your clients in your voice. Your clients only ever see your name.</p>
+              <p className="mt-1 text-sm text-ink/60">Turn on what you want help with. Anything it writes goes out in your name.</p>
               <div className="mt-6">
-                <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} />
+                <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} prefs={aiPrefs} />
               </div>
             </section>
           </div>

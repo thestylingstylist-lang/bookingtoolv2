@@ -97,9 +97,13 @@ async function sendAgentDays(admin: ReturnType<typeof createAdminClient>) {
 
   const agentIds = [...new Set(steps.map((s) => s.agent_id as string))]
   const { data: agents } = await admin.from("agents").select("id, full_name, timezone").in("id", agentIds)
+  // Realtors who turned the morning update off in Marvberry AI.
+  const { data: offs, error: offErr } = await admin.from("agents").select("id").in("id", agentIds).eq("morning_email", false)
+  const skip = new Set(offErr ? [] : (offs ?? []).map((o) => o.id as string))
 
   let sent = 0
   for (const agent of agents ?? []) {
+    if (skip.has(agent.id as string)) continue
     const tz = agent.timezone || "America/New_York"
     const mine = steps.filter((s) => s.agent_id === agent.id)
     const items = mine
@@ -145,7 +149,14 @@ async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
     .select("id, full_name, business_name, public_email, timezone, assistant_auto")
     .in("id", plans.map((p) => p.agent_id as string))
   if (agentErr) return 0
-  const autos = (agents ?? []).filter((a) => a.assistant_auto)
+  // Auto only when reminders are on too.
+  const { data: remOff, error: remErr } = await admin
+    .from("agents")
+    .select("id")
+    .in("id", plans.map((p) => p.agent_id as string))
+    .eq("assistant_reminders", false)
+  const noRem = new Set(remErr ? [] : (remOff ?? []).map((o) => o.id as string))
+  const autos = (agents ?? []).filter((a) => a.assistant_auto && !noRem.has(a.id as string))
   if (!autos.length) return 0
 
   const { data: steps } = await admin
