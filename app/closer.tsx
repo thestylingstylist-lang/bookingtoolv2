@@ -1,8 +1,9 @@
 // Marvberry home page: "The closer behind the closer."
-// Copy and look follow the October 21 website brief: warm ivory, berry, Fraunces over Inter,
+// Copy follows the October 21 website brief; look stays Marvberry's own: espresso, cream, Playfair,
 // one clear next step per screen. Only promises what Marvberry does today.
-import "@fontsource-variable/fraunces"
-import "@fontsource-variable/inter"
+import "@fontsource/playfair-display/400.css"
+import "@fontsource/playfair-display/500.css"
+import "@fontsource/playfair-display/400-italic.css"
 
 const START = "/signup"
 const CALL = "/chat"
@@ -40,7 +41,7 @@ export default function Closer() {
 
       <header className="nav">
         <a href="#top" className="logo" aria-label="Marvberry">
-          <img src="/marvberry-wordmark-berry.png" alt="Marvberry" width={140} height={27} />
+          <img src="/marvberry-wordmark.png" alt="Marvberry" width={140} height={27} />
         </a>
         <nav className="links">
           <a href="#how">How it works</a>
@@ -318,7 +319,7 @@ export default function Closer() {
 
       <footer className="foot">
         <p>
-          <img src="/marvberry-wordmark-berry.png" alt="Marvberry" width={104} height={20} /> <em>The closer behind the closer.</em>
+          <img src="/marvberry-wordmark.png" alt="Marvberry" width={104} height={20} /> <em>The closer behind the closer.</em>
         </p>
         <p className="foot-links">
           <a href="/login">Log in</a>
@@ -330,11 +331,11 @@ export default function Closer() {
 }
 
 const CSS = `
-.cl{--ivory:#FBF7F4; --berry:#7A1F3D; --berry-dk:#5A1330; --ink:#1F1A1C; --body:#4A3F43; --mute:#6E6266; --blush:#F6EEF1; --line:#E6DCDF;
-  --serif:"Fraunces Variable",Georgia,serif; --sans:"Inter Variable",system-ui,sans-serif;
+.cl{--ivory:#F6EFE5; --berry:#2A221C; --berry-dk:#000000; --ink:#2A221C; --body:#5E554C; --mute:#7A6F64; --blush:#EFE5D6; --line:#E7DED1; --accent:#8F4E2A; --gold:#C9A46C;
+  --serif:'Playfair Display',Georgia,serif; --sans:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
   background:var(--ivory); color:var(--ink); font-family:var(--sans); font-size:17px; line-height:1.6; -webkit-font-smoothing:antialiased}
 .cl *{box-sizing:border-box}
-.cl h1,.cl h2,.cl h3{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; color:var(--berry); margin:0}
+.cl h1,.cl h2,.cl h3{font-family:var(--serif); font-weight:500; letter-spacing:-.01em; color:var(--berry); margin:0}
 .cl h1{font-size:clamp(44px,2rem + 4vw,76px); line-height:1.03}
 .cl h2{font-size:clamp(30px,1.4rem + 2vw,46px); line-height:1.12}
 .cl h3{font-size:22px; line-height:1.25}
@@ -344,7 +345,7 @@ const CSS = `
 .cl .narrow{max-width:700px; margin:0 auto}
 .cl section{padding:88px 0}
 .cl section.wrap{padding:88px 24px}
-.cl .eyebrow{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--berry); font-weight:600; margin-bottom:14px}
+.cl .eyebrow{font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:14px}
 .cl .lede{font-size:20px; max-width:620px}
 .cl .big{font-family:var(--serif); font-size:clamp(24px,1rem + 1.4vw,32px); line-height:1.35; color:var(--ink)}
 
@@ -367,7 +368,7 @@ const CSS = `
 
 .cl .hero{display:grid; grid-template-columns:1.25fr 1fr; gap:56px; align-items:center; padding-top:56px}
 .cl .hero h1{margin-bottom:22px}
-.cl .offer-card{background:#fff; border:1px solid var(--line); border-radius:22px; padding:30px; box-shadow:0 30px 60px -30px rgba(90,19,48,.25)}
+.cl .offer-card{background:#fff; border:1px solid var(--line); border-radius:22px; padding:30px; box-shadow:0 30px 60px -30px rgba(42,34,28,.25)}
 .cl .oc-label{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--mute); margin-bottom:6px}
 .cl .oc-addr{font-family:var(--serif); font-size:26px; font-weight:600; color:var(--ink); margin:0}
 .cl .oc-amt{font-size:18px; margin-bottom:20px}
@@ -389,7 +390,8 @@ const CSS = `
 .cl .story{background:var(--berry)}
 .cl .story-in{display:grid; grid-template-columns:340px 1fr; gap:56px; align-items:start}
 .cl .story img{width:100%; aspect-ratio:4/5; object-fit:cover; border-radius:20px}
-.cl .story h2,.cl .story .eyebrow{color:#fff}
+.cl .story h2{color:#fff}
+.cl .story .eyebrow{color:var(--gold)}
 .cl .story h2{margin-bottom:22px}
 .cl .story p{color:rgba(255,255,255,.86)}
 .cl .story .sign{font-family:var(--serif); font-style:italic; font-size:26px; color:#fff; margin-top:8px}
@@ -412,9 +414,10 @@ const CSS = `
 .cl .tier{background:#fff; border:1px solid var(--line); border-radius:22px; padding:32px 28px; display:flex; flex-direction:column}
 .cl .tier.main{background:var(--berry); border-color:var(--berry)}
 .cl .tier.main p,.cl .tier.main li{color:rgba(255,255,255,.88)}
-.cl .tier.main .tname,.cl .tier.main .tprice{color:#fff}
+.cl .tier.main .tprice{color:#fff}
+.cl .tier.main .tname{color:var(--gold)}
 .cl .tier.main .fine{color:rgba(255,255,255,.75)}
-.cl .tname{font-size:13px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; color:var(--berry); margin-bottom:8px}
+.cl .tname{font-size:13px; letter-spacing:.14em; text-transform:uppercase; font-weight:600; color:var(--accent); margin-bottom:8px}
 .cl .tprice{font-family:var(--serif); font-size:46px; font-weight:600; line-height:1; color:var(--ink); margin-bottom:14px}
 .cl .tprice span{font-family:var(--sans); font-size:15px; font-weight:400; margin-left:8px; color:inherit; opacity:.7}
 .cl .tfor{font-size:15.5px}
@@ -433,7 +436,7 @@ const CSS = `
 .cl .fit .no li::before{content:"\\2715"; color:var(--mute)}
 .cl .fit .yes li::before{content:"\\2713"; color:var(--berry)}
 
-.cl .warning{background:var(--ink)}
+.cl .warning{background:#3A3029}
 .cl .warning p{color:rgba(255,255,255,.75)}
 .cl .warning .big{color:#fff}
 
