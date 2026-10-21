@@ -14,7 +14,9 @@ export default function SettingsForm({
   license = "",
   meetingLink = "",
   signaturePhoto = false,
+  bookingLink,
 }: {
+  bookingLink?: React.ReactNode
   agent: AgentRow
   license?: string
   meetingLink?: string
@@ -26,116 +28,63 @@ export default function SettingsForm({
   )
 
   return (
-    <form action={formAction} className="space-y-10">
+    <form action={formAction} className="space-y-6">
+      {/* ---- Your business ---- */}
+      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+        <Head title="Your business" sub="How your business shows up to clients." />
+        <Text label="Business name" name="businessName" defaultValue={agent.business_name} required />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Text label="Business phone" name="publicPhone" type="tel" defaultValue={agent.public_phone} placeholder="Shown to clients" />
+          <Text label="Business email" name="publicEmail" type="email" defaultValue={agent.public_email} placeholder="Shown to clients" />
+        </div>
+        <label className="flex items-start gap-3">
+          <input type="checkbox" name="showContact" defaultChecked={agent.show_contact} className="mt-0.5 h-4 w-4 rounded border-ink/30 accent-ox" />
+          <span className="text-sm text-ink/70">
+            Show my phone and email on the booking page
+            <span className="mt-0.5 block text-xs text-ink/50">When on, clients see them under your photo before they book.</span>
+          </span>
+        </label>
+        <Text label="Tagline (optional)" name="tagline" defaultValue={agent.tagline} placeholder="e.g. Helping first-time buyers feel at home" />
+      </section>
+
       {/* ---- Your brand ---- */}
-      <section className="space-y-6">
-        <div>
-          <h2 className="font-serif font-semibold tracking-tight text-2xl">Your brand</h2>
-          <p className="mt-1 text-sm text-ink/60">
-            This is what clients see on your booking page.
-          </p>
-        </div>
-
+      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+        <Head title="Your brand" sub="Your logo and photo, on your booking page, your client pages and your emails." />
         <div className="grid gap-6 sm:grid-cols-2">
-          <ImageField
-            kind="logo"
-            label="Logo"
-            hint="Wide or square. Shown at the top of your page. PNG, JPEG, WEBP or GIF, up to 5 MB."
-            current={agent.logo_url}
-          />
-          <ImageField
-            kind="headshot"
-            label="Headshot"
-            hint="A friendly photo of you. PNG, JPEG, WEBP or GIF, up to 5 MB."
-            current={agent.headshot_url}
-            round
-          />
+          <ImageField kind="logo" label="Logo" hint="Wide or square. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.logo_url} />
+          <ImageField kind="headshot" label="Headshot" hint="A friendly photo of you. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.headshot_url} round />
         </div>
+      </section>
 
-        <Text
-          label="Tagline (optional)"
-          name="tagline"
-          defaultValue={agent.tagline}
-          placeholder="e.g. Helping first-time buyers feel at home"
-        />
-
+      {/* ---- Email signature ---- */}
+      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+        <Head title="Email signature" sub="It goes under every email you send a client, with your business phone and email from above." />
+        <SignaturePicker name={agent.full_name || agent.business_name} photo={agent.headshot_url} initial={signaturePhoto} />
         <div>
           <Text label="License number (optional)" name="licenseNumber" defaultValue={license} maxLength={40} />
-          <p className="mt-1.5 text-xs text-ink/50">Add it and it shows on your booking page, under your name. Leave it blank and nothing shows.</p>
+          <p className="mt-1.5 text-xs text-ink/50">Shows in your signature and on your booking page, under your name. Leave it blank and nothing shows.</p>
         </div>
+      </section>
 
+      {/* ---- Booking ---- */}
+      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+        <Head title="Booking" sub="Your booking link, your hours, and how clients book with you." />
+        {bookingLink}
         <div>
-          <Text
-            label="Your video meeting link"
-            name="meetingLink"
-            defaultValue={meetingLink}
-            placeholder="e.g. https://zoom.us/j/1234567890"
-            maxLength={500}
-          />
-          <p className="mt-1.5 text-xs text-ink/50">
-            Your personal Zoom, Google Meet, or Teams link. It goes into every video booking confirmation, so clients have
-            it the moment they book.
-          </p>
+          <Text label="Your video meeting link" name="meetingLink" defaultValue={meetingLink} placeholder="e.g. https://zoom.us/j/1234567890" maxLength={500} />
+          <p className="mt-1.5 text-xs text-ink/50">Your Zoom, Google Meet, or Teams link. It goes into every video booking confirmation.</p>
         </div>
-
-        <SignaturePicker name={agent.full_name || agent.business_name} photo={agent.headshot_url} initial={signaturePhoto} />
-
         <label className="block">
           <span className="mb-1.5 block text-sm text-ink/70">Welcome message (optional)</span>
           <textarea
             name="welcomeMessage"
             defaultValue={agent.welcome_message}
-            rows={4}
+            rows={3}
             maxLength={600}
             placeholder="A short, warm note shown at the top of your booking page."
             className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
           />
         </label>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Text
-            label="Public phone (optional)"
-            name="publicPhone"
-            type="tel"
-            defaultValue={agent.public_phone}
-            placeholder="Shown to clients"
-          />
-          <Text
-            label="Public email (optional)"
-            name="publicEmail"
-            type="email"
-            defaultValue={agent.public_email}
-            placeholder="Shown to clients"
-          />
-        </div>
-
-        <label className="mt-1 flex items-start gap-3">
-          <input
-            type="checkbox"
-            name="showContact"
-            defaultChecked={agent.show_contact}
-            className="mt-0.5 h-4 w-4 rounded border-ink/30 accent-ox"
-          />
-          <span className="text-sm text-ink/70">
-            Show my phone and email on the booking page
-            <span className="mt-0.5 block text-xs text-ink/50">
-              When on, clients see them under your photo before they book.
-            </span>
-          </span>
-        </label>
-      </section>
-
-      <hr className="border-ink/10" />
-
-      {/* ---- Booking setup ---- */}
-      <section className="space-y-8">
-        <div>
-          <h2 className="font-serif font-semibold tracking-tight text-2xl">Booking setup</h2>
-          <p className="mt-1 text-sm text-ink/60">Your hours and how clients can book.</p>
-        </div>
-
-        <Text label="Business name" name="businessName" defaultValue={agent.business_name} required />
-
         <label className="block">
           <span className="mb-1.5 block text-sm text-ink/70">Timezone</span>
           <select
@@ -240,7 +189,7 @@ export default function SettingsForm({
         disabled={pending}
         className="rounded-xl bg-ox px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
       >
-        {pending ? "Saving\u2026" : "Save settings"}
+        {pending ? "Saving\u2026" : "Save company settings"}
       </button>
     </form>
   )
@@ -421,6 +370,15 @@ function SignaturePicker({ name, photo, initial }: { name: string; photo: string
         It goes under every email you send a client, with your name, business, license, phone, email and booking link.
         {withPhoto && !photo ? " Add a headshot above and it shows here." : ""}
       </p>
+    </div>
+  )
+}
+
+function Head({ title, sub }: { title: string; sub: string }) {
+  return (
+    <div>
+      <h2 className="font-serif font-semibold tracking-tight text-xl">{title}</h2>
+      <p className="mt-1 text-sm text-ink/60">{sub}</p>
     </div>
   )
 }

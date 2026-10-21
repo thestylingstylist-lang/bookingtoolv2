@@ -58,7 +58,7 @@ export default async function AdminAgentDetail({
   const when = sentTime(at)
   const setupUrl =
     setup && setup !== "fail"
-      ? `https://www.marvberry.com/auth/callback?token_hash=${encodeURIComponent(setup)}&type=magiclink&next=/settings`
+      ? `https://www.marvberry.com/auth/callback?token_hash=${encodeURIComponent(setup)}&type=magiclink&next=${encodeURIComponent("/settings?tab=company")}`
       : null
   const admin = createAdminClient()
 

@@ -560,7 +560,7 @@ export default async function CalendarPage({
                   </div>
                 ))}
               </div>
-              <Link href="/settings" className="mt-4 inline-block text-[13px] underline underline-offset-4">
+              <Link href="/settings?tab=company" className="mt-4 inline-block text-[13px] underline underline-offset-4">
                 Change hours
               </Link>
             </div>

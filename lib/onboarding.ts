@@ -39,7 +39,7 @@ export const SETUP_STEPS: SetupStep[] = [
     title: "Add your logo and photo",
     detail: "Put your face and mark on your booking page so it looks like you, not a form.",
     cta: "Add branding",
-    href: "/settings",
+    href: "/settings?tab=company",
     done: (s) => !!(s.agent.logo_url || s.agent.headshot_url),
   },
   {
@@ -47,7 +47,7 @@ export const SETUP_STEPS: SetupStep[] = [
     title: "Write your welcome message",
     detail: "A short, warm note and a tagline that greet clients when they land on your page.",
     cta: "Write message",
-    href: "/settings",
+    href: "/settings?tab=company",
     done: (s) => !!(s.agent.welcome_message || s.agent.tagline),
   },
   {
@@ -55,7 +55,7 @@ export const SETUP_STEPS: SetupStep[] = [
     title: "Set your availability",
     detail: "Choose the days, hours, and call length that fit how you actually work.",
     cta: "Set availability",
-    href: "/settings",
+    href: "/settings?tab=company",
     done: (s) => scheduleChanged(s.agent),
   },
   {

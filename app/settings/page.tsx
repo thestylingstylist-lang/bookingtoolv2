@@ -12,7 +12,8 @@ import AppShell from "@/app/app-shell"
 
 export const dynamic = "force-dynamic"
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const tab = (await searchParams).tab === "company" ? "company" : "account"
   const supabase = await createClient()
   const {
     data: { user },
@@ -57,65 +58,70 @@ export default async function SettingsPage() {
   return (
     <AppShell agent={agent}>
       <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-        <p className="text-sm font-medium tracking-wide text-sage">Settings</p>
-        <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your booking page</h1>
+        <h1 className="font-serif font-semibold tracking-tight text-3xl">Settings</h1>
 
-        {/* Two halves on desktop; they stack on mobile (booking page first). */}
-        <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
-          {/* LEFT — booking page / brand */}
-          <section className="min-w-0">
-            <h2 className="font-serif font-semibold tracking-tight text-2xl">Your booking page</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
-              This controls how your booking page appears to your clients on the
-              front end. Go ahead and customize it so it feels more aligned to
-              your brand.
-            </p>
+        <nav className="mt-6 flex gap-7 border-b border-ink/10 text-[15px]">
+          {[
+            ["account", "Account"],
+            ["company", "Company"],
+          ].map(([k, l]) => (
+            <a
+              key={k}
+              href={`/settings?tab=${k}`}
+              className={`-mb-px border-b-2 pb-3 ${tab === k ? "border-ink font-semibold text-ink" : "border-transparent text-ink/50 hover:text-ink"}`}
+            >
+              {l}
+            </a>
+          ))}
+        </nav>
 
-            <div className="mb-8 mt-6 rounded-2xl border border-ink/10 bg-card p-5">
-              <p className="text-sm text-ink/60">
-                Your booking link &mdash; share this with clients:
-              </p>
-              <BookingLink slug={agent.slug} />
-            </div>
-
-            <SettingsForm agent={agent} license={license} meetingLink={meetingLink} signaturePhoto={signaturePhoto} />
-          </section>
-
-          {/* RIGHT — account */}
-          <section className="min-w-0">
-            <h2 className="font-serif font-semibold tracking-tight text-2xl">Your account</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
-              This is all of your account information. No one sees this.
-              It&rsquo;s what we use to identify you when you reach out for
-              customer service, and to set up your account with Marvberry.
-            </p>
-
-            <div className="mt-6">
-              <AccountForm
-                firstName={firstName}
-                lastName={lastName}
-                email={user.email ?? ""}
-              />
-            </div>
-
-            <h2 className="mt-14 font-serif font-semibold tracking-tight text-2xl">Your agreements</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
-              Set this once. Every agreement you send fills it in, so the only thing left
-              is the commission.
-            </p>
-            <div className="mt-6">
-              <AgreementForm initial={agreement} commission={commission} />
-            </div>
-
-            <h2 id="assistant" className="mt-14 font-serif font-semibold tracking-tight text-2xl">Marvberry Assistant</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
-              Your assistant writes to your clients in your voice. Your clients only ever see your name.
-            </p>
-            <div className="mt-6">
-              <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} />
-            </div>
-          </section>
-        </div>
+        {tab === "account" ? (
+          <div className="mt-8 max-w-2xl space-y-6">
+            <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
+              <h2 className="font-serif font-semibold tracking-tight text-xl">You</h2>
+              <p className="mt-1 text-sm text-ink/60">Your name, login email and password. Only you and the Marvberry team see this.</p>
+              <div className="mt-6">
+                <AccountForm firstName={firstName} lastName={lastName} email={user.email ?? ""} />
+              </div>
+            </section>
+            <section id="assistant" className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
+              <h2 className="font-serif font-semibold tracking-tight text-xl">Marvberry Assistant</h2>
+              <p className="mt-1 text-sm text-ink/60">Your assistant writes to your clients in your voice. Your clients only ever see your name.</p>
+              <div className="mt-6">
+                <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} />
+              </div>
+            </section>
+          </div>
+        ) : (
+          <div className="mt-8 max-w-2xl space-y-6">
+            <SettingsForm
+              agent={agent}
+              license={license}
+              meetingLink={meetingLink}
+              signaturePhoto={signaturePhoto}
+              bookingLink={
+                <div className="rounded-xl bg-ink/[0.03] p-4">
+                  <p className="text-sm text-ink/60">Your booking link. Share it with clients:</p>
+                  <BookingLink slug={agent.slug} />
+                </div>
+              }
+            />
+            <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
+              <h2 className="font-serif font-semibold tracking-tight text-xl">Deals</h2>
+              <p className="mt-1 text-sm text-ink/60">Set this once. Every agreement you send fills it in, so the only thing left is the commission.</p>
+              <div className="mt-6">
+                <AgreementForm initial={agreement} commission={commission} />
+              </div>
+            </section>
+            <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="font-serif font-semibold tracking-tight text-xl">Billing</h2>
+                <p className="mt-1 text-sm text-ink/60">Your plan and your payment card.</p>
+              </div>
+              <a href="/billing" className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium hover:bg-ink/[0.03]">Open billing</a>
+            </section>
+          </div>
+        )}
       </main>
     </AppShell>
   )
