@@ -64,7 +64,13 @@ export default function JacketTabs({
     if (!steps) return
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setSteps(false)
     window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
+    // Hold the page still while the panel is open, so the wheel scrolls the panel.
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      document.body.style.overflow = prev
+    }
   }, [steps])
   const show = (t: Tab) => (tab === t ? "" : "hidden lg:flex")
 
@@ -103,7 +109,7 @@ export default function JacketTabs({
       {steps && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[60] hidden lg:block">
           <div onClick={() => setSteps(false)} className="absolute inset-0 bg-[#16151a]/30" />
-          <aside className="absolute inset-y-0 left-0 flex w-[380px] flex-col overflow-y-auto bg-[#f1f0ee] px-6 py-6 shadow-2xl">
+          <aside className="absolute inset-y-0 left-0 block w-[480px] max-w-[90vw] overflow-y-auto overscroll-contain bg-[#f1f0ee] px-6 py-6 shadow-2xl">
             <button
               type="button"
               onClick={() => setSteps(false)}
