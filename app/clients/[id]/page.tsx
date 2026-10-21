@@ -320,6 +320,16 @@ export default async function ClientJacket({
 
         <JacketTabs
           initial={sp.step ? "tasks" : undefined}
+          summary={(() => {
+            const now = tasks.filter((t) => (t.phase || "showing") === phase)
+            const doneN = now.filter((t) => t.done).length
+            const got = collected.filter((c) => c.received).length
+            const label = PHASES[pi]?.label ?? ""
+            return [
+              now.length ? `${label}: ${doneN} of ${now.length} steps done` : "",
+              collected.length ? `${got} of ${collected.length} documents in` : "",
+            ].filter(Boolean).join(" \u00b7 ")
+          })()}
           documents={<DocumentsPanel clientId={client.id} collected={collected} />}
           tasks={<>
             <LeftColumn

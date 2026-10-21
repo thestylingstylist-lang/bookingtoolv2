@@ -1,6 +1,7 @@
 "use client"
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
+import { createPortal } from "react-dom"
 import { addHome, saveHome, setHomeStatus, removeHome, type HomeResult } from "./homes-actions"
 
 export type HomeView = {
@@ -31,98 +32,40 @@ const input =
   "w-full rounded-xl border border-[#dedad4] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
 
 export default function Homes({ clientId, clientFirst, homes }: { clientId: string; clientFirst: string; homes: HomeView[] }) {
-  const [drawer, setDrawer] = useState(false)
   const [openId, setOpenId] = useState<string | null>(null)
-  const active = homes.filter((h) => h.status === "active")
-  // The one home that most needs a move, for the summary line.
-  const urgent = active.find((h) => nextMove(h, clientFirst).dot) ?? active.find((h) => !h.showLabel) ?? active[0]
-  const close = () => {
-    setDrawer(false)
-    setOpenId(null)
-  }
-
-  return (
-    <section className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[#e4e3e0] bg-white px-6 py-3">
-      <p className="text-[15px] font-semibold">Homes</p>
-      <p className="min-w-0 flex-1 truncate text-[13.5px] text-[#5d5b62]">
-        {homes.length === 0
-          ? `Add the homes ${clientFirst || "your client"} is looking at.`
-          : <>
-              {active.length} {active.length === 1 ? "home" : "homes"}
-              {urgent && (
-                <>
-                  {" \u00b7 "}
-                  {nextMove(urgent, clientFirst).dot && <span className="mr-1.5 inline-block h-[7px] w-[7px] rounded-full bg-[#D9467A] align-[1px]" />}
-                  {urgent.address.split(",")[0]}: {nextMove(urgent, clientFirst).line}
-                </>
-              )}
-            </>}
-      </p>
-      <button onClick={() => setDrawer(true)} className="shrink-0 rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white">
-        {homes.length === 0 ? "Add a home" : "Open homes"}
-      </button>
-
-      {drawer && (
-        <Drawer onClose={close}>
-          {openId && homes.find((h) => h.id === openId) ? (
-            <HomePanel
-              key={openId}
-              home={homes.find((h) => h.id === openId)!}
-              clientFirst={clientFirst}
-              onBack={() => setOpenId(null)}
-            />
-          ) : (
-            <HomeList clientId={clientId} clientFirst={clientFirst} homes={homes} onOpen={setOpenId} />
-          )}
-        </Drawer>
-      )}
-    </section>
-  )
-}
-
-function Drawer({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose()
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
-  return (
-    <div className="fixed inset-0 z-50">
-      <div onClick={onClose} className="absolute inset-0 bg-[#16151a]/30" />
-      <aside className="absolute inset-y-0 right-0 w-full overflow-y-auto bg-white px-6 py-6 shadow-2xl sm:w-[500px] sm:px-8">
-        <button onClick={onClose} aria-label="Close" className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-[#f1f0ee] text-[#5d5b62]">
-          &#x2715;
-        </button>
-        {children}
-      </aside>
-    </div>
-  )
-}
-
-function HomeList({
-  clientId,
-  clientFirst,
-  homes,
-  onOpen,
-}: {
-  clientId: string
-  clientFirst: string
-  homes: HomeView[]
-  onOpen: (id: string) => void
-}) {
   const [showPassed, setShowPassed] = useState(false)
   const [state, add, adding] = useActionState<HomeResult | null, FormData>(addHome, null)
   const formRef = useRef<HTMLFormElement>(null)
   useEffect(() => {
     if (state?.ok) formRef.current?.reset()
   }, [state])
+
   const active = homes.filter((h) => h.status === "active")
   const passed = homes.filter((h) => h.status === "passed")
+  const list = showPassed ? [...active, ...passed] : active
+  const open = homes.find((h) => h.id === openId) ?? null
 
   return (
-    <>
-      <h3 className="pr-12 font-serif text-[26px] leading-tight">Homes{clientFirst ? ` for ${clientFirst}` : ""}</h3>
-      <form ref={formRef} action={add} className="mt-5 flex items-center gap-2 rounded-xl border border-[#e4e3e0] bg-white p-1.5 pl-4">
+    <section className="border-b border-[#e4e3e0] bg-white px-6 py-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-[15px] font-semibold">Homes</h2>
+        {homes.length > 0 && (
+          <p className="text-[13px] text-[#5d5b62]">
+            {active.length} {active.length === 1 ? "home" : "homes"}
+            {passed.length > 0 && (
+              <>
+                {" "}
+                &middot; {passed.length} passed &middot;{" "}
+                <button onClick={() => setShowPassed((v) => !v)} className="underline underline-offset-2">
+                  {showPassed ? "Hide" : "Show"}
+                </button>
+              </>
+            )}
+          </p>
+        )}
+      </div>
+
+      <form ref={formRef} action={add} className="mt-3 flex items-center gap-2 rounded-xl border border-[#e4e3e0] bg-white p-1.5 pl-4">
         <input type="hidden" name="clientId" value={clientId} />
         <input
           name="home"
@@ -130,43 +73,48 @@ function HomeList({
           className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] outline-none placeholder:text-[#aaa6a0]"
         />
         <button disabled={adding} className="shrink-0 rounded-lg bg-[#f1f0ee] px-4 py-2 text-sm font-medium disabled:opacity-60">
-          {adding ? "Adding\u2026" : "Add home"}
+          {adding ? "Adding…" : "Add home"}
         </button>
       </form>
       {state && !state.ok && <p className="mt-2 text-sm text-[#b42318]">{state.message}</p>}
 
-      <div className="mt-4 space-y-3">
-        {[...active, ...(showPassed ? passed : [])].map((h) => {
-          const m = nextMove(h, clientFirst)
-          const isPassed = h.status === "passed"
-          return (
-            <div key={h.id} className={`rounded-2xl border border-[#e4e3e0] p-4 ${isPassed ? "opacity-60" : ""}`}>
-              <button onClick={() => onOpen(h.id)} className="block w-full text-left">
-                <p className="text-[16px] font-semibold">{h.address.split(",")[0]}</p>
-                <p className="mt-1 text-[14px] text-[#5d5b62]">
-                  {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-[#D9467A] align-[1px]" />}
-                  {isPassed ? "Passed." : m.line}
-                </p>
-              </button>
-              {!isPassed && (
-                <button onClick={() => onOpen(h.id)} className="mt-3 rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white">
-                  {m.action}
+      {list.length > 0 && (
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-1">
+          {list.map((h) => {
+            const m = nextMove(h, clientFirst)
+            const isPassed = h.status === "passed"
+            return (
+              <div
+                key={h.id}
+                className={`flex w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-[#e4e3e0] bg-white p-4 ${isPassed ? "opacity-60" : ""}`}
+              >
+                <button onClick={() => setOpenId(h.id)} className="text-left">
+                  <p className="truncate text-[15.5px] font-semibold">{h.address.split(",")[0]}</p>
+                  <p className="mt-1 line-clamp-2 text-[13.5px] text-[#5d5b62]">
+                    {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-[#D9467A] align-[1px]" />}
+                    {isPassed ? "Passed." : m.line}
+                  </p>
                 </button>
-              )}
-            </div>
-          )
-        })}
-      </div>
-      {passed.length > 0 && (
-        <button onClick={() => setShowPassed((v) => !v)} className="mt-4 text-sm text-[#5d5b62] underline underline-offset-2">
-          {showPassed ? "Hide passed homes" : `${passed.length} passed \u00b7 Show`}
-        </button>
+                {!isPassed && (
+                  <button
+                    onClick={() => setOpenId(h.id)}
+                    className="mt-3 self-start rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white"
+                  >
+                    {m.action}
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
       )}
-    </>
+
+      {open && createPortal(<HomePanel key={open.id} home={open} clientFirst={clientFirst} onClose={() => setOpenId(null)} />, document.body)}
+    </section>
   )
 }
 
-function HomePanel({ home, clientFirst, onBack }: { home: HomeView; clientFirst: string; onBack: () => void }) {
+function HomePanel({ home, clientFirst, onClose }: { home: HomeView; clientFirst: string; onClose: () => void }) {
   const [state, save, saving] = useActionState<HomeResult | null, FormData>(saveHome, null)
   const [pending, start] = useTransition()
   const m = nextMove(home, clientFirst)
@@ -181,11 +129,25 @@ function HomePanel({ home, clientFirst, onBack }: { home: HomeView; clientFirst:
     listingUrl: home.listingUrl,
   })
   const set = (k: keyof typeof v, val: string) => setV((o) => ({ ...o, [k]: val }))
+  // Saved: close, so the card on the page shows the change right away.
+  useEffect(() => {
+    if (state?.ok) onClose()
+  }, [state, onClose])
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose()
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [onClose])
 
   return (
-    <>
-        <button onClick={onBack} className="mb-4 text-sm text-[#5d5b62]">&larr; All homes</button>
+    <div className="fixed inset-0 z-[60]">
+      <div onClick={onClose} className="absolute inset-0 bg-[#16151a]/30" />
+      <aside className="absolute inset-y-0 right-0 w-full overflow-y-auto bg-white px-6 py-6 shadow-2xl sm:w-[480px] sm:px-8">
+        <button onClick={onClose} aria-label="Close" className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-[#f1f0ee] text-[#5d5b62]">
+          &#x2715;
+        </button>
+
         <h3 className="pr-12 font-serif text-[26px] leading-tight">{home.address.split(",")[0]}</h3>
         <p className="mt-1 text-sm text-[#5d5b62]">
           {home.address.split(",").slice(1).join(",").trim()}
@@ -258,13 +220,14 @@ function HomePanel({ home, clientFirst, onBack }: { home: HomeView; clientFirst:
           <button
             disabled={pending}
             onClick={() => {
-              if (confirm("Remove this home?")) start(async () => { await removeHome(home.id); onBack() })
+              if (confirm("Remove this home?")) start(async () => { await removeHome(home.id); onClose() })
             }}
             className="underline underline-offset-2"
           >
             Remove
           </button>
         </div>
-    </>
+      </aside>
+    </div>
   )
 }
