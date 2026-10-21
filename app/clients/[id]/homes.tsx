@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { createPortal } from "react-dom"
-import { addHome, saveHome, setHomeStatus, removeHome, type HomeResult } from "./homes-actions"
+import { addHome, saveHome, setHomeStatus, removeHome, setOfferStatus, type HomeResult } from "./homes-actions"
+import { OfferForm, FollowUpForm, type OfferView, type DocView } from "./offer-forms"
 
 export type HomeView = {
   id: string
@@ -18,21 +19,48 @@ export type HomeView = {
   showTime: string // HH:mm, or ""
   showLabel: string // "Thursday, October 22 at 4 PM", or ""
   shown: boolean // the showing time has passed
+  offer: OfferView | null // the latest offer on this home
 }
 
+type View = "home" | "offer" | "follow"
+
 // The one next move for a house, in plain words.
-function nextMove(h: HomeView, first: string) {
-  if (!h.showLabel) return { line: "No showing set yet.", action: "Set the showing", dot: false }
-  if (!h.shown) return { line: `Showing ${h.showLabel}.`, action: "Open", dot: false }
-  if (!h.notes) return { line: `Seen ${h.showLabel.replace(/ at .*/, "")}. How did it go?`, action: first ? `Add ${first}'s notes` : "Add notes", dot: true }
-  return { line: `“${h.notes.length > 70 ? h.notes.slice(0, 70) + "…" : h.notes}”`, action: "Open", dot: false }
+function nextMove(h: HomeView, first: string): { line: string; action: string; dot: boolean; view: View } {
+  const o = h.offer
+  if (o?.status === "sent")
+    return {
+      line: `Offer of ${o.amount} sent ${o.sentLabel}.${o.goodLabel ? ` Good until ${o.goodLabel}.` : ""}`,
+      action: "Follow up",
+      dot: o.soon,
+      view: "follow",
+    }
+  if (o?.status === "countered") return { line: `They countered your ${o.amount} offer.`, action: "Make a new offer", dot: true, view: "offer" }
+  if (o?.status === "accepted") return { line: `Offer of ${o.amount} accepted.`, action: "Open", dot: false, view: "home" }
+  if (o?.status === "declined") return { line: `Your ${o.amount} offer was declined.`, action: "Make a new offer", dot: false, view: "offer" }
+  if (!h.showLabel) return { line: "No showing set yet.", action: "Set the showing", dot: false, view: "home" }
+  if (!h.shown) return { line: `Showing ${h.showLabel}.`, action: "Open", dot: false, view: "home" }
+  if (!h.notes) return { line: `Seen ${h.showLabel.replace(/ at .*/, "")}. How did it go?`, action: first ? `Add ${first}'s notes` : "Add notes", dot: true, view: "home" }
+  return { line: `\u201c${h.notes.length > 70 ? h.notes.slice(0, 70) + "\u2026" : h.notes}\u201d`, action: "Make an offer", dot: false, view: "offer" }
 }
 
 const input =
   "w-full rounded-xl border border-[#dedad4] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
 
-export default function Homes({ clientId, clientFirst, homes }: { clientId: string; clientFirst: string; homes: HomeView[] }) {
+export default function Homes({
+  clientId,
+  clientFirst,
+  clientFull,
+  homes,
+  docs,
+}: {
+  clientId: string
+  clientFirst: string
+  clientFull: string
+  homes: HomeView[]
+  docs: DocView[]
+}) {
   const [openId, setOpenId] = useState<string | null>(null)
+  const [startView, setStartView] = useState<View>("home")
   const [showPassed, setShowPassed] = useState(false)
   const [state, add, adding] = useActionState<HomeResult | null, FormData>(addHome, null)
   const formRef = useRef<HTMLFormElement>(null)
@@ -88,7 +116,7 @@ export default function Homes({ clientId, clientFirst, homes }: { clientId: stri
                 key={h.id}
                 className={`flex w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-[#e4e3e0] bg-white p-4 ${isPassed ? "opacity-60" : ""}`}
               >
-                <button onClick={() => setOpenId(h.id)} className="text-left">
+                <button onClick={() => { setStartView("home"); setOpenId(h.id) }} className="text-left">
                   <p className="truncate text-[15.5px] font-semibold">{h.address.split(",")[0]}</p>
                   <p className="mt-1 line-clamp-2 text-[13.5px] text-[#5d5b62]">
                     {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-[#D9467A] align-[1px]" />}
@@ -97,7 +125,10 @@ export default function Homes({ clientId, clientFirst, homes }: { clientId: stri
                 </button>
                 {!isPassed && (
                   <button
-                    onClick={() => setOpenId(h.id)}
+                    onClick={() => {
+                      setStartView(m.view)
+                      setOpenId(h.id)
+                    }}
                     className="mt-3 self-start rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white"
                   >
                     {m.action}
@@ -109,12 +140,27 @@ export default function Homes({ clientId, clientFirst, homes }: { clientId: stri
         </div>
       )}
 
-      {open && createPortal(<HomePanel key={open.id} home={open} clientFirst={clientFirst} onClose={() => setOpenId(null)} />, document.body)}
+      {open && createPortal(<HomePanel key={open.id} home={open} clientFirst={clientFirst} clientFull={clientFull} docs={docs} startView={startView} onClose={() => setOpenId(null)} />, document.body)}
     </section>
   )
 }
 
-function HomePanel({ home, clientFirst, onClose }: { home: HomeView; clientFirst: string; onClose: () => void }) {
+function HomePanel({
+  home,
+  clientFirst,
+  clientFull,
+  docs,
+  startView,
+  onClose,
+}: {
+  home: HomeView
+  clientFirst: string
+  clientFull: string
+  docs: DocView[]
+  startView: View
+  onClose: () => void
+}) {
+  const [view, setView] = useState<View>(startView === "follow" && !home.offer ? "home" : startView)
   const [state, save, saving] = useActionState<HomeResult | null, FormData>(saveHome, null)
   const [pending, start] = useTransition()
   const m = nextMove(home, clientFirst)
@@ -148,6 +194,19 @@ function HomePanel({ home, clientFirst, onClose }: { home: HomeView; clientFirst
           &#x2715;
         </button>
 
+        {view === "offer" ? (
+          <OfferForm home={home} clientFull={clientFull} docs={docs} onBack={() => setView("home")} onDone={onClose} />
+        ) : view === "follow" && home.offer ? (
+          <FollowUpForm
+            offer={home.offer}
+            street={home.address.split(",")[0]}
+            agentName={home.agentName}
+            clientFirst={clientFirst}
+            onBack={() => setView("home")}
+            onDone={onClose}
+          />
+        ) : (
+        <>
         <h3 className="pr-12 font-serif text-[26px] leading-tight">{home.address.split(",")[0]}</h3>
         <p className="mt-1 text-sm text-[#5d5b62]">
           {home.address.split(",").slice(1).join(",").trim()}
@@ -165,7 +224,43 @@ function HomePanel({ home, clientFirst, onClose }: { home: HomeView; clientFirst
           <div className="mt-5 rounded-2xl border border-[#f0c9d7] bg-[#fdf6f8] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-[#a3305d]">Next move</p>
             <p className="mt-1.5 text-[15px] leading-relaxed">{m.line}</p>
+            {(m.view === "offer" || m.view === "follow") && (
+              <button type="button" onClick={() => setView(m.view)} className="mt-3 rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white">
+                {m.action === "Follow up" ? `Follow up with ${home.agentName.trim().split(/\s+/)[0] || "the listing agent"}` : m.action}
+              </button>
+            )}
           </div>
+        )}
+
+        {home.offer && (
+          <div className="mt-6">
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">The offer</p>
+            <p className="text-[14.5px]">
+              <b className="font-medium">{home.offer.amount}</b> sent {home.offer.sentLabel}
+              {home.agentName ? ` to ${home.agentName}` : ""}
+              {home.offer.followedUp ? " \u00b7 followed up" : ""}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {(["sent", "countered", "accepted", "declined"] as const).map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => start(() => setOfferStatus(home.offer!.id, st))}
+                  className={`rounded-full border px-3 py-1.5 text-[13px] capitalize ${
+                    home.offer!.status === st ? "border-ink bg-ink text-white" : "border-[#dedad4] text-[#5d5b62]"
+                  }`}
+                >
+                  {st === "sent" ? "Waiting" : st}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {!home.offer && m.view !== "offer" && home.status === "active" && (
+          <button type="button" onClick={() => setView("offer")} className="mt-4 text-sm font-medium underline underline-offset-2">
+            Make an offer on this home
+          </button>
         )}
 
         <form action={save} className="mt-6 space-y-6">
@@ -227,6 +322,8 @@ function HomePanel({ home, clientFirst, onClose }: { home: HomeView; clientFirst
             Remove
           </button>
         </div>
+        </>
+        )}
       </aside>
     </div>
   )

@@ -6,6 +6,7 @@ import AppShell from "@/app/app-shell"
 import JacketDetails from "./jacket-details"
 import JacketTabs from "./jacket-tabs"
 import Homes, { type HomeView } from "./homes"
+import type { OfferView } from "./offer-forms"
 import { movePhase } from "./checklist-actions"
 import { daysUntil } from "@/lib/due"
 import { formatInTimeZone } from "date-fns-tz"
@@ -124,6 +125,27 @@ export default async function ClientJacket({
     .eq("client_id", id)
     .order("created_at", { ascending: true })
   const homeTz = agent.timezone || "America/New_York"
+  // Latest offer per home (blank until home-offers.sql is run).
+  const { data: offerRows } = await supabase
+    .from("home_offers")
+    .select("id, home_id, amount, status, created_at, good_until, followed_up_at")
+    .eq("client_id", id)
+    .order("created_at", { ascending: false })
+  const latestOffer = new Map<string, OfferView>()
+  for (const o of (offerRows ?? []) as Record<string, string | number | null>[]) {
+    if (latestOffer.has(o.home_id as string)) continue
+    const good = o.good_until ? new Date(o.good_until as string) : null
+    latestOffer.set(o.home_id as string, {
+      id: o.id as string,
+      amount: `$${Math.round(Number(o.amount)).toLocaleString("en-US")}`,
+      sentLabel: formatInTimeZone(new Date(o.created_at as string), homeTz, "EEEE"),
+      goodLabel: good ? formatInTimeZone(good, homeTz, "EEEE 'at' h:mm a").replace(":00 ", " ") : "",
+      status: (["sent", "countered", "accepted", "declined"].includes(o.status as string) ? o.status : "sent") as OfferView["status"],
+      // Flag it once it's within a day of running out (or past).
+      soon: !!good && good.getTime() - Date.now() < 24 * 60 * 60 * 1000,
+      followedUp: !!o.followed_up_at,
+    })
+  }
   const homes: HomeView[] = ((homeData ?? []) as Record<string, string | null>[]).map((h) => ({
     id: h.id as string,
     address: (h.address as string) || "",
@@ -140,6 +162,7 @@ export default async function ClientJacket({
       ? formatInTimeZone(new Date(h.showing_at), homeTz, "EEEE, MMMM d 'at' h:mm a").replace(":00 ", " ")
       : "",
     shown: h.showing_at ? new Date(h.showing_at).getTime() < Date.now() : false,
+    offer: latestOffer.get(h.id as string) ?? null,
   }))
 
   const [
@@ -317,7 +340,15 @@ export default async function ClientJacket({
           })}
         </div>
 
-        {homeData && <Homes clientId={client.id} clientFirst={client.first_name || ""} homes={homes} />}
+        {homeData && (
+          <Homes
+            clientId={client.id}
+            clientFirst={client.first_name || ""}
+            clientFull={`${client.first_name || ""} ${client.last_name || ""}`.trim()}
+            homes={homes}
+            docs={collected.filter((c) => c.file_path).map((c) => ({ id: c.id, title: c.title }))}
+          />
+        )}
 
         <JacketTabs
           initial={sp.step ? "tasks" : undefined}
