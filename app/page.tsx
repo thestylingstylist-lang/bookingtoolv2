@@ -1,19 +1,19 @@
-// Marvberry home page (marvberry.com). The page itself lives in ./closer.tsx (earlier versions: ./brand.tsx, ./landing.tsx).
+// Marvberry home page (marvberry.com). The page itself lives in ./brand.tsx (the older version is ./landing.tsx).
 import type { Metadata } from "next";
-import Closer from "./closer";
+import Brand from "./brand";
 import SiteTracker from "./site-tracker";
 import Clarity from "./clarity";
 
 export const metadata: Metadata = {
-  title: { absolute: "Marvberry — The closer behind the closer" },
+  title: { absolute: "Marvberry — The Realtor\u2019s Client Experience Assistant" },
   description:
-    "For solo real estate agents. Marvberry builds your offer so you can send it in minutes, and gives every buyer their own page. We set it up with you.",
+    "Showing booking, e-signatures, and a client portal in one place. Clients book themselves, sign from their phone, and always know what's next.",
 };
 
 export default function Home() {
   return (
     <>
-      <Closer />
+      <Brand />
       <SiteTracker />
       <Clarity />
     </>

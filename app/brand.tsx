@@ -17,9 +17,12 @@ const HIRES = [
 ]
 
 const FAQ = [
-  ["What happens when I click \u201cTry Marvberry\u201d?", "You create your free account. No credit card. If you\u2019d rather have it done for you, book a free setup call and we\u2019ll build your booking page, your agreement, and your client steps with you."],
-  ["Do my clients have to make an account?", "No. Your clients get a private link. They book, sign, and send documents without a password or an app."],
-  ["Does it work on my phone?", "Yes. Your phone or your computer, same business either way."],
+  ["What happens when I click \u201cTry Marvberry\u201d?", "You get 14 days free. No credit card. We set it up with you, and you\u2019re ready for your next buyer."],
+  ["Do I have to be good with tech?", "No. We set it up with you, and we\u2019re in the app if you get stuck."],
+  ["Is this going to replace me?", "No. You stay the boss. Marvberry builds the offer so you can do the closing."],
+  ["Will this get me more leads?", "Not first. More leads only means more clients left waiting if your deals aren\u2019t running smoothly. Marvberry fixes that first."],
+  ["Do my clients have to make an account?", "No. Your buyers get a private link. They book, sign, and upload their documents without a password or an app."],
+  ["Can my whole office use it?", "Yes. Brokers can book a consultation, and we\u2019ll build it around your team."],
   ["What if it isn\u2019t right for me?", "You have 30 days. If Marvberry isn\u2019t for you, tell us and we\u2019ll refund you in full."],
 ]
 
@@ -45,17 +48,17 @@ export default function Brand() {
 
       {/* 1. What we do */}
       <section id="top" className="hero light">
-        <p className="eyebrow">for Real Estate Agents</p>
+        <p className="eyebrow">for Solo Real Estate Agents</p>
         <h1>
-          <span className="l1">Run your Business like</span>
-          <span className="l2">You&rsquo;ve got a team!</span>
+          <span className="l1">The closer</span>
+          <span className="l2">behind the closer.</span>
         </h1>
         <p className="sub">
-          Your bookings, handled. Your agreements, signed. Every client knowing what&rsquo;s next, without texting you to
-          ask.
+          You find the home. Marvberry builds the offer, so you can send it in minutes and your buyer never feels left
+          hanging.
         </p>
         <p className="identity">
-          Be the agent who looks completely buttoned-up. <em>And still has a life.</em>
+          You&rsquo;re not slow. <em>Offers just take too long by hand.</em>
         </p>
         <a className="btn rust" href={START}>
           Try Marvberry
@@ -63,7 +66,7 @@ export default function Brand() {
         <svg className="swoosh" viewBox="0 0 100 12" aria-hidden="true">
           <path d="M2 4 C 35 0, 70 2, 98 10" />
         </svg>
-        <p className="fine dark">Free to start. No credit card.</p>
+        <p className="fine dark">14 days free. No credit card.</p>
       </section>
 
       {/* Real screens rise over the pinned hero as you scroll */}
@@ -88,7 +91,7 @@ export default function Brand() {
             <p className="tag">Your bookings</p>
             <h3>This is what having it together looks like.</h3>
             <p>
-              One link with your name, your face, and your hours. Clients book themselves into the times you set, and
+              One link with your name, your face, and your hours. Buyers book themselves into the times you set, and
               everyone gets a confirmation and a reminder. From the first click, you look like you&rsquo;ve got a front
               desk.
             </p>
@@ -103,10 +106,10 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your deals</p>
-            <h3>They say yes. The deal is handled.</h3>
+            <h3>They found the one. The offer is built.</h3>
             <p>
-              Your agreement is already filled in with your terms. One click, and they sign from their phone. Ask for
-              documents, and they upload them from their page. Every file lands under their name.
+              Your buyer uploads their own documents from their page. Marvberry builds the offer, you look it over, and
+              it&rsquo;s sent in minutes. Your agreement? Already filled in with your terms. They sign from their phone.
             </p>
           </div>
         </article>
@@ -119,10 +122,10 @@ export default function Brand() {
           </div>
           <div className="job-copy">
             <p className="tag">Your relationships</p>
-            <h3>Your clients always know what&rsquo;s next.</h3>
+            <h3>Your buyer never feels left hanging.</h3>
             <p>
-              Every client gets a private page with their next step and what&rsquo;s due. No app. No password. They check
-              it instead of texting you.
+              Every buyer gets a private page with every home you&rsquo;re showing them, their next step, and where their
+              offer stands. No app. No password. They check it instead of texting you.
             </p>
           </div>
         </article>
@@ -136,31 +139,27 @@ export default function Brand() {
         <div className="letter">
           <p className="hand gold">from Alecia</p>
           <p>
-            Everyone always told me to be a realtor. I bought my own house and ran the whole deal myself. I even took the
-            class. And I found out I don&rsquo;t love the selling. I love the back office, the part that makes the business
-            good.
+            I&rsquo;ve sat in the assistant&rsquo;s chair. I&rsquo;m Alecia. I started my first business at 9, selling
+            candy with my lunch money. Later I managed teams at a big corporation, where I learned to keep every promise I
+            made.
           </p>
           <p>
-            I&rsquo;ve been in sales for over two decades. Multi-millions sold, and I&rsquo;ve never lost a client. Not
-            because they were easy. Because I kept them in the loop. I thought ahead for them, so they never had to ask
-            me for anything. And I still took my days off.
+            Then I bought my own home and handled every step myself. I felt the stall firsthand, with lawyers and brokers
+            waiting on each other. After that I worked as a real estate agent&rsquo;s assistant, and I saw the same thing
+            on every deal. Client info came in pieces by text and email. Selling agents asked us instead of their own
+            clients. And when anything went wrong, it landed on the agent.
           </p>
           <p>
-            Clients don&rsquo;t rate you on how many houses you sold. They rate you on how taken care of they felt.
-            People forget what you did. They never forget how you made them feel. That&rsquo;s what gets you referred.
-          </p>
-          <p>
-            Real estate is a billion-dollar industry, and every tool is about getting more leads. Nothing helps you take
-            care of the clients you already have. You shouldn&rsquo;t be jumping between fifteen apps to manage one
-            transaction. So I built Marvberry.
+            When the first agent I worked with asked me for help getting more leads, I knew more leads would only mean
+            more clients left waiting. His offers had to come first. So I built Marvberry.
           </p>
           <p className="sign">Alecia Ford</p>
           <p className="role">Founder, Marvberry</p>
           <div className="letter-cta">
-            <a className="btn" href={CALL}>
-              Let me set it up for you
+            <a className="btn" href={START}>
+              Try Marvberry
             </a>
-            <p className="fine dark">A free call. I&rsquo;ll build it with you.</p>
+            <p className="fine dark">14 days free. I&rsquo;ll set it up with you.</p>
           </div>
         </div>
       </section>
@@ -170,13 +169,13 @@ export default function Brand() {
         <p className="hand gold">here&rsquo;s the difference</p>
         <h2>And no, you&rsquo;re not setting this up yourself.</h2>
         <p className="lead">
-          We set it up for you. Your booking page, your agreements, your client steps, all built with you on one free
-          call. You don&rsquo;t learn a system. You just show up and it&rsquo;s ready.
+          We set it up with you. Your booking page, your agreements, your offer, your client steps, all built with you.
+          You don&rsquo;t learn a system. You just show up and it&rsquo;s ready.
         </p>
         <a className="btn" href={START}>
           Try Marvberry
         </a>
-        <p className="fine dark">Free to start. No credit card.</p>
+        <p className="fine dark">14 days free. No credit card.</p>
       </section>
 
       {/* Q3, beat 2: meet Marvberry, the assistant */}
@@ -186,7 +185,7 @@ export default function Brand() {
         <p className="lead">
           Marvberry learns how you write. When a client messages you, a reply is waiting in your words. You read it,
           approve it, send it. Reminders are ready before anything is late. And every morning, it tells you what changed
-          and what matters today.
+          and what matters today. It all comes with the Closer plan.
         </p>
         <p className="lead strong">Your clients only ever see your name.</p>
         <div className="meet-pic photo-bg">
@@ -226,15 +225,18 @@ export default function Brand() {
         <div className="reveal">
           <p className="does">Marvberry does all three jobs for</p>
           <p className="price-big">
-            $39<span>a month</span>
+            $67<span>a month</span>
           </p>
-          <p className="daily">About $1.30 a day. Early price, and you keep it as the price goes up.</p>
+          <p className="daily">
+            About $2.20 a day. Want it to write like you too? Closer is $147 a month. Founding members keep $39 a month as
+            long as they stay.
+          </p>
           <a className="btn" href={START}>
             Try Marvberry
           </a>
-          <p className="fine dark">Free to start. No credit card. 30-day money-back guarantee.</p>
+          <p className="fine dark">14 days free. No credit card. 30-day money-back guarantee.</p>
           <p className="brokerage">
-            Running a brokerage? <a href={CALL}>Talk to us</a>.
+            Running a brokerage? <a href={CALL}>Book a consultation</a>.
           </p>
         </div>
       </section>
@@ -254,11 +256,11 @@ export default function Brand() {
 
       {/* 9. Closing */}
       <section className="closing">
-        <h2>Busy isn&rsquo;t success. Structure is.</h2>
+        <h2>Your next deal doesn&rsquo;t have to stall.</h2>
         <a className="btn" href={START}>
           Try Marvberry
         </a>
-        <p className="fine dark">Free to start. No credit card.</p>
+        <p className="fine dark">14 days free. No credit card.</p>
       </section>
 
       <footer className="foot">
