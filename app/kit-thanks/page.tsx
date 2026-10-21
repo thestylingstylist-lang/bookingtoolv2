@@ -38,8 +38,7 @@ export default async function KitThanks({ searchParams }: { searchParams: Promis
 
       <header className="nav">
         <a href="/" className="mark">
-          <img src="/marvberry-icon.png" alt="" width={21} height={44} className="mbicon" />
-          <span>Marvberry</span>
+          <img src="/marvberry-wordmark.png" alt="Marvberry" width={140} height={27} style={{ height: 27, width: "auto" }} />
         </a>
       </header>
 
@@ -103,7 +102,7 @@ export default async function KitThanks({ searchParams }: { searchParams: Promis
       </main>
 
       <footer className="foot">
-        <img src="/marvberry-icon.png" alt="" width={16} height={34} className="mbicon" /> Marvberry. <em>The Realtor&rsquo;s Client Experience Assistant</em>
+        <img src="/marvberry-icon.png" alt="" width={31} height={18} className="mbicon" /> Marvberry. <em>The Realtor&rsquo;s Client Experience Assistant</em>
       </footer>
     </div>
   )

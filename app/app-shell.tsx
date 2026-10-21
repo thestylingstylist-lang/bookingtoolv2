@@ -162,7 +162,7 @@ export default function AppShell({
           <FullMenu />
         ) : (
           <>
-            <img src="/marvberry-icon.png" alt="Marvberry" width={17} height={36} className="h-9 w-auto" />
+            <img src="/marvberry-icon.png" alt="Marvberry" width={42} height={24} className="h-6 w-auto" />
             <div className="mt-8 flex-1">
               <SidebarNav collapsed />
               <div className="mt-2">

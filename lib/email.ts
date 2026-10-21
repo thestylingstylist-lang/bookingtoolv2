@@ -186,7 +186,7 @@ export function chatConfirmationEmail(opts: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f2f0ee;padding:40px 16px;">
 <tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:500px;">
-<tr><td style="padding:0 8px;"><img src="https://www.marvberry.com/marvberry-wordmark.png" width="118" height="24" alt="Marvberry" style="display:block;height:24px;width:auto;border:0;"></td></tr>
+<tr><td style="padding:0 8px;"><img src="https://www.marvberry.com/marvberry-wordmark.png" width="125" height="24" alt="Marvberry" style="display:block;height:24px;width:auto;border:0;"></td></tr>
 <tr><td style="padding:22px 8px 0;">
 <h1 style="margin:0;font-family:'Playfair Display',Georgia,serif;font-weight:500;font-size:30px;line-height:1.22;color:#2b2520;">Your deals are about to get so much simpler.</h1>
 </td></tr>

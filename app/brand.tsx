@@ -31,8 +31,7 @@ export default function Brand() {
 
       <header className="nav">
         <a href="#top" className="mark">
-          <img src="/marvberry-icon.png" alt="" width={21} height={44} className="mbicon" />
-          <span>Marvberry</span>
+          <img src="/marvberry-wordmark.png" alt="Marvberry" width={140} height={27} style={{ height: 27, width: "auto" }} />
         </a>
         <nav className="links">
           <a href="#how">How it works</a>
@@ -264,7 +263,7 @@ export default function Brand() {
 
       <footer className="foot">
         <p className="foot-mark">
-          <img src="/marvberry-icon-light.png" alt="" width={16} height={34} className="mbicon" /> Marvberry. <em>The Realtor&rsquo;s Client Experience Assistant</em>
+          <img src="/marvberry-icon-light.png" alt="" width={31} height={18} className="mbicon" /> Marvberry. <em>The Realtor&rsquo;s Client Experience Assistant</em>
         </p>
         <p>
           <a href="/login">Log in</a>

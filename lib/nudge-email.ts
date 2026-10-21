@@ -61,7 +61,7 @@ export function agentDayEmail(opts: {
 <tr><td align="center" style="padding:44px 20px;">
 <table role="presentation" width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
 <tr><td style="padding:0 8px;">
-  <p style="margin:0 0 22px;"><img src="https://www.marvberry.com/marvberry-wordmark.png" width="118" height="24" alt="Marvberry" style="display:block;height:24px;width:auto;border:0;"></p>
+  <p style="margin:0 0 22px;"><img src="https://www.marvberry.com/marvberry-wordmark.png" width="125" height="24" alt="Marvberry" style="display:block;height:24px;width:auto;border:0;"></p>
   <p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.6;color:#4a433b;">${hi}</p>
   <p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.6;color:#4a433b;">Welcome to a brand new day. I\u2019ve taken a look at your agenda, and here\u2019s what you have.</p>
   ${agenda}
