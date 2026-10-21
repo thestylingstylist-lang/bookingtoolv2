@@ -20,6 +20,8 @@ export type HomeView = {
   showLabel: string // "Thursday, October 22 at 4 PM", or ""
   shown: boolean // the showing time has passed
   offer: OfferView | null // the latest offer on this home
+  clientNotes: string // what the client wrote on their own page
+  clientAsked: string // the day they tapped "I'd like to make an offer", or ""
 }
 
 type View = "home" | "offer" | "follow"
@@ -37,6 +39,8 @@ function nextMove(h: HomeView, first: string): { line: string; action: string; d
   if (o?.status === "countered") return { line: `They countered your ${o.amount} offer.`, action: "Make a new offer", dot: true, view: "offer" }
   if (o?.status === "accepted") return { line: `Offer of ${o.amount} accepted.`, action: "Open", dot: false, view: "home" }
   if (o?.status === "declined") return { line: `Your ${o.amount} offer was declined.`, action: "Make a new offer", dot: false, view: "offer" }
+  if (h.clientAsked)
+    return { line: `${first || "Your client"} wants to make an offer. Asked ${h.clientAsked}.`, action: "Make an offer", dot: true, view: "offer" }
   if (!h.showLabel) return { line: "No showing set yet.", action: "Set the showing", dot: false, view: "home" }
   if (!h.shown) return { line: `Showing ${h.showLabel}.`, action: "Open", dot: false, view: "home" }
   if (!h.notes) return { line: `Seen ${h.showLabel.replace(/ at .*/, "")}. How did it go?`, action: first ? `Add ${first}'s notes` : "Add notes", dot: true, view: "home" }
@@ -287,6 +291,12 @@ function HomePanel({
           </div>
 
           <div>
+            {home.clientNotes && (
+              <div className="mb-4 rounded-xl bg-[#f7f6f4] px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">{clientFirst ? `In ${clientFirst}'s words` : "In their words"}</p>
+                <p className="mt-1 whitespace-pre-wrap text-[14.5px]">{home.clientNotes}</p>
+              </div>
+            )}
             <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">{clientFirst ? `${clientFirst}'s notes` : "Notes"}</p>
             <textarea name="notes" rows={3} value={v.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Loved the kitchen. Backyard is small." className={input} />
           </div>

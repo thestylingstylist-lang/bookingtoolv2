@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 
-type Tab = "next" | "documents" | "messages"
+type Tab = "next" | "homes" | "documents" | "messages"
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   {
@@ -12,6 +12,16 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
       <>
         <circle cx="12" cy="12" r="9" />
         <path d="M9 12l2 2 4-4" />
+      </>
+    ),
+  },
+  {
+    id: "homes",
+    label: "Homes",
+    icon: (
+      <>
+        <path d="M4 11l8-7 8 7" />
+        <path d="M6 10v10h12V10" />
       </>
     ),
   },
@@ -35,11 +45,13 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 // Desktop: the same two-column layout as before (left stack + messages).
 // Phone/tablet: one section at a time, switched from a bottom tab bar.
 export default function PortalTabs({
+  homes,
   next,
   documents,
   messages,
   startTab = "next",
 }: {
+  homes?: React.ReactNode
   next: React.ReactNode
   documents: React.ReactNode
   messages: React.ReactNode
@@ -86,6 +98,7 @@ export default function PortalTabs({
 
   return (
     <>
+      {homes && <div className={`mt-3 ${on("homes") ? "" : "hidden md:block"}`}>{homes}</div>}
       <div className="mt-3 grid items-stretch gap-3 pb-20 md:grid-cols-[1fr_1.2fr] md:pb-0">
         <div className="flex flex-col gap-3">
           <div className={on("next") ? "flex flex-col gap-3" : "hidden md:flex md:flex-col md:gap-3"}>
@@ -98,8 +111,8 @@ export default function PortalTabs({
         </div>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-[#e4e3e0] bg-white pb-[env(safe-area-inset-bottom)] md:hidden">
-        {TABS.map((t) => (
+      <nav className={`fixed inset-x-0 bottom-0 z-30 grid ${homes ? "grid-cols-4" : "grid-cols-3"} border-t border-[#e4e3e0] bg-white pb-[env(safe-area-inset-bottom)] md:hidden`}>
+        {TABS.filter((t) => t.id !== "homes" || homes).map((t) => (
           <button
             key={t.id}
             type="button"

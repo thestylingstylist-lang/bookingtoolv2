@@ -148,6 +148,11 @@ export default async function ClientJacket({
       followedUp: !!o.followed_up_at,
     })
   }
+  // What the client wrote and tapped on their own page (blank until homes-client.sql is run).
+  const { data: theirRows, error: theirErr } = await supabase.from("homes").select("id, client_notes, client_offer_at").eq("client_id", id)
+  const theirs = new Map(
+    (theirErr ? [] : ((theirRows ?? []) as { id: string; client_notes: string | null; client_offer_at: string | null }[])).map((r) => [r.id, r]),
+  )
   const homes: HomeView[] = ((homeData ?? []) as Record<string, string | null>[]).map((h) => ({
     id: h.id as string,
     address: (h.address as string) || "",
@@ -165,6 +170,10 @@ export default async function ClientJacket({
       : "",
     shown: h.showing_at ? new Date(h.showing_at).getTime() < Date.now() : false,
     offer: latestOffer.get(h.id as string) ?? null,
+    clientNotes: theirs.get(h.id as string)?.client_notes || "",
+    clientAsked: theirs.get(h.id as string)?.client_offer_at
+      ? formatInTimeZone(new Date(theirs.get(h.id as string)!.client_offer_at!), homeTz, "EEEE")
+      : "",
   }))
 
   const [

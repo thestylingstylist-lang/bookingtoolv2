@@ -6,6 +6,7 @@ import { clientWording } from "@/lib/client-wording"
 import { clientSendMessage } from "./actions"
 import UploadButton from "./upload-button"
 import PortalTabs from "./portal-tabs"
+import PortalHomes, { type PortalHome } from "./portal-homes"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Your home search", robots: { index: false, follow: false } }
@@ -82,6 +83,52 @@ export default async function Portal({
   const collected = colData ?? []
   const messages = msgData ?? []
 
+  // Homes their agent is showing them (passed ones stay off their page).
+  const { data: homeRows } = await admin
+    .from("homes")
+    .select("id, address, listing_url, showing_at, status")
+    .eq("client_id", client.id)
+    .order("created_at", { ascending: true })
+  // Their notes and offer taps live in their own columns (blank until homes-client.sql is run).
+  const { data: mineRows, error: mineErr } = await admin.from("homes").select("id, client_notes, client_offer_at").eq("client_id", client.id)
+  const theirs = new Map(
+    (mineErr ? [] : ((mineRows ?? []) as { id: string; client_notes: string | null; client_offer_at: string | null }[])).map((r) => [r.id, r]),
+  )
+  const { data: offerRows } = await admin
+    .from("home_offers")
+    .select("home_id, amount, status, created_at")
+    .eq("client_id", client.id)
+    .order("created_at", { ascending: false })
+  const latest = new Map<string, PortalHome["offer"]>()
+  for (const o of (offerRows ?? []) as { home_id: string; amount: number; status: string; created_at: string }[]) {
+    if (latest.has(o.home_id)) continue
+    latest.set(o.home_id, {
+      amount: `$${Math.round(Number(o.amount)).toLocaleString("en-US")}`,
+      sentLabel: new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long" }).format(new Date(o.created_at)),
+      status: (["sent", "countered", "accepted", "declined"].includes(o.status) ? o.status : "sent") as "sent",
+    })
+  }
+  const showFmt = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+  const homes: PortalHome[] = ((homeRows ?? []) as { id: string; address: string; listing_url: string | null; showing_at: string | null; status: string }[])
+    .filter((h) => h.status !== "passed")
+    .map((h) => {
+      const [street, ...rest] = (h.address || "").split(",")
+      const t = theirs.get(h.id)
+      return {
+        id: h.id,
+        street: street.trim(),
+        town: rest.join(",").trim(),
+        listingUrl: h.listing_url || "",
+        showing: h.showing_at ? showFmt.format(new Date(h.showing_at)).replace(/, (\d+:\d+)/, " at $1").replace(":00 ", " ") : "",
+        shown: h.showing_at ? new Date(h.showing_at).getTime() < Date.now() : false,
+        notes: t?.client_notes || "",
+        askedLabel: t?.client_offer_at
+          ? new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long" }).format(new Date(t.client_offer_at))
+          : "",
+        offer: latest.get(h.id) ?? null,
+      }
+    })
+
   const mine = steps.find((s) => !s.done && toOwner(s.owner) === "client")
   const waiting = steps.find((s) => !s.done)
   const firstName = client.first_name?.trim() || ""
@@ -135,6 +182,7 @@ export default async function Portal({
         </div>
 
         <PortalTabs
+          homes={homes.length ? <PortalHomes token={token} homes={homes} agentFirst={agentFirst} /> : null}
           next={
             <>
               {/* Next step */}
