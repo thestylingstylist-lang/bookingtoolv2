@@ -1,17 +1,14 @@
 // Thank-you page for The Realtor's AI Client Experience Kit (Kit landing page → here).
-// Signup goes straight here (no confirmation step), so the one job of this page is: download the kit.
+// Double opt-in is on, so the one job of this page is: go confirm your email.
 import type { Metadata } from "next"
 import "@fontsource/playfair-display/400.css"
 import "@fontsource/playfair-display/400-italic.css"
 import "@fontsource/playfair-display/500-italic.css"
 import "@fontsource/caveat/500.css"
 
-// The kit itself. Upload the PDF to public/kit/ with this name.
-const KIT_PDF = "/kit/realtors-ai-client-experience-kit.pdf"
-
 export const metadata: Metadata = {
-  title: { absolute: "Your kit — Marvberry" },
-  description: "Download The Realtor\u2019s AI Client Experience Kit.",
+  title: { absolute: "Almost there — Marvberry" },
+  description: "Confirm your email and your Client Experience Kit is on its way.",
   robots: { index: false, follow: false },
 }
 
@@ -47,20 +44,29 @@ export default async function KitThanks({ searchParams }: { searchParams: Promis
       </header>
 
       <main>
-        <section className="get">
-          <h1>{name ? <>Here&rsquo;s your kit, {name}.</> : <>Here&rsquo;s your kit.</>}</h1>
-          <p className="sub">Three Claude prompts for realtors. Yours to keep.</p>
-          <a className="dl" href={KIT_PDF} download>
-            Download the kit
-          </a>
-          <p className="note">
-            Trouble downloading? Email us at <a href="mailto:team@marvberry.com">team@marvberry.com</a>.
+        <section className="confirm">
+          <ol className="track" aria-label="Your progress">
+            <li className="done">Signed up</li>
+            <li className="now">Confirm your email</li>
+            <li>Your kit arrives</li>
+          </ol>
+
+          <h1>{name ? <>Almost there, {name}.</> : "Almost there."}</h1>
+          <p className="big">
+            Check your inbox and tap the <strong>confirm</strong> button.
           </p>
-          <img className="pages" src="/brand/kit-pages.webp" width={1568} height={784} alt="Pages from The Realtor's AI Client Experience Kit" />
+          <p className="why">
+            That&rsquo;s just you saying yes to hearing from me. Your kit comes right after.
+          </p>
+          <p className="sig">Alecia</p>
+          <p className="note">
+            Don&rsquo;t see it? Check spam or promotions, or just email us at{" "}
+            <a href="mailto:team@marvberry.com">team@marvberry.com</a>.
+          </p>
         </section>
 
         <section className="intro">
-          <p className="hand">Marvberry, the realtor&rsquo;s client experience assistant</p>
+          <p className="hand">while you&rsquo;re here</p>
           <h2>
             The kit helps you do it by hand.
             <br />
@@ -121,18 +127,24 @@ const CSS = `
 .kt .mark{display:flex; align-items:center; gap:10px; text-decoration:none; font-family:var(--serif); font-size:21px}
 .kt .mark img{border-radius:0}
 
-/* The one job: get the kit */
-.kt .get{background:#F3EEE7; text-align:center; padding:clamp(48px,8vw,96px) 20px 0; overflow:hidden}
-.kt h1{font-style:italic; font-size:clamp(46px,1rem + 6vw,100px); line-height:1.02}
-.kt .sub{margin-top:18px; font-size:clamp(17px,.9rem + .35vw,20px); color:var(--body)}
-.kt .dl{display:inline-block; margin-top:34px; background:var(--ink); color:var(--cream); text-decoration:none; font-family:var(--serif); font-size:clamp(20px,1rem + .5vw,24px); padding:18px 44px; border-radius:999px; box-shadow:0 18px 40px -18px rgba(42,34,28,.6); transition:background .2s, transform .2s}
-.kt .dl:hover{background:#433730; transform:translateY(-1px)}
-.kt .get .note{display:block; margin-top:18px; font-size:14px; color:var(--body)}
-.kt .get .note a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--gold)}
-.kt .pages{display:block; width:min(920px,100%); height:auto; margin:24px auto 0; -webkit-mask-image:radial-gradient(ellipse 72% 80% at 50% 58%, #000 62%, transparent 100%); mask-image:radial-gradient(ellipse 72% 80% at 50% 58%, #000 62%, transparent 100%)}
+/* The one job: go confirm */
+.kt .confirm{max-width:760px; margin:0 auto; padding:clamp(48px,9vw,110px) 20px clamp(80px,11vw,140px); text-align:center}
+.kt .track{list-style:none; padding:0; margin:0 auto 44px; display:flex; justify-content:center; gap:clamp(10px,3vw,28px); font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.kt .track li{display:flex; align-items:center; gap:8px}
+.kt .track li::before{content:""; width:9px; height:9px; border-radius:50%; border:1px solid var(--muted)}
+.kt .track li.done::before{background:var(--gold); border-color:var(--gold)}
+.kt .track li.now{color:var(--ink); font-weight:500}
+.kt .track li.now::before{border:2px solid var(--rust); width:11px; height:11px}
+.kt h1{font-style:italic; font-size:clamp(52px,1rem + 7vw,112px); line-height:1}
+.kt .big{margin-top:28px; font-family:var(--serif); font-size:clamp(24px,.9rem + 1.6vw,36px); line-height:1.35}
+.kt .big strong{font-weight:500; font-style:italic; color:var(--rust)}
+.kt .why{margin:18px auto 0; max-width:34rem; font-size:clamp(17px,.9rem + .35vw,20px); line-height:1.65; color:var(--body)}
+.kt .sig{margin-top:18px; font-family:var(--hand); font-size:40px; line-height:1; color:var(--ink)}
+.kt .note a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--gold)}
+.kt .note{display:inline-block; max-width:100%; margin-top:36px; padding:10px 18px; border:1px solid var(--rule); border-radius:999px; font-size:14px; color:var(--body)}
 
 /* Secondary: a soft Marvberry intro */
-.kt .intro{background:var(--linen); text-align:center; padding:clamp(80px,10vw,128px) 20px}
+.kt .intro{background:var(--cream); text-align:center; padding:clamp(80px,10vw,128px) 20px}
 .kt .hand{font-family:var(--hand); font-size:30px; line-height:1; color:var(--gold); margin-bottom:14px}
 .kt .intro h2{font-size:clamp(28px,1rem + 2vw,46px); line-height:1.2}
 .kt .intro h2 em{font-style:italic}
@@ -153,10 +165,10 @@ const CSS = `
 .kt .foot em{font-style:italic; color:var(--muted)}
 
 @media (max-width:560px){
-  .kt .pages{width:150%; max-width:none; margin:8px 0 0 -25%}
   .kt .foot em{flex-basis:100%}
   .kt .shots .wide{width:92%}
   .kt .shots .phone{width:34%; border-radius:18px; padding:4px}
   .kt .shots .phone img{border-radius:14px}
+  .kt .track{flex-direction:column; align-items:center; gap:8px}
 }
 `
