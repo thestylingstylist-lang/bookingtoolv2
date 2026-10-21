@@ -5,6 +5,8 @@ import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import JacketDetails from "./jacket-details"
 import JacketTabs from "./jacket-tabs"
+import Homes, { type HomeView } from "./homes"
+import { formatInTimeZone } from "date-fns-tz"
 import DocumentsPanel from "./documents-panel"
 import SendDocument from "./send-document"
 import { resendDocument } from "./actions"
@@ -112,6 +114,31 @@ export default async function ClientJacket({
     .maybeSingle()
   const client = data as Client | null
   if (!client) notFound()
+
+  // Homes this buyer is looking at (blank until homes.sql is run).
+  const { data: homeData } = await supabase
+    .from("homes")
+    .select("id, address, listing_url, agent_name, agent_brokerage, agent_email, agent_phone, notes, status, showing_at")
+    .eq("client_id", id)
+    .order("created_at", { ascending: true })
+  const homeTz = agent.timezone || "America/New_York"
+  const homes: HomeView[] = ((homeData ?? []) as Record<string, string | null>[]).map((h) => ({
+    id: h.id as string,
+    address: (h.address as string) || "",
+    listingUrl: h.listing_url || "",
+    agentName: h.agent_name || "",
+    agentBrokerage: h.agent_brokerage || "",
+    agentEmail: h.agent_email || "",
+    agentPhone: h.agent_phone || "",
+    notes: h.notes || "",
+    status: h.status === "passed" ? "passed" : "active",
+    showDate: h.showing_at ? formatInTimeZone(new Date(h.showing_at), homeTz, "yyyy-MM-dd") : "",
+    showTime: h.showing_at ? formatInTimeZone(new Date(h.showing_at), homeTz, "HH:mm") : "",
+    showLabel: h.showing_at
+      ? formatInTimeZone(new Date(h.showing_at), homeTz, "EEEE, MMMM d 'at' h:mm a").replace(":00 ", " ")
+      : "",
+    shown: h.showing_at ? new Date(h.showing_at).getTime() < Date.now() : false,
+  }))
 
   const [
     { data: msgData },
@@ -278,6 +305,8 @@ export default async function ClientJacket({
             )
           })}
         </div>
+
+        {homeData && <Homes clientId={client.id} clientFirst={client.first_name || ""} homes={homes} />}
 
         <JacketTabs
           initial={sp.step ? "tasks" : undefined}
