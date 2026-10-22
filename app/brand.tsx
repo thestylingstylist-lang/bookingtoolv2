@@ -263,7 +263,7 @@ export default function Brand() {
 
       <footer className="foot">
         <p className="foot-mark">
-          <img src="/marvberry-icon-light.png" alt="" width={31} height={18} className="mbicon" /> Marvberry. <em>The Realtor&rsquo;s Client Experience Assistant</em>
+          <img src="/marvberry-wordmark-light.png" alt="Marvberry" width={104} height={20} style={{ height: 20, width: "auto" }} /> <em>The Realtor&rsquo;s Client Experience Assistant</em>
         </p>
         <p>
           <a href="/login">Log in</a>
