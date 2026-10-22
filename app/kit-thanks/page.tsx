@@ -50,17 +50,19 @@ export default async function KitThanks({ searchParams }: { searchParams: Promis
             <li>Your kit arrives</li>
           </ol>
 
-          <h1>{name ? <>Almost there, {name}.</> : "Almost there."}</h1>
+          <h1>{name ? <>{name}, one more click and it&rsquo;s yours.</> : <>One more click and it&rsquo;s yours.</>}</h1>
           <p className="big">
-            Check your inbox and tap the <strong>confirm</strong> button.
+            Check your inbox. There&rsquo;s an email from me with a big button, so tap it to <strong>confirm</strong>.
           </p>
           <p className="why">
-            That&rsquo;s just you saying yes to hearing from me. Your kit comes right after.
+            Why the extra step? Because I only want to land in inboxes that asked for me, and this keeps your inbox safe.
+            No bots and no surprise sign-ups, just you saying &ldquo;yes, send it.&rdquo;
           </p>
+          <p className="why">Once you confirm, your kit is on its way.</p>
           <p className="sig">Alecia</p>
           <p className="note">
-            Don&rsquo;t see it? Check spam or promotions, or just email us at{" "}
-            <a href="mailto:team@marvberry.com">team@marvberry.com</a>.
+            Don&rsquo;t see it? Check your spam or promotions folder, and drag me into your main inbox while you&rsquo;re
+            there.
           </p>
         </section>
 
