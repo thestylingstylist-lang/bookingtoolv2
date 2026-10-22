@@ -82,7 +82,33 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
     .gte("call_at", new Date(now.getTime() - 30 * 60000).toISOString())
     .order("call_at", { ascending: true })
     .limit(5)
-  const calls = (callData ?? []) as { id: string; name: string; email: string | null; phone: string | null; call_at: string; notes: string | null }[]
+  type Call = { id: string; name: string; email: string | null; phone: string | null; call_at: string; notes: string | null; agentId?: string }
+  const leadCalls = (callData ?? []) as Call[]
+  // Follow-up calls booked with realtors on the Onboarding page.
+  const { data: obCalls } = await admin
+    .from("onboarding_calls")
+    .select("id, agent_id, call_at, how, note")
+    .is("cancelled_at", null)
+    .gte("call_at", new Date(now.getTime() - 30 * 60000).toISOString())
+    .order("call_at", { ascending: true })
+    .limit(5)
+  const obIds = [...new Set(((obCalls ?? []) as { agent_id: string }[]).map((c) => c.agent_id))]
+  const { data: obAgents } = obIds.length
+    ? await admin.from("agents").select("id, full_name, business_name, public_phone").in("id", obIds)
+    : { data: [] as { id: string; full_name: string; business_name: string; public_phone: string }[] }
+  const realtorCalls: Call[] = ((obCalls ?? []) as { id: string; agent_id: string; call_at: string; how: string; note: string }[]).map((c) => {
+    const a = (obAgents ?? []).find((x) => x.id === c.agent_id)
+    return {
+      id: c.id,
+      name: a?.full_name || a?.business_name || "Realtor",
+      email: null,
+      phone: a?.public_phone || null,
+      call_at: c.call_at,
+      notes: `${c.how === "phone" ? "Phone call" : "Video call"} · Follow-up${c.note ? `: ${c.note}` : ""}`,
+      agentId: c.agent_id,
+    }
+  })
+  const calls = [...leadCalls, ...realtorCalls].sort((x, y) => x.call_at.localeCompare(y.call_at)).slice(0, 5)
   const TZ = "America/New_York"
   const dayKey = (d: Date) => formatInTimeZone(d, TZ, "yyyy-MM-dd")
   const todayKey = dayKey(now)
@@ -221,7 +247,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                       Call {c.phone}
                     </a>
                   )}
-                  {c.email && (
+                  {c.email && !c.agentId && (
                     <form action={resendCallLink}>
                       <input type="hidden" name="leadId" value={c.id} />
                       <SubmitButton
@@ -235,13 +261,13 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                     </form>
                   )}
                   <Link
-                    href="/admin/sales"
+                    href={c.agentId ? `/admin/onboarding?a=${c.agentId}` : "/admin/sales"}
                     className={
                       "rounded-full px-4 py-2 text-sm font-medium " +
                       (i === 0 ? "border border-white/30 text-white" : "border border-[#16151a]/15 text-[#16151a]")
                     }
                   >
-                    Open lead
+                    {c.agentId ? "Open onboarding" : "Open lead"}
                   </Link>
                 </div>
               </div>

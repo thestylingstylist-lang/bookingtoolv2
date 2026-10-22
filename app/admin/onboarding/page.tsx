@@ -8,7 +8,9 @@ import {
   type OnboardingRow, type OnboardingDoc, type StatusKey,
 } from "@/lib/onboarding-status"
 import ReplyForm from "../messages/reply-form"
-import { startOnboarding, setOwner, toggleSetupCall, requestDocs, toggleTemplate, removeDoc, setComplete } from "./actions"
+import { startOnboarding, setOwner, toggleSetupCall, requestDocs, toggleTemplate, removeDoc, setComplete, scheduleCall, cancelCall } from "./actions"
+import { formatInTimeZone } from "date-fns-tz"
+import SubmitButton from "../ui/submit-button"
 
 export const dynamic = "force-dynamic"
 
@@ -32,7 +34,7 @@ function day(iso: string | null) {
 
 const glass = "rounded-2xl border border-white/80 bg-white/70 backdrop-blur-xl"
 
-export default async function AdminOnboardingPage({ searchParams }: { searchParams: Promise<{ a?: string }> }) {
+export default async function AdminOnboardingPage({ searchParams }: { searchParams: Promise<{ a?: string; call?: string }> }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
@@ -80,7 +82,8 @@ export default async function AdminOnboardingPage({ searchParams }: { searchPara
   const nudgeCount = view.filter((v) => v.status === "nudge").length
   const notYet = agents.filter((a) => !rows.some((r) => r.agent_id === a.id))
 
-  const selectedId = (await searchParams).a || view.find((v) => v.status !== "complete")?.row.agent_id || view[0]?.row.agent_id
+  const sp = await searchParams
+  const selectedId = sp.a || view.find((v) => v.status !== "complete")?.row.agent_id || view[0]?.row.agent_id
   const sel = view.find((v) => v.row.agent_id === selectedId)
 
   let thread: { id: string; body: string; from_team: boolean; created_at: string }[] = []
@@ -96,6 +99,31 @@ export default async function AdminOnboardingPage({ searchParams }: { searchPara
       await admin.from("support_messages").update({ read_by_team: true }).eq("agent_id", sel.row.agent_id).eq("from_team", false)
     }
   }
+
+  // Follow-up calls with this realtor (blank until onboarding-calls.sql is run).
+  let calls: { id: string; call_at: string; how: string; note: string }[] = []
+  let callsReady = true
+  if (sel) {
+    const { data, error: callErr } = await admin
+      .from("onboarding_calls")
+      .select("id, call_at, how, note")
+      .eq("agent_id", sel.row.agent_id)
+      .is("cancelled_at", null)
+      .gte("call_at", new Date(Date.now() - 60 * 60 * 1000).toISOString())
+      .order("call_at", { ascending: true })
+    if (callErr) callsReady = false
+    calls = data ?? []
+  }
+  const callWhen = (iso: string) => formatInTimeZone(new Date(iso), "America/New_York", "EEE, MMM d 'at' h:mm a").replace(":00 ", " ")
+  const today = formatInTimeZone(new Date(), "America/New_York", "yyyy-MM-dd")
+  const CALL_NOTE: Record<string, [boolean, string]> = {
+    sent: [true, "Booked. The email is on its way, with reminders the day before and an hour before."],
+    nomail: [false, "Booked, but the email didn't go out. Check their email address."],
+    past: [false, "That time has already passed. Pick a time ahead."],
+    bad: [false, "Pick a date and a time."],
+    fail: [false, "That didn't save. Try again."],
+  }
+  const callNote = sp.call ? CALL_NOTE[sp.call] : undefined
 
   const stat = (label: string, value: number) => (
     <div className={`${glass} p-5`}>
@@ -266,6 +294,65 @@ export default async function AdminOnboardingPage({ searchParams }: { searchPara
               <div className="rounded-xl border border-[#EE7C55]/25 bg-[#fff7f0] p-4 text-sm">
                 <p className="font-semibold text-[#16151a]">Next step</p>
                 <p className="mt-1 text-[#16151a]/75">{nextStepLine(firstOf(sel.row.agent_id), sel.steps, sel.status)}</p>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#16151a]/45">Follow-up call</p>
+                {!callsReady ? (
+                  <p className="mt-2 text-sm text-amber-800">Run supabase/onboarding-calls.sql in Supabase to turn this on.</p>
+                ) : (
+                  <>
+                    {calls.length > 0 && (
+                      <ul className="mt-2 divide-y divide-[#16151a]/6">
+                        {calls.map((c) => (
+                          <li key={c.id} className="flex items-start justify-between gap-2 py-2.5 text-sm">
+                            <div className="min-w-0">
+                              <p className="font-medium text-[#16151a]">{callWhen(c.call_at)}</p>
+                              <p className="text-xs text-[#16151a]/50">
+                                {c.how === "phone" ? "Phone call" : "Zoom"}
+                                {c.note ? ` · ${c.note}` : ""}
+                              </p>
+                            </div>
+                            <form action={cancelCall}>
+                              <input type="hidden" name="call_id" value={c.id} />
+                              <button className="whitespace-nowrap rounded-full px-2.5 py-1 text-xs text-[#16151a]/50 hover:bg-white hover:text-[#16151a]">Cancel</button>
+                            </form>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {callNote && (
+                      <p className={`mt-2 rounded-lg px-3 py-2 text-xs ${callNote[0] ? "bg-[#e3f1e5] text-[#1f5b33]" : "bg-amber-50 text-amber-800"}`}>{callNote[1]}</p>
+                    )}
+                    <form action={scheduleCall} className="mt-3 space-y-2">
+                      <input type="hidden" name="agent_id" value={sel.row.agent_id} />
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex flex-col gap-1 text-xs font-medium text-[#16151a]/60">
+                          Date
+                          <input type="date" name="date" min={today} required className="rounded-lg border border-[#16151a]/15 bg-white px-2.5 py-1.5 text-sm text-[#16151a]" />
+                        </label>
+                        <label className="flex flex-col gap-1 text-xs font-medium text-[#16151a]/60">
+                          Time (New York)
+                          <input type="time" name="time" required className="rounded-lg border border-[#16151a]/15 bg-white px-2.5 py-1.5 text-sm text-[#16151a]" />
+                        </label>
+                      </div>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-[#16151a]/60">
+                        How
+                        <select name="how" className="rounded-lg border border-[#16151a]/15 bg-white px-2.5 py-1.5 text-sm text-[#16151a]">
+                          <option value="video">Zoom</option>
+                          <option value="phone">Phone call</option>
+                        </select>
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-[#16151a]/60">
+                        What it&apos;s about (optional)
+                        <input name="note" placeholder="Moving your account to your new brokerage" className="rounded-lg border border-[#16151a]/15 bg-white px-2.5 py-1.5 text-sm text-[#16151a]" />
+                      </label>
+                      <SubmitButton className="rounded-full bg-[#16151a] px-4 py-2 text-sm font-medium text-white">
+                        {`Book and email ${firstOf(sel.row.agent_id)}`}
+                      </SubmitButton>
+                    </form>
+                  </>
+                )}
               </div>
 
               <div>

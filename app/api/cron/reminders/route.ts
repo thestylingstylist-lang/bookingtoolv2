@@ -7,6 +7,7 @@ import { agentDueLabel, daysUntil, canNudge, nudgeDraft, missingThing } from "@/
 import { draftReminderFor } from "@/lib/assistant"
 import { toOwner } from "@/lib/phases"
 import { agentCard } from "@/lib/agent-card"
+import { sendCallEmail, scheduleHourEmail, TEAM_TZ, type CallRow } from "@/lib/onboarding-call"
 
 // Runs once a day (see vercel.json). Finds consultations starting roughly
 // 12 to 36 hours from now that haven't had a reminder yet, and emails each
@@ -37,9 +38,10 @@ export async function GET(request: NextRequest) {
   }
   // Realtors who chose "Send reminders for me" get theirs sent first, so the
   // morning note only counts what's still waiting on them.
+  const callReminders = await sendCallReminders(admin)
   const autoSent = await sendAutoReminders(admin)
   const digests = await sendAgentDays(admin)
-  if (!bookings?.length) return NextResponse.json({ sent: 0, digests, autoSent })
+  if (!bookings?.length) return NextResponse.json({ sent: 0, digests, autoSent, callReminders })
 
   const agentIds = [...new Set(bookings.map((b) => b.agent_id as string))]
   const { data: agents } = await admin
@@ -82,7 +84,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ sent, digests, autoSent })
+  return NextResponse.json({ sent, digests, autoSent, callReminders })
 }
 
 // Each realtor's own morning note: what's due today and tomorrow across her
@@ -215,6 +217,46 @@ async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
       ])
       sent++
     }
+  }
+  return sent
+}
+
+// Follow-up calls the team booked with a realtor: the day-before reminder, and
+// the hour-before email handed to Resend once the call is close enough.
+async function sendCallReminders(admin: ReturnType<typeof createAdminClient>) {
+  const now = Date.now()
+  const { data: calls, error } = await admin
+    .from("onboarding_calls")
+    .select("id, agent_id, call_at, how, note, owner, day_sent_at, hour_email_id")
+    .is("cancelled_at", null)
+    .gte("call_at", new Date(now + 60 * 60 * 1000).toISOString())
+    .lt("call_at", new Date(now + 60 * 60 * 60 * 1000).toISOString())
+  if (error || !calls?.length) return 0
+  let sent = 0
+  for (const c of calls) {
+    const [{ data: ag }, { data: au }] = await Promise.all([
+      admin.from("agents").select("full_name, timezone, public_phone").eq("id", c.agent_id as string).maybeSingle(),
+      admin.auth.admin.getUserById(c.agent_id as string),
+    ])
+    const email = au?.user?.email
+    if (!email) continue
+    const who = {
+      first: ((ag?.full_name as string) || "").trim().split(/\s+/)[0],
+      email,
+      tz: (ag?.timezone as string) || TEAM_TZ,
+      phone: (ag?.public_phone as string) || "",
+    }
+    const update: Record<string, string> = {}
+    const hoursAway = (new Date(c.call_at as string).getTime() - now) / 3600000
+    if (!c.day_sent_at && hoursAway <= 36 && (await sendCallEmail("day", c as unknown as CallRow, who))) {
+      update.day_sent_at = new Date().toISOString()
+      sent++
+    }
+    if (!c.hour_email_id) {
+      const id = await scheduleHourEmail(c as unknown as CallRow, who)
+      if (id) update.hour_email_id = id
+    }
+    if (Object.keys(update).length) await admin.from("onboarding_calls").update(update).eq("id", c.id as string)
   }
   return sent
 }

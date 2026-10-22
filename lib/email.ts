@@ -64,6 +64,48 @@ export async function sendEmail(args: SendArgs): Promise<boolean> {
   }
 }
 
+// Send later: Resend holds the email and sends it at `at`. Returns the email's
+// id so it can be cancelled, or null if Resend didn't take it.
+export async function scheduleEmail(args: SendArgs & { at: Date }): Promise<string | null> {
+  const key = process.env.RESEND_API_KEY
+  if (!key) return null
+  const { html, text } = withCard(args.html, args.text, args.card)
+  try {
+    const res = await fetch(RESEND_ENDPOINT, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: fromLine(args.fromName ?? ""),
+        to: [args.to],
+        subject: args.subject,
+        html,
+        text,
+        scheduled_at: args.at.toISOString(),
+        ...(args.replyTo ? { reply_to: args.replyTo } : {}),
+      }),
+    })
+    if (!res.ok) {
+      console.error(`[email] Resend schedule responded ${res.status}: ${await res.text().catch(() => "")}`)
+      return null
+    }
+    const body = (await res.json().catch(() => null)) as { id?: string } | null
+    return body?.id ?? null
+  } catch (err) {
+    console.error("[email] schedule failed:", err)
+    return null
+  }
+}
+
+// Take back an email that's still waiting to go out.
+export async function cancelScheduledEmail(id: string): Promise<void> {
+  const key = process.env.RESEND_API_KEY
+  if (!key || !id) return
+  await fetch(`${RESEND_ENDPOINT}/${encodeURIComponent(id)}/cancel`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}` },
+  }).catch(() => {})
+}
+
 // ---- Templates -------------------------------------------------------------
 
 // Private link a client uses to reschedule or cancel their own booking.
