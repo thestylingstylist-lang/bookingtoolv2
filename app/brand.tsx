@@ -14,7 +14,10 @@ const START = "/signup"
 const CALL = "/chat"
 
 const HIRES = [
-  { job: "Your deals", role: "A transaction coordinator", cost: "$250 to $600 a file", note: "or $40,000 to $65,000 a year full time" },
+  { job: "Your bookings", role: "Booking software", cost: "About $15 a month" },
+  { job: "Your agreements", role: "E-signature software", cost: "About $25 a month" },
+  { job: "Your buyers", role: "A client portal", cost: "About $50 a month" },
+  { job: "Your deals", role: "A transaction coordinator", cost: "About $400 a deal", note: "Typically $250 to $600 a file" },
 ]
 
 const FAQ = [
@@ -218,7 +221,7 @@ export default function Brand() {
       <section id="pricing" className="value">
         <header className="value-head">
           <p className="hand gold">the math</p>
-          <h2>So what would it cost to hire one?</h2>
+          <h2>So what would all of this cost you?</h2>
         </header>
         <div className="hires">
           {HIRES.map((h) => (
@@ -232,9 +235,9 @@ export default function Brand() {
         </div>
         <div className="total">
           <p className="sum">
-            That&rsquo;s up to <strong>$600 on every deal.</strong>
+            That&rsquo;s about <strong>$490 a month</strong> at one deal a month.
           </p>
-          <p className="hidden-cost">Before you&rsquo;ve hired, trained, or covered a single sick day.</p>
+          <p className="hidden-cost">Four logins, four bills, and you still hold it all together. Typical prices, no brands named.</p>
         </div>
         <div className="reveal">
           <p className="does">Marvberry does it all for</p>
@@ -242,7 +245,8 @@ export default function Brand() {
             $67<span>a month</span>
           </p>
           <p className="daily">
-            About $2.20 a day. Want it to write like you too? Closer is $147 a month.
+            Booking, agreements, a page for every buyer, offers built and sent, and real support. All in one place. About
+            $2.20 a day. Want it to write like you too? Closer is $147 a month.
           </p>
           <a className="btn" href={START}>
             Try Marvberry
@@ -533,7 +537,7 @@ const CSS = `
 .mb .meet .team-line{margin-top:36px; font-style:italic; color:var(--muted)}
 .mb .value{text-align:center; box-shadow:0 0 0 100vmax var(--linen); clip-path:inset(0 -100vmax)}
 .mb .value-head h2{font-size:clamp(32px,1rem + 2.4vw,54px); line-height:1.1; max-width:18ch; margin:14px auto 0}
-.mb .hires{max-width:1040px; margin:56px auto 0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; text-align:left}
+.mb .hires{max-width:1120px; margin:56px auto 0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; text-align:left}
 .mb .hires:has(> :only-child){grid-template-columns:minmax(0,340px); justify-content:center}
 .mb .hire{border:1px solid var(--rule); border-radius:20px; padding:28px 26px 30px; background:var(--linen)}
 .mb .hire h3{margin-top:12px; font-family:var(--serif); font-size:24px; font-weight:400; line-height:1.25; color:var(--ink)}
@@ -589,5 +593,6 @@ const CSS = `
   .mb .founder-pic img{position:relative !important; inset:auto; height:auto !important}
   .mb .device{height:min(68vh,600px)}
 }
+@media (max-width: 1000px){ .mb .hires{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width: 900px){ .mb .hires{grid-template-columns:1fr} .mb .trio{flex-direction:column; gap:6px} }
 `
