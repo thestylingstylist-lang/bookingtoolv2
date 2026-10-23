@@ -202,7 +202,7 @@ export default function Brand() {
         <p className="lead">
           Marvberry learns how you write. When a client messages you, a reply is waiting in your words. You read it,
           approve it, send it. Reminders are ready before anything is late. And every morning, it tells you what changed
-          and what matters today. It all comes with the Closer plan.
+          and what matters today.
         </p>
         <p className="lead strong">Your clients only ever see your name.</p>
         <div className="meet-pic photo-bg">
@@ -245,8 +245,9 @@ export default function Brand() {
             $67<span>a month</span>
           </p>
           <p className="daily">
-            Booking, agreements, a page for every buyer, offers built and sent, and real support. All in one place. About
-            $2.20 a day. Want it to write like you too? Closer is $147 a month.
+            Booking and scheduling with reminders. A page for every buyer, no login, where they track their offer and see
+            updates as you work. Signature requests, document requests, your own email signature, and offers built and sent
+            to the listing agent. All in one place, for about $2.20 a day.
           </p>
           <a className="btn" href={START}>
             Try Marvberry

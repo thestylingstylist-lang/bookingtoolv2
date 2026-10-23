@@ -37,7 +37,7 @@ export default async function BillingPage() {
 
   return (
     <AppShell agent={agent}>
-      <main className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
+      <main className="mx-auto max-w-xl px-6 py-12 sm:px-10">
         <h1 className="font-serif font-semibold tracking-tight text-4xl text-ink">Billing</h1>
 
         {paid ? (
@@ -54,40 +54,28 @@ export default async function BillingPage() {
         ) : (
           <div className="mt-8">
             <p className="text-[#4f4d53]">
-              {ended ? "Your free trial has ended. Pick a plan to keep everything running." : "Pick a plan to keep everything running after your trial."} Your
+              {ended ? "Your free trial has ended. Keep everything running for $67 a month." : "Keep everything running after your trial, for $67 a month."} Your
               clients, bookings and documents stay right where they are.
             </p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <form action={startCheckout} className="flex flex-col rounded-2xl bg-[#16151a] p-7 text-[#eeedeb]">
-                <input type="hidden" name="plan" value="agent" />
-                <p className="text-sm text-[#d6d4d0]">Agent</p>
-                <p className="mt-1 text-4xl font-semibold text-white">
-                  $67<span className="text-base font-normal opacity-70"> /month</span>
-                </p>
-                <p className="mt-4 flex-1 text-sm leading-relaxed">
-                  Booking, agreements signed from the phone, a page for every buyer, offers built and sent in minutes, and
-                  support chat.
-                </p>
-                <button className="mt-6 w-full rounded-full bg-white px-6 py-3 font-medium text-[#16151a] hover:bg-[#f4f3f1]">
-                  Continue with Agent
-                </button>
-              </form>
-              <form action={startCheckout} className="flex flex-col rounded-2xl border border-[#e6e5e3] bg-white p-7">
-                <input type="hidden" name="plan" value="closer" />
-                <p className="text-sm text-[#77757c]">Closer</p>
-                <p className="mt-1 text-4xl font-semibold text-ink">
-                  $147<span className="text-base font-normal text-[#77757c]"> /month</span>
-                </p>
-                <p className="mt-4 flex-1 text-sm leading-relaxed text-[#4f4d53]">
-                  Everything in Agent, plus reminders and reply drafts written in your voice, offer follow-ups and your
-                  morning update.
-                </p>
-                <button className="mt-6 w-full rounded-full bg-[#16151a] px-6 py-3 font-medium text-white hover:bg-[#2e2d33]">
-                  Continue with Closer
-                </button>
-              </form>
-            </div>
-            <p className="mt-4 text-center text-xs text-[#77757c]">Secure checkout by Stripe. Cancel anytime.</p>
+            <form action={startCheckout} className="mt-6 flex max-w-md flex-col rounded-2xl bg-[#16151a] p-7 text-[#eeedeb]">
+              <input type="hidden" name="plan" value="agent" />
+              <p className="text-sm text-[#d6d4d0]">Marvberry</p>
+              <p className="mt-1 text-4xl font-semibold text-white">
+                $67<span className="text-base font-normal opacity-70"> /month</span>
+              </p>
+              <ul className="mt-4 space-y-1.5 text-sm leading-relaxed">
+                <li>Booking and scheduling, with reminders</li>
+                <li>A page for every buyer, no login, with their offer and updates</li>
+                <li>Signature requests and document requests</li>
+                <li>Your own email signature</li>
+                <li>Offers built and sent to the listing agent</li>
+                <li>Reminders and offer follow-ups</li>
+              </ul>
+              <button className="mt-6 w-full rounded-full bg-white px-6 py-3 font-medium text-[#16151a] hover:bg-[#f4f3f1]">
+                Continue
+              </button>
+            </form>
+            <p className="mt-4 max-w-md text-center text-xs text-[#77757c]">Secure checkout by Stripe. Cancel anytime.</p>
           </div>
         )}
       </main>

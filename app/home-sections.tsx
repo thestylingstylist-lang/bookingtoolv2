@@ -155,9 +155,9 @@ export function Features() {
         flip
         hand="follow-up"
         title="Follow up on the deal, not just the lead."
-        lead="Marvberry keeps every deal moving. It writes the reminder, flags the offer that's about to run out, and tells you each morning what matters. Part of the Closer plan."
+        lead="Marvberry keeps every deal moving. It writes the reminder, flags the offer that's about to run out, and tells you each morning what matters."
         points={[
-          "Reminders to your buyers, written in your voice",
+          "Reminders to your buyers, ready to send",
           "Offer follow-ups, already written",
           "A short morning update on every deal",
           "You approve everything. It all goes out in your name.",
