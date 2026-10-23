@@ -186,7 +186,7 @@ export default async function AdminAgentDetail({
           <div className="mt-3 rounded-xl bg-[#16151a]/[0.04] px-3 py-2.5">
             <p className="text-sm font-medium text-[#16151a]">Payment link</p>
             <p className="text-xs text-[#16151a]/50">
-              Emails them a secure Stripe link for Solo Agent, $39 a month. Good for 24 hours.
+              Emails them a secure Stripe link for the Agent plan, $67 a month. Good for 24 hours.
             </p>
             <form action={sendPaymentLink} className="mt-2">
               <input type="hidden" name="agentId" value={id} />

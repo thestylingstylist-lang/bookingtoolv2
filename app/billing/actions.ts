@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { stripe, siteUrl, SOLO_PRICE_ID } from "@/lib/stripe"
+import { stripe, siteUrl, PLANS, type PlanKey } from "@/lib/stripe"
 
 async function currentAgent() {
   const supabase = await createClient()
@@ -21,7 +21,8 @@ async function currentAgent() {
 }
 
 // Send the realtor to Stripe's secure checkout page.
-export async function startCheckout() {
+export async function startCheckout(formData: FormData) {
+  const plan: PlanKey = formData.get("plan") === "closer" ? "closer" : "agent"
   const { agent, email } = await currentAgent()
   const s = stripe()
 
@@ -40,7 +41,8 @@ export async function startCheckout() {
     mode: "subscription",
     customer,
     client_reference_id: agent.id,
-    line_items: [{ price: SOLO_PRICE_ID, quantity: 1 }],
+    line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
+    subscription_data: { metadata: { agent_id: agent.id, plan } },
     success_url: `${siteUrl()}/dashboard?welcome=paid`,
     cancel_url: `${siteUrl()}/billing`,
     allow_promotion_codes: true,

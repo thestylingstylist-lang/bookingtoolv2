@@ -242,8 +242,7 @@ export default function Brand() {
             $67<span>a month</span>
           </p>
           <p className="daily">
-            About $2.20 a day. Want it to write like you too? Closer is $147 a month. Founding members keep $39 a month as
-            long as they stay.
+            About $2.20 a day. Want it to write like you too? Closer is $147 a month.
           </p>
           <a className="btn" href={START}>
             Try Marvberry

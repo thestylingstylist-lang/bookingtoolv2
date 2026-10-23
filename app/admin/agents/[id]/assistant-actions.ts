@@ -73,7 +73,7 @@ export async function makeSetupLink(formData: FormData): Promise<void> {
   redirect(`/admin/agents/${agentId}?setup=${encodeURIComponent(hash)}`)
 }
 
-// The team sends a realtor a secure Stripe payment link for Solo Agent ($39/month).
+// The team sends a realtor a secure Stripe payment link for the Agent plan ($67/month).
 // Emailed to them from Alecia, and shown here to copy. Good for 24 hours.
 export async function sendPaymentLink(formData: FormData): Promise<void> {
   const supabase = await createClient()
@@ -120,14 +120,14 @@ export async function sendPaymentLink(formData: FormData): Promise<void> {
   if (!url) redirect(`/admin/agents/${agentId}?pay=fail`)
 
   const first = ((agent.full_name as string) || "").trim().split(/\s+/)[0] || "there"
-  const text = `Hi ${first},\n\nHere's your link to make Marvberry official. It's $39 a month, and you have 30 days to get every dollar back if it isn't right for you.\n\n${url}\n\nThe link is good for 24 hours. If it runs out, just reply and I'll send a fresh one.\n\nAlecia`
+  const text = `Hi ${first},\n\nHere's your link to make Marvberry official. It's $67 a month, and you have 30 days to get every dollar back if it isn't right for you.\n\n${url}\n\nThe link is good for 24 hours. If it runs out, just reply and I'll send a fresh one.\n\nAlecia`
   const html = letterHtml({
     eyebrow: "Marvberry",
     wordmark: true,
     heading: "Let&rsquo;s make it official.",
     body:
       para(`Hi ${first},`) +
-      para("Here&rsquo;s your link to start your Marvberry membership. It&rsquo;s $39 a month, and you have 30 days to get every dollar back if it isn&rsquo;t right for you.") +
+      para("Here&rsquo;s your link to start your Marvberry membership. It&rsquo;s $67 a month, and you have 30 days to get every dollar back if it isn&rsquo;t right for you.") +
       button(url!, "Start my membership") +
       small("The link is good for 24 hours. If it runs out, just reply and I&rsquo;ll send a fresh one."),
     signoff: "Talk soon,",
