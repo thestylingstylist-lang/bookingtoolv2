@@ -7,7 +7,7 @@ import { formatSlot } from "@/lib/slots"
 import { aiPrefsFor } from "@/lib/ai-prefs"
 
 // Marvberry Assistant: drafts the realtor's client messages in her own voice.
-// Who has it: a row in assistant_plans (only the team can add one).
+// Who has it: every agent, up to MONTHLY_DRAFTS drafts a month.
 // Her choices, on the agent row, each tolerant of the column not existing yet:
 //   assistant_auto  — false = she approves every message (default),
 //                     true = reminders go out on their own
@@ -15,12 +15,12 @@ import { aiPrefsFor } from "@/lib/ai-prefs"
 
 export type AssistantSettings = { unlocked: boolean; auto: boolean; voice: string }
 
+// One price at launch: every agent has it, up to MONTHLY_DRAFTS a month.
+export const MONTHLY_DRAFTS = 300
+
 export async function assistantFor(db: SupabaseClient, agentId: string): Promise<AssistantSettings> {
-  const [{ data: plan, error: planErr }, { data: prefs }] = await Promise.all([
-    db.from("assistant_plans").select("agent_id").eq("agent_id", agentId).maybeSingle(),
-    db.from("agents").select("assistant_auto, assistant_voice").eq("id", agentId).maybeSingle(),
-  ])
-  const unlocked = !planErr && !!plan
+  const { data: prefs } = await db.from("agents").select("assistant_auto, assistant_voice").eq("id", agentId).maybeSingle()
+  const unlocked = true
   const row = (prefs ?? {}) as { assistant_auto?: boolean; assistant_voice?: string }
   return { unlocked, auto: unlocked && !!row.assistant_auto, voice: row.assistant_voice ?? "" }
 }
@@ -58,6 +58,29 @@ async function voiceExamples(db: SupabaseClient, agentId: string, voice: string)
     .map((b) => b.trim())
     .filter((b) => b.length > 20)
   return [...written, ...fromThread].slice(0, 8)
+}
+
+// How many drafts this agent has had since the 1st of the month (UTC).
+// If the count can't be read (table not set up yet), don't block them.
+async function underMonthlyLimit(db: SupabaseClient, agentId: string): Promise<boolean> {
+  const now = new Date()
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+  const { count, error } = await db
+    .from("ai_drafts")
+    .select("id", { count: "exact", head: true })
+    .eq("agent_id", agentId)
+    .gte("created_at", start)
+  if (error) return true
+  return (count ?? 0) < MONTHLY_DRAFTS
+}
+
+// Ask for the draft and count it. Over the limit: null, so the caller keeps
+// the plain draft until next month.
+async function draftCounted(db: SupabaseClient, agentId: string, kind: string, prompt: string): Promise<string | null> {
+  if (!(await underMonthlyLimit(db, agentId))) return null
+  const text = await askClaude(RULES, prompt)
+  if (text) await db.from("ai_drafts").insert({ agent_id: agentId, kind })
+  return text
 }
 
 function withVoice(facts: string, examples: string[], ask: string) {
@@ -103,7 +126,7 @@ export async function draftReminderFor(db: SupabaseClient, agentId: string, step
     .join("\n")
 
   const examples = await voiceExamples(db, agentId, settings.voice)
-  return askClaude(RULES, withVoice(facts, examples, "Write the reminder."))
+  return draftCounted(db, agentId, "reminder", withVoice(facts, examples, "Write the reminder."))
 }
 
 // A reply to the client's latest messages in the thread.
@@ -158,5 +181,5 @@ export async function draftReplyFor(db: SupabaseClient, agentId: string, clientI
     .join("\n")
 
   const examples = await voiceExamples(db, agentId, settings.voice)
-  return askClaude(RULES, withVoice(facts, examples, "Write the agent's reply to the client's latest message."))
+  return draftCounted(db, agentId, "reply", withVoice(facts, examples, "Write the agent's reply to the client's latest message."))
 }

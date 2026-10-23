@@ -144,13 +144,13 @@ async function sendAgentDays(admin: ReturnType<typeof createAdminClient>) {
 // chose "Send reminders for me", send the reminders that are ready today, in
 // her voice and her name — exactly what her one tap would have sent.
 async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
-  const { data: plans, error: planErr } = await admin.from("assistant_plans").select("agent_id")
-  if (planErr || !plans?.length) return 0
+  // Every agent has the assistant now; only those who chose "Send them for me".
   const { data: agents, error: agentErr } = await admin
     .from("agents")
     .select("id, full_name, business_name, public_email, timezone, assistant_auto")
-    .in("id", plans.map((p) => p.agent_id as string))
-  if (agentErr) return 0
+    .eq("assistant_auto", true)
+  if (agentErr || !agents?.length) return 0
+  const plans = agents.map((a) => ({ agent_id: a.id as string }))
   // Auto only when reminders are on too.
   const { data: remOff, error: remErr } = await admin
     .from("agents")

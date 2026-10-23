@@ -81,6 +81,13 @@ export default function AssistantForm({
         </div>
       )}
 
+      {!locked && (
+        <p className="text-sm text-ink/60">
+          Marvberry writes up to 300 messages a month for you. If you ever reach that, it picks back up on the 1st, and
+          everything else keeps working.
+        </p>
+      )}
+
       <section className={group}>
         <p className={groupTitle}>Your clients</p>
         <Switch
