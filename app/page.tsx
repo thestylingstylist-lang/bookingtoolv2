@@ -5,7 +5,7 @@ import SiteTracker from "./site-tracker";
 import Clarity from "./clarity";
 
 export const metadata: Metadata = {
-  title: { absolute: "Marvberry — The Realtor\u2019s Client Experience Assistant" },
+  title: { absolute: "Marvberry — The Real Estate Agent\u2019s Client Experience Assistant" },
   description:
     "Showing booking, e-signatures, and a client portal in one place. Clients book themselves, sign from their phone, and always know what's next.",
 };

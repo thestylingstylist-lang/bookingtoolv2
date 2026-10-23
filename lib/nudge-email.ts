@@ -69,7 +69,7 @@ export function agentDayEmail(opts: {
   <p style="margin:30px 0 0;">
     <a href="${opts.link}" style="font-family:Georgia,serif;font-size:14px;letter-spacing:.04em;color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;padding-bottom:3px;">Open Marvberry</a>
   </p>
-  <p style="margin:34px 0 0;border-top:1px solid #e6ddce;padding-top:16px;font-family:Georgia,serif;font-size:12px;letter-spacing:.04em;color:#a2977f;font-style:italic;">Marvberry. The Realtor&rsquo;s Client Experience Assistant.</p>
+  <p style="margin:34px 0 0;border-top:1px solid #e6ddce;padding-top:16px;font-family:Georgia,serif;font-size:12px;letter-spacing:.04em;color:#a2977f;font-style:italic;">Marvberry. The Real Estate Agent&rsquo;s Client Experience Assistant.</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -99,7 +99,7 @@ export function agentDayEmail(opts: {
   if (opts.ready > 0) {
     textLines.push("", `${opts.ready} client reminder(s) ready. One tap and they go out in your name.`)
   }
-  textLines.push("", `Open Marvberry: ${opts.link}`, "", "Marvberry. The Realtor's Client Experience Assistant.")
+  textLines.push("", `Open Marvberry: ${opts.link}`, "", "Marvberry. The Real Estate Agent's Client Experience Assistant.")
   const text = textLines.join("\n")
 
   return { subject: opts.items.length ? "Here's what's on your agenda today" : "You're all caught up", html, text }

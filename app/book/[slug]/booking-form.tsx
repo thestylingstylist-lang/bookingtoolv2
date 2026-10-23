@@ -186,7 +186,7 @@ export default function BookingForm({
     formData.set("meetingType", meetingType)
     formData.set("slotStart", selected)
     if (askRole && !role) {
-      setError("Tell me if you\u2019re a solo realtor or a broker.")
+      setError("Tell me if you\u2019re a solo agent or a broker.")
       return
     }
     formData.set("lookingTo", lookingTo)
@@ -408,7 +408,7 @@ export default function BookingForm({
           </div>
 
           {askRole && (
-            <ChipGroup label="I'm a" options={["Solo realtor", "Broker"]} value={role} onChange={setRole} required />
+            <ChipGroup label="I'm a" options={["Solo agent", "Broker"]} value={role} onChange={setRole} required />
           )}
 
           {askLookingTo && <ChipGroup label="I'm looking to" options={LOOKING_TO} value={lookingTo} onChange={setLookingTo} />}

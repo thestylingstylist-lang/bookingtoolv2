@@ -267,7 +267,7 @@ ${opts.meetingType !== "phone" && opts.zoom ? `<p style="margin:12px 0 0;"><a hr
 </td></tr>
 <tr><td style="padding:34px 8px 0;">
 <div style="border-top:1px solid #e6ddce;padding-top:16px;">
-<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:13px;color:#a2977f;">Marvberry. The Realtor&rsquo;s Client Experience Assistant.</p>
+<p style="margin:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:13px;color:#a2977f;">Marvberry. The Real Estate Agent&rsquo;s Client Experience Assistant.</p>
 </div>
 </td></tr>
 </table></td></tr></table>
@@ -296,7 +296,7 @@ Can't wait to talk,
 Alecia
 Founder, Marvberry
 
-Marvberry. The Realtor's Client Experience Assistant.`
+Marvberry. The Real Estate Agent's Client Experience Assistant.`
 
   return { subject: "Your setup session is confirmed", html, text }
 }

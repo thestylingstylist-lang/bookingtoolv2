@@ -26,8 +26,8 @@ export async function bookChat(formData: FormData): Promise<BookingResult> {
   if (!email || !emailRe.test(email)) return { ok: false, error: "That email doesn't look right. Check it and try again." }
   if (!(MEETING_TYPES as readonly string[]).includes(meetingType))
     return { ok: false, error: "Choose a phone or video call." }
-  if (role !== "Solo realtor" && role !== "Broker")
-    return { ok: false, error: "Tell me if you\u2019re a solo realtor or a broker." }
+  if (role !== "Solo agent" && role !== "Broker")
+    return { ok: false, error: "Tell me if you\u2019re a solo agent or a broker." }
   if (!slotStart) return { ok: false, error: "Pick a time slot to continue." }
 
   const taken = await takenChatSlots()

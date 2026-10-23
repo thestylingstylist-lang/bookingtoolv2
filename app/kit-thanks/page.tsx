@@ -77,8 +77,8 @@ export default async function KitThanks({ searchParams }: { searchParams: Promis
             Those three prompts work. But you still run them yourself, one client at a time. Marvberry runs the same
             things on its own, every day.
           </p>
-          <figure className="shots" aria-label="Marvberry: a realtor's booking page and a client's private page">
-            <img className="wide" src="/brand/booking-glass.jpg" alt="A realtor's branded booking page" />
+          <figure className="shots" aria-label="Marvberry: a real estate agent's booking page and a client's private page">
+            <img className="wide" src="/brand/booking-glass.jpg" alt="A real estate agent's branded booking page" />
             <div className="phone">
               <img src="/brand/portal-full.jpg" alt="A client's private page showing their next step" />
             </div>
@@ -104,7 +104,7 @@ export default async function KitThanks({ searchParams }: { searchParams: Promis
       </main>
 
       <footer className="foot">
-        <img src="/marvberry-icon.png" alt="" width={31} height={18} className="mbicon" /> Marvberry. <em>The Realtor&rsquo;s Client Experience Assistant</em>
+        <img src="/marvberry-icon.png" alt="" width={31} height={18} className="mbicon" /> Marvberry. <em>The Real Estate Agent&rsquo;s Client Experience Assistant</em>
       </footer>
     </div>
   )

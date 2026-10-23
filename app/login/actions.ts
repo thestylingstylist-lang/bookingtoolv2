@@ -17,7 +17,7 @@ export async function signIn(
 
   const team = formData.get("team") === "1"
   if (team && !isAdminEmail(email)) {
-    return { error: "This login is for the Marvberry team. Realtors log in at marvberry.com/login." }
+    return { error: "This login is for the Marvberry team. Real estate agents log in at marvberry.com/login." }
   }
 
   const supabase = await createClient()

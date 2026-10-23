@@ -6,6 +6,9 @@ import "@fontsource/playfair-display/500.css"
 import "@fontsource/playfair-display/500-italic.css"
 import "@fontsource/caveat/500.css"
 import BrandMotion from "./brand-motion"
+import BeforeAfter from "./before-after"
+import { Hub, Features } from "./home-sections"
+import { SECTIONS_CSS } from "./home-sections.css"
 
 const START = "/signup"
 const CALL = "/chat"
@@ -28,6 +31,7 @@ export default function Brand() {
   return (
     <div className="mb">
       <style>{CSS}</style>
+      <style>{SECTIONS_CSS}</style>
       <BrandMotion />
 
       <header className="nav">
@@ -72,7 +76,7 @@ export default function Brand() {
         <img
           className="lounge"
           src="/brand/lounge.webp"
-          alt="A realtor relaxing on her couch while a client books a time on her Marvberry booking page"
+          alt="A real estate agent relaxing on her couch while a client books a time on her Marvberry booking page"
         />
       </div>
 
@@ -83,7 +87,7 @@ export default function Brand() {
         </header>
         <article className="job slide s1">
           <div className="job-pic wide">
-            <img src="/brand/booking-glass.jpg" alt="A realtor's branded booking page, open on a warm afternoon" />
+            <img src="/brand/booking-glass.jpg" alt="A real estate agent's branded booking page, open on a warm afternoon" />
           </div>
           <div className="job-copy">
             <p className="tag">Your bookings</p>
@@ -129,6 +133,17 @@ export default function Brand() {
         </article>
       </section>
 
+      {/* The real problem: six places, one Marvberry */}
+      <section className="one">
+        <p className="hand gold">the real problem</p>
+        <h2>Your deal lives in six places.</h2>
+        <p className="lead c">
+          Texts, missed calls, email threads, PDFs, calendars, listing links. You&rsquo;re the only one holding it all
+          together. Marvberry puts it all in one place.
+        </p>
+        <Hub />
+      </section>
+
       {/* 5. The guide */}
       <section className="founder dark">
         <div className="founder-pic">
@@ -170,6 +185,7 @@ export default function Brand() {
           We set it up with you. Your booking page, your agreements, your offer, your client steps, all built with you.
           You don&rsquo;t learn a system. You just show up and it&rsquo;s ready.
         </p>
+        <BeforeAfter />
         <a className="btn" href={START}>
           Try Marvberry
         </a>
@@ -188,7 +204,7 @@ export default function Brand() {
         <p className="lead strong">Your clients only ever see your name.</p>
         <div className="meet-pic photo-bg">
           <div className="glass">
-            <img src="/brand/assistant-draft.jpg" alt="A reply drafted by Marvberry in the realtor's voice, ready to approve and send" />
+            <img src="/brand/assistant-draft.jpg" alt="A reply drafted by Marvberry in the agent's voice, ready to approve and send" />
           </div>
         </div>
         <p className="trio">
@@ -252,6 +268,8 @@ export default function Brand() {
         </div>
       </section>
 
+      <Features />
+
       {/* 9. Closing */}
       <section className="closing">
         <h2>Your next deal doesn&rsquo;t have to stall.</h2>
@@ -263,7 +281,7 @@ export default function Brand() {
 
       <footer className="foot">
         <p className="foot-mark">
-          <img src="/marvberry-wordmark-light.png" alt="Marvberry" width={104} height={20} style={{ height: 20, width: "auto" }} /> <em>The Realtor&rsquo;s Client Experience Assistant</em>
+          <img src="/marvberry-wordmark-light.png" alt="Marvberry" width={104} height={20} style={{ height: 20, width: "auto" }} /> <em>The Real Estate Agent&rsquo;s Client Experience Assistant</em>
         </p>
         <p>
           <a href="/login">Log in</a>

@@ -51,7 +51,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const { slug } = await params
   const agent = await getAgentBySlug(slug).catch(() => null)
 
-  const name = agent?.full_name || agent?.business_name || "Your realtor"
+  const name = agent?.full_name || agent?.business_name || "Your agent"
   const business = agent?.business_name && agent.business_name !== name ? agent.business_name : ""
   const message = agent?.welcome_message || agent?.tagline || ""
   const contact = agent?.public_phone || agent?.public_email || ""

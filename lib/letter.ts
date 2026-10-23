@@ -72,7 +72,7 @@ ${o.footer ? `<tr><td style="padding:34px 8px 0;"><div style="border-top:1px sol
 
 // A note from Marvberry to a realtor.
 export const teamNote = (heading: string, body: string) =>
-  letterHtml({ eyebrow: "Marvberry", wordmark: true, heading, body, footer: "Marvberry. The Realtor&rsquo;s Client Experience Assistant." })
+  letterHtml({ eyebrow: "Marvberry", wordmark: true, heading, body, footer: "Marvberry. The Real Estate Agent&rsquo;s Client Experience Assistant." })
 
 // The realtor's email signature, added under every letter they send a client.
 export type AgentCard = {
