@@ -8,44 +8,66 @@ import BeforeAfter from "./slider"
 
 export const metadata: Metadata = { title: "Mockup — Marvberry", robots: { index: false, follow: false } }
 
-const MESS = ["Texts", "Missed calls", "Email threads", "PDFs to sign", "Calendar back-and-forth", "Listing links"]
-const NEAT = ["Bookings", "Agreements", "Offers", "Client updates"]
-
-function Hub() {
-  const ly = (i: number) => 40 + i * 64
-  const ry = (i: number) => 88 + i * 82
-  // Tangled on the left, clean on the right.
-  const tangle = [
-    "M190 40 C 300 160, 260 300, 500 210",
-    "M190 104 C 340 20, 300 360, 500 210",
-    "M190 168 C 260 330, 380 60, 500 210",
-    "M190 232 C 330 100, 280 280, 500 210",
-    "M190 296 C 250 140, 420 380, 500 210",
-    "M190 360 C 360 260, 260 90, 500 210",
-  ]
+// An editorial spread: the desk as it is today, then the same deal in Marvberry.
+function Spread() {
   return (
-    <svg className="hub" viewBox="0 0 1000 400" role="img" aria-label="Texts, calls, emails, PDFs, calendars and listing links all tangled, then running cleanly through Marvberry into bookings, agreements, offers and client updates">
-      {tangle.map((d, i) => (
-        <path key={i} d={d} className="tl" />
-      ))}
-      {NEAT.map((_, i) => (
-        <path key={i} d={`M500 210 C 640 210, 640 ${ry(i)}, 790 ${ry(i)}`} className="nl" />
-      ))}
-      {MESS.map((t, i) => (
-        <g key={t}>
-          <rect x="10" y={ly(i) - 18} width="180" height="36" rx="18" className="chip-m" />
-          <text x="100" y={ly(i) + 5} textAnchor="middle" className="chip-t m">{t}</text>
-        </g>
-      ))}
-      <circle cx="500" cy="210" r="62" className="core" />
-      <text x="500" y="217" textAnchor="middle" className="core-t">Marvberry</text>
-      {NEAT.map((t, i) => (
-        <g key={t}>
-          <rect x="790" y={ry(i) - 20} width="190" height="40" rx="20" className="chip-n" />
-          <text x="885" y={ry(i) + 5} textAnchor="middle" className="chip-t n">{t}</text>
-        </g>
-      ))}
-    </svg>
+    <div className="spread">
+      <figure className="desk" aria-label="A messy desk: a phone full of texts, a sticky note, a coffee-stained agreement and a scribbled calendar">
+        <div className="paper">
+          <p className="p-k">Exclusive Buyer Agreement</p>
+          <p className="p-l" />
+          <p className="p-l" />
+          <p className="p-l s" />
+          <p className="p-l" />
+          <p className="p-l s" />
+          <p className="p-sign">Buyer signature ____________</p>
+          <span className="cring" aria-hidden />
+        </div>
+        <div className="cal">
+          <p className="cal-k">October</p>
+          <div className="cal-grid">
+            {Array.from({ length: 21 }, (_, i) => (
+              <span key={i} className={i === 9 ? "x" : i === 12 ? "o" : ""}>{i + 8}</span>
+            ))}
+          </div>
+          <p className="cal-scrawl">showing?? 10 or 11</p>
+        </div>
+        <div className="phone">
+          <p className="ph-top">Jordan</p>
+          <p className="t l">did you get my pay stubs??</p>
+          <p className="t l">what time is saturday</p>
+          <p className="t r">which email did you send to?</p>
+          <p className="t miss">3 missed calls</p>
+          <p className="t l">is the offer in yet</p>
+        </div>
+        <p className="sticky">call Jordan back!!<br />offer tonight</p>
+        <figcaption>
+          <span>Today</span> Six places, and you&rsquo;re the only one holding it together.
+        </figcaption>
+      </figure>
+
+      <figure className="clean" aria-label="The same deal on one Marvberry client page">
+        <div className="page">
+          <div className="pg-head">
+            <span className="av">JT</span>
+            <div>
+              <p className="pg-name">Jordan Taylor</p>
+              <p className="pg-sub">Buyer · 3 homes · Offer stage</p>
+            </div>
+          </div>
+          <ul className="pg-rows">
+            <li><span>Showing</span><em>Sat at 10 AM, booked</em></li>
+            <li><span>Agreement</span><em>Signed from her phone</em></li>
+            <li><span>Pay stubs, ID, pre-approval</span><em>Uploaded</em></li>
+            <li><span>Offer, 18 Elm Rd</span><em>Sent</em></li>
+          </ul>
+          <p className="pg-note">Jordan sees this too, on her own page.</p>
+        </div>
+        <figcaption>
+          <span>With Marvberry</span> One page. Everyone knows where it stands.
+        </figcaption>
+      </figure>
+    </div>
   )
 }
 
@@ -95,7 +117,7 @@ export default function PreviewFeatures() {
           Texts, missed calls, email threads, PDFs, calendars, listing links. You&rsquo;re the only one holding it all
           together. Marvberry puts it in one place, so nothing falls through.
         </p>
-        <Hub />
+        <Spread />
       </section>
 
       {/* 2. Before and after */}
@@ -230,16 +252,40 @@ const CSS = `
 .mf .fine{margin-top:12px; font-size:13.5px; color:var(--muted)}
 
 .mf .one{background:var(--cream)}
-.mf .hub{display:block; width:100%; max-width:1000px; margin:56px auto 0}
-.mf .tl{fill:none; stroke:var(--rust); stroke-opacity:.35; stroke-width:1.5}
-.mf .nl{fill:none; stroke:var(--espresso); stroke-width:2}
-.mf .chip-m{fill:#fff; stroke:var(--rule)}
-.mf .chip-n{fill:var(--espresso)}
-.mf .chip-t{font-family:var(--sans); font-size:14px}
-.mf .chip-t.m{fill:var(--body)}
-.mf .chip-t.n{fill:var(--cream); font-weight:500}
-.mf .core{fill:var(--espresso); stroke:var(--gold); stroke-width:3}
-.mf .core-t{fill:var(--cream); font-family:var(--serif); font-size:19px}
+.mf .spread{display:grid; grid-template-columns:1.15fr 1fr; gap:56px; max-width:1100px; margin:64px auto 0; text-align:left; align-items:end}
+.mf .spread figure{margin:0}
+.mf .spread figcaption{margin-top:22px; font-family:var(--serif); font-style:italic; font-size:17px; color:var(--body); border-top:1px solid var(--rule); padding-top:12px}
+.mf .spread figcaption span{display:block; font-family:var(--sans); font-style:normal; font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--rust); margin-bottom:4px}
+.mf .desk{position:relative}
+.mf .desk::before{content:""; display:block; height:420px; border-radius:6px; background:linear-gradient(135deg,#d9c7ae,#c9b394); box-shadow:inset 0 0 80px rgba(42,34,28,.25)}
+.mf .paper{position:absolute; left:6%; top:28px; width:46%; height:330px; background:#fdfbf7; padding:22px 20px; transform:rotate(-4deg); box-shadow:0 18px 30px -16px rgba(42,34,28,.45)}
+.mf .p-k{font-family:var(--serif); font-size:15px; margin-bottom:16px}
+.mf .p-l{height:7px; background:#e8e2d8; border-radius:3px; margin:0 0 11px}
+.mf .p-l.s{width:62%}
+.mf .p-sign{position:absolute; bottom:26px; left:20px; font-size:11px; color:var(--muted)}
+.mf .cring{position:absolute; left:18px; top:205px; width:92px; height:92px; border-radius:50%; background:radial-gradient(circle, transparent 55%, rgba(120,72,30,.38) 58%, rgba(120,72,30,.14) 64%, transparent 69%)}
+.mf .cal{position:absolute; right:5%; top:22px; width:38%; background:#fff; padding:14px 14px 12px; transform:rotate(3deg); box-shadow:0 14px 26px -14px rgba(42,34,28,.45)}
+.mf .cal-k{font-family:var(--serif); font-size:15px; margin-bottom:8px}
+.mf .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:3px}
+.mf .cal-grid span{font-size:10px; color:var(--muted); text-align:center; padding:4px 0; border:1px solid #f0ebe4}
+.mf .cal-grid span.x{background:repeating-linear-gradient(45deg,transparent 0 4px,rgba(180,35,24,.35) 4px 5px)}
+.mf .cal-grid span.o{outline:2px solid rgba(180,35,24,.55); outline-offset:-1px; border-radius:50%}
+.mf .cal-scrawl{font-family:var(--hand); font-size:20px; color:#b42318; margin-top:6px; transform:rotate(-3deg)}
+.mf .phone{position:absolute; left:40%; top:178px; width:200px; background:#16151a; border-radius:26px; padding:14px 10px 18px; transform:rotate(6deg); box-shadow:0 24px 34px -14px rgba(0,0,0,.5)}
+.mf .ph-top{color:#fff; font-size:11px; text-align:center; margin-bottom:8px; opacity:.7}
+.mf .t{font-size:11px; line-height:1.35; padding:6px 9px; border-radius:12px; margin:0 0 5px; max-width:84%}
+.mf .t.l{background:#2b2b31; color:#eee}
+.mf .t.r{background:#3a7bd5; color:#fff; margin-left:auto}
+.mf .t.miss{background:transparent; color:#ff6b6b; text-align:center; max-width:100%}
+.mf .sticky{position:absolute; left:2%; top:318px; width:150px; background:#ffe680; padding:14px 12px; font-family:var(--hand); font-size:21px; line-height:1.1; color:#3a2e14; transform:rotate(-7deg); box-shadow:0 10px 16px -8px rgba(42,34,28,.45)}
+.mf .clean .page{background:#fff; border:1px solid var(--rule); border-radius:18px; padding:26px 26px 22px; box-shadow:0 30px 60px -34px rgba(42,34,28,.4)}
+.mf .pg-head{display:flex; gap:12px; align-items:center; margin-bottom:14px}
+.mf .pg-name{font-family:var(--serif); font-size:22px}
+.mf .pg-sub{font-size:12.5px; color:var(--muted)}
+.mf .pg-rows{list-style:none; padding:0; margin:0}
+.mf .pg-rows li{display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-bottom:1px solid #f0ebe4; font-size:14px}
+.mf .pg-rows em{font-style:normal; color:#2f7f5e; text-align:right}
+.mf .pg-note{margin-top:14px; font-size:12.5px; color:var(--body)}
 
 .mf .ba{max-width:980px; margin:48px auto 0}
 .mf .ba-frame{position:relative; height:440px; border-radius:24px; overflow:hidden; border:1px solid var(--rule); text-align:left; user-select:none}
@@ -292,6 +338,7 @@ const CSS = `
 .mf .cta{margin-top:96px}
 
 @media (max-width:860px){
+  .mf .spread{grid-template-columns:1fr; gap:40px}
   .mf .feat{grid-template-columns:1fr; gap:28px}
   .mf .feat.flip .feat-copy{order:0}
   .mf .ba-frame{height:520px}
