@@ -140,8 +140,13 @@ export default function Brand() {
         <p className="hand gold">the real problem</p>
         <h2>Your deal lives in six places.</h2>
         <p className="lead c">
-          Texts, missed calls, email threads, PDFs, calendars, listing links. You&rsquo;re the only one holding it all
-          together. Marvberry puts it all in one place.
+          I was hired to help a real estate agent in New York City build his business and drive his deals. Behind the
+          scenes, it was chaos. One app to pull the listing. One to send it. One to talk to the client. Then email, then
+          the phone. One deal, all over the place.
+        </p>
+        <p className="lead c">
+          So I decided to fix it. I knew that if the client experience was smooth, the agent could stop drowning in admin
+          and close more deals. So I built Marvberry.
         </p>
         <Hub />
       </section>
