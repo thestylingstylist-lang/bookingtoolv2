@@ -138,15 +138,23 @@ export default function Brand() {
       {/* The real problem: six places, one Marvberry */}
       <section className="one">
         <p className="hand gold">the real problem</p>
-        <h2>Your deal lives in six places.</h2>
+        <h2>Right now, your deal is all over the place. And it&rsquo;s costing you.</h2>
         <p className="lead c">
-          I was hired to help a real estate agent in New York City build his business and drive his deals. Behind the
-          scenes, it was chaos. One app to pull the listing. One to send it. One to talk to the client. Then email, then
-          the phone. One deal, all over the place.
+          It&rsquo;s costing you clients. One late reply, one missed document, and they start to wonder if you&rsquo;ve
+          got it handled.
+        </p>
+        <p className="lead c">It&rsquo;s costing you referrals. A client who felt lost doesn&rsquo;t send you their sister.</p>
+        <p className="lead c">
+          It&rsquo;s costing you your nights. You answer texts at dinner because that&rsquo;s the only place the deal
+          lives.
         </p>
         <p className="lead c">
-          So I decided to fix it. I knew that if the client experience was smooth, the agent could stop drowning in admin
-          and close more deals. So I built Marvberry.
+          And it&rsquo;s costing you growth. You can&rsquo;t take on more clients when you&rsquo;re barely holding the
+          ones you have.
+        </p>
+        <p className="lead c">
+          Everyone tells you to chase more leads. But the agents who grow fix their system first. Simple process, strong
+          relationships. Then the leads you get actually stay, and that&rsquo;s how you scale.
         </p>
         <Hub />
       </section>
