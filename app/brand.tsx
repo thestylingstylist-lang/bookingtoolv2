@@ -55,11 +55,12 @@ export default function Brand() {
       <section id="top" className="hero light">
         <p className="eyebrow">for Solo Real Estate Agents</p>
         <h1>
-          <span className="l1">If you want every client to feel taken care of,</span>
-          <span className="l2">from the first link you send to the day they close.</span>
+          <span className="l1">Every client,</span>
+          <span className="l2">taken care of.</span>
         </h1>
         <p className="sub">
-          Marvberry was built for you. We follow three rules. We call them the Buttoned-Up Standard.
+          If you want to be seen as top of your game, from the first link to the day they close, Marvberry was built for
+          you. We follow three rules. We call them the Buttoned-Up Standard.
         </p>
         <a className="btn rust" href={START}>
           Try Marvberry
@@ -259,7 +260,8 @@ export default function Brand() {
           <p className="daily">
             Booking and scheduling with reminders. A page for every buyer, no login, where they track their offer and see
             updates as you work. Signature requests, document requests, your own email signature, and offers built and sent
-            to the listing agent. All in one place, for about $2.20 a day.
+            to the listing agent. All in one place, for about $2.20 a day. Follow the Buttoned-Up Standard. Try Marvberry
+            free for 14 days.
           </p>
           <a className="btn" href={START}>
             Try Marvberry
