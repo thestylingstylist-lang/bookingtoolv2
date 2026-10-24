@@ -55,15 +55,11 @@ export default function Brand() {
       <section id="top" className="hero light">
         <p className="eyebrow">for Solo Real Estate Agents</p>
         <h1>
-          <span className="l1">The closer</span>
-          <span className="l2">behind the closer.</span>
+          <span className="l1">If you want every client to feel taken care of,</span>
+          <span className="l2">from the first link you send to the day they close.</span>
         </h1>
         <p className="sub">
-          You find the home. Marvberry builds the offer, so you can send it in minutes and your buyer never feels left
-          hanging.
-        </p>
-        <p className="identity">
-          You&rsquo;re not slow. <em>Offers just take too long by hand.</em>
+          Marvberry was built for you. We follow three rules. We call them the Buttoned-Up Standard.
         </p>
         <a className="btn rust" href={START}>
           Try Marvberry
@@ -86,19 +82,20 @@ export default function Brand() {
       {/* Q2. What can it actually do? */}
       <section id="how" className="jobs">
         <header className="jobs-head">
-          <h2>So here&rsquo;s what it does.</h2>
+          <h2>The Buttoned-Up Standard.</h2>
         </header>
         <article className="job slide s1">
           <div className="job-pic wide">
             <img src="/brand/booking-glass.jpg" alt="A real estate agent's branded booking page, open on a warm afternoon" />
           </div>
           <div className="job-copy">
-            <p className="tag">Your bookings</p>
-            <h3>This is what having it together looks like.</h3>
+            <p className="tag">Rule 1 · The first impression</p>
+            <h3>Your first impression starts with your link.</h3>
             <p>
-              One link with your name, your face, and your hours. Buyers book themselves into the times you set, and
-              everyone gets a confirmation and a reminder. From the first click, you look like you&rsquo;ve got a front
-              desk.
+              Everyone thinks the first impression happens when you meet. It doesn&rsquo;t. It&rsquo;s the moment you send
+              your booking link. A photo of your business card isn&rsquo;t a digital business card. Your client still has
+              to write down your name, save your number, and call. Marvberry gives you a real one: your face, your name,
+              your company, and your hours. They tap a time, and you&rsquo;re booked.
             </p>
           </div>
         </article>
@@ -106,15 +103,16 @@ export default function Brand() {
         <article className="job flip slide s2">
           <div className="job-pic stage">
             <div className="device">
-              <img src="/brand/signs-full.jpg" alt="A client signing their agreement on a phone" />
+              <img src="/brand/portal-full.jpg" alt="A client's private page showing their next step" />
             </div>
           </div>
           <div className="job-copy">
-            <p className="tag">Your deals</p>
-            <h3>They found the one. The offer is built.</h3>
+            <p className="tag">Rule 2 · The relationship</p>
+            <h3>Your client feels taken care of, even while you sleep.</h3>
             <p>
-              Your buyer uploads their own documents from their page. Marvberry builds the offer, you look it over, and
-              it&rsquo;s sent in minutes. Your agreement? Already filled in with your terms. They sign from their phone.
+              Your client isn&rsquo;t asking you to be on call. They answer when they can. So give them a way to reach you
+              that isn&rsquo;t a call or a text. They message you on their own page, and in the morning Marvberry tells you
+              what came in, with a reply already written in your voice. You keep your evenings. They feel taken care of.
             </p>
           </div>
         </article>
@@ -122,15 +120,16 @@ export default function Brand() {
         <article className="job slide s3">
           <div className="job-pic stage">
             <div className="device">
-              <img src="/brand/portal-full.jpg" alt="A client's private page showing their next step" />
+              <img src="/brand/signs-full.jpg" alt="A client signing their agreement on a phone" />
             </div>
           </div>
           <div className="job-copy">
-            <p className="tag">Your relationships</p>
-            <h3>Your buyer never feels left hanging.</h3>
+            <p className="tag">Rule 3 · The deal</p>
+            <h3>Your deal is ready before you sit down.</h3>
             <p>
-              Every buyer gets a private page with every home you&rsquo;re showing them, their next step, and where their
-              offer stands. No app. No password. They check it instead of texting you.
+              What if the deal could come together without you? Your client uploads their documents to their own page.
+              Marvberry puts the offer together and sets it in front of you. You review it and hit send. What used to take
+              half an hour to two hours now takes minutes.
             </p>
           </div>
         </article>
