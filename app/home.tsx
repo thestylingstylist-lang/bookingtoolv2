@@ -263,6 +263,19 @@ export default function Home() {
         </div>
       </section>
 
+      <div className="steps-wrap" id="setup">
+        <section className="steps">
+          <p className="kicker">No tech skills needed</p>
+          <h2>No tech skills. We set it up with you.</h2>
+          <ol>
+            <li><b>1</b><h3>Book a free call</h3><p>Pick a time that works for you.</p></li>
+            <li><b>2</b><h3>We build it with you</h3><p>Your booking page, your agreements and your client steps.</p></li>
+            <li><b>3</b><h3>You just use it</h3><p>It&rsquo;s running from day one.</p></li>
+          </ol>
+          <a className="btn light" href={START}>Get started</a>
+        </section>
+      </div>
+
       <section className="pricing" id="pricing">
         <p className="kicker">Pricing</p>
         <h2>One plan. Everything included.</h2>
@@ -281,19 +294,6 @@ export default function Home() {
         </div>
         <p className="broker">Running a brokerage? <a href={CALL}>Book a consultation</a>.</p>
       </section>
-
-      <div className="steps-wrap" id="setup">
-        <section className="steps">
-          <p className="kicker">No tech skills needed</p>
-          <h2>No tech skills. We set it up with you.</h2>
-          <ol>
-            <li><b>1</b><h3>Book a free call</h3><p>Pick a time that works for you.</p></li>
-            <li><b>2</b><h3>We build it with you</h3><p>Your booking page, your agreements and your client steps.</p></li>
-            <li><b>3</b><h3>You just use it</h3><p>It&rsquo;s running from day one.</p></li>
-          </ol>
-          <a className="btn light" href={START}>Get started</a>
-        </section>
-      </div>
 
       <section className="final">
         <img className="fberry" src="/brand/berry.webp" alt="" />
