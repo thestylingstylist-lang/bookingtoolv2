@@ -53,30 +53,32 @@ export default function Brand() {
 
       {/* 1. What we do */}
       <section id="top" className="hero light">
-        <p className="eyebrow">for Solo Real Estate Agents</p>
-        <h1>
-          <span className="l1">Every client,</span>
-          <span className="l2">taken care of.</span>
-        </h1>
-        <p className="sub">
-          If you want to be seen as top of your game, from the first link to the day they close, Marvberry was built for
-          you. We follow three rules. We call them the Buttoned-Up Standard.
-        </p>
-        <a className="btn rust" href={START}>
-          Try Marvberry
-        </a>
-        <svg className="swoosh" viewBox="0 0 100 12" aria-hidden="true">
-          <path d="M2 4 C 35 0, 70 2, 98 10" />
-        </svg>
-        <p className="fine dark">14 days free. No credit card.</p>
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <p className="eyebrow">for Solo Real Estate Agents</p>
+            <h1>
+              <span className="l1">Finally, everything around the deal</span>
+              <span className="l2">in one place.</span>
+            </h1>
+            <p className="sub">Booking, signatures, documents and client updates, for real estate agents.</p>
+            <a className="btn rust" href={START}>
+              Try Marvberry
+            </a>
+            <svg className="swoosh" viewBox="0 0 100 12" aria-hidden="true">
+              <path d="M2 4 C 35 0, 70 2, 98 10" />
+            </svg>
+            <p className="fine dark">14 days free. No credit card.</p>
+          </div>
+          <img className="hero-berry" src="/brand/berry.webp" alt="The Marvberry berry, smiling" />
+        </div>
       </section>
 
       {/* Real screens rise over the pinned hero as you scroll */}
       <div className="float-row">
         <img
           className="lounge"
-          src="/brand/lounge.webp"
-          alt="A real estate agent relaxing on her couch while a client books a time on her Marvberry booking page"
+          src="/brand/booking-desktop.webp"
+          alt="A real estate agent's Marvberry booking page, with her photo and open times"
         />
       </div>
 
@@ -610,4 +612,24 @@ const CSS = `
 }
 @media (max-width: 1000px){ .mb .hires{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width: 900px){ .mb .hires{grid-template-columns:1fr} .mb .trio{flex-direction:column; gap:6px} }
+
+/* Hero: words on the left, the berry on the right, on white */
+.mb .hero-grid{width:min(100%,1180px); display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(24px,4vw,64px); align-items:center}
+.mb .hero-copy{display:flex; flex-direction:column; align-items:flex-start; text-align:left}
+.mb .hero-copy .eyebrow{align-self:flex-start; width:auto; padding-left:0}
+.mb .hero-copy h1 .l1{font-size:clamp(30px,.6rem + 3.4vw,64px)}
+.mb .hero-copy h1 .l2{font-size:clamp(38px,.6rem + 4.6vw,84px)}
+.mb .hero-copy .sub{max-width:34rem}
+.mb .hero-copy .swoosh{align-self:flex-start; margin-left:64px}
+.mb .hero-berry{width:100%; max-width:520px; justify-self:center; aspect-ratio:1/1; object-fit:cover;
+  -webkit-mask-image:radial-gradient(circle at 50% 50%, #000 48%, transparent 70%); mask-image:radial-gradient(circle at 50% 50%, #000 48%, transparent 70%);
+  opacity:0; animation:mbRise 1s cubic-bezier(.2,.7,.2,1) .5s forwards, berryFloat 6s ease-in-out 1.6s infinite}
+@keyframes berryFloat{0%,100%{translate:0 0} 50%{translate:0 -12px}}
+@media (prefers-reduced-motion: reduce){ .mb .hero-berry{opacity:1; animation:none} }
+@media (max-width:860px){
+  .mb .hero-grid{grid-template-columns:1fr}
+  .mb .hero-berry{order:-1; max-width:260px; margin-bottom:-12px}
+  .mb .hero-copy{align-items:center; text-align:center}
+  .mb .hero-copy .eyebrow,.mb .hero-copy .swoosh{align-self:center; margin-left:0}
+}
 `
