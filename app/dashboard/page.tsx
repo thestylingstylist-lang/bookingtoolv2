@@ -72,7 +72,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .select("id, first_name, last_name, meeting_type, slot_start")
     .gte("slot_start", nowISO)
     .order("slot_start", { ascending: true })
-    .limit(3)
+    .limit(5)
   const next = upcoming ?? []
   // Bookings already turned into clients open that client; the rest open Bookings, where they become one.
   const { data: madeClients } = await supabase.from("clients").select("id, booking_id").not("booking_id", "is", null)
@@ -195,6 +195,99 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   }
   const sentCount = setupDocs.filter((d) => d.file_path).length
 
+  // The four numbers across the top, and the two panels underneath.
+  const weekAhead = new Date(Date.now() + 7 * 86400000).toISOString()
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString()
+  const [{ data: showData }, { count: pendingSigs }, { data: clientMsgs }, { data: signedDocs }] = await Promise.all([
+    supabase
+      .from("events")
+      .select("id, kind, place, starts_at, client_id, clients(first_name, last_name)")
+      .gte("starts_at", nowISO)
+      .lt("starts_at", weekAhead)
+      .order("starts_at", { ascending: true })
+      .limit(10),
+    supabase.from("documents").select("id", { count: "exact", head: true }).eq("status", "sent"),
+    supabase
+      .from("messages")
+      .select("id, body, created_at, client_id, clients(first_name, last_name)")
+      .eq("sender", "client")
+      .not("body", "is", null)
+      .gte("created_at", new Date(Date.now() - 14 * 86400000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(6),
+    supabase
+      .from("documents")
+      .select("id, title, signed_at, client_id, clients(first_name, last_name)")
+      .eq("status", "signed")
+      .gte("signed_at", new Date(Date.now() - 14 * 86400000).toISOString())
+      .order("signed_at", { ascending: false })
+      .limit(6),
+  ])
+  type Named = { first_name: string | null; last_name: string | null } | null
+  const nameOf = (c: unknown) => {
+    const n = c as Named
+    return `${n?.first_name ?? ""} ${n?.last_name ?? ""}`.trim() || "A client"
+  }
+  const showings = ((showData ?? []) as unknown as { id: string; kind: string; place: string; starts_at: string; client_id: string | null; clients: Named }[]).filter((e) => e.kind === "showing")
+  const whenLabel = (iso: string) => {
+    const k = formatInTimeZone(new Date(iso), tz, "yyyy-MM-dd")
+    const time = formatInTimeZone(new Date(iso), tz, "h:mm a")
+    if (k === todayKey) return `Today, ${time}`
+    if (k === formatInTimeZone(new Date(Date.now() + 86400000), tz, "yyyy-MM-dd")) return `Tomorrow, ${time}`
+    return formatInTimeZone(new Date(iso), tz, "EEE, MMM d") + `, ${time}`
+  }
+  const upcomingRows = [
+    ...next.map((b) => ({
+      key: `b-${b.id}`,
+      at: b.slot_start as string,
+      title: `${b.first_name} ${b.last_name ?? ""}`.trim(),
+      sub: `Consultation · ${b.meeting_type === "phone" ? "Phone" : "Video"}`,
+      href: clientFor.get(b.id) ? `/clients/${clientFor.get(b.id)}` : "/bookings",
+    })),
+    ...showings.map((e) => ({
+      key: `e-${e.id}`,
+      at: e.starts_at,
+      title: e.place || nameOf(e.clients),
+      sub: `Showing${e.clients ? ` · ${nameOf(e.clients)}` : ""}`,
+      href: e.client_id ? `/clients/${e.client_id}` : "/calendar",
+    })),
+  ]
+    .sort((x, y) => x.at.localeCompare(y.at))
+    .slice(0, 5)
+  const ago = (iso: string) => {
+    const m = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000))
+    if (m < 60) return `${m}m ago`
+    const h = Math.round(m / 60)
+    if (h < 24) return `${h}h ago`
+    return `${Math.round(h / 24)}d ago`
+  }
+  const updates = [
+    ...((clientMsgs ?? []) as unknown as { id: string; body: string; created_at: string; client_id: string; clients: Named }[]).map((m) => ({
+      key: `m-${m.id}`,
+      at: m.created_at,
+      who: nameOf(m.clients),
+      line: `Sent a message: \u201c${m.body.length > 48 ? m.body.slice(0, 48).trim() + "\u2026" : m.body}\u201d`,
+      href: `/clients/${m.client_id}`,
+    })),
+    ...((signedDocs ?? []) as unknown as { id: string; title: string; signed_at: string; client_id: string; clients: Named }[]).map((d) => ({
+      key: `d-${d.id}`,
+      at: d.signed_at,
+      who: nameOf(d.clients),
+      line: `Signed ${d.title}`,
+      href: `/clients/${d.client_id}`,
+    })),
+  ]
+    .sort((x, y) => y.at.localeCompare(x.at))
+    .slice(0, 5)
+  const updatesThisWeek = updates.filter((u) => u.at >= weekAgo).length
+  const showingsToday = showings.filter((e) => formatInTimeZone(new Date(e.starts_at), tz, "yyyy-MM-dd") === todayKey).length
+  const stats: { label: string; value: number; note: string; href: string; icon: React.ReactNode }[] = [
+    { label: "Upcoming showings", value: showings.length, note: showingsToday ? `${showingsToday} today` : "Next 7 days", href: "/calendar", icon: <><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></> },
+    { label: "Pending signatures", value: pendingSigs ?? 0, note: (pendingSigs ?? 0) ? "Waiting on clients" : "All signed", href: "/clients", icon: <><path d="M7 3h7l5 5v13H7z" /><path d="M10 16c1.5-2 2.5-2 3 0s1.5 1 2.5-.5" /></> },
+    { label: "Active deals", value: clientCount ?? 0, note: "In progress", href: "/clients", icon: <><path d="M4 11l8-7 8 7" /><path d="M6 10v10h12V10" /></> },
+    { label: "Client updates", value: updatesThisWeek, note: "This week", href: "/clients", icon: <path d="M4 5h16v11H9l-5 4V5z" /> },
+  ]
+
   const signals = { agent, bookingCount: count ?? 0 }
   const { complete, done, total } = setupProgress(SETUP_STEPS, signals)
 
@@ -209,6 +302,72 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       </p>
 
       <SeenMarker since={since} />
+
+      <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map((c) => (
+          <Link key={c.label} href={c.href} className="flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-card p-5 transition-colors hover:border-ink/25">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink/[0.05] text-ink/70">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                {c.icon}
+              </svg>
+            </span>
+            <span className="min-w-0">
+              <span className="block text-xs text-ink/55">{c.label}</span>
+              <span className="mt-0.5 block font-serif text-3xl font-semibold tracking-tight text-ink">{c.value}</span>
+              <span className="block text-xs text-ink/50">{c.note}</span>
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <section className="rounded-2xl border border-ink/10 bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
+            <Link href="/calendar" className="text-sm text-ink/60 hover:text-ink">Calendar &rarr;</Link>
+          </div>
+          {upcomingRows.length === 0 ? (
+            <p className="mt-4 text-sm text-ink/60">Nothing scheduled yet. Share your link and bookings will show up here.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-ink/[0.07]">
+              {upcomingRows.map((r) => (
+                <li key={r.key}>
+                  <Link href={r.href} className="flex items-center justify-between gap-4 py-3 hover:opacity-80">
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{r.title}</span>
+                      <span className="block text-sm text-ink/55">{r.sub}</span>
+                    </span>
+                    <span className="whitespace-nowrap text-sm text-ink/60">{whenLabel(r.at)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+        <section className="rounded-2xl border border-ink/10 bg-card p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif font-semibold tracking-tight text-xl">Recent client updates</h2>
+            <Link href="/clients" className="text-sm text-ink/60 hover:text-ink">Clients &rarr;</Link>
+          </div>
+          {updates.length === 0 ? (
+            <p className="mt-4 text-sm text-ink/60">When a client messages you or signs, it shows up here.</p>
+          ) : (
+            <ul className="mt-3 divide-y divide-ink/[0.07]">
+              {updates.map((u) => (
+                <li key={u.key}>
+                  <Link href={u.href} className="flex items-center justify-between gap-4 py-3 hover:opacity-80">
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium">{u.who}</span>
+                      <span className="block truncate text-sm text-ink/55">{u.line}</span>
+                    </span>
+                    <span className="whitespace-nowrap text-xs text-ink/50">{ago(u.at)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
 
       {onboarding && (
         <section className="mt-7 grid gap-5 lg:grid-cols-[1fr_380px]">
@@ -331,17 +490,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       <div className="mt-5"><BookingLink slug={agent.slug} compact /></div>
 
-      <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-ink/10 bg-card p-5">
-          <p className="font-serif font-semibold tracking-tight text-4xl text-ox">{clientCount ?? 0}</p>
-          <p className="mt-1 text-sm text-ink/60">Active clients</p>
-        </div>
-        <Link href="/calendar" className="rounded-2xl border border-ink/10 bg-card p-5 transition-colors hover:border-ink/20">
-          <p className="font-serif font-semibold tracking-tight text-4xl text-ox">{upcomingCount}</p>
-          <p className="mt-1 text-sm text-ink/60">Upcoming consultations</p>
-        </Link>
-      </div>
-
       {!complete && (
         <Link
           href="/start-here"
@@ -455,41 +603,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       ))}
 
-      <div className="mt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
-          <Link href="/bookings" className="text-sm text-ink/60 hover:text-ink">
-            All bookings &rarr;
-          </Link>
-        </div>
-
-        {next.length === 0 ? (
-          <div className="mt-3 rounded-2xl border border-ink/10 bg-card p-8 text-center text-ink/60">
-            Nothing scheduled yet. Share your link and bookings will show up here.
-          </div>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {next.map((b) => (
-              <li key={b.id}>
-                <Link
-                  href={clientFor.get(b.id) ? `/clients/${clientFor.get(b.id)}` : "/bookings"}
-                  className="flex items-center justify-between rounded-xl border border-ink/10 bg-card px-5 py-4 transition-colors hover:border-ink/25"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {b.first_name} {b.last_name}
-                    </p>
-                    <p className="text-sm text-ink/50">{b.meeting_type === "phone" ? "Phone" : "Video"}</p>
-                  </div>
-                  <p className="text-sm text-ink/60 whitespace-nowrap">
-                    {formatSlot(b.slot_start, agent.timezone)}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </main>
     </AppShell>
   )
