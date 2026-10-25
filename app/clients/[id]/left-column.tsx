@@ -72,13 +72,13 @@ export default function LeftColumn({
   const prev = PHASES[i - 1]
 
   return (
-    <div className="overflow-hidden rounded-xl border border-[#e6ddce] bg-[#faf7f1]">
+    <div className="overflow-hidden rounded-xl border border-[#e4e3e0] bg-[#f7f6f4]">
       {PHASES.map((p, n) =>
         n === i ? (
-      <section key={p.key} className="border-l-[3px] border-[#D9467A] bg-white px-4 pb-5 pt-4 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-t-[#e6ddce]">
+      <section key={p.key} className="border-l-[3px] border-[#BC559E] bg-white px-4 pb-5 pt-4 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-t-[#e4e3e0]">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-semibold text-ink">{current.label}</h2>
-          <span className="font-[Georgia,serif] text-xs text-[#D9467A]">You&apos;re here</span>
+          <span className="font-semibold tracking-tight text-xs text-[#BC559E]">You&apos;re here</span>
         </div>
         {tasks.length === 0 && (
           <form action={addStandardSteps} className="mt-3">
@@ -98,7 +98,7 @@ export default function LeftColumn({
               key={t.id}
               id={`step-${t.id}`}
               className={`group flex scroll-mt-24 items-start gap-2.5 py-2 ${
-                focus === t.id ? "-mx-2 rounded-lg bg-[#fdf3e3] px-2 ring-1 ring-[#e8c98f]" : ""
+                focus === t.id ? "-mx-2 rounded-lg bg-[#FBEDF5] px-2 ring-1 ring-[#e8c98f]" : ""
               }`}
             >
               <form action={toggleTask}>
@@ -212,10 +212,10 @@ export default function LeftColumn({
         ) : (
           <div
             key={p.key}
-            className="flex items-baseline justify-between px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-[#e6ddce]"
+            className="flex items-baseline justify-between px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-[#e4e3e0]"
           >
-            <span className="text-sm text-[#4a433b]">{p.label}</span>
-            <span className="font-[Georgia,serif] text-xs text-[#8a8072]">{n < i ? "Done" : n === i + 1 ? "Up next" : "Later"}</span>
+            <span className="text-sm text-[#4f4d53]">{p.label}</span>
+            <span className="font-semibold tracking-tight text-xs text-[#8e8c93]">{n < i ? "Done" : n === i + 1 ? "Up next" : "Later"}</span>
           </div>
         )
       )}

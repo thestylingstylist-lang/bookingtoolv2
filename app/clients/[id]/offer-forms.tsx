@@ -15,7 +15,7 @@ export type OfferView = {
 }
 
 const input =
-  "w-full rounded-xl border border-[#dedad4] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
+  "w-full rounded-xl border border-[#dddcd9] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
 const label = "mb-1.5 block text-[12.5px] text-[#5d5b62]"
 const section = "mb-3 flex items-baseline gap-2.5"
 const FIN = ["Conventional", "FHA", "VA", "Cash"]
@@ -71,7 +71,7 @@ export function OfferForm({
       <input type="hidden" name="homeId" value={home.id} />
 
       <div className="mt-6 rounded-2xl border border-[#e4e3e0] p-5">
-        <div className={section}><b className="font-serif font-normal text-[#D9467A]">01</b><p className="text-[15px] font-semibold">Listing agent</p></div>
+        <div className={section}><b className="font-serif font-normal text-[#BC559E]">01</b><p className="text-[15px] font-semibold">Listing agent</p></div>
         <div className="grid grid-cols-2 gap-3">
           <input name="agentName" value={f.agentName} onChange={(e) => set("agentName", e.target.value)} placeholder="Name" className={input} />
           <input name="agentBrokerage" value={f.agentBrokerage} onChange={(e) => set("agentBrokerage", e.target.value)} placeholder="Brokerage" className={input} />
@@ -81,7 +81,7 @@ export function OfferForm({
       </div>
 
       <div className="mt-4 rounded-2xl border border-[#e4e3e0] p-5">
-        <div className={section}><b className="font-serif font-normal text-[#D9467A]">02</b><p className="text-[15px] font-semibold">The offer</p></div>
+        <div className={section}><b className="font-serif font-normal text-[#BC559E]">02</b><p className="text-[15px] font-semibold">The offer</p></div>
         {clientFull && (
           <p className="mb-4 flex justify-between rounded-xl bg-[#f4f3f1] px-3.5 py-2.5 text-[14px]"><span className="text-[#8e8c93]">Buyer</span>{clientFull}</p>
         )}
@@ -100,7 +100,7 @@ export function OfferForm({
         <div className="flex flex-wrap gap-2">
           {FIN.map((x) => (
             <button type="button" key={x} onClick={() => set("financing", x)}
-              className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${f.financing === x ? "border-ink bg-ink text-white" : "border-[#dedad4] text-[#5d5b62]"}`}>{x}</button>
+              className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${f.financing === x ? "border-ink bg-ink text-white" : "border-[#dddcd9] text-[#5d5b62]"}`}>{x}</button>
           ))}
         </div>
         <input type="hidden" name="financing" value={f.financing} />
@@ -110,7 +110,7 @@ export function OfferForm({
             const on = cont.includes(x)
             return (
               <button type="button" key={x} onClick={() => setCont((c) => (on ? c.filter((y) => y !== x) : [...c, x]))}
-                className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${on ? "border-ink bg-ink text-white" : "border-[#dedad4] text-[#5d5b62]"}`}>{x}</button>
+                className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${on ? "border-ink bg-ink text-white" : "border-[#dddcd9] text-[#5d5b62]"}`}>{x}</button>
             )
           })}
         </div>
@@ -118,15 +118,15 @@ export function OfferForm({
       </div>
 
       <div className="mt-4 rounded-2xl border border-[#e4e3e0] p-5">
-        <div className={section}><b className="font-serif font-normal text-[#D9467A]">03</b><p className="text-[15px] font-semibold">What goes with it</p></div>
+        <div className={section}><b className="font-serif font-normal text-[#BC559E]">03</b><p className="text-[15px] font-semibold">What goes with it</p></div>
         {docs.length === 0 ? (
           <p className="text-[14px] text-[#5d5b62]">No documents from {clientFull.split(" ")[0] || "your client"} yet. When they upload a pre-approval or proof of funds, it shows up here to attach.</p>
         ) : (
           docs.map((d) => {
             const on = picked.includes(d.id)
             return (
-              <label key={d.id} className="flex items-center gap-3 border-t border-[#efece8] py-2.5 text-[14.5px] first:border-0">
-                <input type="checkbox" name="doc" value={d.id} checked={on} onChange={() => setPicked((p) => (on ? p.filter((y) => y !== d.id) : [...p, d.id]))} className="h-4 w-4 accent-[#2f7f7e]" />
+              <label key={d.id} className="flex items-center gap-3 border-t border-[#efeeec] py-2.5 text-[14.5px] first:border-0">
+                <input type="checkbox" name="doc" value={d.id} checked={on} onChange={() => setPicked((p) => (on ? p.filter((y) => y !== d.id) : [...p, d.id]))} className="h-4 w-4 accent-[#6E56CF]" />
                 {d.title}
               </label>
             )

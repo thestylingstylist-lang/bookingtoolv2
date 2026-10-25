@@ -4,8 +4,8 @@ import { useActionState, useState } from "react"
 import { signIn } from "./actions"
 
 const field =
-  "w-full rounded-xl border border-[#e6ddce] bg-white px-4 py-3 text-base text-[#2b2520] outline-none transition-colors focus:border-[#b89250] focus:ring-2 focus:ring-[#b89250]/15"
-const label = "mb-1.5 block text-[13px] text-[#8a8072]"
+  "w-full rounded-xl border border-[#e4e3e0] bg-white px-4 py-3 text-base text-[#16151a] outline-none transition-colors focus:border-[#b89250] focus:ring-2 focus:ring-[#b89250]/15"
+const label = "mb-1.5 block text-[13px] text-[#8e8c93]"
 
 export default function LoginForm({ team = false }: { team?: boolean }) {
   const [state, formAction, pending] = useActionState(signIn, null)
@@ -40,7 +40,7 @@ export default function LoginForm({ team = false }: { team?: boolean }) {
           type="button"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? "Hide password" : "Show password"}
-          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8a8072] hover:text-[#2b2520]"
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8e8c93] hover:text-[#16151a]"
         >
           {show ? (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -69,13 +69,13 @@ export default function LoginForm({ team = false }: { team?: boolean }) {
       >
         {pending ? "Logging in\u2026" : "Log in"}
       </button>
-      <div className="space-y-2.5 pt-1 text-center text-sm text-[#8a8072]">
-        <a href="/forgot-password" className="block underline underline-offset-4 hover:text-[#2b2520]">
+      <div className="space-y-2.5 pt-1 text-center text-sm text-[#8e8c93]">
+        <a href="/forgot-password" className="block underline underline-offset-4 hover:text-[#16151a]">
           Forgot your password?
         </a>
         <p>
           No account yet?{" "}
-          <a href="/signup" className="text-[#2b2520] underline underline-offset-4">
+          <a href="/signup" className="text-[#16151a] underline underline-offset-4">
             Create one
           </a>
         </p>

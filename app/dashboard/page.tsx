@@ -294,7 +294,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   return (
     <AppShell agent={agent}>
     <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-      <h1 className="font-[Georgia,serif] tracking-tight text-3xl sm:text-4xl">
+      <h1 className="font-semibold tracking-tight tracking-tight text-3xl sm:text-4xl">
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
       <p className="mt-2 text-ink/60">
@@ -371,9 +371,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {onboarding && (
         <section className="mt-7 grid gap-5 lg:grid-cols-[1fr_380px]">
-          <div className="rounded-2xl border-[1.5px] border-[#C9A24A]/70 bg-card p-5 sm:p-6">
+          <div className="rounded-2xl border-[1.5px] border-[#BC559E]/70 bg-card p-5 sm:p-6">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-[Georgia,serif] text-xl text-ink">Your setup</h2>
+              <h2 className="font-semibold tracking-tight text-xl text-ink">Your setup</h2>
               {setupDocs.length > 0 && <span className="text-sm text-ink/55">{sentCount} of {setupDocs.length} sent</span>}
             </div>
             <p className="mt-1 text-sm text-ink/60">
@@ -384,7 +384,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {setupDocs.length > 0 && (
               <>
                 <div className="mt-4 h-1.5 rounded-full bg-ink/[0.07]">
-                  <div className="h-1.5 rounded-full bg-[#C9A24A]" style={{ width: `${(sentCount / setupDocs.length) * 100}%` }} />
+                  <div className="h-1.5 rounded-full bg-[#BC559E]" style={{ width: `${(sentCount / setupDocs.length) * 100}%` }} />
                 </div>
                 <ul className="mt-3 divide-y divide-ink/[0.07]">
                   {setupDocs.map((d) => (
@@ -411,7 +411,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
           <div>
             <div className="mb-2 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C9A24A] text-xs font-semibold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#BC559E] text-xs font-semibold text-white">
                 {onboarding.owner.slice(0, 2).toUpperCase()}
               </span>
               <div>
@@ -426,7 +426,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {news.items.length > 0 && (
         <section className="mt-7 max-w-2xl rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
-          <p className="font-[Georgia,serif] text-lg leading-snug text-ink">{news.headline}</p>
+          <p className="font-semibold tracking-tight text-lg leading-snug text-ink">{news.headline}</p>
           <ul className="mt-4 space-y-2.5">
             {news.items.map((n, i) => (
               <li
@@ -460,20 +460,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <ol className="divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-card">
             {priorities.map((p, i) => (
               <li key={p.key} className="flex items-start gap-4 p-5">
-                <span className={`font-[Georgia,serif] text-xl leading-6 ${i === 0 ? "text-[#D9467A]" : "text-ink/40"}`}>{i + 1}</span>
+                <span className={`font-semibold tracking-tight text-xl leading-6 ${i === 0 ? "text-[#BC559E]" : "text-ink/40"}`}>{i + 1}</span>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{p.line}</p>
                   {p.action ? (
                     <>
                       <p className="mt-1 text-sm text-ink/60">{p.sub}</p>
-                      <p className={`mt-1 text-xs ${p.urgent ? "text-[#D9467A]" : "text-ink/50"}`}>{p.open}</p>
+                      <p className={`mt-1 text-xs ${p.urgent ? "text-[#BC559E]" : "text-ink/50"}`}>{p.open}</p>
                       <Link href={p.href} className="mt-3 inline-block rounded-[10px] bg-ink px-4 py-2.5 text-sm font-medium text-paper hover:opacity-90">
                         {p.action}
                       </Link>
                     </>
                   ) : (
                     <p className="mt-1 text-sm text-ink/60">
-                      <span className={p.urgent ? "text-[#D9467A]" : ""}>{p.sub}</span> ·{" "}
+                      <span className={p.urgent ? "text-[#BC559E]" : ""}>{p.sub}</span> ·{" "}
                       <Link href={p.href} className="text-ink underline underline-offset-4">{p.open}</Link>
                     </p>
                   )}
@@ -506,7 +506,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       {sp.nudge && (
-        <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${sp.nudge === "sent" ? "bg-[#e5f1f0] text-sage" : "bg-[#f1f0ee] text-ink"}`}>
+        <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${sp.nudge === "sent" ? "bg-[#EEE9FF] text-sage" : "bg-[#f1f0ee] text-ink"}`}>
           {sp.nudge === "sent"
             ? "Sent. It's in their inbox and their thread."
             : sp.nudge === "noemail"

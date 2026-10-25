@@ -395,12 +395,12 @@ export default async function ClientJacket({
             {(sp.updated || banner || error) && (
               <div className="space-y-2 px-6 pt-4">
                 {sp.updated && (
-                  <p className="rounded-lg bg-[#e5f1f0] px-4 py-2.5 text-sm text-sage">Client updated.</p>
+                  <p className="rounded-lg bg-[#EEE9FF] px-4 py-2.5 text-sm text-sage">Client updated.</p>
                 )}
                 {banner && (
                   <p
                     className={`rounded-lg px-4 py-2.5 text-sm ${
-                      banner.ok ? "bg-[#e5f1f0] text-sage" : "bg-[#f1f0ee] text-brass"
+                      banner.ok ? "bg-[#EEE9FF] text-sage" : "bg-[#f1f0ee] text-brass"
                     }`}
                   >
                     {banner.text}
@@ -431,7 +431,7 @@ export default async function ClientJacket({
                           <p className="mt-1 font-serif font-semibold tracking-tight text-xl">{doc.title}</p>
                           <div className="mt-3 flex items-center gap-3">
                             {doc.status === "signed" ? (
-                              <span className="rounded-full bg-[#e5f1f0] px-2.5 py-0.5 text-[11px] text-sage">
+                              <span className="rounded-full bg-[#EEE9FF] px-2.5 py-0.5 text-[11px] text-sage">
                                 Signed{doc.signed_at ? ` \u00b7 ${fmtDay.format(new Date(doc.signed_at))}` : ""}
                                 {doc.signer_name ? ` by ${doc.signer_name}` : ""}
                               </span>

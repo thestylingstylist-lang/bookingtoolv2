@@ -43,9 +43,9 @@ export default function ReminderBox({
         }
       }}
     >
-      <summary className="block cursor-pointer list-none rounded-lg border border-[#e6ddce] bg-[#faf7f1] px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+      <summary className="block cursor-pointer list-none rounded-lg border border-[#e4e3e0] bg-[#f7f6f4] px-3 py-2.5 [&::-webkit-details-marker]:hidden">
         <span className="block text-xs font-semibold text-ink">Ready to send</span>
-        <span className="mt-0.5 block font-[Georgia,serif] text-xs text-[#6d655b]">
+        <span className="mt-0.5 block font-semibold tracking-tight text-xs text-[#5d5b62]">
           {assistant ? "Your client reminder, written in your voice by Marvberry Assistant." : "Your client reminder."}
         </span>
         <span className="mt-2 inline-block rounded-[8px] bg-ink px-2.5 py-1.5 text-xs font-medium text-paper group-open/rb:hidden">

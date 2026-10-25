@@ -55,7 +55,7 @@ export default function DocumentsPanel({
                 type="submit"
                 title={d.received ? "Mark as waiting" : "Mark as received"}
                 className={`rounded-full px-2.5 py-0.5 text-[11px] ${
-                  d.received ? "bg-[#e5f1f0] text-sage" : "bg-[#f1f0ee] text-brass"
+                  d.received ? "bg-[#EEE9FF] text-sage" : "bg-[#f1f0ee] text-brass"
                 }`}
               >
                 {d.received ? "Received" : "Waiting"}

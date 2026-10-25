@@ -8,7 +8,7 @@ const config: Config = {
         ink: "#16151a",
         paper: "#f4f3f1",
         brass: "#16151a",
-        sage: "#2f7f7e",
+        sage: "#6E56CF",
         ox: "#16151a",
         card: "#ffffff",
       },

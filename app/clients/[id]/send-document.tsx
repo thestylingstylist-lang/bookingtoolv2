@@ -45,9 +45,9 @@ export default function SendDocument({
       const v = (AUTO_FILL[key] !== undefined ? auto[key] : valueOf(key))?.trim() ?? ""
       parts.push(
         v ? (
-          <mark key={i++} className="rounded bg-[#fdf3e3] px-1 text-[#2b2520]">{v}</mark>
+          <mark key={i++} className="rounded bg-[#FBEDF5] px-1 text-[#16151a]">{v}</mark>
         ) : (
-          <mark key={i++} className="rounded bg-[#fbe9ef] px-1 italic text-[#c23d6d]">
+          <mark key={i++} className="rounded bg-[#F7E4F0] px-1 italic text-[#A8478B]">
             {m[1].trim()} not on file
           </mark>
         )
@@ -161,10 +161,10 @@ export default function SendDocument({
         </>
       ) : (
         <>
-          <p className="mt-6 font-[Georgia,serif] text-[17px] text-[#2b2520]">
+          <p className="mt-6 font-semibold tracking-tight text-[17px] text-[#16151a]">
             Here&rsquo;s exactly what your client will see.
           </p>
-          <article className="mt-3 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#e6e5e3] bg-white p-6 font-[Georgia,serif] text-[15px] leading-relaxed text-[#4a433b]">
+          <article className="mt-3 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#e6e5e3] bg-white p-6 font-[Georgia,serif] text-[15px] leading-relaxed text-[#4f4d53]">
             {preview}
           </article>
           <div className="mt-4 flex items-center gap-4">

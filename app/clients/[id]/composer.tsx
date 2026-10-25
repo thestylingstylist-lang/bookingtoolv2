@@ -31,8 +31,8 @@ export default function Composer({
   return (
     <div>
       {canDraft && (
-        <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-[#e6ddce] bg-[#faf7f1] px-3 py-2">
-          <p className="text-xs text-[#6d655b]">
+        <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-[#e4e3e0] bg-[#f7f6f4] px-3 py-2">
+          <p className="text-xs text-[#5d5b62]">
             {writing ? (
               "Writing your reply in your voice…"
             ) : missed ? (

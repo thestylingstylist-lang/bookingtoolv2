@@ -48,7 +48,7 @@ function nextMove(h: HomeView, first: string): { line: string; action: string; d
 }
 
 const input =
-  "w-full rounded-xl border border-[#dedad4] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
+  "w-full rounded-xl border border-[#dddcd9] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
 
 export default function Homes({
   clientId,
@@ -123,7 +123,7 @@ export default function Homes({
                 <button onClick={() => { setStartView("home"); setOpenId(h.id) }} className="text-left">
                   <p className="truncate text-[15.5px] font-semibold">{h.address.split(",")[0]}</p>
                   <p className="mt-1 line-clamp-2 text-[13.5px] text-[#5d5b62]">
-                    {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-[#D9467A] align-[1px]" />}
+                    {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-[#BC559E] align-[1px]" />}
                     {isPassed ? "Passed." : m.line}
                   </p>
                 </button>
@@ -225,8 +225,8 @@ function HomePanel({
         </p>
 
         {home.status === "active" && (
-          <div className="mt-5 rounded-2xl border border-[#f0c9d7] bg-[#fdf6f8] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-[#a3305d]">Next move</p>
+          <div className="mt-5 rounded-2xl border border-[#EBC9E0] bg-[#fdf6f8] p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-[#93407A]">Next move</p>
             <p className="mt-1.5 text-[15px] leading-relaxed">{m.line}</p>
             {(m.view === "offer" || m.view === "follow") && (
               <button type="button" onClick={() => setView(m.view)} className="mt-3 rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white">
@@ -252,7 +252,7 @@ function HomePanel({
                   disabled={pending}
                   onClick={() => start(() => setOfferStatus(home.offer!.id, st))}
                   className={`rounded-full border px-3 py-1.5 text-[13px] capitalize ${
-                    home.offer!.status === st ? "border-ink bg-ink text-white" : "border-[#dedad4] text-[#5d5b62]"
+                    home.offer!.status === st ? "border-ink bg-ink text-white" : "border-[#dddcd9] text-[#5d5b62]"
                   }`}
                 >
                   {st === "sent" ? "Waiting" : st}
@@ -314,7 +314,7 @@ function HomePanel({
           </div>
         </form>
 
-        <div className="mt-8 flex gap-5 border-t border-[#efece8] pt-5 text-sm text-[#5d5b62]">
+        <div className="mt-8 flex gap-5 border-t border-[#efeeec] pt-5 text-sm text-[#5d5b62]">
           <button
             disabled={pending}
             onClick={() => start(() => setHomeStatus(home.id, home.status === "active" ? "passed" : "active"))}

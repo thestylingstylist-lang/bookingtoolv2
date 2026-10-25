@@ -11,7 +11,7 @@ function SubmitBtn() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-gradient-to-r from-[#D9467A] to-[#EE7C55] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+      className="rounded-lg bg-gradient-to-r from-[#BC559E] to-[#EE7C55] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
     >
       {pending ? "Sending…" : "Send feedback"}
     </button>
@@ -50,7 +50,7 @@ export default function FeedbackWidget({ collapsed = false }: { collapsed?: bool
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/30 p-4 sm:items-center" onClick={() => setOpen(false)}>
           <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/80 bg-white/90 p-6 shadow-xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
             <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-50" style={{background:"radial-gradient(circle, rgba(232,155,180,1), transparent 70%), radial-gradient(circle at 60% 40%, rgba(251,201,142,.9), transparent 70%)",filter:"blur(28px)"}} />
-            <h2 className="text-xl font-semibold tracking-tight text-[#16151a]">Help us build <em className="bg-gradient-to-r from-[#D9467A] to-[#EE7C55] bg-clip-text pr-1 font-serif italic text-transparent">your</em> Marvberry</h2>
+            <h2 className="text-xl font-semibold tracking-tight text-[#16151a]">Help us build <em className="bg-gradient-to-r from-[#BC559E] to-[#EE7C55] bg-clip-text pr-1 font-serif italic text-transparent">your</em> Marvberry</h2>
             <p className="mt-1.5 text-sm leading-relaxed text-[#16151a]/60">
               Tell us what you’d love to see — or what to take away — to make
               Marvberry feel more like yours. The things that help you close
@@ -64,7 +64,7 @@ export default function FeedbackWidget({ collapsed = false }: { collapsed?: bool
                 required
                 autoFocus
                 placeholder="I wish Marvberry could…"
-                className="w-full resize-none rounded-lg border border-[#16151a]/15 p-3 text-sm text-[#16151a] outline-none focus:border-[#D9467A]"
+                className="w-full resize-none rounded-lg border border-[#16151a]/15 p-3 text-sm text-[#16151a] outline-none focus:border-[#BC559E]"
               />
               {state && (
                 <p className={"mt-2 text-sm " + (state.ok ? "text-emerald-600" : "text-rose-600")}>

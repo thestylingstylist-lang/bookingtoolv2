@@ -83,26 +83,26 @@ export default function WeekView({
 
   return (
     <div className="mt-9">
-      <div className="overflow-x-auto rounded-2xl border border-[#e3e0dc] bg-white">
+      <div className="overflow-x-auto rounded-2xl border border-[#e4e3e0] bg-white">
         <div className="min-w-[820px]">
-          <div className="flex border-b border-[#e3e0dc]">
+          <div className="flex border-b border-[#e4e3e0]">
             <div className="w-[64px] shrink-0" />
             <div className="grid flex-1 grid-cols-7">
               {days.map((d, i) => (
-                <div key={d} className="border-l border-[#efece8] px-3 py-3.5">
-                  <p className={`text-[11px] font-medium uppercase tracking-[.1em] ${d === todayKey ? "text-[#D9467A]" : "text-[#8e8c93]"}`}>{NAMES[i]}</p>
-                  <p className="mt-1 font-[Georgia,serif] text-[24px] leading-none">{Number(d.slice(8, 10))}</p>
+                <div key={d} className="border-l border-[#efeeec] px-3 py-3.5">
+                  <p className={`text-[11px] font-medium uppercase tracking-[.1em] ${d === todayKey ? "text-[#BC559E]" : "text-[#8e8c93]"}`}>{NAMES[i]}</p>
+                  <p className="mt-1 font-semibold tracking-tight text-[24px] leading-none">{Number(d.slice(8, 10))}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {due.length > 0 && (
-            <div className="flex border-b border-[#e3e0dc] bg-[#fbfaf9]">
+            <div className="flex border-b border-[#e4e3e0] bg-[#fbfaf9]">
               <div className="w-[64px] shrink-0 py-2.5 pr-3 text-right text-[10.5px] font-medium uppercase tracking-[.1em] text-[#8e8c93]">Due</div>
               <div className="grid flex-1 grid-cols-7 text-[11.5px]">
                 {days.map((d) => (
-                  <div key={d} className="min-w-0 space-y-1 border-l border-[#efece8] px-2 py-2">
+                  <div key={d} className="min-w-0 space-y-1 border-l border-[#efeeec] px-2 py-2">
                     {due
                       .filter((x) => x.day === d)
                       .map((x) => (
@@ -110,7 +110,7 @@ export default function WeekView({
                           key={x.id}
                           href={x.href}
                           title={x.label}
-                          className={`block truncate rounded-full border border-[#e9e5e0] bg-white px-2.5 py-1 ${x.late ? "text-[#c23d6d]" : "text-[#5d5b62]"}`}
+                          className={`block truncate rounded-full border border-[#e9e5e0] bg-white px-2.5 py-1 ${x.late ? "text-[#A8478B]" : "text-[#5d5b62]"}`}
                         >
                           {x.label}
                         </Link>
@@ -124,7 +124,7 @@ export default function WeekView({
           <div className="flex">
             <div className="w-[64px] shrink-0">
               {hours.map((h, i) => (
-                <div key={h} className="pr-3 text-right font-[Georgia,serif] text-[12px] text-[#8e8c93]" style={{ height: HOUR, transform: "translateY(-7px)" }}>
+                <div key={h} className="pr-3 text-right font-semibold tracking-tight text-[12px] text-[#8e8c93]" style={{ height: HOUR, transform: "translateY(-7px)" }}>
                   {i === 0 ? "" : label(h)}
                 </div>
               ))}
@@ -139,7 +139,7 @@ export default function WeekView({
                   const before = on ? Math.max(0, dayStart - first) * HOUR : hours.length * HOUR
                   const after = on ? Math.max(0, last - dayEnd) * HOUR : 0
                   return (
-                    <div key={d} className={`relative border-l border-[#efece8] ${d === todayKey ? "bg-[#fff8fa]" : ""}`}>
+                    <div key={d} className={`relative border-l border-[#efeeec] ${d === todayKey ? "bg-[#fff8fa]" : ""}`}>
                       {before > 0 && <div className="absolute inset-x-0 top-0 bg-[#f4f3f1]/80" style={{ height: before }} />}
                       {after > 0 && <div className="absolute inset-x-0 bottom-0 bg-[#f4f3f1]/80" style={{ height: after }} />}
                       {placed[i].map(({ it, lane, lanes }) => {
@@ -174,8 +174,8 @@ export default function WeekView({
                       })}
                       {showNow && d === todayKey && (
                         <div className="absolute inset-x-0 z-10 flex items-center" style={{ top: nowTop - 4 }}>
-                          <span className="-ml-1 h-2 w-2 rounded-full bg-[#D9467A]" />
-                          <span className="h-px flex-1 bg-[#D9467A]" />
+                          <span className="-ml-1 h-2 w-2 rounded-full bg-[#BC559E]" />
+                          <span className="h-px flex-1 bg-[#BC559E]" />
                         </div>
                       )}
                     </div>
