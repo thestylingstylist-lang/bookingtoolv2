@@ -306,6 +306,7 @@ export default function Brand() {
         <p>
           <a href="/login">Log in</a>
           <a href="/support">Support</a>
+          <a href="/privacy">Privacy</a>
         </p>
       </footer>
     </div>
