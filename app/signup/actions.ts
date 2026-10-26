@@ -76,5 +76,6 @@ export async function signUp(
     redirect("/login")
   }
 
-  redirect("/dashboard")
+  // Step two: book the setup call we promise on the home page.
+  redirect("/chat?welcome=1")
 }

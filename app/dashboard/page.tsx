@@ -180,6 +180,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .eq("agent_id", user.id)
     .maybeSingle()
   const onboarding = ob && !ob.completed_at ? { owner: (ob.owner as string) || "Alecia" } : null
+  // Promised on the home page: a setup call. Until they book it (or setup is done), keep it at the top.
+  let needsSetupCall = false
+  if (!ob?.completed_at && user.email) {
+    const { data: lead } = await admin.from("sales_leads").select("id").ilike("email", user.email).not("call_at", "is", null).limit(1).maybeSingle()
+    needsSetupCall = !lead
+  }
   let setupDocs: { id: string; title: string; file_path: string | null; file_name: string | null; template_built: boolean }[] = []
   let setupThread: Msg[] = []
   if (onboarding) {
@@ -294,12 +300,23 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   return (
     <AppShell agent={agent}>
     <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-      <h1 className="font-semibold tracking-tight tracking-tight text-3xl sm:text-4xl">
+      <h1 className="font-semibold tracking-tight text-3xl sm:text-4xl">
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
       <p className="mt-2 text-ink/60">
         {priorities.length ? "Here's what's important today. I'll help you get it handled." : "Nothing pressing today. Everything is on track."}
       </p>
+
+      {needsSetupCall && (
+        <Link href="/chat" className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[#EBC9E0] bg-[#FBEDF5] p-5 transition-colors hover:bg-[#F7E4F0]">
+          <img src="/brand/berry.webp" alt="" className="h-12 w-12 shrink-0 [mask-image:radial-gradient(circle,#000_40%,transparent_66%)]" />
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold tracking-tight">Book your free setup call</span>
+            <span className="block text-sm text-ink/60">We&rsquo;ll set up your booking page, agreements and client steps with you.</span>
+          </span>
+          <span className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-white">Pick a time</span>
+        </Link>
+      )}
 
       <SeenMarker since={since} />
 

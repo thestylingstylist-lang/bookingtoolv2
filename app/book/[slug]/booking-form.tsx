@@ -76,6 +76,7 @@ export default function BookingForm({
   icsPath,
   solidPick = false,
   askRole = false,
+  prefill,
 }: {
   slots: Slot[]
   slug: string
@@ -86,6 +87,7 @@ export default function BookingForm({
   icsPath?: string
   solidPick?: boolean
   askRole?: boolean
+  prefill?: { firstName?: string; lastName?: string; email?: string; phone?: string; role?: string }
 }) {
   const agentTz = agent.timezone || "America/New_York"
   const [tz, setTz] = useState(agentTz)
@@ -97,7 +99,7 @@ export default function BookingForm({
   const [perPage, setPerPage] = useState(7)
   const [meetingType, setMeetingType] = useState<"phone" | "virtual">("phone")
   const [lookingTo, setLookingTo] = useState("")
-  const [role, setRole] = useState("")
+  const [role, setRole] = useState(prefill?.role ?? "")
   const [firstName, setFirstName] = useState("")
   const [manageToken, setManageToken] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -401,10 +403,10 @@ export default function BookingForm({
           </div>
 
           <div className="grid gap-x-5 gap-y-[18px] sm:grid-cols-2">
-            <Field label="First name" name="firstName" placeholder="Jordan" autoComplete="given-name" required />
-            <Field label="Last name" name="lastName" placeholder="Ellis" autoComplete="family-name" required />
-            <Field label="Email" name="email" type="email" placeholder="you@email.com" autoComplete="email" required />
-            <Field label="Phone" name="phone" type="tel" placeholder="(555) 555-0123" autoComplete="tel" required />
+            <Field label="First name" name="firstName" placeholder="Jordan" autoComplete="given-name" defaultValue={prefill?.firstName} required />
+            <Field label="Last name" name="lastName" placeholder="Ellis" autoComplete="family-name" defaultValue={prefill?.lastName} required />
+            <Field label="Email" name="email" type="email" placeholder="you@email.com" autoComplete="email" defaultValue={prefill?.email} required />
+            <Field label="Phone" name="phone" type="tel" placeholder="(555) 555-0123" autoComplete="tel" defaultValue={prefill?.phone} required />
           </div>
 
           {askRole && (
