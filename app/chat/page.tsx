@@ -5,6 +5,7 @@ import BookingForm from "@/app/book/[slug]/booking-form"
 import { bookChat } from "./actions"
 import { CHAT_CFG, CHAT_HOST, CHAT_EVENT_TITLE } from "./config"
 import { takenChatSlots } from "./taken"
+import AdPixels from "@/app/ad-pixels"
 
 export const dynamic = "force-dynamic"
 
@@ -45,6 +46,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
     <div className="mbchat" style={{ "--accent": "#BC559E", "--accent-soft": "#FBEDF5" } as React.CSSProperties}>
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div aria-hidden className="glow" />
+      <AdPixels event={welcome ? "signup" : undefined} />
 
       <header className="top">
         <a href="/">
