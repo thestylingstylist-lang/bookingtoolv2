@@ -100,6 +100,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
               askLookingTo={false}
               askRole
               prefill={prefill}
+              doneHref={welcome && prefill ? "/dashboard?welcome=1" : undefined}
               icsPath="/chat/ics"
               copy={{
                 title: "Book your setup call",

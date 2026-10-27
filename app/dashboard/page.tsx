@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { formatSlot } from "@/lib/slots"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { SETUP_STEPS, setupProgress } from "@/lib/onboarding"
+import Welcome from "./welcome"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
 import { isAdminEmail } from "@/lib/admin"
@@ -48,7 +49,7 @@ type DueStep = {
 
 export const dynamic = "force-dynamic"
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ nudge?: string }> }) {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ nudge?: string; welcome?: string }> }) {
   const sp = await searchParams
   const supabase = await createClient()
   const {
@@ -182,9 +183,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const onboarding = ob && !ob.completed_at ? { owner: (ob.owner as string) || "Alecia" } : null
   // Promised on the home page: a setup call. Until they book it (or setup is done), keep it at the top.
   let needsSetupCall = false
+  let callLabel = ""
   if (!ob?.completed_at && user.email) {
-    const { data: lead } = await admin.from("sales_leads").select("id").ilike("email", user.email).not("call_at", "is", null).limit(1).maybeSingle()
+    const { data: lead } = await admin.from("sales_leads").select("call_at").ilike("email", user.email).not("call_at", "is", null).order("call_at", { ascending: false }).limit(1).maybeSingle()
     needsSetupCall = !lead
+    if (lead?.call_at) callLabel = formatInTimeZone(new Date(lead.call_at as string), tz, "EEEE, MMMM d 'at' h:mm a")
   }
   let setupDocs: { id: string; title: string; file_path: string | null; file_name: string | null; template_built: boolean }[] = []
   let setupThread: Msg[] = []
@@ -319,6 +322,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       <SeenMarker since={since} />
+      {sp.welcome === "1" && <Welcome first={firstName} callLabel={callLabel} />}
 
       <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((c) => (
@@ -388,7 +392,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {onboarding && (
         <section className="mt-7 grid gap-5 lg:grid-cols-[1fr_380px]">
-          <div className="rounded-2xl border-[1.5px] border-[#BC559E]/70 bg-card p-5 sm:p-6">
+          <div id="setup-card" className="rounded-2xl border-[1.5px] border-[#BC559E]/70 bg-card p-5 sm:p-6">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="font-semibold tracking-tight text-xl text-ink">Your setup</h2>
               {setupDocs.length > 0 && <span className="text-sm text-ink/55">{sentCount} of {setupDocs.length} sent</span>}

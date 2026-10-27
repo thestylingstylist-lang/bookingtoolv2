@@ -12,6 +12,9 @@ export type SignupState = {
   values: { businessName: string; fullName: string; email: string }
 }
 
+// What we ask every new agent to upload before their setup call.
+const SETUP_DOCS = ["Your buyer agreement", "Your listing agreement", "Any other forms you send clients"]
+
 export async function signUp(
   _prev: SignupState | null,
   formData: FormData
@@ -66,6 +69,15 @@ export async function signUp(
     // Roll back the auth user so they can retry cleanly.
     await admin.auth.admin.deleteUser(created.user.id)
     return fail("Couldn't finish setting up your account. Please try again.")
+  }
+
+  // Onboarding starts right away: Alecia owns it, and the documents we need before the setup
+  // call show up on their dashboard to upload. The team can add or remove documents in Admin.
+  try {
+    await admin.from("onboarding").upsert({ agent_id: created.user.id, owner: "Alecia" }, { onConflict: "agent_id", ignoreDuplicates: true })
+    await admin.from("onboarding_docs").insert(SETUP_DOCS.map((title) => ({ agent_id: created.user.id, title })))
+  } catch (err) {
+    console.error("[signup] onboarding setup failed (account still created):", err)
   }
 
   // Log them straight in.

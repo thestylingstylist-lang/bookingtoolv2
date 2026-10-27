@@ -77,6 +77,7 @@ export default function BookingForm({
   solidPick = false,
   askRole = false,
   prefill,
+  doneHref,
 }: {
   slots: Slot[]
   slug: string
@@ -88,6 +89,7 @@ export default function BookingForm({
   solidPick?: boolean
   askRole?: boolean
   prefill?: { firstName?: string; lastName?: string; email?: string; phone?: string; role?: string }
+  doneHref?: string
 }) {
   const agentTz = agent.timezone || "America/New_York"
   const [tz, setTz] = useState(agentTz)
@@ -197,6 +199,10 @@ export default function BookingForm({
     startTransition(async () => {
       const res = submit ? await submit(formData) : await createBooking(slug, formData)
       if (res.ok) {
+        if (doneHref) {
+          window.location.assign(doneHref)
+          return
+        }
         setManageToken(res.manageToken)
         setStep(3)
       } else setError(res.error)
