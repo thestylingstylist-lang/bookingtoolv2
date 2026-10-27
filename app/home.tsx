@@ -311,7 +311,6 @@ export default function Home() {
           <a href="/login">Log in</a>
           <a href="/support">Support</a>
           <a href="/privacy">Privacy</a>
-          <a href="/privacy#choices">Your privacy choices</a>
         </nav>
       </footer>
     </div>

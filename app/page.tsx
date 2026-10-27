@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import HomePage from "./home";
 import SiteTracker from "./site-tracker";
 import Clarity from "./clarity";
-import AdPixels from "./ad-pixels";
 
 export const metadata: Metadata = {
   title: { absolute: "Marvberry — The Real Estate Agent\u2019s Client Experience Assistant" },
@@ -17,7 +16,6 @@ export default function Home() {
       <HomePage />
       <SiteTracker />
       <Clarity />
-      <AdPixels />
     </>
   );
 }

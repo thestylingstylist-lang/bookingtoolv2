@@ -2,14 +2,13 @@
 import type { Metadata } from "next"
 import "@fontsource/playfair-display/400.css"
 import "@fontsource/playfair-display/400-italic.css"
-import Choices from "./choices"
 
 export const metadata: Metadata = {
   title: { absolute: "Privacy Policy — Marvberry" },
   description: "What Marvberry collects, why, who helps us run it, and the choices you have.",
 }
 
-const EFFECTIVE = "October 27, 2026"
+const EFFECTIVE = "October 25, 2026"
 const MAIL = "team@marvberry.com"
 
 export default function Privacy() {
@@ -162,8 +161,7 @@ export default function Privacy() {
         <section id="share">
           <h2>7. Who we share information with</h2>
           <p className="callout">
-            We do not sell personal information. On our public pages we use ad pixels so we can show Marvberry ads to
-            people who visited our site. You can turn that off any time in <a href="#choices">Your privacy choices</a>.
+            We do not sell personal information, and we do not share it for targeted advertising.
           </p>
           <p>We share information only with the companies that help us run Marvberry, and only what each one needs:</p>
           <div className="table">
@@ -231,29 +229,10 @@ export default function Privacy() {
             </li>
           </ul>
           <p>
-            <strong>Ad pixels.</strong> On our home page, our signup page and our setup call page, we use the{" "}
-            <strong>Meta Pixel</strong> and the <strong>Reddit Pixel</strong>. They tell Meta (Facebook and Instagram)
-            and Reddit that your browser visited our site, and whether you created an account. That lets us show
-            Marvberry ads to people who already visited, and see which ads work. Meta and Reddit may use cookies and
-            your browser and device details to do this, under their own privacy policies:{" "}
-            <a href="https://www.facebook.com/privacy/policy" target="_blank" rel="noreferrer">Meta&rsquo;s</a> and{" "}
-            <a href="https://www.reddit.com/policies/privacy-policy" target="_blank" rel="noreferrer">Reddit&rsquo;s</a>.
-            Under some state laws, this counts as &ldquo;sharing&rdquo; personal information for targeted advertising.
+            We don&rsquo;t use these tools inside your account or on client pages, and we don&rsquo;t use advertising
+            cookies or ad pixels. You can block or delete cookies in your browser settings. Blocking analytics cookies
+            won&rsquo;t change how the site works for you.
           </p>
-          <p>
-            We don&rsquo;t use any of these tools inside your account or on client pages. Your clients&rsquo; information
-            never goes to an ad company. You can block or delete cookies in your browser settings, and it won&rsquo;t
-            change how the site works for you.
-          </p>
-          <div id="choices" className="choices">
-            <h3>Your privacy choices</h3>
-            <p>
-              You can opt out of ad tracking on this browser with the button below. If your browser sends a Global
-              Privacy Control signal, we treat it as an opt-out automatically. You can also email{" "}
-              <a href={`mailto:${MAIL}`}>{MAIL}</a> to opt out.
-            </p>
-            <Choices />
-          </div>
           <p>
             <strong>Do Not Track.</strong> Marvberry doesn&rsquo;t currently respond to Do Not Track signals from
             browsers.
@@ -334,7 +313,7 @@ export default function Privacy() {
           <p>
             <strong>California residents:</strong> under California law, you have the right to know what personal
             information we collect, use and share, and to correct or delete it. You also have the right to opt out of
-            the sale or sharing of your personal information. We don&rsquo;t sell it. We share it for targeted advertising only through the ad pixels on our public pages, and you can opt out in <a href="#choices">Your privacy choices</a>. In the last 12 months, we
+            the sale or sharing of your personal information. We don&rsquo;t sell or share it. In the last 12 months, we
             collected the kinds of information listed in <a href="#collect">What we collect</a>, for the reasons in{" "}
             <a href="#use">How we use information</a>, and shared it only as described in{" "}
             <a href="#share">Who we share information with</a>.
@@ -416,7 +395,6 @@ const PROVIDERS: [string, string][] = [
   ["Zoom", "Video meeting links, if an agent connects Zoom"],
   ["Google", "Sign-in, if you choose it"],
   ["Microsoft Clarity", "Home page analytics"],
-  ["Meta and Reddit", "Ad pixels on our public pages, so we can show our ads to past visitors"],
 ]
 
 const CSS = `
@@ -457,11 +435,6 @@ const CSS = `
 .pp th{text-align:left; font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:500; padding:8px 12px 8px 0; border-bottom:1px solid var(--rule)}
 .pp td{padding:11px 12px 11px 0; border-bottom:1px solid var(--rule); color:var(--body); vertical-align:top}
 .pp td:first-child{color:var(--ink); font-weight:600; white-space:nowrap}
-.pp .choices{margin:18px 0 14px;padding:20px 22px;border:1px solid var(--rule);border-radius:16px}
-.pp .choices h3{margin-top:0}
-.pp .choice{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:6px}
-.pp .choice p{margin:0}
-.pp .choice-btn{font:inherit;font-size:15px;font-weight:500;padding:10px 18px;border-radius:999px;border:0;background:var(--ink);color:#fff;cursor:pointer}
 .pp .foot{display:flex; justify-content:center; padding:36px 20px 44px; border-top:1px solid var(--rule)}
 .pp .foot a{display:flex; align-items:center; gap:8px; font-family:var(--serif); font-size:16px}
 @media (max-width:560px){ .pp .toc ol{columns:1} }

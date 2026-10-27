@@ -1,7 +1,6 @@
 import AuthFooter from "@/app/auth-footer"
 import Link from "next/link"
 import SignupForm from "./signup-form"
-import AdPixels from "@/app/ad-pixels"
 
 export default function SignupPage() {
   return (
@@ -22,7 +21,6 @@ export default function SignupPage() {
         </Link>
       </p>
       <AuthFooter />
-      <AdPixels />
     </main>
   )
 }
