@@ -1,6 +1,7 @@
 "use client"
 import { useActionState, useState } from "react"
 import { applyPartner, type ApplyState } from "./actions"
+import { SOCIALS } from "@/lib/partners"
 
 const field = "w-full rounded-xl border border-[#16151a]/12 bg-white px-4 py-3 text-[15px] outline-none placeholder:text-[#9a989e] focus:border-[#BC559E]"
 const label = "mb-1.5 block text-[13px] font-medium text-[#55535b]"
@@ -51,10 +52,18 @@ export default function ApplyForm() {
           ))}
         </div>
       </div>
-      <label>
+      <div>
         <span className={label}>Where would you share Marvberry?</span>
-        <input name="audience" required className={field} placeholder="Your Instagram, YouTube, coaching group or brokerage" />
-      </label>
+        <p className="-mt-0.5 mb-3 text-[13px] text-[#8d8b92]">Add at least one. We look at every account before we approve a partner.</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {SOCIALS.map((s) => (
+            <label key={s.key} className={s.key === "other" ? "sm:col-span-2" : ""}>
+              <span className="mb-1 block text-[12.5px] text-[#8d8b92]">{s.label}</span>
+              <input name={s.key} className={field} placeholder={s.hint} />
+            </label>
+          ))}
+        </div>
+      </div>
       <label>
         <span className={label}>How would you share it? (optional)</span>
         <textarea name="pitch" rows={3} className={`${field} resize-y`} placeholder="A post, a training, a newsletter..." />

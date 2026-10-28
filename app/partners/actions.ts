@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
+import { SOCIALS } from "@/lib/partners"
 
 export type ApplyState = { ok: boolean; message: string } | null
 
@@ -13,13 +14,16 @@ export async function applyPartner(_prev: ApplyState, formData: FormData): Promi
   const name = String(formData.get("name") ?? "").trim().slice(0, 120)
   const email = String(formData.get("email") ?? "").trim().toLowerCase().slice(0, 200)
   const kind = String(formData.get("kind") ?? "") === "coach" ? "coach" : "influencer"
-  const audience = String(formData.get("audience") ?? "").trim().slice(0, 300)
+  // Their handles and links, one per line, e.g. "Instagram: @dana".
+  const lines = SOCIALS.map((s) => [s.label, String(formData.get(s.key) ?? "").trim().slice(0, 200)] as const).filter(([, v]) => v)
+  const audience = lines.map(([l, v]) => `${l}: ${v}`).join("\n")
+  const hasSocial = lines.some(([l]) => l !== "Anywhere else")
   const pitch = String(formData.get("pitch") ?? "").trim().slice(0, 1500)
   const agree = formData.get("agree") === "on"
 
   if (!name) return { ok: false, message: "Enter your name." }
   if (!emailRe.test(email)) return { ok: false, message: "That email doesn't look right. Check it and try again." }
-  if (!audience) return { ok: false, message: "Tell us where you'd share Marvberry." }
+  if (!hasSocial) return { ok: false, message: "Add at least one social handle or your website, so we can see where you'd share Marvberry." }
   if (!agree) return { ok: false, message: "Please agree to the partner terms." }
 
   const admin = createAdminClient()
@@ -33,8 +37,8 @@ export async function applyPartner(_prev: ApplyState, formData: FormData): Promi
     await sendEmail({
       to: "team@marvberry.com",
       subject: `New partner application: ${name}`,
-      html: `<p><strong>${esc(name)}</strong> (${esc(email)}) applied as ${kind === "coach" ? "a real estate coach" : "an agent influencer"}.</p><p>Where: ${esc(audience)}</p><p>${esc(pitch)}</p><p><a href="https://www.marvberry.com/admin/partners">Review it in Admin</a></p>`,
-      text: `${name} (${email}) applied as ${kind}.\nWhere: ${audience}\n\n${pitch}\n\nReview: https://www.marvberry.com/admin/partners`,
+      html: `<p><strong>${esc(name)}</strong> (${esc(email)}) applied as ${kind === "coach" ? "a real estate coach" : "an agent influencer"}.</p><p>${esc(audience).replace(/\n/g, "<br>")}</p><p>${esc(pitch)}</p><p><a href="https://www.marvberry.com/admin/partners">Review it in Admin</a></p>`,
+      text: `${name} (${email}) applied as ${kind}.\n${audience}\n\n${pitch}\n\nReview: https://www.marvberry.com/admin/partners`,
       fromName: "Marvberry",
       replyTo: email,
     })

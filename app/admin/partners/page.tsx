@@ -2,7 +2,8 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
-import { money, MIN_PAYOUT_CENTS } from "@/lib/partners"
+import { money, MIN_PAYOUT_CENTS, parseSocials } from "@/lib/partners"
+import DeleteButton from "./delete-button"
 import { approvePartner, declinePartner, markPaid, savePayout } from "./actions"
 
 export const dynamic = "force-dynamic"
@@ -85,7 +86,7 @@ export default async function AdminPartners() {
                     {p.kind === "coach" ? "Real estate coach" : "Agent influencer"}
                   </span>
                 </div>
-                <p className="mt-2 text-sm"><span className="text-ink/50">Where:</span> {p.audience}</p>
+                <Socials audience={p.audience} />
                 {p.pitch && <p className="mt-1 text-sm text-ink/70">{p.pitch}</p>}
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <form action={approvePartner} className="flex flex-wrap items-center gap-2">
@@ -98,6 +99,7 @@ export default async function AdminPartners() {
                     <input type="hidden" name="id" value={p.id} />
                     <button className="rounded-full px-4 py-2 text-sm text-ink/60 hover:bg-ink/5">Decline</button>
                   </form>
+                  <DeleteButton id={p.id} name={p.name} />
                 </div>
               </div>
             ))}
@@ -131,7 +133,11 @@ export default async function AdminPartners() {
                       <td className="px-5 py-4">
                         <p className="font-semibold">{p.name}</p>
                         <p className="text-ink/50">/r/{p.code} · {p.kind === "coach" ? "Coach" : "Influencer"}</p>
-                        <a href={`/partners/${p.dashboard_token}`} className="text-xs underline text-ink/60">Their page</a>
+                        <Socials audience={p.audience} small />
+                        <div className="mt-2 flex items-center gap-3">
+                          <a href={`/partners/${p.dashboard_token}`} className="text-xs underline text-ink/60">Their page</a>
+                          <DeleteButton id={p.id} name={p.name} />
+                        </div>
                       </td>
                       <td className="px-3 py-4 tabular-nums">{s.clicks}</td>
                       <td className="px-3 py-4 tabular-nums">{s.signups}</td>
@@ -165,5 +171,28 @@ export default async function AdminPartners() {
         </p>
       </section>
     </main>
+  )
+}
+
+// Their handles and links, each one clickable so you can see who you're partnering with.
+function Socials({ audience, small = false }: { audience: string | null; small?: boolean }) {
+  const list = parseSocials(audience)
+  if (!list.length) return null
+  return (
+    <ul className={`flex flex-wrap gap-1.5 ${small ? "mt-2" : "mt-3"}`}>
+      {list.map((x) => (
+        <li key={x.label + x.value}>
+          {x.href ? (
+            <a href={x.href} target="_blank" rel="noreferrer" className={`inline-flex items-center gap-1 rounded-full border border-ink/12 bg-white hover:border-[#BC559E] ${small ? "px-2 py-0.5 text-[11.5px]" : "px-3 py-1 text-[13px]"}`}>
+              <span className="text-ink/45">{x.label}</span> {x.value} <span aria-hidden className="text-[#BC559E]">&#8599;</span>
+            </a>
+          ) : (
+            <span className={`inline-flex gap-1 rounded-full bg-ink/5 ${small ? "px-2 py-0.5 text-[11.5px]" : "px-3 py-1 text-[13px]"}`}>
+              <span className="text-ink/45">{x.label}</span> {x.value}
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
   )
 }

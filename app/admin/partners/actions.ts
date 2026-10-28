@@ -74,3 +74,11 @@ export async function markPaid(formData: FormData) {
     .is("paid_at", null)
   revalidatePath("/admin/partners")
 }
+
+// Remove a partner completely (for tests or someone you stop working with): their clicks and
+// earnings go too, and agents they referred stay as normal agents with no partner.
+export async function deletePartner(formData: FormData) {
+  const admin = await guard()
+  await admin.from("partners").delete().eq("id", String(formData.get("id") ?? ""))
+  revalidatePath("/admin/partners")
+}

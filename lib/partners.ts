@@ -25,3 +25,41 @@ export function codeFrom(name: string) {
       .slice(0, 16) || "partner"
   )
 }
+
+// Where a partner shares Marvberry. Saved one per line ("Instagram: @dana") so no new database column is needed.
+export const SOCIALS = [
+  { key: "instagram", label: "Instagram", hint: "@yourhandle" },
+  { key: "tiktok", label: "TikTok", hint: "@yourhandle" },
+  { key: "youtube", label: "YouTube", hint: "@yourchannel or link" },
+  { key: "facebook", label: "Facebook", hint: "Page or group link" },
+  { key: "website", label: "Website", hint: "yoursite.com" },
+  { key: "other", label: "Anywhere else", hint: "Coaching group, brokerage, newsletter" },
+] as const
+
+// Turn a saved line into a link you can click to check them out.
+export function socialLink(label: string, value: string): string | null {
+  const v = value.trim()
+  if (!v) return null
+  if (/^https?:\/\//i.test(v)) return v
+  const h = v.replace(/^@/, "")
+  switch (label) {
+    case "Instagram": return `https://www.instagram.com/${h}`
+    case "TikTok": return `https://www.tiktok.com/@${h}`
+    case "YouTube": return /\./.test(h) ? `https://${h}` : `https://www.youtube.com/@${h}`
+    case "Facebook": return /\./.test(h) ? `https://${h}` : `https://www.facebook.com/${h}`
+    case "Website": return `https://${h}`
+    default: return /^[\w-]+\.[\w.-]+/.test(h) ? `https://${h}` : null
+  }
+}
+
+export function parseSocials(audience: string | null): { label: string; value: string; href: string | null }[] {
+  return String(audience ?? "")
+    .split("\n")
+    .map((line) => {
+      const i = line.indexOf(":")
+      const label = i > 0 ? line.slice(0, i).trim() : "Where"
+      const value = i > 0 ? line.slice(i + 1).trim() : line.trim()
+      return { label, value, href: socialLink(label, value) }
+    })
+    .filter((s) => s.value)
+}
