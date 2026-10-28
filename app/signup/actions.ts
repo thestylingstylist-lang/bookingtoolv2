@@ -1,6 +1,8 @@
 "use server"
 
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
+import { REF_COOKIE } from "@/lib/partners"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { slugify, uniqueSlug, AGENT_DEFAULTS } from "@/lib/agent"
@@ -69,6 +71,21 @@ export async function signUp(
     // Roll back the auth user so they can retry cleanly.
     await admin.auth.admin.deleteUser(created.user.id)
     return fail("Couldn't finish setting up your account. Please try again.")
+  }
+
+  // Came through a partner's link? Credit the partner. Coaches' people get a longer free trial.
+  try {
+    const ref = (await cookies()).get(REF_COOKIE)?.value
+    if (ref) {
+      const { data: partner } = await admin.from("partners").select("id, email, trial_days").eq("code", ref).eq("status", "active").maybeSingle()
+      if (partner?.id && String(partner.email).toLowerCase() !== email) {
+        const update: Record<string, string> = { referred_by: partner.id, referred_at: new Date().toISOString() }
+        if (partner.trial_days) update.trial_ends_at = new Date(Date.now() + partner.trial_days * 86400000).toISOString()
+        await admin.from("agents").update(update).eq("id", created.user.id)
+      }
+    }
+  } catch (err) {
+    console.error("[signup] partner credit failed (account still created):", err)
   }
 
   // Onboarding starts right away: Alecia owns it, and the documents we need before the setup

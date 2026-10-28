@@ -52,5 +52,64 @@ export async function POST(req: Request) {
     }
   }
 
+  // Partner program: every payment from a referred agent earns their partner a commission,
+  // for the first 12 payments. One commission per invoice, even if Stripe sends the event twice.
+  if (event.type === "invoice.paid") {
+    const inv = event.data.object as Stripe.Invoice
+    const paid = inv.amount_paid ?? 0
+    if (inv.id && paid > 0 && inv.customer) {
+      const { data: agent } = await admin
+        .from("agents")
+        .select("id, referred_by")
+        .eq("stripe_customer_id", String(inv.customer))
+        .maybeSingle()
+      if (agent?.referred_by) {
+        const { data: partner } = await admin
+          .from("partners")
+          .select("id, commission_pct, commission_months, status")
+          .eq("id", agent.referred_by)
+          .maybeSingle()
+        if (partner && partner.status === "active") {
+          const { count } = await admin
+            .from("partner_commissions")
+            .select("id", { count: "exact", head: true })
+            .eq("agent_id", agent.id)
+          if ((count ?? 0) < partner.commission_months) {
+            await admin.from("partner_commissions").upsert(
+              {
+                partner_id: partner.id,
+                agent_id: agent.id,
+                stripe_invoice_id: inv.id,
+                amount_cents: paid,
+                commission_cents: Math.round((paid * partner.commission_pct) / 100),
+              },
+              { onConflict: "stripe_invoice_id", ignoreDuplicates: true },
+            )
+          }
+        }
+      }
+    }
+  }
+
+  // A refunded payment takes back the commission on it, if it hasn't been paid out yet.
+  if (event.type === "charge.refunded") {
+    const ch = event.data.object as Stripe.Charge
+    if (ch.customer && ch.amount_refunded > 0) {
+      const { data: agent } = await admin.from("agents").select("id, referred_by").eq("stripe_customer_id", String(ch.customer)).maybeSingle()
+      if (agent?.referred_by) {
+        const { data: c } = await admin
+          .from("partner_commissions")
+          .select("id")
+          .eq("agent_id", agent.id)
+          .eq("amount_cents", ch.amount)
+          .is("paid_at", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (c?.id) await admin.from("partner_commissions").delete().eq("id", c.id)
+      }
+    }
+  }
+
   return NextResponse.json({ received: true })
 }

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: "What Marvberry collects, why, who helps us run it, and the choices you have.",
 }
 
-const EFFECTIVE = "October 25, 2026"
+const EFFECTIVE = "October 28, 2026"
 const MAIL = "team@marvberry.com"
 
 export default function Privacy() {
@@ -199,6 +199,11 @@ export default function Privacy() {
             </li>
           </ul>
           <p>
+            <strong>Partners.</strong> If you signed up through a partner&rsquo;s link, that partner sees your first name
+            and last initial, whether you&rsquo;re on a free trial or paying, and the commission they earned. They never
+            see your clients or anything inside your account.
+          </p>
+          <p>
             And of course, when an agent sends a client a booking page, a document or a client page, the client&rsquo;s
             information is shared with that agent. That&rsquo;s how Marvberry works.
           </p>
@@ -208,7 +213,8 @@ export default function Privacy() {
           <h2>8. Cookies and analytics</h2>
           <p>
             <strong>Cookies we need.</strong> We use cookies to keep you signed in and to keep your account secure.
-            Marvberry doesn&rsquo;t work without them.
+            Marvberry doesn&rsquo;t work without them. If you arrive through a partner&rsquo;s link, we also set a cookie
+            for 60 days that remembers which partner sent you, so they get credit if you sign up.
           </p>
           <p>
             <strong>Home page analytics.</strong> On our home page only, we use two tools to see how visitors use the

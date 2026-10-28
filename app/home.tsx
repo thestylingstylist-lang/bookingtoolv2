@@ -310,6 +310,7 @@ export default function Home() {
         <nav>
           <a href="/login">Log in</a>
           <a href="/support">Support</a>
+          <a href="/partners">Partners</a>
           <a href="/privacy">Privacy</a>
         </nav>
       </footer>
