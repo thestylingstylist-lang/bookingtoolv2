@@ -50,7 +50,7 @@ export default async function PartnerDashboard({ params }: { params: Promise<{ t
       <main>
         <h1>Hi {first}.</h1>
         <p className="sub">
-          Here&rsquo;s how your link is doing. You earn {p.commission_pct}% of every payment for each agent&rsquo;s first{" "}
+          Here&rsquo;s how your link is doing. You earn {p.commission_pct}% of what Marvberry receives, after fees, every month each agent pays, for up to{" "}
           {p.commission_months} months{p.trial_days ? `, and your people get ${p.trial_days} days free` : ""}.
         </p>
 

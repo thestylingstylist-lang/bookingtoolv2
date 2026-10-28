@@ -4,7 +4,7 @@ import { COMMISSION_PCT, COMMISSION_MONTHS, COACH_TRIAL_DAYS, REF_DAYS } from "@
 
 export const metadata: Metadata = {
   title: { absolute: "Partner program — Marvberry" },
-  description: `Share Marvberry with the agents you know. Earn ${COMMISSION_PCT}% of what they pay for their first ${COMMISSION_MONTHS} months.`,
+  description: `Share Marvberry with the agents you know. Earn ${COMMISSION_PCT}% for their first ${COMMISSION_MONTHS} months while they stay paying.`,
 }
 
 // Public page for the partner (affiliate) program: agent influencers and real estate coaches.
@@ -27,8 +27,8 @@ export default function PartnersPage() {
           Share Marvberry. <span className="grad">Earn {COMMISSION_PCT}% for a year.</span>
         </h1>
         <p className="sub">
-          Know agents who&rsquo;d love it? Every agent you bring in earns you {COMMISSION_PCT}% of what they pay, for their
-          first {COMMISSION_MONTHS} months. That&rsquo;s about $20 a month for each agent.
+          Know agents who&rsquo;d love it? Every agent you bring in earns you {COMMISSION_PCT}% every month they pay, for
+          up to {COMMISSION_MONTHS} months. That&rsquo;s about $19 a month for each paying agent.
         </p>
         <a className="btn" href="#apply">Apply to be a partner</a>
       </section>
@@ -60,8 +60,8 @@ export default function PartnersPage() {
         </div>
         <div className="math">
           <p className="m-k">Here&rsquo;s the math</p>
-          <p className="m-big">10 agents &asymp; $200 a month</p>
-          <p className="m-sub">That&rsquo;s about $2,400 over their first year, from one share.</p>
+          <p className="m-big">10 paying agents &asymp; $190 a month</p>
+          <p className="m-sub">That&rsquo;s about $2,300 over their first year, as long as they stay.</p>
         </div>
       </section>
 
@@ -76,7 +76,11 @@ export default function PartnersPage() {
       <section className="terms" id="terms">
         <h2>Partner terms</h2>
         <ul>
-          <li>You earn {COMMISSION_PCT}% of what each agent you refer pays, for their first {COMMISSION_MONTHS} payments.</li>
+          <li>
+            You earn {COMMISSION_PCT}% of what Marvberry receives from each agent you refer, after payment processing fees,
+            for their first {COMMISSION_MONTHS} payments. On the $67 plan, that&rsquo;s about $19.29 a month.
+          </li>
+          <li>You earn only while the agent stays active and paying. If they cancel, commission on them stops.</li>
           <li>A referral counts when someone signs up within {REF_DAYS} days of clicking your link.</li>
           <li>We pay once a month, by PayPal or bank transfer, once you&rsquo;re owed $25 or more.</li>
           <li>If a payment is refunded, the commission on it comes off.</li>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import type Stripe from "stripe"
 import { stripe, CLOSER_PRICE_ID, PAID_STATUSES } from "@/lib/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { netAfterFees } from "@/lib/partners"
 
 // Stripe tells us when someone pays, changes plan, or cancels.
 export async function POST(req: Request) {
@@ -52,8 +53,8 @@ export async function POST(req: Request) {
     }
   }
 
-  // Partner program: every payment from a referred agent earns their partner a commission,
-  // for the first 12 payments. One commission per invoice, even if Stripe sends the event twice.
+  // Partner program: every payment from a referred agent earns their partner a commission on what
+  // Marvberry receives after Stripe fees, for the first 12 payments. Cancelled agents stop paying, so it stops. One commission per invoice, even if Stripe sends the event twice.
   if (event.type === "invoice.paid") {
     const inv = event.data.object as Stripe.Invoice
     const paid = inv.amount_paid ?? 0
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
                 agent_id: agent.id,
                 stripe_invoice_id: inv.id,
                 amount_cents: paid,
-                commission_cents: Math.round((paid * partner.commission_pct) / 100),
+                commission_cents: Math.round((netAfterFees(paid) * partner.commission_pct) / 100),
               },
               { onConflict: "stripe_invoice_id", ignoreDuplicates: true },
             )
