@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { DEMO_BUSINESS } from "@/lib/demo"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -32,6 +33,7 @@ export default async function AdminAgentsPage({
   const { data: agentsData } = await admin
     .from("agents")
     .select("id, business_name, full_name, created_at, trial_ends_at, subscription_status")
+    .neq("business_name", DEMO_BUSINESS)
     .order("created_at", { ascending: false })
     .limit(1000)
 

@@ -10,6 +10,8 @@ import SubmitButton from "./ui/submit-button"
 import SentNote, { sentTime } from "./ui/sent-note"
 import { formatInTimeZone } from "date-fns-tz"
 import { CHAT_ZOOM } from "@/app/chat/config"
+import DemoCard from "./demo-card"
+import { DEMO_BUSINESS } from "@/lib/demo"
 
 export const dynamic = "force-dynamic"
 
@@ -51,7 +53,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
   const admin = createAdminClient()
   const [agentsRes, usersRes, unreadRes, feedbackRes, goalRes] = await Promise.all([
-    admin.from("agents").select("id, business_name, full_name, created_at, trial_ends_at, subscription_status"),
+    admin.from("agents").select("id, business_name, full_name, created_at, trial_ends_at, subscription_status").neq("business_name", DEMO_BUSINESS),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from("support_messages").select("id", { count: "exact", head: true }).eq("from_team", false).eq("read_by_team", false),
     admin.from("feedback").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),
@@ -369,6 +371,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
           )}
         </section>
       </div>
+      <DemoCard />
     </main>
   )
 }

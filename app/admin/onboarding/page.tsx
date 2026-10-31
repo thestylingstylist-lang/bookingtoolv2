@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { DEMO_BUSINESS } from "@/lib/demo"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -44,7 +45,7 @@ export default async function AdminOnboardingPage({ searchParams }: { searchPara
   const [{ data: obData, error }, { data: docData }, { data: agentData }] = await Promise.all([
     admin.from("onboarding").select("agent_id, created_at, owner, setup_call_done, setup_call_at, completed_at").order("created_at", { ascending: false }),
     admin.from("onboarding_docs").select("id, agent_id, created_at, title, file_path, file_name, uploaded_at, template_built").order("created_at", { ascending: true }),
-    admin.from("agents").select("id, full_name, business_name, created_at").order("created_at", { ascending: false }).limit(1000),
+    admin.from("agents").select("id, full_name, business_name, created_at").neq("business_name", DEMO_BUSINESS).order("created_at", { ascending: false }).limit(1000),
   ])
 
   if (error) {
