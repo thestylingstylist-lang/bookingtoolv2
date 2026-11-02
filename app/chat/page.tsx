@@ -17,8 +17,10 @@ export const metadata: Metadata = {
 // Marvberry's own setup-call page, in the Marvberry look (the home page's font, berry and glow).
 // Agents' booking pages for their clients stay neutral, so they feel like the agent's own.
 // Right after signup (?welcome=1) it's step two of two, with the agent's details filled in.
-export default async function ChatPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
-  const welcome = (await searchParams).welcome === "1"
+export default async function ChatPage({ searchParams }: { searchParams: Promise<{ welcome?: string; paid?: string }> }) {
+  const sp = await searchParams
+  const welcome = sp.welcome === "1"
+  const paid = welcome && sp.paid === "1" // just bought the done-for-you setup
   const slots = generateSlots(CHAT_CFG, await takenChatSlots())
 
   // A signed-in agent doesn't retype what they just gave us.
@@ -53,7 +55,8 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
         {welcome && (
           <ol className="track" aria-label="Your progress">
             <li className="done">Account created</li>
-            <li className="now">Book your setup call</li>
+            <li className="done">Your setup</li>
+            <li className="now">{paid ? "Book your kickoff call" : "Book your setup call"}</li>
           </ol>
         )}
       </header>
@@ -78,11 +81,22 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
             <div className="welcome">
               <img src="/brand/berry.webp" alt="" className="wberry" />
               <div>
-                <p className="w1">You&rsquo;re in{first ? `, ${first}` : ""}. One more step.</p>
-                <p className="w2">
-                  Pick a time for your free setup call. We&rsquo;ll build your booking page, your agreements and your client
-                  steps with you, so Marvberry is running from day one.
-                </p>
+                {paid ? (
+                  <>
+                    <p className="w1">You&rsquo;re all set{first ? `, ${first}` : ""}. Payment received.</p>
+                    <p className="w2">
+                      Pick a time for your kickoff call. That&rsquo;s day one of your 7 days. After that, we do the rest.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="w1">You&rsquo;re in{first ? `, ${first}` : ""}. One more step.</p>
+                    <p className="w2">
+                      Pick a time for your free setup call. We&rsquo;ll build your booking page, your agreements and your
+                      client steps with you, so Marvberry is running from day one.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -103,8 +117,8 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
               doneHref={welcome && prefill ? "/dashboard?welcome=1" : undefined}
               icsPath="/chat/ics"
               copy={{
-                title: "Book your setup call",
-                button: "Book my setup call",
+                title: paid ? "Book your kickoff call" : "Book your setup call",
+                button: paid ? "Book my kickoff call" : "Book my setup call",
                 withWho: "Your setup call with Alecia",
                 eventTitle: CHAT_EVENT_TITLE,
                 steps: [

@@ -3,6 +3,7 @@ import type Stripe from "stripe"
 import { stripe, CLOSER_PRICE_ID, PAID_STATUSES } from "@/lib/stripe"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { netAfterFees } from "@/lib/partners"
+import { sendEmail } from "@/lib/email"
 
 // Stripe tells us when someone pays, changes plan, or cancels.
 export async function POST(req: Request) {
@@ -21,7 +22,23 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const s = event.data.object as Stripe.Checkout.Session
-    if (s.client_reference_id) {
+    if (s.mode === "payment" && s.metadata?.kind === "setup") {
+      // Done-for-you setup: a one-time payment. Save the customer, and tell the team to start.
+      if (s.client_reference_id) {
+        await admin.from("agents").update({ stripe_customer_id: s.customer as string }).eq("id", s.client_reference_id)
+        const { data: a } = await admin.from("agents").select("full_name, business_name").eq("id", s.client_reference_id).maybeSingle()
+        const who = a?.full_name || a?.business_name || "An agent"
+        try {
+          await sendEmail({
+            to: "team@marvberry.com",
+            subject: `Paid: done-for-you setup for ${who}`,
+            html: `<p><strong>${who}</strong> just paid for the done-for-you setup ($${((s.amount_total ?? 0) / 100).toFixed(0)}). Their 7 days start with the kickoff call they book next.</p><p><a href="https://www.marvberry.com/admin/onboarding">Open onboarding</a></p>`,
+            text: `${who} just paid for the done-for-you setup. Their 7 days start with the kickoff call they book next.\n\nhttps://www.marvberry.com/admin/onboarding`,
+            fromName: "Marvberry",
+          })
+        } catch {}
+      }
+    } else if (s.client_reference_id) {
       await admin
         .from("agents")
         .update({ stripe_customer_id: s.customer as string, subscription_status: "active" })

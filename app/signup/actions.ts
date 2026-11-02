@@ -105,6 +105,6 @@ export async function signUp(
     redirect("/login")
   }
 
-  // Step two: book the setup call we promise on the home page.
-  redirect("/chat?welcome=1")
+  // Next: one offer to have it all set up for them, then the setup call.
+  redirect("/setup?offer=1")
 }
