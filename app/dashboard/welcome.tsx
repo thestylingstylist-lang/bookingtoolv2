@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
-import { saveAssistantName, saveBrokerage } from "./welcome-actions"
+import { saveAssistantName, saveBrokerage, savePhone, uploadBrandImage, saveHours, saveReplies } from "./welcome-actions"
 
 const SEEN = "mb-welcomed"
 
@@ -69,6 +69,11 @@ type Props = {
   brokerage: string
   slug: string
   headshot: string
+  logo: string
+  phone: string
+  weekdays: number[]
+  dayStart: number
+  dayEnd: number
   feedPath: string
 }
 
@@ -257,33 +262,44 @@ export default function Welcome(props: Props) {
 }
 
 // --- The onboarding chat ---
-type Msg = { id: number; from: "bot" | "me" | "card"; text: string; heart?: boolean }
+type Msg = { id: number; from: "bot" | "me"; text: string; heart?: boolean }
 type Ask =
   | { kind: "chips"; options: string[]; own?: boolean }
-  | { kind: "input"; placeholder: string; value: string; button: string }
+  | { kind: "input"; placeholder: string; value: string; button: string; skip?: boolean; type?: string }
+  | { kind: "upload"; what: "headshot" | "logo" }
+  | { kind: "hours" }
 const NAMES = ["Marvberry", "Sage", "Marv"]
+const SKIP = "Skip for now"
+const DAY = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const pop = () => tone(880, 0, 0.12, 0.035)
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+const hr = (h: number) => (h === 0 || h === 24 ? "12 AM" : h === 12 ? "12 PM" : h < 12 ? `${h} AM` : `${h - 12} PM`)
+function daysLabel(d: number[]) {
+  const s = [...d].sort((x, y) => x - y)
+  const run = s.length > 2 && s.every((v, k) => k === 0 || v === s[k - 1] + 1)
+  return run ? `${DAY[s[0] - 1]}–${DAY[s[s.length - 1] - 1]}` : s.map((v) => DAY[v - 1]).join(", ")
+}
 
-function Chat({
-  first,
-  callLabel,
-  fullName,
-  brokerage,
-  slug,
-  headshot,
-  feedPath,
-  onTour,
-  onDone,
-}: Props & { onTour: () => void; onDone: (href: string) => void }) {
+function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void }) {
+  const { first, callLabel, fullName, slug, feedPath, onTour, onDone } = p
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [typing, setTyping] = useState<string | null>(null)
   const [ask, setAsk] = useState<Ask | null>(null)
   const [name, setName] = useState("Marvberry")
-  const [brk, setBrk] = useState(brokerage)
   const [draft, setDraft] = useState("")
   const [typingOwn, setTypingOwn] = useState(false)
   const [err, setErr] = useState("")
+  const [busy, setBusy] = useState(false)
+  // The booking page, as it builds.
+  const [pageOn, setPageOn] = useState(false)
+  const [flash, setFlash] = useState("")
+  const [brk, setBrk] = useState(p.brokerage)
+  const [phone, setPhone] = useState(p.phone)
+  const [photo, setPhoto] = useState(p.headshot)
+  const [logo, setLogo] = useState(p.logo)
+  const [days, setDays] = useState<number[]>(p.weekdays.length ? p.weekdays : [1, 2, 3, 4, 5])
+  const [start, setStart] = useState(p.dayStart || 9)
+  const [end, setEnd] = useState(p.dayEnd || 17)
   const answer = useRef<((v: string) => void) | null>(null)
   const feed = useRef<HTMLDivElement>(null)
   const ran = useRef(false)
@@ -294,6 +310,11 @@ function Chat({
     feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: "smooth" })
   }, [msgs, typing, ask])
 
+  const show = (field: string) => {
+    setFlash(field)
+    pop()
+    setTimeout(() => setFlash(""), 1200)
+  }
   const add = (m: Omit<Msg, "id">) => setMsgs((xs) => [...xs, { ...m, id: xs.length + Math.random() }])
   const say = async (text: string, status?: string, ms = 1100) => {
     setTyping(status ?? `${nameRef.current} is typing`)
@@ -317,12 +338,27 @@ function Chat({
     setTypingOwn(false)
     answer.current?.(v)
   }
+  const upload = async (what: "headshot" | "logo", file: File | undefined) => {
+    if (!file) return
+    setBusy(true)
+    setErr("")
+    const fd = new FormData()
+    fd.set("kind", what)
+    fd.set("file", file)
+    const res = await uploadBrandImage(fd).catch(() => ({ error: "Couldn't upload that. Try another image." }) as { url?: string; error?: string })
+    setBusy(false)
+    if (res.error || !res.url) return setErr(res.error || "Couldn't upload that. Try another image.")
+    if (what === "logo") setLogo(res.url)
+    else setPhoto(res.url)
+    reply(what === "logo" ? "Logo added" : "Photo added")
+  }
 
   useEffect(() => {
     if (ran.current) return
     ran.current = true
     ;(async () => {
       await sleep(400)
+      // Hello and a name
       await say(
         `Hey${first ? ` ${first}` : ""}, I’m your follow-up assistant. I keep your clients in the loop and handle the paperwork around every deal, so nothing gets dropped.`,
       )
@@ -334,30 +370,90 @@ function Chat({
       tone(1046.5, 0, 0.18, 0.04)
       nameRef.current = picked
       setName(picked)
-      void saveAssistantName(picked)
+      void saveAssistantName(picked).catch(() => {})
       await say(picked === "Marvberry" ? "Marvberry it is. So happy to meet you." : `${picked} it is. I love it.`)
 
-      await say("How should your clients see you? Here’s the brokerage on your page right now.")
-      const b = await wait({ kind: "input", placeholder: "Your brokerage", value: brokerage, button: "That’s it" })
+      // The booking page, built one piece at a time
+      await say("Let’s set up your booking page, so you can share your first link today. Here’s how it looks right now.")
+      setPageOn(true)
+      pop()
+      await sleep(700)
+      await say("First, is this your brokerage?")
+      const b = await wait({ kind: "input", placeholder: "Your brokerage", value: p.brokerage, button: "That’s it" })
       add({ from: "me", text: b })
       setBrk(b)
-      if (b !== brokerage) void saveBrokerage(b)
+      show("brk")
+      if (b !== p.brokerage) void saveBrokerage(b).catch(() => {})
 
-      await say("Your booking page is ready.", `${nameRef.current} is updating your page`, 1600)
-      add({ from: "card", text: "" })
-      pop()
-      await sleep(600)
-      await say("Here it is, with your name on it. Want your showings and bookings on your phone’s calendar too?")
+      await say("Would you like your phone number on your page? It’s optional.")
+      const ph = await wait({ kind: "input", placeholder: "(732) 555-0100", value: p.phone, button: "Add it", skip: true, type: "tel" })
+      add({ from: "me", text: ph === SKIP ? "I’ll add it later" : ph })
+      if (ph !== SKIP) {
+        setPhone(ph)
+        show("phone")
+        void savePhone(ph).catch(() => {})
+      }
+
+      await say("Now a photo of you. Clients like seeing who they’re booking with.")
+      const ph2 = await wait({ kind: "upload", what: "headshot" })
+      add({ from: "me", text: ph2 === SKIP ? "I’ll add it later" : ph2 })
+      if (ph2 !== SKIP) show("photo")
+
+      await say("Do you have a logo you’d like on it?")
+      const lg = await wait({ kind: "upload", what: "logo" })
+      add({ from: "me", text: lg === SKIP ? "I’ll add it later" : lg })
+      if (lg !== SKIP) show("logo")
+      await say(ph2 !== SKIP || lg !== SKIP ? "That looks great." : "No problem. You can add those anytime in Settings.")
+
+      // Working hours
+      await say(
+        "A lot of agents tell me their clients text them all night. I’m here to help with that. Tell me your working hours, and I’ll only let clients book inside them.",
+      )
+      const h = await wait({ kind: "chips", options: ["Weekdays, 9 to 5", "Weekdays and Saturdays", "Set my own"] })
+      add({ from: "me", text: h })
+      let d = [1, 2, 3, 4, 5],
+        s0 = 9,
+        e0 = 17
+      if (h === "Weekdays and Saturdays") d = [1, 2, 3, 4, 5, 6]
+      if (h === "Set my own") {
+        await say("Pick your days and hours.")
+        const raw = await wait({ kind: "hours" })
+        const [dd, ss, ee] = raw.split("|")
+        d = dd.split(",").map(Number)
+        s0 = Number(ss)
+        e0 = Number(ee)
+        add({ from: "me", text: `${daysLabel(d)}, ${hr(s0)} to ${hr(e0)}` })
+      }
+      setDays(d)
+      setStart(s0)
+      setEnd(e0)
+      show("hours")
+      void saveHours(d, s0, e0).catch(() => {})
+      await say("Done. Clients can only book you inside those hours, so your evenings stay yours.", `${nameRef.current} is updating your page`, 1400)
+
+      // How Marvberry helps with clients (only what works today)
+      await say("How would you like me to help with your clients? You can change this anytime.")
+      const c = await wait({ kind: "chips", options: ["Draft replies for me to approve", "Just me for now"] })
+      add({ from: "me", text: c })
+      const drafts = c !== "Just me for now"
+      void saveReplies(drafts).catch(() => {})
+      await say(
+        drafts
+          ? "Perfect. When a client messages you, I’ll have a reply drafted in your voice. Nothing goes out until you approve it."
+          : "Got it. Turn me on in Settings whenever you’d like a hand.",
+      )
+
+      // Phone calendar
+      await say("Want your showings and bookings on your phone’s calendar too?")
       const cal = await wait({ kind: "chips", options: ["Add to my calendar", "Maybe later"] })
       add({ from: "me", text: cal })
       if (cal === "Add to my calendar") {
         window.location.href = `webcal://${feedPath}`
-        await say("Done. Your phone will ask you to confirm, and then everything shows up there.", `${nameRef.current} is connecting your calendar`, 1400)
+        await say("Your phone will ask you to confirm, and then everything shows up there.", `${nameRef.current} is connecting your calendar`, 1400)
       } else await say("No problem. It’s on your Calendar page whenever you want it.")
 
-      await say(
-        `You’re all set.${callLabel ? ` Your setup call is ${callLabel}.` : ""} What can I do for you first?`,
-      )
+      // First step
+      await say(`Your page is ready.${callLabel ? ` Your setup call is ${callLabel}.` : ""} What can I take off your plate first?`)
       for (;;) {
         const go = await wait({ kind: "chips", options: ["Add my first client", "Send my booking link", "Show me around"] })
         add({ from: "me", text: go })
@@ -384,6 +480,7 @@ function Chat({
   }, [])
 
   const initial = (fullName || first || "M").trim().charAt(0).toUpperCase()
+  const fl = (f: string) => (flash === f ? " flash" : "")
 
   return (
     <div className="mbw-chat" role="dialog" aria-label={`Meet ${name}`}>
@@ -402,30 +499,47 @@ function Chat({
             Skip
           </button>
         </div>
+        {pageOn && (
+          <div className="page" aria-label="Your booking page preview">
+            <div className="who">
+              {photo ? (
+                <img src={photo} alt="" className={`hs${fl("photo")}`} />
+              ) : (
+                <div className={`hs ini${fl("photo")}`}>{initial}</div>
+              )}
+              <div className="txt">
+                <p className="pn">{fullName || first}</p>
+                <p className={`pb${fl("brk")}`}>{brk || "Your brokerage"}</p>
+              </div>
+              {logo && <img src={logo} alt="" className={`lg${fl("logo")}`} />}
+            </div>
+            <div className="meta">
+              <span className={fl("hours")}>
+                {daysLabel(days)} · {hr(start)}–{hr(end)}
+              </span>
+              {phone && <span className={fl("phone")}>{phone}</span>}
+            </div>
+            <p className="url">{link}</p>
+          </div>
+        )}
         <div className="feed" ref={feed} aria-live="polite">
-          {msgs.map((m) =>
-            m.from === "card" ? (
-              <div key={m.id} className="page">
-                <p className="eyebrow">Your booking page</p>
-                <div className="who">
-                  {headshot ? <img src={headshot} alt="" className="hs" /> : <div className="hs ini">{initial}</div>}
-                  <div>
-                    <p className="pn">{fullName || first}</p>
-                    <p className="pb">{brk}</p>
-                  </div>
-                </div>
-                <p className="url">{link}</p>
-              </div>
-            ) : (
-              <div key={m.id} className={`b ${m.from}`}>
-                {m.text}
-                {m.heart && <span className="heart" aria-label="loved">&#9829;</span>}
-              </div>
-            ),
-          )}
+          {msgs.map((m) => (
+            <div key={m.id} className={`b ${m.from}`}>
+              {m.text}
+              {m.heart && (
+                <span className="heart" aria-label="loved">
+                  &#9829;
+                </span>
+              )}
+            </div>
+          ))}
           {typing && (
             <p className="typing">
-              <span className="dots"><i /><i /><i /></span>
+              <span className="dots">
+                <i />
+                <i />
+                <i />
+              </span>
               {typing}
             </p>
           )}
@@ -439,7 +553,15 @@ function Chat({
                 </button>
               ))}
               {ask.own && (
-                <button type="button" className="own" onClick={() => { click(); setDraft(""); setTypingOwn(true) }}>
+                <button
+                  type="button"
+                  className="own"
+                  onClick={() => {
+                    click()
+                    setDraft("")
+                    setTypingOwn(true)
+                  }}
+                >
                   Type my own
                 </button>
               )}
@@ -450,18 +572,92 @@ function Chat({
               className="field"
               onSubmit={(e) => {
                 e.preventDefault()
-                if (!draft.trim()) return setErr(typingOwn ? "Type a name first" : "Type your brokerage first")
+                if (!draft.trim()) return setErr(typingOwn ? "Type a name first" : "Type it in first, or skip")
                 reply(draft.trim())
               }}
             >
               <input
                 autoFocus
+                type={ask?.kind === "input" && ask.type ? ask.type : "text"}
                 value={draft}
                 maxLength={typingOwn ? 30 : 120}
                 placeholder={typingOwn ? "A name you like" : ask?.kind === "input" ? ask.placeholder : ""}
-                onChange={(e) => { setDraft(e.target.value); setErr("") }}
+                onChange={(e) => {
+                  setDraft(e.target.value)
+                  setErr("")
+                }}
               />
               <button type="submit">{typingOwn ? "Send" : ask?.kind === "input" ? ask.button : "Send"}</button>
+              {ask?.kind === "input" && ask.skip && (
+                <button type="button" className="own" onClick={() => reply(SKIP)}>
+                  {SKIP}
+                </button>
+              )}
+              {err && <p className="err">{err}</p>}
+            </form>
+          )}
+          {ask?.kind === "upload" && (
+            <div className="chips">
+              <label className={`chip up${busy ? " busy" : ""}`}>
+                {busy ? "Uploading…" : ask.what === "logo" ? "Upload my logo" : "Upload my photo"}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  disabled={busy}
+                  onChange={(e) => upload(ask.what, e.target.files?.[0])}
+                />
+              </label>
+              <button type="button" className="own" onClick={() => reply(SKIP)} disabled={busy}>
+                {SKIP}
+              </button>
+              {err && <p className="err">{err}</p>}
+            </div>
+          )}
+          {ask?.kind === "hours" && (
+            <form
+              className="hours"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!days.length) return setErr("Pick at least one day")
+                if (end <= start) return setErr("Your end time should be after your start time")
+                reply(`${days.join(",")}|${start}|${end}`)
+              }}
+            >
+              <div className="days">
+                {DAY.map((lbl, k) => {
+                  const iso = k + 1
+                  const on = days.includes(iso)
+                  return (
+                    <button
+                      key={lbl}
+                      type="button"
+                      className={`day${on ? " on" : ""}`}
+                      aria-pressed={on}
+                      onClick={() => {
+                        click()
+                        setErr("")
+                        setDays(on ? days.filter((x) => x !== iso) : [...days, iso])
+                      }}
+                    >
+                      {lbl}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="times">
+                <select value={start} onChange={(e) => { setStart(Number(e.target.value)); setErr("") }} aria-label="Start time">
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <option key={h} value={h}>{hr(h)}</option>
+                  ))}
+                </select>
+                <span>to</span>
+                <select value={end} onChange={(e) => { setEnd(Number(e.target.value)); setErr("") }} aria-label="End time">
+                  {Array.from({ length: 24 }, (_, h) => h + 1).map((h) => (
+                    <option key={h} value={h}>{hr(h)}</option>
+                  ))}
+                </select>
+                <button type="submit">Save hours</button>
+              </div>
               {err && <p className="err">{err}</p>}
             </form>
           )}
@@ -543,14 +739,29 @@ const CSS = `
 .mbw-chat .dots i{width:5px;height:5px;border-radius:50%;background:#BC559E;animation:mbwDot 1s infinite}
 .mbw-chat .dots i:nth-child(2){animation-delay:.15s}.mbw-chat .dots i:nth-child(3){animation-delay:.3s}
 @keyframes mbwDot{0%,100%{opacity:.25}50%{opacity:1}}
-.mbw-chat .page{align-self:stretch;background:#fff;border:1px solid rgba(22,21,26,.07);border-radius:18px;padding:16px;animation:mbwMsg .5s cubic-bezier(.2,1.2,.4,1) both}
-.mbw-chat .eyebrow{margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#BC559E}
-.mbw-chat .who{display:flex;align-items:center;gap:12px;margin-top:12px}
-.mbw-chat .hs{width:46px;height:46px;border-radius:50%;object-fit:cover}
+.mbw-chat .page{margin:12px 14px 0;background:#fff;border:1px solid rgba(22,21,26,.07);border-radius:18px;padding:14px 16px;animation:mbwMsg .5s cubic-bezier(.2,1.2,.4,1) both}
+.mbw-chat .who{display:flex;align-items:center;gap:12px}
+.mbw-chat .txt{min-width:0;flex:1}
+.mbw-chat .hs{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none}
 .mbw-chat .ini{display:grid;place-items:center;background:#FBEDF5;color:#93407A;font-weight:600}
-.mbw-chat .pn{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
-.mbw-chat .pb{margin:2px 0 0;font-size:13.5px;color:#55535b}
-.mbw-chat .url{margin:14px 0 0;padding-top:12px;border-top:1px solid rgba(22,21,26,.06);font-size:13px;color:#8d8b92}
+.mbw-chat .lg{height:30px;max-width:84px;object-fit:contain;flex:none}
+.mbw-chat .pn{margin:0;font-size:15.5px;font-weight:600;letter-spacing:-.01em}
+.mbw-chat .pb{margin:1px 0 0;font-size:13px;color:#55535b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbw-chat .meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12.5px;color:#55535b}
+.mbw-chat .meta span{border-radius:6px;padding:1px 4px;margin:0 -4px}
+.mbw-chat .url{margin:10px 0 0;padding-top:10px;border-top:1px solid rgba(22,21,26,.06);font-size:12.5px;color:#8d8b92}
+.mbw-chat .flash{animation:mbwFlash 1.2s ease}
+@keyframes mbwFlash{0%{background:#FBEDF5;box-shadow:0 0 0 4px #FBEDF5;transform:scale(1.04)}100%{background:transparent;box-shadow:0 0 0 0 transparent;transform:none}}
+.mbw-chat .up{position:relative;overflow:hidden}
+.mbw-chat .up input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.mbw-chat .busy{opacity:.6}
+.mbw-chat .hours{display:flex;flex-direction:column;gap:10px;animation:mbwUp .4s ease both}
+.mbw-chat .days{display:flex;gap:6px;flex-wrap:wrap}
+.mbw-chat .day{font:inherit;font-size:13px;padding:8px 10px;border-radius:999px;border:1px solid rgba(22,21,26,.12);background:#fff;color:#16151a;cursor:pointer}
+.mbw-chat .day.on{background:#BC559E;border-color:#BC559E;color:#fff}
+.mbw-chat .times{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:#55535b}
+.mbw-chat .times select{font:inherit;font-size:14px;padding:9px 10px;border-radius:12px;border:1px solid rgba(22,21,26,.12);background:#fff;color:#16151a}
+.mbw-chat .times button{font:inherit;font-size:14px;font-weight:550;padding:10px 16px;border-radius:999px;border:0;background:#16151a;color:#fff;cursor:pointer;margin-left:auto}
 .mbw-chat .ask{padding:10px 18px 18px;min-height:64px}
 .mbw-chat .chips{display:flex;flex-wrap:wrap;gap:8px;animation:mbwUp .4s ease both}
 .mbw-chat .chip{font:inherit;font-size:14px;padding:10px 16px;border-radius:999px;border:1px solid #efc9df;background:#FBEDF5;color:#93407A;cursor:pointer;transition:transform .15s}

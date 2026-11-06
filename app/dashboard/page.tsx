@@ -330,6 +330,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           brokerage={agent.business_name || ""}
           slug={agent.slug}
           headshot={agent.headshot_url || ""}
+          logo={agent.logo_url || ""}
+          phone={agent.public_phone || ""}
+          weekdays={agent.weekdays || []}
+          dayStart={agent.day_start}
+          dayEnd={agent.day_end}
           feedPath={`www.marvberry.com/api/calendar/${feedToken(agent.id)}`}
         />}
 
