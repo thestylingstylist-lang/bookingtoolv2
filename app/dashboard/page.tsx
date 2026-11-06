@@ -5,6 +5,7 @@ import { formatSlot } from "@/lib/slots"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { SETUP_STEPS, setupProgress } from "@/lib/onboarding"
 import Welcome from "./welcome"
+import { feedToken } from "@/lib/feed"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
 import { isAdminEmail } from "@/lib/admin"
@@ -322,7 +323,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       <SeenMarker since={since} />
-      {sp.welcome === "1" && <Welcome first={firstName} callLabel={callLabel} />}
+      {sp.welcome === "1" && <Welcome
+          first={firstName}
+          callLabel={callLabel}
+          fullName={agent.full_name || ""}
+          brokerage={agent.business_name || ""}
+          slug={agent.slug}
+          headshot={agent.headshot_url || ""}
+          feedPath={`www.marvberry.com/api/calendar/${feedToken(agent.id)}`}
+        />}
 
       <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((c) => (

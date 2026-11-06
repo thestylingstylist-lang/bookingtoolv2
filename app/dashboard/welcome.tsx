@@ -1,12 +1,14 @@
 "use client"
 // The first time a new agent lands in Marvberry (right after booking their setup call):
 // 1. A slow, soft "Welcome to Marvberry" with the berry, like a new Mac saying hello.
-// 2. A short tour: each part of the sidebar lights up with one line about it.
-// 3. It ends on their setup documents, so they can upload them before the call.
+// 2. A short chat with their assistant: it introduces itself, they name it, confirm their
+//    brokerage, see their booking page, add the calendar to their phone, and pick a first step.
+// 3. "Show me around" runs the sidebar tour, ending on their setup documents.
 // Plays once per browser. Soft click sounds on taps (browsers only allow sound after a tap).
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
+import { saveAssistantName, saveBrokerage } from "./welcome-actions"
 
 const SEEN = "mb-welcomed"
 
@@ -60,9 +62,20 @@ function visible(el: Element | null): el is HTMLElement {
   return r.width > 0 && r.height > 0
 }
 
-export default function Welcome({ first, callLabel }: { first: string; callLabel: string }) {
+type Props = {
+  first: string
+  callLabel: string
+  fullName: string
+  brokerage: string
+  slug: string
+  headshot: string
+  feedPath: string
+}
+
+export default function Welcome(props: Props) {
+  const { first, callLabel } = props
   const router = useRouter()
-  const [phase, setPhase] = useState<"off" | "hello" | "tour">("off")
+  const [phase, setPhase] = useState<"off" | "hello" | "chat" | "tour">("off")
   const [i, setI] = useState(0)
   const [rect, setRect] = useState<DOMRect | null>(null)
   const [leaving, setLeaving] = useState(false)
@@ -122,13 +135,29 @@ export default function Welcome({ first, callLabel }: { first: string; callLabel
   const start = () => {
     chime()
     setLeaving(true)
-    setTimeout(() => {
-      setPhase("tour")
-      setI(0)
-    }, 700)
+    setTimeout(() => setPhase("chat"), 700)
   }
 
   if (phase === "off") return null
+
+  if (phase === "chat")
+    return createPortal(
+      <Chat
+        {...props}
+        onTour={() => {
+          setI(0)
+          setPhase("tour")
+        }}
+        onDone={(href) => {
+          try {
+            localStorage.setItem(SEEN, "1")
+          } catch {}
+          setPhase("off")
+          router.replace(href)
+        }}
+      />,
+      document.body,
+    )
 
   if (phase === "hello")
     return createPortal(
@@ -227,6 +256,221 @@ export default function Welcome({ first, callLabel }: { first: string; callLabel
   )
 }
 
+// --- The onboarding chat ---
+type Msg = { id: number; from: "bot" | "me" | "card"; text: string; heart?: boolean }
+type Ask =
+  | { kind: "chips"; options: string[]; own?: boolean }
+  | { kind: "input"; placeholder: string; value: string; button: string }
+const NAMES = ["Marvberry", "Sage", "Marv"]
+const pop = () => tone(880, 0, 0.12, 0.035)
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+function Chat({
+  first,
+  callLabel,
+  fullName,
+  brokerage,
+  slug,
+  headshot,
+  feedPath,
+  onTour,
+  onDone,
+}: Props & { onTour: () => void; onDone: (href: string) => void }) {
+  const [msgs, setMsgs] = useState<Msg[]>([])
+  const [typing, setTyping] = useState<string | null>(null)
+  const [ask, setAsk] = useState<Ask | null>(null)
+  const [name, setName] = useState("Marvberry")
+  const [brk, setBrk] = useState(brokerage)
+  const [draft, setDraft] = useState("")
+  const [typingOwn, setTypingOwn] = useState(false)
+  const [err, setErr] = useState("")
+  const answer = useRef<((v: string) => void) | null>(null)
+  const feed = useRef<HTMLDivElement>(null)
+  const ran = useRef(false)
+  const nameRef = useRef("Marvberry")
+  const link = `marvberry.com/book/${slug}`
+
+  useEffect(() => {
+    feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: "smooth" })
+  }, [msgs, typing, ask])
+
+  const add = (m: Omit<Msg, "id">) => setMsgs((xs) => [...xs, { ...m, id: xs.length + Math.random() }])
+  const say = async (text: string, status?: string, ms = 1100) => {
+    setTyping(status ?? `${nameRef.current} is typing`)
+    await sleep(ms)
+    setTyping(null)
+    add({ from: "bot", text })
+    pop()
+    await sleep(250)
+  }
+  const wait = (a: Ask) =>
+    new Promise<string>((r) => {
+      if (a.kind === "input") setDraft(a.value)
+      setErr("")
+      setTypingOwn(false)
+      setAsk(a)
+      answer.current = r
+    })
+  const reply = (v: string) => {
+    click()
+    setAsk(null)
+    setTypingOwn(false)
+    answer.current?.(v)
+  }
+
+  useEffect(() => {
+    if (ran.current) return
+    ran.current = true
+    ;(async () => {
+      await sleep(400)
+      await say(
+        `Hey${first ? ` ${first}` : ""}, I’m your follow-up assistant. I keep your clients in the loop and handle the paperwork around every deal, so nothing gets dropped.`,
+      )
+      await say("What would you like to call me? You can always change this later.")
+      const picked = await wait({ kind: "chips", options: NAMES, own: true })
+      add({ from: "me", text: picked })
+      await sleep(450)
+      setMsgs((xs) => xs.map((m, k) => (k === xs.length - 1 ? { ...m, heart: true } : m)))
+      tone(1046.5, 0, 0.18, 0.04)
+      nameRef.current = picked
+      setName(picked)
+      void saveAssistantName(picked)
+      await say(picked === "Marvberry" ? "Marvberry it is. So happy to meet you." : `${picked} it is. I love it.`)
+
+      await say("How should your clients see you? Here’s the brokerage on your page right now.")
+      const b = await wait({ kind: "input", placeholder: "Your brokerage", value: brokerage, button: "That’s it" })
+      add({ from: "me", text: b })
+      setBrk(b)
+      if (b !== brokerage) void saveBrokerage(b)
+
+      await say("Your booking page is ready.", `${nameRef.current} is updating your page`, 1600)
+      add({ from: "card", text: "" })
+      pop()
+      await sleep(600)
+      await say("Here it is, with your name on it. Want your showings and bookings on your phone’s calendar too?")
+      const cal = await wait({ kind: "chips", options: ["Add to my calendar", "Maybe later"] })
+      add({ from: "me", text: cal })
+      if (cal === "Add to my calendar") {
+        window.location.href = `webcal://${feedPath}`
+        await say("Done. Your phone will ask you to confirm, and then everything shows up there.", `${nameRef.current} is connecting your calendar`, 1400)
+      } else await say("No problem. It’s on your Calendar page whenever you want it.")
+
+      await say(
+        `You’re all set.${callLabel ? ` Your setup call is ${callLabel}.` : ""} What can I do for you first?`,
+      )
+      for (;;) {
+        const go = await wait({ kind: "chips", options: ["Add my first client", "Send my booking link", "Show me around"] })
+        add({ from: "me", text: go })
+        if (go === "Add my first client") {
+          await say("Let’s do it. Taking you to your clients.", `${nameRef.current} is opening Clients`, 900)
+          await sleep(500)
+          return onDone("/clients")
+        }
+        if (go === "Show me around") {
+          await say("Happy to. Follow the glow.", undefined, 700)
+          await sleep(400)
+          return onTour()
+        }
+        try {
+          await navigator.clipboard.writeText(`https://www.${link}`)
+          await say("Copied. Paste it in your Instagram bio, your email signature, or a text to a client.")
+        } catch {
+          await say(`Here it is: ${link}. Paste it in your Instagram bio, your email signature, or a text to a client.`)
+        }
+        await say("Anything else?")
+      }
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const initial = (fullName || first || "M").trim().charAt(0).toUpperCase()
+
+  return (
+    <div className="mbw-chat" role="dialog" aria-label={`Meet ${name}`}>
+      <style>{CSS}</style>
+      <div className="blob b1" />
+      <div className="blob b2" />
+      <div className="blob b3" />
+      <div className="box">
+        <div className="hd">
+          <img src="/brand/berry.webp" alt="" className="av" />
+          <div>
+            <p className="nm">{name}</p>
+            <p className="st">{typing ? "typing…" : "Online"}</p>
+          </div>
+          <button type="button" className="x" onClick={() => onDone("/dashboard")}>
+            Skip
+          </button>
+        </div>
+        <div className="feed" ref={feed} aria-live="polite">
+          {msgs.map((m) =>
+            m.from === "card" ? (
+              <div key={m.id} className="page">
+                <p className="eyebrow">Your booking page</p>
+                <div className="who">
+                  {headshot ? <img src={headshot} alt="" className="hs" /> : <div className="hs ini">{initial}</div>}
+                  <div>
+                    <p className="pn">{fullName || first}</p>
+                    <p className="pb">{brk}</p>
+                  </div>
+                </div>
+                <p className="url">{link}</p>
+              </div>
+            ) : (
+              <div key={m.id} className={`b ${m.from}`}>
+                {m.text}
+                {m.heart && <span className="heart" aria-label="loved">&#9829;</span>}
+              </div>
+            ),
+          )}
+          {typing && (
+            <p className="typing">
+              <span className="dots"><i /><i /><i /></span>
+              {typing}
+            </p>
+          )}
+        </div>
+        <div className="ask">
+          {ask?.kind === "chips" && !typingOwn && (
+            <div className="chips">
+              {ask.options.map((o) => (
+                <button key={o} type="button" className="chip" onClick={() => reply(o)}>
+                  {o}
+                </button>
+              ))}
+              {ask.own && (
+                <button type="button" className="own" onClick={() => { click(); setDraft(""); setTypingOwn(true) }}>
+                  Type my own
+                </button>
+              )}
+            </div>
+          )}
+          {(ask?.kind === "input" || typingOwn) && (
+            <form
+              className="field"
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (!draft.trim()) return setErr(typingOwn ? "Type a name first" : "Type your brokerage first")
+                reply(draft.trim())
+              }}
+            >
+              <input
+                autoFocus
+                value={draft}
+                maxLength={typingOwn ? 30 : 120}
+                placeholder={typingOwn ? "A name you like" : ask?.kind === "input" ? ask.placeholder : ""}
+                onChange={(e) => { setDraft(e.target.value); setErr("") }}
+              />
+              <button type="submit">{typingOwn ? "Send" : ask?.kind === "input" ? ask.button : "Send"}</button>
+              {err && <p className="err">{err}</p>}
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const CSS = `
 .mbw-hello{position:fixed;inset:0;z-index:100;display:grid;place-items:center;overflow:hidden;background:#fff;
   font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;animation:mbwIn .6s ease both;transition:opacity .7s ease,transform .7s ease}
@@ -273,5 +517,49 @@ const CSS = `
 .mbw-tour .skip{font-size:13.5px;color:#8d8b92;padding:6px 0}
 .mbw-tour .back{font-size:14px;padding:9px 14px;border-radius:999px;color:#16151a}
 .mbw-tour .next{font-size:14px;font-weight:550;padding:9px 18px;border-radius:999px;background:#16151a;color:#fff}
-@media (prefers-reduced-motion:reduce){.mbw-hello *,.mbw-tour *{animation-duration:.01s!important;animation-delay:0s!important;transition:none!important}}
+
+.mbw-chat{position:fixed;inset:0;z-index:100;display:grid;place-items:center;overflow:hidden;background:#fff;padding:16px;
+  font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#16151a;animation:mbwIn .5s ease both}
+.mbw-chat .blob{position:absolute;width:60vmax;height:60vmax;border-radius:50%;filter:blur(80px);opacity:.6}
+.mbw-chat .b1{background:#ffd2e6;left:-15vmax;top:-20vmax;animation:mbwDrift 14s ease-in-out infinite alternate}
+.mbw-chat .b2{background:#ffe2cf;right:-20vmax;top:-5vmax;animation:mbwDrift 17s ease-in-out infinite alternate-reverse}
+.mbw-chat .b3{background:#e3dcff;left:10vmax;bottom:-30vmax;animation:mbwDrift 19s ease-in-out infinite alternate}
+.mbw-chat .box{position:relative;width:min(460px,100%);height:min(680px,calc(100dvh - 32px));display:flex;flex-direction:column;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(22,21,26,.07);border-radius:28px;
+  box-shadow:0 40px 90px -30px rgba(22,21,26,.35);overflow:hidden}
+.mbw-chat .hd{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(22,21,26,.06)}
+.mbw-chat .av{width:42px;height:42px;object-fit:cover;-webkit-mask-image:radial-gradient(circle,#000 46%,transparent 70%);mask-image:radial-gradient(circle,#000 46%,transparent 70%);animation:mbwFloat 5s ease-in-out infinite}
+.mbw-chat .nm{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.mbw-chat .st{margin:1px 0 0;font-size:12.5px;color:#8d8b92}
+.mbw-chat .x{margin-left:auto;font:inherit;font-size:13px;color:#8d8b92;background:none;border:0;cursor:pointer;padding:6px}
+.mbw-chat .feed{flex:1;overflow-y:auto;padding:20px 18px 8px;display:flex;flex-direction:column;gap:10px}
+.mbw-chat .b{position:relative;max-width:84%;padding:11px 14px;border-radius:18px;font-size:15px;line-height:1.5;animation:mbwMsg .35s cubic-bezier(.2,1.2,.4,1) both}
+.mbw-chat .bot{align-self:flex-start;background:#fff;border:1px solid rgba(22,21,26,.07);border-bottom-left-radius:6px}
+.mbw-chat .me{align-self:flex-end;background:#BC559E;color:#fff;border-bottom-right-radius:6px}
+@keyframes mbwMsg{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.mbw-chat .heart{position:absolute;right:-6px;bottom:-10px;background:#fff;color:#BC559E;border:1px solid #f3d6e7;border-radius:999px;font-size:12px;line-height:1;padding:3px 6px;animation:mbwPop .6s cubic-bezier(.2,1.6,.4,1) both}
+.mbw-chat .typing{margin:2px 0 0;align-self:flex-start;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#93407A}
+.mbw-chat .dots{display:inline-flex;gap:3px}
+.mbw-chat .dots i{width:5px;height:5px;border-radius:50%;background:#BC559E;animation:mbwDot 1s infinite}
+.mbw-chat .dots i:nth-child(2){animation-delay:.15s}.mbw-chat .dots i:nth-child(3){animation-delay:.3s}
+@keyframes mbwDot{0%,100%{opacity:.25}50%{opacity:1}}
+.mbw-chat .page{align-self:stretch;background:#fff;border:1px solid rgba(22,21,26,.07);border-radius:18px;padding:16px;animation:mbwMsg .5s cubic-bezier(.2,1.2,.4,1) both}
+.mbw-chat .eyebrow{margin:0;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#BC559E}
+.mbw-chat .who{display:flex;align-items:center;gap:12px;margin-top:12px}
+.mbw-chat .hs{width:46px;height:46px;border-radius:50%;object-fit:cover}
+.mbw-chat .ini{display:grid;place-items:center;background:#FBEDF5;color:#93407A;font-weight:600}
+.mbw-chat .pn{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.mbw-chat .pb{margin:2px 0 0;font-size:13.5px;color:#55535b}
+.mbw-chat .url{margin:14px 0 0;padding-top:12px;border-top:1px solid rgba(22,21,26,.06);font-size:13px;color:#8d8b92}
+.mbw-chat .ask{padding:10px 18px 18px;min-height:64px}
+.mbw-chat .chips{display:flex;flex-wrap:wrap;gap:8px;animation:mbwUp .4s ease both}
+.mbw-chat .chip{font:inherit;font-size:14px;padding:10px 16px;border-radius:999px;border:1px solid #efc9df;background:#FBEDF5;color:#93407A;cursor:pointer;transition:transform .15s}
+.mbw-chat .chip:hover{transform:translateY(-1px)}
+.mbw-chat .own{font:inherit;font-size:13.5px;color:#8d8b92;background:none;border:0;cursor:pointer;padding:10px 6px;text-decoration:underline;text-underline-offset:3px}
+.mbw-chat .field{display:flex;flex-wrap:wrap;gap:8px;animation:mbwUp .4s ease both}
+.mbw-chat .field input{flex:1;min-width:0;font:inherit;font-size:15px;padding:11px 14px;border-radius:14px;border:1px solid rgba(22,21,26,.12);background:#fff;color:#16151a;outline:none}
+.mbw-chat .field input:focus{border-color:#BC559E;box-shadow:0 0 0 3px #FBEDF5}
+.mbw-chat .field button{font:inherit;font-size:14px;font-weight:550;padding:11px 18px;border-radius:999px;border:0;background:#16151a;color:#fff;cursor:pointer}
+.mbw-chat .err{width:100%;margin:0;font-size:12.5px;color:#b3261e}
+@media (prefers-reduced-motion:reduce){.mbw-hello *,.mbw-tour *,.mbw-chat *{animation-duration:.01s!important;animation-delay:0s!important;transition:none!important}}
 `
