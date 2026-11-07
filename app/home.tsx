@@ -8,18 +8,18 @@ const CALL = "/chat"
 
 type Feature = { k: string; c: string; i: string; t: string; d: string; img: string; shape: "full" | "wide" | "tall" }
 const FEATURES: Feature[] = [
-  { k: "Booking", c: "c1", i: "cal", t: "Clients book themselves.", d: "One link with your photo and your hours. They pick a time. You just show up.", img: "/brand/booking-desktop.webp", shape: "full" },
-  { k: "Agreements", c: "c2", i: "doc", t: "Signed from their phone.", d: "Your agreement, already filled in with your terms. They sign in about a minute.", img: "/brand/signs-full.jpg", shape: "tall" },
-  { k: "Client page", c: "c3", i: "people", t: "They always know what’s next.", d: "Every client gets their own page. No password, no app. They check it instead of texting you.", img: "/brand/portal-full.jpg", shape: "tall" },
-  { k: "Deal tracker", c: "c4", i: "list", t: "Every step. Every due date.", d: "See what’s done and what’s next for every client, so nothing slips.", img: "/brand/feature-tracker.jpg", shape: "tall" },
-  { k: "Reminders", c: "c5", i: "bell", t: "Follow-ups, already written.", d: "Marvberry drafts the reminder in your voice. You look it over and send it.", img: "/brand/assistant-draft.jpg", shape: "wide" },
-  { k: "Offers", c: "c6", i: "home", t: "Homes and offers in one place.", d: "Paste a listing link, set the showing and send the offer, all from inside Marvberry.", img: "/brand/feature-offers.jpg", shape: "full" },
+  { k: "Booking", c: "c1", i: "cal", t: "Clients book themselves.", d: "One link with your photo and your hours. They pick a time, and Marvberry sends the reminders.", img: "/brand/booking-desktop.webp", shape: "full" },
+  { k: "Agreements", c: "c2", i: "doc", t: "Drafted in minutes. Signed from a phone.", d: "Marvberry fills in your agreement with what it already knows. You check it and send it, and they sign in about a minute.", img: "/brand/signs-full.jpg", shape: "tall" },
+  { k: "Client page", c: "c3", i: "people", t: "They always know what’s next.", d: "Every client gets their own page. No password, no app. They check it instead of texting you at 10 p.m.", img: "/brand/portal-full.jpg", shape: "tall" },
+  { k: "Deal tracker", c: "c4", i: "list", t: "Every step. Every due date.", d: "Marvberry keeps track of what’s done and what’s next for every client, so nothing slips.", img: "/brand/feature-tracker.jpg", shape: "tall" },
+  { k: "Reminders", c: "c5", i: "bell", t: "Follow-ups, already written.", d: "Marvberry drafts them in your voice. You look them over and send them.", img: "/brand/assistant-draft.jpg", shape: "wide" },
+  { k: "Offers", c: "c6", i: "home", t: "Offers, drafted for you.", d: "Paste a listing link and set the showing. Marvberry builds the offer for you to send to the listing agent.", img: "/brand/feature-offers.jpg", shape: "full" },
 ]
 
 const ASSIST = [
-  { c: "c5", i: "bell", t: "Reminders in your voice", d: "It writes the nudge before something is due. You send it, or let it send for you." },
+  { c: "c5", i: "bell", t: "Reminders in your voice", d: "It writes the nudge before something is due. You read it and send it." },
   { c: "c3", i: "chat", t: "Reply drafts", d: "A client writes in. Your reply is drafted and waiting, ready for you to read and send." },
-  { c: "c1", i: "sun", t: "Morning update", d: "A short note each morning on what matters today, so you start the day knowing." },
+  { c: "c1", i: "sun", t: "Morning update", d: "A short note each morning on who’s waiting on you today." },
   { c: "c2", i: "pen", t: "Signed by you", d: "Your email signature goes under every email, with your photo, phone and email." },
 ]
 
@@ -181,19 +181,20 @@ export default function Home() {
           <div>
             <p className="kicker">Meet Marvberry</p>
             <h2>Meet <span className="grad">Marvberry.</span></h2>
-            <p className="tag">Your AI-powered partner for everything around the deal.</p>
+            <p className="tag">Your assistant for everything around the deal.</p>
             <p className="body">
-              Marvberry books your meetings, gets your agreements signed and keeps your clients posted. It even writes your
-              follow-ups. So you get back to what you do best: building relationships and closing deals.
+              Marvberry books your consultations, drafts your agreements and offers, and keeps every client in the loop. It
+              writes your follow-ups too. You look them over, and they go out in your name. So you get back to the part
+              you&rsquo;re great at: the people.
             </p>
             <a className="btn" href="#features">See how it works <span aria-hidden>&rarr;</span></a>
           </div>
           <div className="orbit">
             <div className="ring" />
             <img className="berry" src="/brand/berry-clear.webp" alt="The Marvberry berry" />
-            <span className="pill p1"><span className="ic c1"><Icon name="cal" /></span>Books appointments</span>
-            <span className="pill p2"><span className="ic c2"><Icon name="doc" /></span>Prepares agreements</span>
-            <span className="pill p3"><span className="ic c3"><Icon name="people" /></span>Keeps clients informed</span>
+            <span className="pill p1"><span className="ic c1"><Icon name="cal" /></span>Books consultations</span>
+            <span className="pill p2"><span className="ic c2"><Icon name="doc" /></span>Drafts agreements</span>
+            <span className="pill p3"><span className="ic c3"><Icon name="people" /></span>Keeps clients posted</span>
             <span className="pill p4"><span className="ic c5"><Icon name="bell" /></span>Writes your follow-ups</span>
             <span className="pill p5"><span className="ic c4"><Icon name="list" /></span>Tracks every step</span>
           </div>
@@ -201,8 +202,8 @@ export default function Home() {
       </section>
 
       <div className="feats-head" id="features">
-        <p className="kicker">AI deal manager</p>
-        <h2>Built for agents whose business runs on relationships.</h2>
+        <p className="kicker">What Marvberry does</p>
+        <h2>It does the busywork. You do the relationships.</h2>
         <p>
           Your relationships bring the deals, but the work around them pulls you away from your clients. Marvberry handles
           it, from the first booking to the closing table.
@@ -253,7 +254,7 @@ export default function Home() {
             <h2>Your calendar. Your rules.</h2>
             <p className="lead">
               Clients book from one link with your photo and your name on it. You decide when you&rsquo;re open, and
-              Marvberry handles the rest.
+              Marvberry handles the rest. Clients only book inside your hours, so your evenings stay yours.
             </p>
             <ul className="ticks">
               <li><span className="ic c1"><Icon name="check" /></span>Your days, your hours, your days off</li>
@@ -276,7 +277,7 @@ export default function Home() {
           <h2>It writes like you. It&rsquo;s signed by you.</h2>
           <p className="lead c">
             Marvberry learns from a few messages you&rsquo;ve written. Then it drafts your reminders and replies in your
-            voice. Nothing goes out unless you say so.
+            voice. You&rsquo;re always in charge: nothing goes to a client until you say so.
           </p>
           <div className="cards">
             {ASSIST.map((a) => (
@@ -324,7 +325,7 @@ export default function Home() {
 
       <section className="final">
         <img className="fberry" src="/brand/berry-clear.webp" alt="" />
-        <h2>Your next deal doesn&rsquo;t have to stall.</h2>
+        <h2>Never ghost a client again.</h2>
         <a className="btn" href={START}>Try Marvberry</a>
         <p className="fine">14 days free. No credit card.</p>
       </section>
@@ -332,7 +333,7 @@ export default function Home() {
       <footer className="foot">
         <p className="fmark">
           <img src="/marvberry-wordmark.png" alt="Marvberry" width={104} height={20} />
-          <span>The Real Estate Agent&rsquo;s Client Experience Assistant</span>
+          <span>The AI assistant built for real estate agents</span>
         </p>
         <nav>
           <a href="/login">Log in</a>
