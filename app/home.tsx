@@ -54,6 +54,27 @@ function Icon({ name }: { name: string }) {
   )
 }
 
+const LINES = [
+  "drafts your client agreements in minutes",
+  "drafts your offers",
+  "follows up with your clients",
+  "books your consultations",
+]
+
+// The rotating end of the hero headline.
+function Rotator() {
+  const [i, setI] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setI((n) => (n + 1) % LINES.length), 2800)
+    return () => clearInterval(t)
+  }, [])
+  return (
+    <span className="rot" aria-live="polite">
+      <span key={i} className="grad rot-line">{LINES[i]}</span>
+    </span>
+  )
+}
+
 export default function Home() {
   const lockRef = useRef<HTMLElement>(null)
   const meetRef = useRef<HTMLDivElement>(null)
@@ -119,15 +140,12 @@ export default function Home() {
       <div className="hero-wrap" id="top">
         <section className="hero">
           <p className="chip"><span className="dot" />For solo real estate agents</p>
-          <h1>
-            Finally, everything around the deal <span className="grad">in one place.</span>
+          <h1 className="rot-h">
+            Marvberry<img className="inberry" src="/brand/berry.webp" alt="" />, the AI assistant that
+            <Rotator />
           </h1>
-          <p className="sub">
-            Booking, signatures, documents and client updates, for real estate agents who run their deals on relationships.
-          </p>
           <div className="ctas">
-            <a className="btn" href={START}>Try Marvberry free</a>
-            <a className="btn ghost" href="#meet">See how it works</a>
+            <a className="btn" href={START}>Try Marvberry</a>
           </div>
           <p className="fine">14 days free. No credit card.</p>
 
@@ -272,7 +290,7 @@ export default function Home() {
             <li><b>2</b><h3>We build it with you</h3><p>Your booking page, your agreements and your client steps.</p></li>
             <li><b>3</b><h3>You just use it</h3><p>It&rsquo;s running from day one.</p></li>
           </ol>
-          <a className="btn light" href={START}>Get started</a>
+          <a className="btn light" href={START}>Try Marvberry</a>
         </section>
       </div>
 
@@ -283,7 +301,7 @@ export default function Home() {
           <div className="price-top">
             <p className="price">$67<span>/month</span></p>
             <p className="daily">That&rsquo;s about $2.20 a day.</p>
-            <a className="btn" href={START}>Try Marvberry free</a>
+            <a className="btn" href={START}>Try Marvberry</a>
             <p className="fine">14 days free. No credit card.<br />30-day money-back guarantee.</p>
           </div>
           <ul>
@@ -298,7 +316,7 @@ export default function Home() {
       <section className="final">
         <img className="fberry" src="/brand/berry.webp" alt="" />
         <h2>Your next deal doesn&rsquo;t have to stall.</h2>
-        <a className="btn" href={START}>Get started free</a>
+        <a className="btn" href={START}>Try Marvberry</a>
         <p className="fine">14 days free. No credit card.</p>
       </section>
 
@@ -350,6 +368,11 @@ const CSS = `
 .hv h1{font-size:clamp(42px,1rem + 5.6vw,88px);line-height:1.02;letter-spacing:-.045em;font-weight:650;max-width:15ch;margin:24px auto 0}
 .hv .grad{background:linear-gradient(90deg,#BC559E,#E8857A 60%,#9C7CF0);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hv .sub{font-size:clamp(18px,.9rem + .5vw,21px);line-height:1.55;color:var(--soft);max-width:38rem;margin:22px auto 0}
+.hv .rot-h{max-width:18ch;font-size:clamp(40px,1rem + 4.6vw,76px)}
+.hv .inberry{display:inline-block;width:1.05em;height:1.05em;margin:0 .02em 0 .08em;vertical-align:-.2em;object-fit:cover;-webkit-mask-image:radial-gradient(circle,#000 42%,transparent 68%);mask-image:radial-gradient(circle,#000 42%,transparent 68%);animation:hvfl 5s ease-in-out infinite}
+.hv .rot{display:block;min-height:2.1em;margin-top:.08em}
+.hv .rot-line{display:inline-block;padding-bottom:.08em;animation:hvRot .6s cubic-bezier(.2,.9,.3,1) both}
+@keyframes hvRot{from{opacity:0;transform:translateY(.4em);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
 .hv .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
 .hv .fine{margin-top:14px;font-size:14px;line-height:1.5;color:var(--muted)}
 .hv .stage{position:relative;max-width:1080px;margin:64px auto 0;padding-bottom:40px}
