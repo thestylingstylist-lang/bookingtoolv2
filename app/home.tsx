@@ -1,67 +1,31 @@
 "use client"
-// Marvberry home page: modern, bright and easy. One clean font, the berry, real screens.
-// The six features lock in place while you scroll, so a lot of information reads like one page.
+// Marvberry home page. Light and airy, one idea per section, the assistant shown doing real work.
+// Every task shown here is something Marvberry does today. Copy locked with Alecia, Nov 7 2026.
 import { useEffect, useRef, useState } from "react"
 
 const START = "/signup"
 const CALL = "/chat"
+const BERRY = "/brand/berry-clear.webp"
+const TRIAL = "Start your 14-day free trial"
 
-type Feature = { k: string; c: string; i: string; t: string; d: string; img: string; shape: "full" | "wide" | "tall" }
-const FEATURES: Feature[] = [
-  { k: "Booking", c: "c1", i: "cal", t: "Clients book themselves.", d: "One link with your photo and your hours. They pick a time, and Marvberry sends the reminders.", img: "/brand/booking-desktop.webp", shape: "full" },
-  { k: "Agreements", c: "c2", i: "doc", t: "Drafted in minutes. Signed from a phone.", d: "Marvberry fills in your agreement with what it already knows. You check it and send it, and they sign in about a minute.", img: "/brand/signs-full.jpg", shape: "tall" },
-  { k: "Client page", c: "c3", i: "people", t: "They always know what’s next.", d: "Every client gets their own page. No password, no app. They check it instead of texting you at 10 p.m.", img: "/brand/portal-full.jpg", shape: "tall" },
-  { k: "Deal tracker", c: "c4", i: "list", t: "Every step. Every due date.", d: "Marvberry keeps track of what’s done and what’s next for every client, so nothing slips.", img: "/brand/feature-tracker.jpg", shape: "tall" },
-  { k: "Reminders", c: "c5", i: "bell", t: "Follow-ups, already written.", d: "Marvberry drafts them in your voice. You look them over and send them.", img: "/brand/assistant-draft.jpg", shape: "wide" },
-  { k: "Offers", c: "c6", i: "home", t: "Offers, drafted for you.", d: "Paste a listing link and set the showing. Marvberry builds the offer for you to send to the listing agent.", img: "/brand/feature-offers.jpg", shape: "full" },
-]
-
-const ASSIST = [
-  { c: "c5", i: "bell", t: "Reminders in your voice", d: "It writes the nudge before something is due. You read it and send it." },
-  { c: "c3", i: "chat", t: "Reply drafts", d: "A client writes in. Your reply is drafted and waiting, ready for you to read and send." },
-  { c: "c1", i: "sun", t: "Morning update", d: "A short note each morning on who’s waiting on you today." },
-  { c: "c2", i: "pen", t: "Signed by you", d: "Your email signature goes under every email, with your photo, phone and email." },
-]
-
-const INCLUDED = [
-  "Your booking page, with reminders",
-  "Agreements signed from any phone",
-  "A page for every client, no login",
-  "Deal tracker with steps and due dates",
-  "Document requests",
-  "AI reminders and reply drafts",
-  "Offers built and sent to the listing agent",
-  "Your own email signature",
-]
+const LINES = ["prepares your agreements", "organizes your follow-ups", "keeps your clients updated", "gets your offers moving"]
 
 function Icon({ name }: { name: string }) {
   const p: Record<string, React.ReactNode> = {
-    cal: (<><rect x="3.5" y="5" width="17" height="15" rx="3" /><path d="M3.5 10h17M8 3v4M16 3v4" /></>),
     doc: (<><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5M10 13h6M10 17h6" /></>),
-    people: (<><circle cx="9" cy="8" r="3.5" /><path d="M3 20c.8-3.5 3.2-5.5 6-5.5s5.2 2 6 5.5M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.6.8 2.6 2.6 3 5.2" /></>),
-    list: (<><path d="M9 6h11M9 12h11M9 18h11" /><path d="M4 6h.01M4 12h.01M4 18h.01" strokeWidth="2.6" /></>),
     bell: (<><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15z" /><path d="M10 20.5a2 2 0 0 0 4 0" /></>),
-    home: (<><path d="M4 11 12 4l8 7" /><path d="M6 9.5V20h12V9.5M10 20v-5h4v5" /></>),
-    chat: <path d="M4 5h16v11H9l-5 4z" />,
-    sun: (<><circle cx="12" cy="12" r="4" /><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></>),
-    pen: (<><path d="M4 20c3-1 5-4 7-4s1 3 3 3 3-2 6-2" /><path d="M14.5 4.5l5 5L11 18l-5 .5.5-5z" /></>),
+    lock: (<><rect x="5" y="10.5" width="14" height="10" rx="2.5" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /></>),
+    shield: (<><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6z" /><path d="m8.8 12.2 2.2 2.2 4.3-4.4" /></>),
+    folder: <path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" />,
     check: <path d="M5 12.5l4.5 4.5L19 7.5" />,
+    down: <path d="M12 5v14M6 13l6 6 6-6" />,
+    up: <path d="M12 19V5M6 11l6-6 6 6" />,
+    pen: <path d="M14.5 4.5l5 5L11 18l-5 .5.5-5z" />,
   }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden>
-      {p[name]}
-    </svg>
-  )
+  return <svg viewBox="0 0 24 24" aria-hidden>{p[name]}</svg>
 }
 
-const LINES = [
-  "drafts your client agreements in minutes",
-  "drafts your offers",
-  "follows up with your clients",
-  "books your consultations",
-]
-
-// The rotating end of the hero headline.
+// "Marvberry … prepares your agreements", the end of the line rotates.
 function Rotator() {
   const [i, setI] = useState(0)
   useEffect(() => {
@@ -69,60 +33,89 @@ function Rotator() {
     return () => clearInterval(t)
   }, [])
   return (
-    <span className="rot" aria-live="polite">
+    <p className="rot" aria-live="polite">
+      <span className="rot-who">Marvberry<img className="inberry" src={BERRY} alt="" /></span>
       <span key={i} className="grad rot-line">{LINES[i]}</span>
-    </span>
+    </p>
+  )
+}
+
+// The motion card: the promise, the ask, the result. Then it loops.
+function Motion() {
+  const [beat, setBeat] = useState(0)
+  const [loop, setLoop] = useState(0)
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+    const lengths = [3800, 5200, 3800]
+    let t: ReturnType<typeof setTimeout>
+    const step = (b: number) => {
+      t = setTimeout(() => {
+        const next = (b + 1) % 3
+        if (next === 0) setLoop((x) => x + 1)
+        setBeat(next)
+        step(next)
+      }, lengths[b])
+    }
+    step(0)
+    return () => clearTimeout(t)
+  }, [])
+  return (
+    <div className="motion" aria-label="You handle the relationships. Marvberry handles the busywork.">
+      {beat === 0 && (
+        <div key={`p${loop}`} className="beat promise">
+          <p className="ai">You handle the relationships.</p>
+          <p className="what grad">Marvberry handles the busywork.</p>
+        </div>
+      )}
+      {beat === 1 && (
+        <div key={`c${loop}`} className="beat chat">
+          <div className="who">
+            <img src={BERRY} alt="" />
+            <span>Marvberry</span>
+          </div>
+          <p className="bub me b1">Marvberry, prepare Sandra’s buyer agreement.</p>
+          <p className="bub b2">I’ve prepared Sandra’s agreement. It’s ready for your review.</p>
+          <p className="bub me b3">Looks good. Send it.</p>
+        </div>
+      )}
+      {beat === 2 && (
+        <div key={`d${loop}`} className="beat done">
+          <div className="signed">
+            <span className="sig-ic"><Icon name="pen" /></span>
+            <div>
+              <p className="k">Buyer agreement · Sandra Lewis</p>
+              <p className="v">Signed · Tue, Nov 10 · 2:15 PM</p>
+            </div>
+            <span className="ok"><Icon name="check" /></span>
+          </div>
+          <p className="dots"><i /><i /><i /></p>
+        </div>
+      )}
+    </div>
   )
 }
 
 export default function Home() {
-  const lockRef = useRef<HTMLElement>(null)
-  const meetRef = useRef<HTMLDivElement>(null)
-  const barRef = useRef<HTMLSpanElement>(null)
-  const [cur, setCur] = useState(0)
   const [scrolled, setScrolled] = useState(false)
+  const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    const onScroll = () => {
-      setScrolled(window.scrollY > 10)
-      // Meet Marvberry fades as it scrolls up and away.
-      const m = meetRef.current
-      if (m && !reduce) {
-        const r = m.getBoundingClientRect()
-        const o = r.top < 0 ? Math.max(0, 1 + r.top / (r.height * 0.85)) : 1
-        m.style.opacity = String(o)
-        m.style.transform = `translateY(${(1 - o) * -24}px)`
-      }
-      // The six features: which one is showing, and how far through it we are.
-      const l = lockRef.current
-      if (l) {
-        const total = l.offsetHeight - window.innerHeight
-        const p = Math.min(Math.max(-l.getBoundingClientRect().top / total, 0), 0.9999)
-        const n = Math.floor(p * FEATURES.length)
-        setCur(n)
-        if (barRef.current) barRef.current.style.width = `${((p * FEATURES.length - n) * 100).toFixed(1)}%`
-      }
-    }
+    const onScroll = () => setScrolled(window.scrollY > 10)
     onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
-    window.addEventListener("resize", onScroll)
+    const io = new IntersectionObserver(
+      (es) => es.forEach((e) => e.isIntersecting && (e.target.classList.add("in"), io.unobserve(e.target))),
+      { threshold: 0.2 },
+    )
+    root.current?.querySelectorAll(".rv").forEach((el) => io.observe(el))
     return () => {
       window.removeEventListener("scroll", onScroll)
-      window.removeEventListener("resize", onScroll)
+      io.disconnect()
     }
   }, [])
 
-  const go = (n: number) => {
-    const l = lockRef.current
-    if (!l) return
-    const total = l.offsetHeight - window.innerHeight
-    const top = l.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({ top: top + (total * (n + 0.05)) / FEATURES.length, behavior: "smooth" })
-  }
-
   return (
-    <div className="hv">
+    <div className="hv" ref={root}>
       <style>{CSS}</style>
 
       <header className={`nav${scrolled ? " scrolled" : ""}`}>
@@ -130,204 +123,181 @@ export default function Home() {
           <img className="logo" src="/marvberry-wordmark.png" alt="Marvberry" width={125} height={24} />
         </a>
         <nav>
-          <a href="#features" className="hide-sm">Features</a>
-          <a href="#pricing" className="hide-sm">Pricing</a>
+          <a href="#how" className="hide-sm">How it works</a>
+          <a href="#start" className="hide-sm">Pricing</a>
           <a href="/login" className="hide-sm">Log in</a>
           <a className="btn sm" href={START}>Try Marvberry</a>
         </nav>
       </header>
 
+      {/* 1. Hero */}
       <div className="hero-wrap" id="top">
-        <section className="hero">
-          <div className="first">
-            <p className="chip"><span className="dot" />For real estate agents</p>
-            <h1 className="rot-h">
-              Marvberry<img className="inberry" src="/brand/berry-clear.webp" alt="" />, the AI assistant that
-              <Rotator />
-            </h1>
-            <div className="ctas">
-              <a className="btn" href={START}>Try Marvberry</a>
-            </div>
-            <button
-              type="button"
-              className="more"
-              onClick={() => document.getElementById("see")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            >
-              Learn more
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
-            </button>
-          </div>
-
-          <div className="stage" id="see">
-            <div className="glow" />
-            <div className="frame"><img src="/brand/booking-desktop.webp" alt="A real estate agent's booking page" /></div>
-            <div className="hphone"><img src="/brand/portal-full.jpg" alt="A client's page showing their next step" /></div>
-            <img className="hberry" src="/brand/berry-clear.webp" alt="" />
-          </div>
-
-          <div className="icons" aria-label="What Marvberry does">
-            {FEATURES.map((f, n) => (
-              <a key={f.k} href="#features" onClick={(e) => { e.preventDefault(); go(n) }}>
-                <span className={`ic ${f.c}`}><Icon name={f.i} /></span>
-                {f.k}
-              </a>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      <section className="meet" id="meet">
-        <div className="meet-in" ref={meetRef}>
-          <div>
-            <p className="kicker">Meet Marvberry</p>
-            <h2>Meet <span className="grad">Marvberry.</span></h2>
-            <p className="tag">Your assistant for everything around the deal.</p>
-            <p className="body">
-              Marvberry books your consultations, drafts your agreements and offers, and keeps every client in the loop. It
-              writes your follow-ups too. You look them over, and they go out in your name. So you get back to the part
-              you&rsquo;re great at: the people.
-            </p>
-            <a className="btn" href="#features">See how it works <span aria-hidden>&rarr;</span></a>
-          </div>
-          <div className="orbit">
-            <div className="ring" />
-            <img className="berry" src="/brand/berry-clear.webp" alt="The Marvberry berry" />
-            <span className="pill p1"><span className="ic c1"><Icon name="cal" /></span>Books consultations</span>
-            <span className="pill p2"><span className="ic c2"><Icon name="doc" /></span>Drafts agreements</span>
-            <span className="pill p3"><span className="ic c3"><Icon name="people" /></span>Keeps clients posted</span>
-            <span className="pill p4"><span className="ic c5"><Icon name="bell" /></span>Writes your follow-ups</span>
-            <span className="pill p5"><span className="ic c4"><Icon name="list" /></span>Tracks every step</span>
-          </div>
-        </div>
-      </section>
-
-      <div className="feats-head" id="features">
-        <p className="kicker">What Marvberry does</p>
-        <h2>It does the busywork. You do the relationships.</h2>
-        <p>
-          Your relationships bring the deals, but the work around them pulls you away from your clients. Marvberry handles
-          it, from the first booking to the closing table.
-        </p>
-      </div>
-
-      <section className="lock" ref={lockRef}>
-        <div className="pin">
-          <div className="pin-in">
-            <ul className="list">
-              {FEATURES.map((f, n) => (
-                <li key={f.k} className={n === cur ? "on" : ""} onClick={() => go(n)}>
-                  <div className="row">
-                    <span className={`ic ${f.c}`}><Icon name={f.i} /></span>
-                    <h3>{f.k}</h3>
-                  </div>
-                  <div className="more">
-                    <div>
-                      <p className="big">{f.t}</p>
-                      <p>{f.d}</p>
-                      <div className="bar">{n === cur && <span ref={barRef} />}</div>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div className="screen">
-              <div className="bg" />
-              {FEATURES.map((f, n) => (
-                <div key={f.k} className={`slide${n === cur ? " on" : ""}`}>
-                  <div className={f.shape}>
-                    <img src={f.img} alt={f.k} loading={n === 0 ? "eager" : "lazy"} />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="dots" aria-hidden>
-              {FEATURES.map((f, n) => <i key={f.k} className={n === cur ? "on" : ""} />)}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="sched">
-        <div className="sched-in">
-          <div className="sched-copy">
-            <p className="kicker">Scheduling</p>
-            <h2>Your calendar. Your rules.</h2>
-            <p className="lead">
-              Clients book from one link with your photo and your name on it. You decide when you&rsquo;re open, and
-              Marvberry handles the rest. Clients only book inside your hours, so your evenings stay yours.
-            </p>
-            <ul className="ticks">
-              <li><span className="ic c1"><Icon name="check" /></span>Your days, your hours, your days off</li>
-              <li><span className="ic c1"><Icon name="check" /></span>Video or phone, your client picks</li>
-              <li><span className="ic c1"><Icon name="check" /></span>Notice time, so nobody books you in an hour</li>
-              <li><span className="ic c1"><Icon name="check" /></span>Confirmations and reminders, sent for you</li>
-              <li><span className="ic c1"><Icon name="check" /></span>Clients reschedule or cancel on their own</li>
-            </ul>
-          </div>
-          <div className="sched-pic">
-            <div className="glow" />
-            <div className="frame"><img src="/brand/booking-desktop.webp" alt="A real estate agent's booking page" loading="lazy" /></div>
-          </div>
-        </div>
-      </section>
-
-      <section className="assist">
-        <div className="assist-in">
-          <p className="kicker">Your AI assistant</p>
-          <h2>It writes like you. It&rsquo;s signed by you.</h2>
-          <p className="lead c">
-            Marvberry learns from a few messages you&rsquo;ve written. Then it drafts your reminders and replies in your
-            voice. You&rsquo;re always in charge: nothing goes to a client until you say so.
+        <section className="first">
+          <p className="chip"><span className="dot" />For real estate agents</p>
+          <h1>Get more done without doing it all yourself.</h1>
+          <Rotator />
+          <p className="lede">
+            Meet Marvberry, your AI-powered real estate assistant. From preparing agreements to organizing follow-ups
+            and next steps, Marvberry helps take care of the work around your deals so you can focus on your clients.
           </p>
-          <div className="cards">
-            {ASSIST.map((a) => (
-              <article key={a.t}>
-                <span className={`ic ${a.c}`}><Icon name={a.i} /></span>
-                <h3>{a.t}</h3>
-                <p>{a.d}</p>
-              </article>
-            ))}
+          <div className="ctas">
+            <a className="btn" href={START}>{TRIAL}</a>
+            <p className="fine">No credit card required.</p>
           </div>
-        </div>
-      </section>
-
-      <div className="steps-wrap" id="setup">
-        <section className="steps">
-          <p className="kicker">No tech skills needed</p>
-          <h2>No tech skills. We set it up with you.</h2>
-          <ol>
-            <li><b>1</b><h3>Book a free call</h3><p>Pick a time that works for you.</p></li>
-            <li><b>2</b><h3>We build it with you</h3><p>Your booking page, your agreements and your client steps.</p></li>
-            <li><b>3</b><h3>You just use it</h3><p>It&rsquo;s running from day one.</p></li>
-          </ol>
-          <a className="btn light" href={START}>Try Marvberry</a>
+          <button
+            type="button"
+            className="more"
+            onClick={() => document.getElementById("busywork")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          >
+            Learn more
+            <Icon name="down" />
+          </button>
         </section>
       </div>
 
-      <section className="pricing" id="pricing">
-        <p className="kicker">Pricing</p>
-        <h2>One plan. Everything included.</h2>
-        <div className="price-card">
-          <div className="price-top">
-            <p className="price">$67<span>/month</span></p>
-            <p className="daily">That&rsquo;s about $2.20 a day.</p>
-            <a className="btn" href={START}>Try Marvberry</a>
-            <p className="fine">14 days free. No credit card.<br />30-day money-back guarantee.</p>
-          </div>
-          <ul>
-            {INCLUDED.map((x) => (
-              <li key={x}><span className="ic c3"><Icon name="check" /></span>{x}</li>
-            ))}
-          </ul>
+      {/* 2. The busywork */}
+      <section className="sec center" id="busywork">
+        <div className="rv">
+          <h2>The busywork between booking and closing? Hand it over.</h2>
+          <p className="sub">
+            Tell Marvberry what needs to happen, and your AI assistant gets to work. From turning bookings into clients
+            and preparing agreements to organizing showings, offers, and follow-ups, Marvberry helps handle the
+            busywork so you can focus on the people who matter most.
+          </p>
         </div>
-        <p className="broker">Running a brokerage? <a href={CALL}>Book a consultation</a>.</p>
+        <div className="stage rv">
+          <Motion />
+        </div>
       </section>
 
-      <section className="final">
-        <img className="fberry" src="/brand/berry-clear.webp" alt="" />
-        <h2>Never ghost a client again.</h2>
-        <a className="btn" href={START}>Try Marvberry</a>
-        <p className="fine">14 days free. No credit card.</p>
+      {/* 3. How it works */}
+      <section className="sec split" id="how">
+        <div className="copy rv">
+          <h2>Tell Marvberry what you need. It gets to work.</h2>
+          <p className="sub">
+            Ask Marvberry to prepare an agreement, organize a follow-up, or help with the next step in a deal. Your
+            assistant takes care of the preparation and brings important documents back to you for review.
+          </p>
+        </div>
+        <div className="visual rv">
+          <div className="phone">
+            <div className="ph-head">
+              <img src={BERRY} alt="" />
+              <p className="nm">Marvberry</p>
+              <p className="st">Preparing an agreement…</p>
+            </div>
+            <div className="ph-body">
+              <p className="bub me d1">Marvberry, prepare Sandra’s buyer agreement.</p>
+              <p className="bub d2">I’ve prepared Sandra’s agreement. It’s ready for your review.</p>
+              <div className="file d3">
+                <span className="pdf">PDF</span>
+                <div>
+                  <p className="fk">Buyer agreement</p>
+                  <p className="fv">Sandra Lewis · Ready for review</p>
+                </div>
+              </div>
+              <p className="dots d4"><i /><i /><i /></p>
+            </div>
+            <div className="ph-input">
+              <span>Ask Marvberry</span>
+              <span className="send"><Icon name="up" /></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Stay in control */}
+      <section className="sec split flip">
+        <div className="copy rv">
+          <h2>Stay in control.</h2>
+          <p className="sub strong">Review and approve documents before they’re sent.</p>
+          <p className="sub">
+            Marvberry prepares agreements and offers for you to review. Check the details, make changes if needed, and
+            approve the documents before they’re sent on your behalf.
+          </p>
+        </div>
+        <div className="visual rv">
+          <div className="phone">
+            <div className="ph-head">
+              <img src={BERRY} alt="" />
+              <p className="nm">Marvberry</p>
+              <p className="st">Waiting for your approval</p>
+            </div>
+            <div className="ph-body">
+              <div className="ask d1">
+                <p className="ask-k"><Icon name="doc" />Offer · 18 Elm Road</p>
+                <div className="ask-v">
+                  <p className="kv"><span>Buyer</span>Priya Shah</p>
+                  <p className="kv"><span>Offer price</span>$545,000</p>
+                  <p className="kv"><span>Closing</span>Dec 19</p>
+                  <p className="kv"><span>Send to</span>Listing agent</p>
+                </div>
+                <span className="b-send">Approve and send</span>
+                <span className="b-edit">Make changes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Security */}
+      <section className="sec split">
+        <div className="copy rv">
+          <h2>Your clients’ information deserves protection.</h2>
+          <p className="sub">
+            Contracts, agreements, and uploads are encrypted in transit and at rest. Private links help control access,
+            and signed documents stay organized under each client’s record.
+          </p>
+        </div>
+        <div className="visual rv">
+          <div className="vault">
+            <span className="v-ic"><Icon name="shield" /></span>
+            <p className="v-t">Sandra Lewis</p>
+            <p className="v-row"><Icon name="lock" />Encrypted in transit and at rest</p>
+            <p className="v-row"><Icon name="lock" />Private links, only for Sandra</p>
+            <p className="v-row"><Icon name="folder" />Signed documents, all in one place</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Client experience */}
+      <section className="sec split flip">
+        <div className="copy rv">
+          <h2>Give every client a clear view of what’s next.</h2>
+          <p className="sub">
+            Give clients their own page to see what needs attention and what comes next, without another account to
+            manage. Marvberry helps keep them informed while you stay focused on serving them.
+          </p>
+        </div>
+        <div className="visual rv">
+          <div className="shot">
+            <img src="/brand/portal-full.jpg" alt="A client’s page showing their next step" />
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Setup */}
+      <section className="sec center setup">
+        <div className="rv">
+          <img className="setup-berry" src={BERRY} alt="" />
+          <h2>We’ll take care of the setup, too.</h2>
+          <p className="sub">
+            Tell us a little about your business, and we’ll personalize Marvberry for you. From your booking page to
+            your essential templates, our team handles the setup so you can keep doing what you do best.
+          </p>
+          <p className="pill-note">Complimentary personalized setup included with every plan.</p>
+        </div>
+      </section>
+
+      {/* 8. Final call to action */}
+      <section className="final rv" id="start">
+        <h2>Ready to get more done with Marvberry?</h2>
+        <p className="sub">Your AI-powered real estate assistant, with real people here to help you get started.</p>
+        <div className="final-ctas">
+          <a className="btn" href={START}>{TRIAL}</a>
+          <p className="fine">$67/month after your trial. No credit card required to start.</p>
+          <p className="broker">Running a brokerage? <a href={CALL}>Book a consultation</a>.</p>
+        </div>
       </section>
 
       <footer className="foot">
@@ -348,199 +318,201 @@ export default function Home() {
 
 const CSS = `
 .hv{
-  --ink:#16151a; --soft:#55535b; --muted:#8d8b92; --line:rgba(22,21,26,.09); --berry:#BC559E; --tile:#fff;
+  --ink:#16151a; --soft:#5f5d66; --muted:#8d8b92; --line:rgba(22,21,26,.08); --berry:#BC559E; --tint:#FBEDF5; --gray:#EEEEF1;
   color-scheme:light; background:#F8F8F8; color:var(--ink); min-height:100vh; overflow-x:clip;
   font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;
 }
 .hv *{box-sizing:border-box}
-.hv h1,.hv h2,.hv h3,.hv p,.hv ul,.hv ol{margin:0;padding:0}
+.hv h1,.hv h2,.hv p,.hv ul{margin:0;padding:0}
 .hv img{display:block;max-width:100%;height:auto}
 .hv a{color:inherit;text-decoration:none}
-.hv :focus-visible{outline:2px solid var(--berry);outline-offset:3px;border-radius:6px}
+.hv :focus-visible{outline:2px solid var(--berry);outline-offset:3px;border-radius:8px}
 .hv h1,.hv h2{text-wrap:balance}
+.hv svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
 .hv .nav{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(16px,5vw,64px);transition:background .3s,box-shadow .3s}
-.hv .nav.scrolled{background:rgba(248,248,248,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--line)}
+.hv .nav.scrolled{background:rgba(248,248,248,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--line)}
 .hv .nav .logo{height:24px;width:auto}
 .hv .nav nav{display:flex;gap:28px;align-items:center;font-size:15px;color:var(--soft)}
 .hv .nav nav a:hover{color:var(--ink)}
-.hv .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;background:var(--ink);color:#fff;border-radius:999px;padding:15px 26px;font-weight:550;font-size:16px;box-shadow:0 8px 20px -8px rgba(22,21,26,.5);transition:transform .2s}
+.hv .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;background:var(--ink);color:#fff;border-radius:999px;padding:15px 28px;font-weight:550;font-size:16px;box-shadow:0 8px 20px -8px rgba(22,21,26,.5);transition:transform .2s}
 .hv .nav nav a.btn{color:#fff}
 .hv .btn:hover{transform:translateY(-1px)}
 .hv .btn.sm{padding:10px 18px;font-size:14px}
-.hv .btn.ghost{background:#fff;color:var(--ink);box-shadow:none;border:1px solid var(--line)}
-.hv .btn.light{background:#fff;color:var(--ink)}
+.hv .btn.soft{background:var(--gray);color:var(--ink);box-shadow:none}
 
 .hv .hero-wrap{background:radial-gradient(60% 50% at 50% 0%,#fff1f6 0%,#F8F8F8 70%);margin-top:-72px;padding-top:72px}
-.hv .hero{text-align:center;padding:0 16px}
-.hv .first{position:relative;min-height:calc(100svh - 72px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 0 96px}
-.hv .more{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14.5px;font-weight:500;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 18px;cursor:pointer;box-shadow:0 10px 30px -18px rgba(22,21,26,.35);transition:transform .2s}
-.hv .more:hover{transform:translateX(-50%) translateY(-2px)}
-.hv .more svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:hvNudge 2.4s ease-in-out infinite}
-@keyframes hvNudge{50%{transform:translateY(3px)}}
-.hv .chip{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--line)}
-.hv .dot{width:7px;height:7px;border-radius:50%;background:var(--berry)}
-.hv h1{font-size:clamp(42px,1rem + 5.6vw,88px);line-height:1.02;letter-spacing:-.045em;font-weight:650;max-width:15ch;margin:24px auto 0}
-.hv .grad{background:linear-gradient(90deg,#BC559E,#E8857A 60%,#9C7CF0);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hv .sub{font-size:clamp(18px,.9rem + .5vw,21px);line-height:1.55;color:var(--soft);max-width:38rem;margin:22px auto 0}
-.hv .rot-h{max-width:16ch;margin:22px auto 0;font-size:clamp(42px,1rem + 4.8vw,84px);line-height:1.02}
-.hv .inberry{display:inline-block;width:1.25em;height:1.25em;margin:-.2em .02em -.1em .12em;vertical-align:-.28em;object-fit:contain;animation:hvfl 5s ease-in-out infinite}
-.hv .rot{display:block;min-height:2.1em;margin-top:.12em}
+.hv .first{position:relative;min-height:calc(100svh - 72px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 16px 96px}
+.hv .chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500}
+.hv .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--berry)}
+.hv h1{font-weight:650;letter-spacing:-.045em}
+.hv h1{max-width:15ch;margin:22px auto 0;font-size:clamp(42px,1rem + 4.6vw,80px);line-height:1.02}
+.hv .inberry{display:inline-block;width:1.5em;height:1.5em;margin:-.3em 0 -.3em .1em;object-fit:contain;animation:hvFloat 5s ease-in-out infinite}
+.hv .rot{margin-top:20px;min-height:1.3em;font-size:clamp(22px,.9rem + 1.6vw,34px);font-weight:500;letter-spacing:-.025em;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0 .3em}
+.hv .rot-who{display:inline-flex;align-items:center;color:var(--ink)}
+.hv .lede{max-width:600px;margin:22px auto 0;font-size:clamp(16px,.9rem + .3vw,19px);line-height:1.55;color:var(--soft)}
+.hv .ctas .fine{margin-top:12px}
 .hv .rot-line{display:inline-block;padding-bottom:.08em;animation:hvRot .6s cubic-bezier(.2,.9,.3,1) both}
-@keyframes hvRot{from{opacity:0;transform:translateY(.4em);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
-.hv .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
-.hv .fine{margin-top:14px;font-size:14px;line-height:1.5;color:var(--muted)}
-.hv .stage{position:relative;max-width:1080px;margin:64px auto 0;padding-bottom:40px}
-.hv .glow{position:absolute;inset:6% -4% -2%;background:radial-gradient(40% 50% at 30% 50%,#ffd2e4,transparent 70%),radial-gradient(40% 50% at 70% 40%,#ffe0c7,transparent 70%),radial-gradient(35% 45% at 55% 70%,#ddd6ff,transparent 70%);filter:blur(60px);z-index:0}
-.hv .frame{position:relative;z-index:1;border-radius:22px;overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:0 40px 80px -40px rgba(22,21,26,.35)}
-.hv .stage .frame{width:86%}
-.hv .hphone{position:absolute;z-index:2;right:3%;bottom:0;width:22%;border-radius:28px;padding:6px;background:#fff;box-shadow:0 30px 60px -20px rgba(22,21,26,.4)}
-.hv .hphone img{border-radius:22px;aspect-ratio:9/16;object-fit:cover;object-position:top;width:100%}
-.hv .hberry{position:absolute;z-index:3;width:min(150px,16%);right:19%;top:-30px;animation:hvfl 5s ease-in-out infinite}
-@keyframes hvfl{50%{transform:translateY(-10px)}}
+.hv .grad{background:linear-gradient(100deg,#BC559E,#E8857A 55%,#9C7CF0);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hv .ctas{margin-top:30px;display:flex;flex-direction:column;align-items:center}
+.hv .more{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14.5px;font-weight:500;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 18px;cursor:pointer;box-shadow:0 10px 30px -18px rgba(22,21,26,.35)}
+.hv .more svg{width:16px;height:16px;animation:hvNudge 2.4s ease-in-out infinite}
 
-.hv .icons{position:relative;z-index:4;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;max-width:720px;margin:8px auto 0;padding:14px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 20px 50px -30px rgba(22,21,26,.3)}
-.hv .icons a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 14px;border-radius:16px;font-size:14px;font-weight:500;color:var(--soft);transition:background .2s,color .2s}
-.hv .icons a:hover{background:var(--tile);color:var(--ink)}
-.hv .ic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none}
-.hv .ic svg{width:22px;height:22px;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.hv .c1{background:#EEE9FF}.hv .c1 svg{stroke:#6E56CF}
-.hv .c2{background:#FFEBE3}.hv .c2 svg{stroke:#C4552B}
-.hv .c3{background:#FCE4F1}.hv .c3 svg{stroke:#BC559E}
-.hv .c4{background:#E3EEFF}.hv .c4 svg{stroke:#3B6FD4}
-.hv .c5{background:#FFF3D1}.hv .c5 svg{stroke:#B7871A}
-.hv .c6{background:#F3E6FA}.hv .c6 svg{stroke:#8A4BB0}
+.hv .sec{max-width:1160px;margin:0 auto;padding:clamp(90px,12vw,150px) clamp(16px,4vw,32px) 0}
+.hv h2{font-size:clamp(32px,1rem + 2.6vw,52px);font-weight:600;letter-spacing:-.035em;line-height:1.06}
+.hv .sub{margin-top:18px;font-size:clamp(17px,.9rem + .35vw,20px);line-height:1.55;color:var(--soft)}
+.hv .center{text-align:center}
+.hv .center .sub{max-width:640px;margin-left:auto;margin-right:auto}
 
-.hv .kicker{font-size:13px;font-weight:600;color:var(--berry);text-transform:uppercase;letter-spacing:.14em}
-.hv h2{font-size:clamp(32px,1rem + 3vw,56px);letter-spacing:-.035em;line-height:1.05;font-weight:650}
-.hv .lead{font-size:18px;line-height:1.65;color:var(--soft);margin-top:18px;max-width:34rem}
-.hv .lead.c{margin-left:auto;margin-right:auto;text-align:center}
+.hv .stage{margin-top:48px}
+.hv .motion{position:relative;height:clamp(380px,46vw,560px);border-radius:32px;overflow:hidden;background:radial-gradient(70% 60% at 85% 100%,#efe6ff 0%,transparent 70%),radial-gradient(60% 55% at 10% 100%,#ffe6f1 0%,transparent 70%),#fff;box-shadow:0 1px 0 var(--line),0 40px 90px -60px rgba(22,21,26,.35);display:grid;place-items:center;padding:24px}
+.hv .beat{width:min(560px,100%);animation:hvBeat .7s cubic-bezier(.2,.9,.3,1) both}
+.hv .promise{text-align:center}
+.hv .ai{font-size:clamp(34px,1rem + 3.4vw,64px);font-weight:650;letter-spacing:-.04em;line-height:1.05}
+.hv .what{margin-top:12px;font-size:clamp(34px,1rem + 3.4vw,64px);font-weight:650;letter-spacing:-.04em;line-height:1.05;animation:hvRot .8s .5s cubic-bezier(.2,.9,.3,1) both}
+.hv .tile{width:1.5em;height:1.5em;border-radius:.4em;display:grid;place-items:center;background:var(--tint);color:var(--berry);flex:none}
+.hv .tile svg{width:60%;height:60%}
+.hv .chat{display:flex;flex-direction:column;gap:10px}
+.hv .who{align-self:center;display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:12px}
+.hv .who img{width:84px;height:84px;object-fit:contain;animation:hvFloat 5s ease-in-out infinite}
+.hv .who span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 14px;font-weight:600;font-size:15px}
+.hv .bub{max-width:82%;align-self:flex-start;background:var(--gray);border-radius:22px;padding:13px 18px;font-size:clamp(15px,.85rem + .3vw,18px);line-height:1.45;position:relative}
+.hv .bub.me{align-self:flex-end;background:var(--tint);color:#7a2f63}
+.hv .chat .b1{animation:hvPop .5s .2s both}.hv .chat .b2{animation:hvPop .5s 1.1s both}.hv .chat .b3{animation:hvPop .5s 2.4s both}
+.hv .done{display:flex;flex-direction:column;gap:16px}
+.hv .signed{display:flex;align-items:center;gap:16px;background:var(--gray);border-radius:26px;padding:22px 24px}
+.hv .sig-ic{width:52px;height:52px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;flex:none}
+.hv .signed .k{font-size:14px;color:var(--soft)}
+.hv .signed .v{margin-top:4px;font-size:clamp(18px,.9rem + .8vw,24px);font-weight:650;letter-spacing:-.02em}
+.hv .signed .ok{margin-left:auto;width:32px;height:32px;border-radius:50%;background:#e5f6ec;color:#1f8a4c;display:grid;place-items:center;flex:none;animation:hvPop .5s .5s both}
+.hv .signed .ok svg{width:18px;height:18px;stroke-width:2.4}
+.hv .dots{display:inline-flex;gap:6px;background:var(--gray);border-radius:999px;padding:16px 20px;align-self:flex-start}
+.hv .dots i{width:9px;height:9px;border-radius:50%;background:#b9b7bf;animation:hvDot 1.1s infinite}
+.hv .dots i:nth-child(2){animation-delay:.15s}.hv .dots i:nth-child(3){animation-delay:.3s}
 
-.hv .meet{margin-top:clamp(80px,10vw,130px);padding:clamp(72px,9vw,120px) clamp(16px,5vw,64px);background:linear-gradient(120deg,#fff6f2 0%,#fdeef5 45%,#f3eefe 100%);overflow:hidden}
-.hv .meet-in{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:1fr 1.05fr;gap:40px;align-items:center;will-change:opacity,transform}
-.hv .meet h2{font-size:clamp(44px,1rem + 4.5vw,80px);line-height:1;letter-spacing:-.045em;margin-top:14px}
-.hv .meet .tag{font-size:clamp(22px,1rem + .9vw,30px);line-height:1.25;letter-spacing:-.02em;font-weight:550;margin-top:18px}
-.hv .meet .body{font-size:18px;line-height:1.65;color:var(--soft);margin:22px 0 32px;max-width:32rem}
-.hv .orbit{position:relative;aspect-ratio:1/1;max-width:540px;width:100%;margin:0 auto}
-.hv .orbit .berry{position:absolute;inset:24%;width:52%;animation:hvfl 6s ease-in-out infinite}
-.hv .ring{position:absolute;inset:10%;border:1px solid rgba(188,85,158,.18);border-radius:50%}
-.hv .pill{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.9);border-radius:999px;box-shadow:0 16px 40px -20px rgba(22,21,26,.35);font-size:14.5px;font-weight:550;white-space:nowrap;animation:hvbob 6s ease-in-out infinite}
-@keyframes hvbob{50%{transform:translateY(-6px)}}
-.hv .pill .ic{width:34px;height:34px}.hv .pill .ic svg{width:17px;height:17px}
-.hv .p1{top:4%;left:2%}.hv .p2{top:10%;right:0;animation-delay:-1.2s}.hv .p3{top:46%;right:-4%;animation-delay:-2.4s}.hv .p4{bottom:12%;right:6%;animation-delay:-3.6s}.hv .p5{bottom:22%;left:-2%;animation-delay:-4.8s}
+.hv .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,6vw,96px);align-items:center}
+.hv .split.flip .copy{order:2}
+.hv .split .copy{max-width:520px}
+.hv .visual{display:flex;justify-content:center}
+.hv .phone{position:relative;width:min(380px,100%);background:#fff;border-radius:40px;padding:56px 18px 18px;box-shadow:0 1px 0 var(--line),0 40px 80px -50px rgba(22,21,26,.35)}
+.hv .ph-head{position:absolute;left:50%;top:-34px;transform:translateX(-50%);text-align:center;background:#fff;border-radius:20px;padding:4px 16px 8px;box-shadow:0 10px 24px -16px rgba(22,21,26,.3)}
+.hv .ph-head img{width:56px;height:56px;object-fit:contain;margin:0 auto}
+.hv .ph-head .nm{font-weight:650;font-size:15px}
+.hv .ph-head .st{font-size:12.5px;color:var(--muted)}
+.hv .ph-body{display:flex;flex-direction:column;gap:10px;padding-top:8px}
+.hv .phone .bub{font-size:15px;padding:12px 15px;border-radius:20px}
+.hv .react{position:absolute;right:-6px;bottom:-12px;background:#fff;color:var(--berry);border:1px solid #f1d3e5;border-radius:999px;font-size:12px;line-height:1;padding:4px 7px}
+.hv .file{align-self:flex-start;width:90%;display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:18px;padding:12px 14px}
+.hv .pdf{width:38px;height:44px;border-radius:8px;background:#d64545;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:end center;padding-bottom:6px;flex:none}
+.hv .fk{font-weight:600;font-size:14.5px}.hv .fv{font-size:13px;color:var(--muted);margin-top:2px}
+.hv .phone .dots{padding:12px 16px}.hv .phone .dots i{width:7px;height:7px}
+.hv .ph-input{margin-top:16px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 18px;font-size:16px}
+.hv .send{width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center}
+.hv .send svg{width:18px;height:18px}
+.hv .ask{border:1px solid var(--line);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.hv .ask-k{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14.5px}
+.hv .ask-k svg{width:18px;height:18px;color:var(--berry)}
+.hv .ask-v{background:#F8F8F8;border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.5;color:var(--soft)}
+.hv .b-send,.hv .b-edit{display:block;text-align:center;border-radius:999px;padding:12px;font-weight:600;font-size:15px}
+.hv .b-send{background:var(--ink);color:#fff}.hv .b-edit{background:var(--gray)}
 
-.hv .feats-head{text-align:center;max-width:820px;margin:0 auto;padding:clamp(80px,10vw,130px) 16px 0}
-.hv .feats-head h2{margin-top:12px}
-.hv .feats-head p:last-child{font-size:19px;line-height:1.6;color:var(--soft);margin:16px auto 0;max-width:38rem}
-.hv .lock{position:relative;height:calc(100vh * 6)}
-.hv .pin{position:sticky;top:0;height:100vh;display:flex;align-items:center}
-.hv .pin-in{width:100%;max-width:1000px;margin:0 auto;padding:72px clamp(16px,4vw,32px) 24px;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(24px,4vw,48px);align-items:center}
-.hv .list{list-style:none;display:flex;flex-direction:column;gap:2px}
-.hv .list li{border-radius:18px;padding:12px 16px;cursor:pointer;transition:background .35s}
-.hv .list .row{display:flex;align-items:center;gap:14px}
-.hv .list .ic{width:38px;height:38px;opacity:.55;transition:opacity .35s}
-.hv .list .ic svg{width:18px;height:18px}
-.hv .list h3{font-size:18px;font-weight:600;letter-spacing:-.015em;color:var(--muted);transition:color .35s}
-.hv .list .more{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s ease}
-.hv .list .more>div{overflow:hidden}
-.hv .list .big{font-size:clamp(21px,1rem + .6vw,26px);font-weight:620;letter-spacing:-.025em;line-height:1.2;margin:12px 0 6px 52px}
-.hv .list .more p:not(.big){font-size:16px;line-height:1.55;color:var(--soft);margin-left:52px}
-.hv .list li.on{background:var(--tile)}
-.hv .list li.on h3{color:var(--ink)}
-.hv .list li.on .ic{opacity:1}
-.hv .list li.on .more{grid-template-rows:1fr}
-.hv .bar{height:3px;border-radius:3px;background:rgba(22,21,26,.08);margin:14px 0 4px 52px;overflow:hidden}
-.hv .bar span{display:block;height:100%;width:0;background:var(--berry);border-radius:3px}
-.hv .screen{position:relative;height:min(52vh,440px)}
-.hv .screen .bg{position:absolute;inset:0;border-radius:28px;background:linear-gradient(140deg,#fde9f2,#fff1e8 50%,#ede8ff)}
-.hv .slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:6%;opacity:0;transform:translateY(20px) scale(.98);transition:opacity .5s ease,transform .6s ease;pointer-events:none}
-.hv .slide.on{opacity:1;transform:none}
-.hv .slide:has(.full){padding:4%}
-.hv .slide .full,.hv .slide .wide{width:100%;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 30px 70px -30px rgba(22,21,26,.4);border:1px solid var(--line)}
-.hv .slide .full img{width:100%;height:auto}
-.hv .slide .wide{aspect-ratio:16/10}
-.hv .slide .wide img{width:100%;height:100%;object-fit:cover;object-position:left top}
-.hv .slide .tall{height:100%;border-radius:24px;padding:5px;background:#fff;box-shadow:0 30px 70px -30px rgba(22,21,26,.45)}
-.hv .slide .tall img{height:100%;width:auto;border-radius:19px;object-fit:cover;object-position:top}
-.hv .dots{display:none}
+.hv .rv .d1,.hv .rv .d2,.hv .rv .d3,.hv .rv .d4{opacity:0}
+.hv .rv.in .d1{animation:hvPop .5s .25s both}.hv .rv.in .d2{animation:hvPop .5s .9s both}.hv .rv.in .d3{animation:hvPop .5s 1.6s both}.hv .rv.in .d4{animation:hvPop .5s 2.2s both}
 
-.hv .sched{padding:clamp(80px,10vw,130px) clamp(16px,5vw,64px) 0}
-.hv .sched-in{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(32px,5vw,72px);align-items:center}
-.hv .sched h2{margin-top:12px}
-.hv .ticks{list-style:none;margin-top:26px;display:flex;flex-direction:column;gap:12px}
-.hv .ticks li{display:flex;align-items:center;gap:12px;font-size:16.5px}
-.hv .ticks .ic{width:28px;height:28px}.hv .ticks .ic svg{width:15px;height:15px;stroke-width:2.2}
-.hv .sched-pic{position:relative}
-.hv .sched-pic .glow{inset:-6% -6% -6% -6%}
+.hv .vault{width:min(380px,100%);background:#fff;border-radius:36px;padding:32px 26px;text-align:center;box-shadow:0 1px 0 var(--line),0 40px 80px -50px rgba(22,21,26,.35)}
+.hv .v-ic{width:72px;height:72px;border-radius:22px;margin:0 auto;display:grid;place-items:center;background:#F8F8F8;color:var(--ink);box-shadow:0 8px 20px -12px rgba(22,21,26,.3)}
+.hv .v-ic svg{width:36px;height:36px}
+.hv .v-t{margin:16px 0 18px;font-weight:650;font-size:18px}
+.hv .v-row{display:flex;align-items:center;gap:10px;background:#F8F8F8;border-radius:14px;padding:13px 14px;font-size:15px;text-align:left;margin-top:8px}
+.hv .v-row svg{width:18px;height:18px;color:var(--berry);flex:none}
 
-.hv .assist{margin-top:clamp(80px,10vw,130px);padding:clamp(72px,9vw,110px) clamp(16px,5vw,64px);background:linear-gradient(160deg,#f6f2ff 0%,#fdf0f6 60%,#fff6ef 100%)}
-.hv .assist-in{max-width:1080px;margin:0 auto;text-align:center}
-.hv .assist h2{margin-top:12px}
-.hv .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-top:48px;text-align:left}
-.hv .cards article{background:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.95);border-radius:24px;padding:26px 24px;box-shadow:0 20px 50px -34px rgba(22,21,26,.35)}
-.hv .cards h3{font-size:19px;letter-spacing:-.02em;font-weight:600;margin-top:18px}
-.hv .cards p{font-size:15.5px;line-height:1.55;color:var(--soft);margin-top:8px}
+.hv .pair{position:relative;display:flex;align-items:center;width:min(520px,100%)}
+.hv .today{width:46%;background:#fff;border-radius:28px;padding:22px 20px;box-shadow:0 1px 0 var(--line),0 30px 60px -40px rgba(22,21,26,.3);transform:translateX(18px)}
+.hv .ideas{position:relative;z-index:2;width:62%;background:#fff;border-radius:30px;padding:24px 22px;box-shadow:0 1px 0 var(--line),0 40px 80px -40px rgba(22,21,26,.4)}
+.hv .t-h{font-size:19px;font-weight:650;margin-bottom:12px}
+.hv .t-i{display:flex;align-items:center;gap:10px;font-size:14px;padding:8px 0;color:var(--ink)}
+.hv .t-i.on{color:var(--berry);font-weight:600}
+.hv .t-i.done{color:var(--muted)}
+.hv .box{width:18px;height:18px;border-radius:5px;border:1.5px solid #cfcdd4;flex:none;display:grid;place-items:center}
+.hv .t-i.on .box{border-radius:50%;border-color:var(--berry);background:radial-gradient(circle,var(--berry) 35%,transparent 40%)}
+.hv .t-i.done .box{background:#cfcdd4;border-color:#cfcdd4;color:#fff}
+.hv .t-i.done .box svg{width:12px;height:12px;stroke-width:3}
+.hv .idea{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.hv .idea:first-of-type{border-top:0}
+.hv .i-ic{width:34px;height:34px;border-radius:10px;background:var(--tint);color:var(--berry);display:grid;place-items:center;flex:none}
+.hv .i-ic svg{width:18px;height:18px}
+.hv .i-t{font-weight:600;font-size:14.5px}
+.hv .i-d{margin-top:3px;font-size:13px;line-height:1.45;color:var(--muted)}
 
-.hv .pricing{text-align:center;max-width:960px;margin:0 auto;padding:clamp(80px,10vw,130px) 16px 0}
-.hv .pricing h2{margin-top:12px}
-.hv .price-card{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);margin-top:44px;text-align:left;border:1px solid var(--line);border-radius:32px;overflow:hidden;box-shadow:0 40px 80px -50px rgba(22,21,26,.35)}
-.hv .price-top{padding:clamp(28px,4vw,44px);background:radial-gradient(80% 70% at 20% 10%,#ffe3ef,transparent 70%),radial-gradient(70% 60% at 90% 90%,#ece6ff,transparent 70%),#fff;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.hv .price-card{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);margin:44px auto 0;max-width:940px;text-align:left;background:#fff;border-radius:32px;overflow:hidden;box-shadow:0 1px 0 var(--line),0 40px 80px -55px rgba(22,21,26,.35)}
+.hv .price-top{padding:clamp(28px,4vw,44px);background:radial-gradient(80% 70% at 20% 10%,#ffe8f2,transparent 70%),radial-gradient(70% 60% at 90% 90%,#efe9ff,transparent 70%),#fff;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px}
 .hv .price{font-size:clamp(56px,1rem + 5vw,80px);font-weight:650;letter-spacing:-.05em;line-height:1}
 .hv .price span{font-size:18px;font-weight:500;letter-spacing:0;color:var(--soft);margin-left:4px}
-.hv .daily{font-size:17px;color:var(--soft);margin:10px 0 26px}
-.hv .price-card ul{list-style:none;padding:clamp(28px,4vw,44px);display:flex;flex-direction:column;gap:13px;background:#fff}
+.hv .per{color:var(--soft);font-size:16px;margin-bottom:6px}
+.hv .fine{font-size:13.5px;color:var(--muted);line-height:1.6}
+.hv .price-card ul{list-style:none;padding:clamp(28px,4vw,44px);display:flex;flex-direction:column;gap:13px}
 .hv .price-card li{display:flex;align-items:center;gap:12px;font-size:16px}
-.hv .price-card li .ic{width:26px;height:26px}.hv .price-card li .ic svg{width:14px;height:14px;stroke-width:2.4}
-.hv .broker{margin-top:22px;font-size:15px;color:var(--soft)}
-.hv .broker a{color:var(--ink);border-bottom:1px solid var(--berry)}
+.hv .tick{width:24px;height:24px;border-radius:50%;background:var(--tint);color:var(--berry);display:grid;place-items:center;flex:none}
+.hv .tick svg{width:13px;height:13px;stroke-width:2.6}
+.hv .broker{margin-top:24px;font-size:15px;color:var(--soft)}
+.hv .broker a{color:var(--ink);text-decoration:underline;text-underline-offset:3px}
 
-.hv .steps-wrap{padding:0 16px}
-.hv .steps{max-width:1160px;margin:clamp(80px,10vw,130px) auto 0;padding:clamp(56px,7vw,88px) clamp(20px,5vw,64px);border-radius:36px;background:var(--ink);color:#fff;text-align:center}
-.hv .steps .kicker{color:#f2a7d4}
-.hv .steps h2{margin-top:12px}
-.hv .steps ol{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:44px 0 40px;text-align:left}
-.hv .steps li{background:rgba(255,255,255,.07);border-radius:22px;padding:24px}
-.hv .steps b{display:inline-flex;width:34px;height:34px;border-radius:50%;align-items:center;justify-content:center;background:var(--berry);font-size:15px}
-.hv .steps h3{font-size:20px;margin-top:16px;letter-spacing:-.02em;font-weight:600}
-.hv .steps li p{margin-top:6px;font-size:15.5px;line-height:1.5;opacity:.72}
+.hv .learn{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:clamp(32px,6vw,80px);align-items:center}
+.hv .rows{display:flex;flex-direction:column}
+.hv .row{display:flex;align-items:center;gap:18px;padding:24px 20px;border-radius:22px;border-bottom:1px solid var(--line);transition:background .2s}
+.hv .row:last-child{border-bottom:0}
+.hv .row:hover{background:#fff}
+.hv .r-ic{color:var(--ink);flex:none}.hv .r-ic svg{width:24px;height:24px}
+.hv .r-tx{display:flex;flex-direction:column;gap:6px}
+.hv .r-t{font-weight:650;font-size:18px;letter-spacing:-.01em}
+.hv .r-d{font-size:15px;line-height:1.5;color:var(--soft)}
+.hv .r-go{margin-left:auto;color:var(--muted);flex:none}
 
-.hv .final{text-align:center;padding:clamp(80px,10vw,130px) 16px clamp(64px,8vw,100px);background:radial-gradient(50% 60% at 50% 40%,#fdeef5,#fff 70%)}
-.hv .fberry{width:96px;margin:0 auto 18px;animation:hvfl 5s ease-in-out infinite}
-.hv .final .btn{margin-top:30px}
+.hv .final{text-align:center;padding:clamp(120px,16vw,200px) 16px clamp(110px,14vw,180px)}
+.hv .final-ctas{margin-top:34px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.hv .final-ctas .btn{width:min(340px,100%)}
 
-.hv .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;max-width:1160px;margin:0 auto;padding:36px 16px 48px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
-.hv .fmark{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.hv .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;padding:28px clamp(16px,5vw,64px);border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+.hv .fmark{display:flex;align-items:center;gap:14px}
 .hv .fmark img{height:20px;width:auto}
-.hv .foot nav{display:flex;gap:22px}
+.hv .foot nav{display:flex;gap:24px}
 .hv .foot nav a:hover{color:var(--ink)}
+
+.hv .sub.strong{color:var(--ink);font-weight:600}
+.hv .kv{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14px;color:var(--ink)}
+.hv .kv span{color:var(--muted)}
+.hv .shot{width:min(420px,100%);border-radius:32px;overflow:hidden;background:#fff;padding:10px;box-shadow:0 1px 0 var(--line),0 40px 80px -50px rgba(22,21,26,.35)}
+.hv .shot img{border-radius:24px}
+.hv .setup-berry{width:96px;margin:0 auto 18px;animation:hvFloat 5s ease-in-out infinite}
+.hv .pill-note{display:inline-block;margin-top:24px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:14.5px;font-weight:500}
+.hv .final .sub{max-width:560px;margin-left:auto;margin-right:auto}
+.hv .final-ctas .fine{margin-top:4px}
+.hv .final-ctas .broker{margin-top:14px}
+.hv .rv{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.9,.3,1)}
+.hv .rv.in{opacity:1;transform:none}
+
+@keyframes hvFloat{50%{transform:translateY(-6px)}}
+@keyframes hvRot{from{opacity:0;transform:translateY(.4em);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes hvNudge{50%{transform:translateY(3px)}}
+@keyframes hvBeat{from{opacity:0;transform:scale(.97) translateY(14px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes hvPop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes hvDot{0%,100%{opacity:.35}50%{opacity:1}}
 
 @media (max-width:860px){
   .hv .hide-sm{display:none}
-  .hv .stage .frame{width:100%}
-  .hv .hphone{width:34%;right:2%;bottom:-16px}
-  .hv .hberry{width:76px;top:-50px;right:10%}
-  .hv .icons{gap:0;border-radius:20px}
-  .hv .icons a{padding:8px 6px;font-size:12px;width:33.33%}
-  .hv .icons .ic{width:42px;height:42px}
-  .hv .meet-in{grid-template-columns:1fr}
-  .hv .orbit{max-width:380px}
-  .hv .pill{font-size:12.5px;padding:7px 12px 7px 7px}.hv .pill .ic{width:28px;height:28px}
-  .hv .p3{right:-2%}.hv .p5{left:0}
-  .hv .pin-in{grid-template-columns:1fr;gap:16px;padding-top:76px;align-content:center;height:100%}
-  .hv .screen{order:-1;height:40vh}
-  .hv .list li{display:none;padding:6px 4px;background:none}
-  .hv .list li.on{display:block;background:none}
-  .hv .list .row{display:none}
-  .hv .list .big,.hv .list .more p:not(.big),.hv .bar{margin-left:0}
-  .hv .list .big{margin-top:4px}
-  .hv .dots{display:flex;gap:6px;justify-content:center}
-  .hv .dots i{width:7px;height:7px;border-radius:50%;background:rgba(22,21,26,.15);transition:all .3s}
-  .hv .dots i.on{width:22px;border-radius:4px;background:var(--berry)}
-  .hv .sched-in{grid-template-columns:1fr}
-  .hv .cards{grid-template-columns:1fr 1fr}
+  .hv .split,.hv .learn{grid-template-columns:1fr}
+  .hv .split.flip .copy{order:0}
+  .hv .split .copy{max-width:none}
+  .hv .visual{margin-top:20px}
   .hv .price-card{grid-template-columns:1fr}
-  .hv .steps ol{grid-template-columns:1fr}
 }
-@media (max-width:520px){ .hv .cards{grid-template-columns:1fr} }
-@media (prefers-reduced-motion:reduce){ .hv *{animation:none!important;transition:none!important} }
+@media (max-width:520px){
+  .hv .pair{flex-direction:column;align-items:stretch}
+  .hv .today{width:100%;transform:none}
+  .hv .ideas{width:100%;margin-top:-10px}
+}
+@media (prefers-reduced-motion:reduce){
+  .hv *{animation:none!important;transition:none!important}
+  .hv .rv,.hv .rv .d1,.hv .rv .d2,.hv .rv .d3,.hv .rv .d4{opacity:1;transform:none}
+}
 `
