@@ -5,6 +5,7 @@ import { formatSlot } from "@/lib/slots"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { SETUP_STEPS, setupProgress } from "@/lib/onboarding"
 import Welcome from "./welcome"
+import AssistantBar from "./assistant-bar"
 import { feedToken } from "@/lib/feed"
 import BookingLink from "../booking-link"
 import AppShell from "@/app/app-shell"
@@ -321,6 +322,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <p className="mt-2 text-ink/60">
         {priorities.length ? "Here's what's important today. I'll help you get it handled." : "Nothing pressing today. Everything is on track."}
       </p>
+      <div className="mt-6">
+        <AssistantBar />
+      </div>
 
       {needsSetupCall && (
         <Link href="/chat" className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[#EBC9E0] bg-[#FBEDF5] p-5 transition-colors hover:bg-[#F7E4F0]">

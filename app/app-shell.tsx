@@ -7,6 +7,7 @@ import { type AgentRow } from "@/lib/agent"
 import { PRODUCT_NAME, SUPPORT_EMAIL } from "@/lib/support"
 import SidebarNav from "./sidebar-nav"
 import FeedbackWidget from "./feedback-widget"
+import Assistant from "./assistant"
 
 const KEY = "mb-menu-open"
 const HELP_HREF = "/support"
@@ -22,6 +23,7 @@ export default function AppShell({
 }) {
   const [open, setOpen] = useState(true) // desktop: expanded or collapsed
   const [mobileOpen, setMobileOpen] = useState(false) // phone: drawer
+  const [asst, setAsst] = useState(false) // the Marvberry chat panel
   const pathname = usePathname()
 
   // Remember the desktop choice between pages
@@ -189,10 +191,11 @@ export default function AppShell({
         </button>
       </aside>
 
-      <div className="relative z-10 min-w-0 flex-1">
+      <div className={"relative z-10 min-w-0 flex-1 transition-[padding] duration-300 " + (asst ? "sm:pr-[380px]" : "")}>
         <TrialBanner endsAt={agent.trial_ends_at} status={agent.subscription_status} />
         {children}
       </div>
+      <Assistant onOpenChange={setAsst} />
     </div>
   )
 }

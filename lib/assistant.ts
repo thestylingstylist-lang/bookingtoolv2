@@ -183,3 +183,28 @@ export async function draftReplyFor(db: SupabaseClient, agentId: string, clientI
   const examples = await voiceExamples(db, agentId, settings.voice)
   return draftCounted(db, agentId, "reply", withVoice(facts, examples, "Write the agent's reply to the client's latest message."))
 }
+
+// A message the agent asked for in the Marvberry chat ("let Priya know…").
+// Null when the assistant can't write, so the caller says so plainly.
+export async function draftAboutFor(db: SupabaseClient, agentId: string, clientId: string, about: string): Promise<string | null> {
+  const settings = await assistantFor(db, agentId)
+  const [{ data: client }, { data: agent }, { data: steps }] = await Promise.all([
+    db.from("clients").select("first_name, agent_id, phase").eq("id", clientId).maybeSingle(),
+    db.from("agents").select("full_name, timezone").eq("id", agentId).maybeSingle(),
+    db.from("steps").select("title, owner, done, due_on").eq("client_id", clientId).eq("done", false).limit(10),
+  ])
+  if (!client || client.agent_id !== agentId) return null
+  const agentFirst = ((agent?.full_name as string) || "").trim().split(/\s+/)[0] || ""
+  const open = (steps ?? []).map((s) => `${s.title}${s.due_on ? ` (due ${longDate(s.due_on as string)})` : ""}`).join("; ")
+  const facts = [
+    `Client first name: ${client.first_name || "(unknown, skip the name)"}`,
+    `Agent first name: ${agentFirst || "(unknown, skip the sign-off)"}`,
+    client.phase ? `Stage of the deal: ${client.phase}` : "",
+    open ? `Open steps in this deal: ${open}` : "",
+    "Only use times, places and facts given here or in the agent's request. Never invent a price, time or address.",
+  ]
+    .filter(Boolean)
+    .join("\n")
+  const examples = await voiceExamples(db, agentId, settings.voice)
+  return draftCounted(db, agentId, "chat", withVoice(facts, examples, `The agent asked: "${about.slice(0, 400)}". Write that message to the client.`))
+}
