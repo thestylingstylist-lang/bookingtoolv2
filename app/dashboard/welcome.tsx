@@ -172,7 +172,7 @@ export default function Welcome(props: Props) {
         <div className="blob b2" />
         <div className="blob b3" />
         <div className="center">
-          <img src="/brand/berry.webp" alt="" className="berry" />
+          <img src="/brand/berry-clear.webp" alt="" className="berry" />
           <svg className="word" viewBox="0 0 900 120" aria-hidden>
             <text x="50%" y="88" textAnchor="middle">Welcome to Marvberry</text>
           </svg>
@@ -490,7 +490,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       <div className="blob b3" />
       <div className="box">
         <div className="hd">
-          <img src="/brand/berry.webp" alt="" className="av" />
+          <img src="/brand/berry-clear.webp" alt="" className="av" />
           <div>
             <p className="nm">{name}</p>
             <p className="st">{typing ? "typing…" : "Online"}</p>
@@ -678,8 +678,7 @@ const CSS = `
 .mbw-hello .b3{background:#e3dcff;left:10vmax;bottom:-30vmax;animation:mbwDrift 19s ease-in-out infinite alternate}
 @keyframes mbwDrift{to{transform:translate(6vmax,4vmax) scale(1.1)}}
 .mbw-hello .center{position:relative;text-align:center;padding:24px;max-width:960px;width:100%}
-.mbw-hello .berry{width:150px;height:150px;margin:0 auto;display:block;
-  -webkit-mask-image:radial-gradient(circle,#000 40%,transparent 66%);mask-image:radial-gradient(circle,#000 40%,transparent 66%);
+.mbw-hello .berry{width:104px;height:104px;object-fit:contain;margin:0 auto;display:block;
   animation:mbwPop 1.4s cubic-bezier(.2,1.4,.4,1) .3s both, mbwFloat 5s ease-in-out 1.8s infinite}
 @keyframes mbwPop{from{opacity:0;transform:scale(.4) translateY(30px)}to{opacity:1;transform:none}}
 @keyframes mbwFloat{50%{transform:translateY(-8px)}}
@@ -724,7 +723,7 @@ const CSS = `
   background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(22,21,26,.07);border-radius:28px;
   box-shadow:0 40px 90px -30px rgba(22,21,26,.35);overflow:hidden}
 .mbw-chat .hd{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(22,21,26,.06)}
-.mbw-chat .av{width:42px;height:42px;object-fit:cover;-webkit-mask-image:radial-gradient(circle,#000 46%,transparent 70%);mask-image:radial-gradient(circle,#000 46%,transparent 70%);animation:mbwFloat 5s ease-in-out infinite}
+.mbw-chat .av{width:34px;height:34px;object-fit:contain;animation:mbwFloat 5s ease-in-out infinite}
 .mbw-chat .nm{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
 .mbw-chat .st{margin:1px 0 0;font-size:12.5px;color:#8d8b92}
 .mbw-chat .x{margin-left:auto;font:inherit;font-size:13px;color:#8d8b92;background:none;border:0;cursor:pointer;padding:6px}

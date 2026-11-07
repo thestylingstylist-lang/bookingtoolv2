@@ -69,7 +69,7 @@ export default function Brand() {
             </svg>
             <p className="fine dark">14 days free. No credit card.</p>
           </div>
-          <img className="hero-berry" src="/brand/berry.webp" alt="The Marvberry berry, smiling" />
+          <img className="hero-berry" src="/brand/berry-clear.webp" alt="The Marvberry berry, smiling" />
         </div>
       </section>
 
@@ -622,8 +622,7 @@ const CSS = `
 .mb .hero-copy h1 .l2{font-size:clamp(38px,.6rem + 4.6vw,84px)}
 .mb .hero-copy .sub{max-width:34rem}
 .mb .hero-copy .swoosh{align-self:flex-start; margin-left:64px}
-.mb .hero-berry{width:100%; max-width:520px; justify-self:center; aspect-ratio:1/1; object-fit:cover;
-  -webkit-mask-image:radial-gradient(circle at 50% 50%, #000 48%, transparent 70%); mask-image:radial-gradient(circle at 50% 50%, #000 48%, transparent 70%);
+.mb .hero-berry{width:100%; max-width:340px; justify-self:center; aspect-ratio:1/1; object-fit:contain;
   opacity:0; animation:mbRise 1s cubic-bezier(.2,.7,.2,1) .5s forwards, berryFloat 6s ease-in-out 1.6s infinite}
 @keyframes berryFloat{0%,100%{translate:0 0} 50%{translate:0 -12px}}
 @media (prefers-reduced-motion: reduce){ .mb .hero-berry{opacity:1; animation:none} }

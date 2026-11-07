@@ -141,7 +141,7 @@ export default function Home() {
         <section className="hero">
           <p className="chip"><span className="dot" />For solo real estate agents</p>
           <h1 className="rot-h">
-            Marvberry<img className="inberry" src="/brand/berry.webp" alt="" />, the AI assistant that
+            Marvberry<img className="inberry" src="/brand/berry-clear.webp" alt="" />, the AI assistant that
             <Rotator />
           </h1>
           <div className="ctas">
@@ -153,7 +153,7 @@ export default function Home() {
             <div className="glow" />
             <div className="frame"><img src="/brand/booking-desktop.webp" alt="A real estate agent's booking page" /></div>
             <div className="hphone"><img src="/brand/portal-full.jpg" alt="A client's page showing their next step" /></div>
-            <img className="hberry" src="/brand/berry.webp" alt="" />
+            <img className="hberry" src="/brand/berry-clear.webp" alt="" />
           </div>
 
           <div className="icons" aria-label="What Marvberry does">
@@ -181,7 +181,7 @@ export default function Home() {
           </div>
           <div className="orbit">
             <div className="ring" />
-            <img className="berry" src="/brand/berry.webp" alt="The Marvberry berry" />
+            <img className="berry" src="/brand/berry-clear.webp" alt="The Marvberry berry" />
             <span className="pill p1"><span className="ic c1"><Icon name="cal" /></span>Books appointments</span>
             <span className="pill p2"><span className="ic c2"><Icon name="doc" /></span>Prepares agreements</span>
             <span className="pill p3"><span className="ic c3"><Icon name="people" /></span>Keeps clients informed</span>
@@ -314,7 +314,7 @@ export default function Home() {
       </section>
 
       <section className="final">
-        <img className="fberry" src="/brand/berry.webp" alt="" />
+        <img className="fberry" src="/brand/berry-clear.webp" alt="" />
         <h2>Your next deal doesn&rsquo;t have to stall.</h2>
         <a className="btn" href={START}>Try Marvberry</a>
         <p className="fine">14 days free. No credit card.</p>
@@ -369,7 +369,7 @@ const CSS = `
 .hv .grad{background:linear-gradient(90deg,#BC559E,#E8857A 60%,#9C7CF0);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hv .sub{font-size:clamp(18px,.9rem + .5vw,21px);line-height:1.55;color:var(--soft);max-width:38rem;margin:22px auto 0}
 .hv .rot-h{max-width:18ch;font-size:clamp(40px,1rem + 4.6vw,76px)}
-.hv .inberry{display:inline-block;width:1.05em;height:1.05em;margin:0 .02em 0 .08em;vertical-align:-.2em;object-fit:cover;-webkit-mask-image:radial-gradient(circle,#000 42%,transparent 68%);mask-image:radial-gradient(circle,#000 42%,transparent 68%);animation:hvfl 5s ease-in-out infinite}
+.hv .inberry{display:inline-block;width:.78em;height:.78em;margin:0 .04em 0 .14em;vertical-align:-.08em;object-fit:contain;animation:hvfl 5s ease-in-out infinite}
 .hv .rot{display:block;min-height:2.1em;margin-top:.08em}
 .hv .rot-line{display:inline-block;padding-bottom:.08em;animation:hvRot .6s cubic-bezier(.2,.9,.3,1) both}
 @keyframes hvRot{from{opacity:0;transform:translateY(.4em);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
@@ -381,7 +381,7 @@ const CSS = `
 .hv .stage .frame{width:86%}
 .hv .hphone{position:absolute;z-index:2;right:3%;bottom:0;width:22%;border-radius:28px;padding:6px;background:#fff;box-shadow:0 30px 60px -20px rgba(22,21,26,.4)}
 .hv .hphone img{border-radius:22px;aspect-ratio:9/16;object-fit:cover;object-position:top;width:100%}
-.hv .hberry{position:absolute;z-index:3;width:min(230px,24%);right:17%;top:-110px;-webkit-mask-image:radial-gradient(circle,#000 38%,transparent 62%);mask-image:radial-gradient(circle,#000 38%,transparent 62%);animation:hvfl 5s ease-in-out infinite}
+.hv .hberry{position:absolute;z-index:3;width:min(150px,16%);right:19%;top:-80px;animation:hvfl 5s ease-in-out infinite}
 @keyframes hvfl{50%{transform:translateY(-10px)}}
 
 .hv .icons{position:relative;z-index:4;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;max-width:720px;margin:8px auto 0;padding:14px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 20px 50px -30px rgba(22,21,26,.3)}
@@ -407,7 +407,7 @@ const CSS = `
 .hv .meet .tag{font-size:clamp(22px,1rem + .9vw,30px);line-height:1.25;letter-spacing:-.02em;font-weight:550;margin-top:18px}
 .hv .meet .body{font-size:18px;line-height:1.65;color:var(--soft);margin:22px 0 32px;max-width:32rem}
 .hv .orbit{position:relative;aspect-ratio:1/1;max-width:540px;width:100%;margin:0 auto}
-.hv .orbit .berry{position:absolute;inset:12%;width:76%;-webkit-mask-image:radial-gradient(circle,#000 40%,transparent 66%);mask-image:radial-gradient(circle,#000 40%,transparent 66%);animation:hvfl 6s ease-in-out infinite}
+.hv .orbit .berry{position:absolute;inset:24%;width:52%;animation:hvfl 6s ease-in-out infinite}
 .hv .ring{position:absolute;inset:10%;border:1px solid rgba(188,85,158,.18);border-radius:50%}
 .hv .pill{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;background:rgba(255,255,255,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.9);border-radius:999px;box-shadow:0 16px 40px -20px rgba(22,21,26,.35);font-size:14.5px;font-weight:550;white-space:nowrap;animation:hvbob 6s ease-in-out infinite}
 @keyframes hvbob{50%{transform:translateY(-6px)}}
@@ -490,7 +490,7 @@ const CSS = `
 .hv .steps li p{margin-top:6px;font-size:15.5px;line-height:1.5;opacity:.72}
 
 .hv .final{text-align:center;padding:clamp(80px,10vw,130px) 16px clamp(64px,8vw,100px);background:radial-gradient(50% 60% at 50% 40%,#fdeef5,#fff 70%)}
-.hv .fberry{width:150px;margin:0 auto 18px;-webkit-mask-image:radial-gradient(circle,#000 40%,transparent 64%);mask-image:radial-gradient(circle,#000 40%,transparent 64%);animation:hvfl 5s ease-in-out infinite}
+.hv .fberry{width:96px;margin:0 auto 18px;animation:hvfl 5s ease-in-out infinite}
 .hv .final .btn{margin-top:30px}
 
 .hv .foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;max-width:1160px;margin:0 auto;padding:36px 16px 48px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
@@ -503,7 +503,7 @@ const CSS = `
   .hv .hide-sm{display:none}
   .hv .stage .frame{width:100%}
   .hv .hphone{width:34%;right:2%;bottom:-16px}
-  .hv .hberry{width:110px;top:-70px;right:10%}
+  .hv .hberry{width:76px;top:-50px;right:10%}
   .hv .icons{gap:0;border-radius:20px}
   .hv .icons a{padding:8px 6px;font-size:12px;width:33.33%}
   .hv .icons .ic{width:42px;height:42px}

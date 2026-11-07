@@ -79,7 +79,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
         <main className="main">
           {welcome && (
             <div className="welcome">
-              <img src="/brand/berry.webp" alt="" className="wberry" />
+              <img src="/brand/berry-clear.webp" alt="" className="wberry" />
               <div>
                 {paid ? (
                   <>
@@ -165,7 +165,7 @@ const CSS = `
 .mbchat .name{margin:0;font-size:17px;font-weight:600}
 .mbchat .role{margin:2px 0 0;font-size:13.5px;color:#8d8b92}
 .mbchat .welcome{display:flex;align-items:center;gap:16px;margin-bottom:16px;padding:16px 20px;border-radius:20px;background:rgba(255,255,255,.75);border:1px solid rgba(188,85,158,.18);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.mbchat .wberry{width:64px;height:64px;flex:none;-webkit-mask-image:radial-gradient(circle,#000 40%,transparent 66%);mask-image:radial-gradient(circle,#000 40%,transparent 66%)}
+.mbchat .wberry{width:46px;height:46px;flex:none;object-fit:contain}
 .mbchat .w1{margin:0;font-size:19px;font-weight:620;letter-spacing:-.02em}
 .mbchat .w2{margin:4px 0 0;font-size:15px;line-height:1.55;color:#55535b}
 .mbchat .card{border-radius:28px;background:rgba(255,255,255,.88);border:1px solid rgba(22,21,26,.08);box-shadow:0 40px 80px -50px rgba(22,21,26,.35);padding:clamp(22px,4vw,40px);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}

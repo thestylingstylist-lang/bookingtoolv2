@@ -313,7 +313,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {needsSetupCall && (
         <Link href="/chat" className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[#EBC9E0] bg-[#FBEDF5] p-5 transition-colors hover:bg-[#F7E4F0]">
-          <img src="/brand/berry.webp" alt="" className="h-12 w-12 shrink-0 [mask-image:radial-gradient(circle,#000_40%,transparent_66%)]" />
+          <img src="/brand/berry-clear.webp" alt="" className="h-9 w-9 shrink-0 object-contain" />
           <span className="min-w-0 flex-1">
             <span className="block font-semibold tracking-tight">Book your free setup call</span>
             <span className="block text-sm text-ink/60">We&rsquo;ll set up your booking page, agreements and client steps with you.</span>
