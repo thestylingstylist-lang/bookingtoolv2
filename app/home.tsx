@@ -2,6 +2,7 @@
 // Marvberry home page: modern, bright and easy. One clean font, the berry, real screens.
 // The six features lock in place while you scroll, so a lot of information reads like one page.
 import { useEffect, useRef, useState } from "react"
+import { editorial } from "./fonts"
 
 const START = "/signup"
 const CALL = "/chat"
@@ -122,7 +123,7 @@ export default function Home() {
   }
 
   return (
-    <div className="hv">
+    <div className={`hv ${editorial.variable}`}>
       <style>{CSS}</style>
 
       <header className={`nav${scrolled ? " scrolled" : ""}`}>
@@ -139,17 +140,25 @@ export default function Home() {
 
       <div className="hero-wrap" id="top">
         <section className="hero">
-          <p className="chip"><span className="dot" />For solo real estate agents</p>
-          <h1 className="rot-h">
-            Marvberry<img className="inberry" src="/brand/berry-clear.webp" alt="" />, the AI assistant that
-            <Rotator />
-          </h1>
-          <div className="ctas">
-            <a className="btn" href={START}>Try Marvberry</a>
+          <div className="first">
+            <h1 className="rot-h">
+              Marvberry<img className="inberry" src="/brand/berry-clear.webp" alt="" />, the AI assistant that
+              <Rotator />
+            </h1>
+            <div className="ctas">
+              <a className="btn" href={START}>Try Marvberry</a>
+            </div>
+            <button
+              type="button"
+              className="more"
+              onClick={() => document.getElementById("see")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            >
+              Learn more
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+            </button>
           </div>
-          <p className="fine">14 days free. No credit card.</p>
 
-          <div className="stage">
+          <div className="stage" id="see">
             <div className="glow" />
             <div className="frame"><img src="/brand/booking-desktop.webp" alt="A real estate agent's booking page" /></div>
             <div className="hphone"><img src="/brand/portal-full.jpg" alt="A client's page showing their next step" /></div>
@@ -362,15 +371,20 @@ const CSS = `
 .hv .btn.light{background:#fff;color:var(--ink)}
 
 .hv .hero-wrap{background:radial-gradient(60% 50% at 50% 0%,#fff1f6 0%,#F8F8F8 70%);margin-top:-72px;padding-top:72px}
-.hv .hero{text-align:center;padding:clamp(48px,8vw,88px) 16px 0}
+.hv .hero{text-align:center;padding:0 16px}
+.hv .first{position:relative;min-height:calc(100svh - 72px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 0 96px}
+.hv .more{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:14.5px;font-weight:500;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 18px;cursor:pointer;box-shadow:0 10px 30px -18px rgba(22,21,26,.35);transition:transform .2s}
+.hv .more:hover{transform:translateX(-50%) translateY(-2px)}
+.hv .more svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:hvNudge 2.4s ease-in-out infinite}
+@keyframes hvNudge{50%{transform:translateY(3px)}}
 .hv .chip{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--line)}
 .hv .dot{width:7px;height:7px;border-radius:50%;background:var(--berry)}
 .hv h1{font-size:clamp(42px,1rem + 5.6vw,88px);line-height:1.02;letter-spacing:-.045em;font-weight:650;max-width:15ch;margin:24px auto 0}
 .hv .grad{background:linear-gradient(90deg,#BC559E,#E8857A 60%,#9C7CF0);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hv .sub{font-size:clamp(18px,.9rem + .5vw,21px);line-height:1.55;color:var(--soft);max-width:38rem;margin:22px auto 0}
-.hv .rot-h{max-width:18ch;font-size:clamp(40px,1rem + 4.6vw,76px)}
-.hv .inberry{display:inline-block;width:.78em;height:.78em;margin:0 .04em 0 .14em;vertical-align:-.08em;object-fit:contain;animation:hvfl 5s ease-in-out infinite}
-.hv .rot{display:block;min-height:2.1em;margin-top:.08em}
+.hv .rot-h{max-width:16ch;margin:0 auto;font-size:clamp(46px,1rem + 5.4vw,96px);line-height:1}
+.hv .inberry{display:inline-block;width:1.25em;height:1.25em;margin:-.2em .02em -.1em .12em;vertical-align:-.28em;object-fit:contain;animation:hvfl 5s ease-in-out infinite}
+.hv .rot{display:block;min-height:2.1em;margin-top:.12em;font-style:italic}
 .hv .rot-line{display:inline-block;padding-bottom:.08em;animation:hvRot .6s cubic-bezier(.2,.9,.3,1) both}
 @keyframes hvRot{from{opacity:0;transform:translateY(.4em);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
 .hv .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
@@ -381,7 +395,7 @@ const CSS = `
 .hv .stage .frame{width:86%}
 .hv .hphone{position:absolute;z-index:2;right:3%;bottom:0;width:22%;border-radius:28px;padding:6px;background:#fff;box-shadow:0 30px 60px -20px rgba(22,21,26,.4)}
 .hv .hphone img{border-radius:22px;aspect-ratio:9/16;object-fit:cover;object-position:top;width:100%}
-.hv .hberry{position:absolute;z-index:3;width:min(150px,16%);right:19%;top:-80px;animation:hvfl 5s ease-in-out infinite}
+.hv .hberry{position:absolute;z-index:3;width:min(150px,16%);right:19%;top:-30px;animation:hvfl 5s ease-in-out infinite}
 @keyframes hvfl{50%{transform:translateY(-10px)}}
 
 .hv .icons{position:relative;z-index:4;display:flex;justify-content:center;gap:4px;flex-wrap:wrap;max-width:720px;margin:8px auto 0;padding:14px;background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:0 20px 50px -30px rgba(22,21,26,.3)}
@@ -528,4 +542,5 @@ const CSS = `
 }
 @media (max-width:520px){ .hv .cards{grid-template-columns:1fr} }
 @media (prefers-reduced-motion:reduce){ .hv *{animation:none!important;transition:none!important} }
+.hv.hv h1,.hv.hv h2{font-family:var(--font-editorial),'Cormorant Garamond',Georgia,serif;font-weight:500;letter-spacing:-.02em;line-height:1.02}
 `
