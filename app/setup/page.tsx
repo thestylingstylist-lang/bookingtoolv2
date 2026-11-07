@@ -164,7 +164,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
 }
 
 const CSS = `
-.mbs{position:relative;isolation:isolate;min-height:100vh;background:#fff;color:#16151a;overflow-x:clip;
+.mbs{position:relative;isolation:isolate;min-height:100vh;background:#F8F8F8;color:#16151a;overflow-x:clip;
   font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .mbs *{box-sizing:border-box}
 .mbs h1,.mbs h2,.mbs h3,.mbs p,.mbs ul,.mbs ol{margin:0;padding:0}

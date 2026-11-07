@@ -320,8 +320,8 @@ export default function Home() {
 
 const CSS = `
 .hv{
-  --ink:#16151a; --soft:#55535b; --muted:#8d8b92; --line:rgba(22,21,26,.09); --berry:#BC559E; --tile:#f6f5f3;
-  color-scheme:light; background:#fff; color:var(--ink); min-height:100vh; overflow-x:clip;
+  --ink:#16151a; --soft:#55535b; --muted:#8d8b92; --line:rgba(22,21,26,.09); --berry:#BC559E; --tile:#fff;
+  color-scheme:light; background:#F8F8F8; color:var(--ink); min-height:100vh; overflow-x:clip;
   font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;
 }
 .hv *{box-sizing:border-box}
@@ -332,7 +332,7 @@ const CSS = `
 .hv h1,.hv h2{text-wrap:balance}
 
 .hv .nav{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:16px clamp(16px,5vw,64px);transition:background .3s,box-shadow .3s}
-.hv .nav.scrolled{background:rgba(255,255,255,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--line)}
+.hv .nav.scrolled{background:rgba(248,248,248,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--line)}
 .hv .nav .logo{height:24px;width:auto}
 .hv .nav nav{display:flex;gap:28px;align-items:center;font-size:15px;color:var(--soft)}
 .hv .nav nav a:hover{color:var(--ink)}
@@ -343,7 +343,7 @@ const CSS = `
 .hv .btn.ghost{background:#fff;color:var(--ink);box-shadow:none;border:1px solid var(--line)}
 .hv .btn.light{background:#fff;color:var(--ink)}
 
-.hv .hero-wrap{background:radial-gradient(60% 50% at 50% 0%,#fff1f6 0%,#fff 70%);margin-top:-72px;padding-top:72px}
+.hv .hero-wrap{background:radial-gradient(60% 50% at 50% 0%,#fff1f6 0%,#F8F8F8 70%);margin-top:-72px;padding-top:72px}
 .hv .hero{text-align:center;padding:clamp(48px,8vw,88px) 16px 0}
 .hv .chip{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;padding:7px 14px;border-radius:999px;background:rgba(255,255,255,.75);border:1px solid var(--line)}
 .hv .dot{width:7px;height:7px;border-radius:50%;background:var(--berry)}

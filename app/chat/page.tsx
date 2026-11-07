@@ -142,7 +142,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
 }
 
 const CSS = `
-.mbchat{position:relative;isolation:isolate;min-height:100vh;background:#fff;color:#16151a;overflow-x:clip;
+.mbchat{position:relative;isolation:isolate;min-height:100vh;background:#F8F8F8;color:#16151a;overflow-x:clip;
   font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .mbchat *{box-sizing:border-box}
 .mbchat .glow{position:absolute;inset:0;z-index:-1;pointer-events:none;

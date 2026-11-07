@@ -408,7 +408,7 @@ const CSS = `
   --ink:#2A221C; --body:#5E554D; --muted:#9A8F84; --gold:#C9A46C; --rust:#8F4E2A; --rule:#E7DED1; --cream:#F6EFE5;
   --serif:'Playfair Display', Georgia, serif;
   --sans: var(--font-geist-sans), -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
-  color-scheme:light; background:#fff; color:var(--ink); font-family:var(--sans); min-height:100vh;
+  color-scheme:light; background:#F8F8F8; color:var(--ink); font-family:var(--sans); min-height:100vh;
 }
 .pp *{box-sizing:border-box}
 .pp a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--gold)}

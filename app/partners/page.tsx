@@ -102,7 +102,7 @@ export default function PartnersPage() {
 }
 
 const CSS = `
-.mbp{position:relative;isolation:isolate;min-height:100vh;background:#fff;color:#16151a;overflow-x:clip;
+.mbp{position:relative;isolation:isolate;min-height:100vh;background:#F8F8F8;color:#16151a;overflow-x:clip;
   font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .mbp *{box-sizing:border-box}
 .mbp h1,.mbp h2,.mbp h3,.mbp p,.mbp ul,.mbp ol{margin:0;padding:0}
