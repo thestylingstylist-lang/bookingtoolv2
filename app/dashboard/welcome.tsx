@@ -406,7 +406,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       await say(picked === "Marvberry" ? "Marvberry it is. So happy to meet you." : `${picked} it is. I love it.`)
 
       // 2. One real task, chosen by the agent
-      await say("What would you like me to help you with first?")
+      await say("What can I help you get started with?")
       const done = new Set<string>()
       let client: { id: string; first: string; full: string } | null = null
       let next: string[] = [T_CLIENT, T_AGREEMENT, T_PAGE]
