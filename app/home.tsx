@@ -8,7 +8,7 @@ const CALL = "/chat"
 const BERRY = "/brand/berry-clear.webp"
 const TRIAL = "Start your 14-day free trial"
 
-const LINES = ["prepares your agreements", "organizes your follow-ups", "keeps your clients updated", "gets your offers moving"]
+const LINES = ["prepares your agreements", "organizes your follow‑ups", "keeps your clients updated", "gets your offers moving"]
 
 function Icon({ name }: { name: string }) {
   const p: Record<string, React.ReactNode> = {
@@ -40,57 +40,84 @@ function Rotator() {
   )
 }
 
-// The motion card: the promise, the ask, the result. Then it loops.
+// The motion card (stand-in): Marvberry takes three quick asks, one after another, then loops.
+const ASKS = [
+  { cmd: "Turn Jordan’s booking into a client", reply: "Done. Jordan’s a client, and his page is ready." },
+  { cmd: "Schedule Priya’s showing for Saturday at 11", reply: "Booked. Priya has the time and the address." },
+  { cmd: "Follow up on the Elm Road offer", reply: "Your note to the listing agent is ready to send." },
+]
+type Line = { me: boolean; text: string; k: number }
 function Motion() {
-  const [beat, setBeat] = useState(0)
-  const [loop, setLoop] = useState(0)
+  const [lines, setLines] = useState<Line[]>([])
+  const [draft, setDraft] = useState("")
+  const [thinking, setThinking] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
-    const lengths = [3800, 5200, 3800]
-    let t: ReturnType<typeof setTimeout>
-    const step = (b: number) => {
-      t = setTimeout(() => {
-        const next = (b + 1) % 3
-        if (next === 0) setLoop((x) => x + 1)
-        setBeat(next)
-        step(next)
-      }, lengths[b])
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setLines(ASKS.flatMap((a, i) => [{ me: true, text: a.cmd, k: i * 2 }, { me: false, text: a.reply, k: i * 2 + 1 }]))
+      return
     }
-    step(0)
-    return () => clearTimeout(t)
+    let alive = true
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
+    const seen = new Promise<void>((res) => {
+      const el = box.current
+      if (!el) return res()
+      const io = new IntersectionObserver((es) => es[0].isIntersecting && (io.disconnect(), res()), { threshold: 0.4 })
+      io.observe(el)
+    })
+    ;(async () => {
+      await seen
+      let k = 0
+      while (alive) {
+        setLines([])
+        await wait(700)
+        for (const a of ASKS) {
+          for (let n = 1; n <= a.cmd.length && alive; n++) {
+            setDraft(a.cmd.slice(0, n))
+            await wait(34)
+          }
+          await wait(350)
+          if (!alive) return
+          setDraft("")
+          setLines((x) => [...x, { me: true, text: a.cmd, k: k++ }])
+          setThinking(true)
+          await wait(1000)
+          setThinking(false)
+          setLines((x) => [...x, { me: false, text: a.reply, k: k++ }])
+          await wait(1300)
+        }
+        await wait(2600)
+      }
+    })()
+    return () => {
+      alive = false
+    }
   }, [])
   return (
-    <div className="motion" aria-label="You handle the relationships. Marvberry handles the busywork.">
-      {beat === 0 && (
-        <div key={`p${loop}`} className="beat promise">
-          <p className="ai">You handle the relationships.</p>
-          <p className="what grad">Marvberry handles the busywork.</p>
+    <div className="motion" ref={box} aria-label="Marvberry takes three quick requests and finishes each one">
+      <div className="mo-in">
+        <div className="mo-head">
+          <img src={BERRY} alt="" />
+          <span>Marvberry</span>
         </div>
-      )}
-      {beat === 1 && (
-        <div key={`c${loop}`} className="beat chat">
-          <div className="who">
-            <img src={BERRY} alt="" />
-            <span>Marvberry</span>
-          </div>
-          <p className="bub me b1">Marvberry, prepare Sandra’s buyer agreement.</p>
-          <p className="bub b2">I’ve prepared Sandra’s agreement. It’s ready for your review.</p>
-          <p className="bub me b3">Looks good. Send it.</p>
+        <div className="mo-feed">
+          {lines.slice(-4).map((l) =>
+            l.me ? (
+              <p key={l.k} className="bub me">{l.text}</p>
+            ) : (
+              <p key={l.k} className="bub done-b">
+                <span className="okc"><Icon name="check" /></span>
+                {l.text}
+              </p>
+            ),
+          )}
+          {thinking && <p className="dots"><i /><i /><i /></p>}
         </div>
-      )}
-      {beat === 2 && (
-        <div key={`d${loop}`} className="beat done">
-          <div className="signed">
-            <span className="sig-ic"><Icon name="pen" /></span>
-            <div>
-              <p className="k">Buyer agreement · Sandra Lewis</p>
-              <p className="v">Signed · Tue, Nov 10 · 2:15 PM</p>
-            </div>
-            <span className="ok"><Icon name="check" /></span>
-          </div>
-          <p className="dots"><i /><i /><i /></p>
+        <div className="mo-input">
+          <span className={draft ? "typed" : "ph"}>{draft || "Tell Marvberry what needs to happen…"}</span>
+          <span className="send"><Icon name="up" /></span>
         </div>
-      )}
+      </div>
     </div>
   )
 }
@@ -100,7 +127,20 @@ export default function Home() {
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const fades = Array.from(root.current?.querySelectorAll<HTMLElement>(".fo") ?? [])
+    const onScroll = () => {
+      setScrolled(window.scrollY > 10)
+      if (reduce) return
+      // Each section fades and lifts softly as it scrolls up and away.
+      for (const el of fades) {
+        // Starts only once the section's bottom rises past the middle of the screen.
+        const b = el.getBoundingClientRect().bottom
+        const o = Math.min(1, Math.max(0, b / (window.innerHeight * 0.5)))
+        el.style.opacity = String(o)
+        el.style.transform = `translateY(${(1 - o) * -28}px) scale(${1 - (1 - o) * 0.03})`
+      }
+    }
     onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
     const io = new IntersectionObserver(
@@ -132,14 +172,10 @@ export default function Home() {
 
       {/* 1. Hero */}
       <div className="hero-wrap" id="top">
-        <section className="first">
+        <section className="first fo">
           <p className="chip"><span className="dot" />For real estate agents</p>
           <h1>Get more done without doing it all yourself.</h1>
           <Rotator />
-          <p className="lede">
-            Meet Marvberry, your AI-powered real estate assistant. From preparing agreements to organizing follow-ups
-            and next steps, Marvberry helps take care of the work around your deals so you can focus on your clients.
-          </p>
           <div className="ctas">
             <a className="btn" href={START}>{TRIAL}</a>
             <p className="fine">No credit card required.</p>
@@ -156,14 +192,10 @@ export default function Home() {
       </div>
 
       {/* 2. The busywork */}
-      <section className="sec center" id="busywork">
+      <section className="fo sec center" id="busywork">
         <div className="rv">
-          <h2>The busywork between booking and closing? Hand it over.</h2>
-          <p className="sub">
-            Tell Marvberry what needs to happen, and your AI assistant gets to work. From turning bookings into clients
-            and preparing agreements to organizing showings, offers, and follow-ups, Marvberry helps handle the
-            busywork so you can focus on the people who matter most.
-          </p>
+          <h2>You handle the relationships. Marvberry handles the busywork.</h2>
+          <p className="sub">Tell Marvberry what needs to happen, and your AI assistant gets to work.</p>
         </div>
         <div className="stage rv">
           <Motion />
@@ -171,7 +203,7 @@ export default function Home() {
       </section>
 
       {/* 3. How it works */}
-      <section className="sec split" id="how">
+      <section className="fo sec split" id="how">
         <div className="copy rv">
           <h2>Tell Marvberry what you need. It gets to work.</h2>
           <p className="sub">
@@ -207,7 +239,7 @@ export default function Home() {
       </section>
 
       {/* 4. Stay in control */}
-      <section className="sec split flip">
+      <section className="fo sec split flip">
         <div className="copy rv">
           <h2>Stay in control.</h2>
           <p className="sub strong">Review and approve documents before they’re sent.</p>
@@ -241,7 +273,7 @@ export default function Home() {
       </section>
 
       {/* 5. Security */}
-      <section className="sec split">
+      <section className="fo sec split">
         <div className="copy rv">
           <h2>Your clients’ information deserves protection.</h2>
           <p className="sub">
@@ -261,7 +293,7 @@ export default function Home() {
       </section>
 
       {/* 6. Client experience */}
-      <section className="sec split flip">
+      <section className="fo sec split flip">
         <div className="copy rv">
           <h2>Give every client a clear view of what’s next.</h2>
           <p className="sub">
@@ -277,7 +309,7 @@ export default function Home() {
       </section>
 
       {/* 7. Setup */}
-      <section className="sec center setup">
+      <section className="fo sec center setup">
         <div className="rv">
           <img className="setup-berry" src={BERRY} alt="" />
           <h2>We’ll take care of the setup, too.</h2>
@@ -346,10 +378,11 @@ const CSS = `
 .hv .chip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500}
 .hv .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--berry)}
 .hv h1{font-weight:650;letter-spacing:-.045em}
-.hv h1{max-width:15ch;margin:22px auto 0;font-size:clamp(42px,1rem + 4.6vw,80px);line-height:1.02}
-.hv .inberry{display:inline-block;width:1.5em;height:1.5em;margin:-.3em 0 -.3em .1em;object-fit:contain;animation:hvFloat 5s ease-in-out infinite}
-.hv .rot{margin-top:20px;min-height:1.3em;font-size:clamp(22px,.9rem + 1.6vw,34px);font-weight:500;letter-spacing:-.025em;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:0 .3em}
-.hv .rot-who{display:inline-flex;align-items:center;color:var(--ink)}
+.hv h1{max-width:16ch;margin:22px auto 0;font-size:clamp(30px,.9rem + 2.8vw,54px);line-height:1.06}
+.hv .inberry{display:inline-block;width:1.05em;height:1.05em;margin:-.15em 0 -.15em .06em;object-fit:contain;animation:hvFloat 5s ease-in-out infinite}
+.hv .rot{margin-top:14px;min-height:2.2em;max-width:21ch;font-size:clamp(40px,1rem + 4.2vw,78px);font-weight:650;letter-spacing:-.045em;line-height:1.04;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;align-items:center;gap:0 .26em}
+.hv .rot-who{display:flex;justify-content:center;align-items:center;flex-basis:100%;color:var(--ink)}
+.hv .rot-line{hyphens:none}
 .hv .lede{max-width:600px;margin:22px auto 0;font-size:clamp(16px,.9rem + .3vw,19px);line-height:1.55;color:var(--soft)}
 .hv .ctas .fine{margin-top:12px}
 .hv .rot-line{display:inline-block;padding-bottom:.08em;animation:hvRot .6s cubic-bezier(.2,.9,.3,1) both}
@@ -365,7 +398,7 @@ const CSS = `
 .hv .center .sub{max-width:640px;margin-left:auto;margin-right:auto}
 
 .hv .stage{margin-top:48px}
-.hv .motion{position:relative;height:clamp(380px,46vw,560px);border-radius:32px;overflow:hidden;background:radial-gradient(70% 60% at 85% 100%,#efe6ff 0%,transparent 70%),radial-gradient(60% 55% at 10% 100%,#ffe6f1 0%,transparent 70%),#fff;box-shadow:0 1px 0 var(--line),0 40px 90px -60px rgba(22,21,26,.35);display:grid;place-items:center;padding:24px}
+.hv .motion{position:relative;height:clamp(420px,40vw,480px);border-radius:32px;overflow:hidden;background:radial-gradient(70% 60% at 85% 100%,#efe6ff 0%,transparent 70%),radial-gradient(60% 55% at 10% 100%,#ffe6f1 0%,transparent 70%),#fff;box-shadow:0 1px 0 var(--line),0 40px 90px -60px rgba(22,21,26,.35);display:grid;place-items:center;padding:24px}
 .hv .beat{width:min(560px,100%);animation:hvBeat .7s cubic-bezier(.2,.9,.3,1) both}
 .hv .promise{text-align:center}
 .hv .ai{font-size:clamp(34px,1rem + 3.4vw,64px);font-weight:650;letter-spacing:-.04em;line-height:1.05}
@@ -488,6 +521,22 @@ const CSS = `
 .hv .final .sub{max-width:560px;margin-left:auto;margin-right:auto}
 .hv .final-ctas .fine{margin-top:4px}
 .hv .final-ctas .broker{margin-top:14px}
+.hv .motion:has(.mo-in){display:flex;justify-content:center;align-items:stretch}
+.hv .mo-in{width:min(620px,100%);height:100%;min-height:0;display:flex;flex-direction:column;text-align:left}
+.hv .mo-head{align-self:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.hv .mo-head img{width:64px;height:64px;object-fit:contain;animation:hvFloat 5s ease-in-out infinite}
+.hv .mo-head span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 13px;font-weight:600;font-size:14px}
+.hv .mo-feed{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:flex-end;gap:9px;padding:14px 0;overflow:hidden}
+.hv .mo-feed .bub{animation:hvPop .45s cubic-bezier(.2,.9,.3,1) both;font-size:clamp(14px,.8rem + .3vw,17px)}
+.hv .done-b{display:flex;align-items:center;gap:10px}
+.hv .okc{width:24px;height:24px;border-radius:50%;background:#e5f6ec;color:#1f8a4c;display:grid;place-items:center;flex:none}
+.hv .okc svg{width:14px;height:14px;stroke-width:2.6}
+.hv .mo-feed .dots{padding:12px 16px}.hv .mo-feed .dots i{width:7px;height:7px}
+.hv .mo-input{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 20px;box-shadow:0 12px 30px -20px rgba(22,21,26,.35);font-size:clamp(14px,.8rem + .35vw,17px)}
+.hv .mo-input .ph{color:var(--muted)}
+.hv .mo-input .typed{color:var(--ink)}
+.hv .mo-input .typed::after{content:"";display:inline-block;width:2px;height:1.1em;margin-left:2px;vertical-align:-.2em;background:var(--berry);animation:hvDot 1s infinite}
+.hv .fo{will-change:opacity,transform}
 .hv .rv{opacity:0;transform:translateY(28px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.9,.3,1)}
 .hv .rv.in{opacity:1;transform:none}
 
