@@ -2,7 +2,6 @@
 // Marvberry home page: modern, bright and easy. One clean font, the berry, real screens.
 // The six features lock in place while you scroll, so a lot of information reads like one page.
 import { useEffect, useRef, useState } from "react"
-import { editorial } from "./fonts"
 
 const START = "/signup"
 const CALL = "/chat"
@@ -123,7 +122,7 @@ export default function Home() {
   }
 
   return (
-    <div className={`hv ${editorial.variable}`}>
+    <div className="hv">
       <style>{CSS}</style>
 
       <header className={`nav${scrolled ? " scrolled" : ""}`}>
@@ -382,9 +381,9 @@ const CSS = `
 .hv h1{font-size:clamp(42px,1rem + 5.6vw,88px);line-height:1.02;letter-spacing:-.045em;font-weight:650;max-width:15ch;margin:24px auto 0}
 .hv .grad{background:linear-gradient(90deg,#BC559E,#E8857A 60%,#9C7CF0);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hv .sub{font-size:clamp(18px,.9rem + .5vw,21px);line-height:1.55;color:var(--soft);max-width:38rem;margin:22px auto 0}
-.hv .rot-h{max-width:16ch;margin:0 auto;font-size:clamp(46px,1rem + 5.4vw,96px);line-height:1}
+.hv .rot-h{max-width:16ch;margin:0 auto;font-size:clamp(42px,1rem + 4.8vw,84px);line-height:1.02}
 .hv .inberry{display:inline-block;width:1.25em;height:1.25em;margin:-.2em .02em -.1em .12em;vertical-align:-.28em;object-fit:contain;animation:hvfl 5s ease-in-out infinite}
-.hv .rot{display:block;min-height:2.1em;margin-top:.12em;font-style:italic}
+.hv .rot{display:block;min-height:2.1em;margin-top:.12em}
 .hv .rot-line{display:inline-block;padding-bottom:.08em;animation:hvRot .6s cubic-bezier(.2,.9,.3,1) both}
 @keyframes hvRot{from{opacity:0;transform:translateY(.4em);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
 .hv .ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:34px}
@@ -542,5 +541,4 @@ const CSS = `
 }
 @media (max-width:520px){ .hv .cards{grid-template-columns:1fr} }
 @media (prefers-reduced-motion:reduce){ .hv *{animation:none!important;transition:none!important} }
-.hv.hv h1,.hv.hv h2{font-family:var(--font-editorial),'Cormorant Garamond',Georgia,serif;font-weight:500;letter-spacing:-.02em;line-height:1.02}
 `
