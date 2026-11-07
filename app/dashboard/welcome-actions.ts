@@ -68,3 +68,26 @@ export async function saveReplies(on: boolean) {
   if (!id) return
   await supabase.from("agents").update({ assistant_replies: on }).eq("id", id)
 }
+
+// "Get ready for a new client": adds the client and returns their id so the chat can link to them.
+export async function addClientFromChat(
+  name: string,
+  email: string,
+  phone: string,
+): Promise<{ id?: string; error?: string }> {
+  const parts = name.trim().replace(/\s+/g, " ").split(" ")
+  const first = (parts.shift() ?? "").slice(0, 80)
+  const last = parts.join(" ").slice(0, 80)
+  if (!first) return { error: "Type your client’s name first." }
+  const cleanEmail = email.trim().slice(0, 200)
+  if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return { error: "That email doesn’t look right." }
+  const { supabase, id } = await me()
+  if (!id) return { error: "Please sign in again." }
+  const { data, error } = await supabase
+    .from("clients")
+    .insert({ agent_id: id, first_name: first, last_name: last, email: cleanEmail || null, phone: phone.trim().slice(0, 40) || null })
+    .select("id")
+    .single()
+  if (error || !data) return { error: "Couldn’t add them just now. Try again." }
+  return { id: data.id as string }
+}

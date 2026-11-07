@@ -106,5 +106,5 @@ export async function signUp(
   }
 
   // Next: one offer to have it all set up for them, then the setup call.
-  redirect("/setup?offer=1")
+  redirect("/get-started")
 }

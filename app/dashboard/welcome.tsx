@@ -8,7 +8,9 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createPortal } from "react-dom"
-import { saveAssistantName, saveBrokerage, savePhone, uploadBrandImage, saveHours, saveReplies } from "./welcome-actions"
+import { saveAssistantName, saveBrokerage, savePhone, uploadBrandImage, saveHours, addClientFromChat } from "./welcome-actions"
+import { startSetupUpload, finishSetupUpload } from "./onboarding-actions"
+import { createClient } from "@supabase/supabase-js"
 
 const SEEN = "mb-welcomed"
 
@@ -75,6 +77,8 @@ type Props = {
   dayStart: number
   dayEnd: number
   feedPath: string
+  hasTemplate: boolean
+  agreementDocId: string
 }
 
 export default function Welcome(props: Props) {
@@ -262,12 +266,20 @@ export default function Welcome(props: Props) {
 }
 
 // --- The onboarding chat ---
-type Msg = { id: number; from: "bot" | "me"; text: string; heart?: boolean }
+type Card = { icon: "user" | "doc"; title: string; sub: string; href: string; cta: string }
+type Msg = { id: number; from: "bot" | "me" | "card"; text: string; heart?: boolean; card?: Card }
 type Ask =
   | { kind: "chips"; options: string[]; own?: boolean }
   | { kind: "input"; placeholder: string; value: string; button: string; skip?: boolean; type?: string }
   | { kind: "upload"; what: "headshot" | "logo" }
   | { kind: "hours" }
+  | { kind: "doc" }
+const T_CLIENT = "Get ready for a new client"
+const T_AGREEMENT = "Prepare an agreement"
+const T_PAGE = "Create my booking page"
+const T_LINK = "Copy my booking link"
+const T_TOUR = "Show me around"
+const T_DONE = "I’m good for now"
 const NAMES = ["Marvberry", "Sage", "Marv"]
 const SKIP = "Skip for now"
 const DAY = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -352,17 +364,37 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
     else setPhoto(res.url)
     reply(what === "logo" ? "Logo added" : "Photo added")
   }
+  // Their own buyer agreement, sent to the team to become their template.
+  const uploadAgreement = async (file: File | undefined) => {
+    if (!file) return
+    setBusy(true)
+    setErr("")
+    try {
+      const st = await startSetupUpload(p.agreementDocId, file.name, file.size, file.type)
+      if (!st.ok) return setErr(st.error)
+      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+      const { error: upErr } = await sb.storage.from("onboarding-docs").uploadToSignedUrl(st.path, st.uploadToken, file, { contentType: file.type })
+      if (upErr) return setErr("The upload didn’t go through. Please try again.")
+      const fin = await finishSetupUpload(p.agreementDocId, st.path, file.name)
+      if (!fin.ok) return setErr("Something went wrong. Please try again.")
+      reply(`Uploaded ${file.name}`)
+    } catch {
+      setErr("The upload didn’t go through. Please try again.")
+    } finally {
+      setBusy(false)
+    }
+  }
 
   useEffect(() => {
     if (ran.current) return
     ran.current = true
     ;(async () => {
       await sleep(400)
-      // Hello and a name
+      // 1. Meet your assistant
       await say(
-        `Hey${first ? ` ${first}` : ""}, I’m your follow-up assistant. I keep your clients in the loop and handle the paperwork around every deal, so nothing gets dropped.`,
+        `Hi${first ? ` ${first}` : ""}! I’m Marvberry, your new real estate assistant. I’m here to help you spend less time on busywork and more time with your clients.`,
       )
-      await say("What would you like to call me? You can always change this later.")
+      await say("First, what would you like to call me? You can always change this later.")
       const picked = await wait({ kind: "chips", options: NAMES, own: true })
       add({ from: "me", text: picked })
       await sleep(450)
@@ -373,7 +405,136 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       void saveAssistantName(picked).catch(() => {})
       await say(picked === "Marvberry" ? "Marvberry it is. So happy to meet you." : `${picked} it is. I love it.`)
 
-      // The booking page, built one piece at a time
+      // 2. One real task, chosen by the agent
+      await say("What would you like me to help you with first?")
+      const done = new Set<string>()
+      let client: { id: string; first: string; full: string } | null = null
+      let next: string[] = [T_CLIENT, T_AGREEMENT, T_PAGE]
+      for (;;) {
+        const pick = await wait({ kind: "chips", options: next })
+        add({ from: "me", text: pick })
+        if (pick === T_TOUR) {
+          await say("Happy to. Follow the glow.", undefined, 700)
+          await sleep(400)
+          return onTour()
+        }
+        if (pick === T_DONE) {
+          await say(`Sounds good.${callLabel ? ` Your setup call is ${callLabel}.` : ""} I’m right here whenever you need me.`)
+          await sleep(900)
+          return onDone("/dashboard")
+        }
+        if (pick === T_LINK) {
+          try {
+            await navigator.clipboard.writeText(`https://www.${link}`)
+            await say("Copied. Paste it in your Instagram bio, your email signature, or a text to a client.")
+          } catch {
+            await say(`Here it is: ${link}. Paste it in your Instagram bio, your email signature, or a text to a client.`)
+          }
+          next = next.filter((x) => x !== T_LINK)
+          await say("What else can I take off your plate?")
+          continue
+        }
+
+        if (pick === T_CLIENT) {
+          client = await newClient()
+          done.add(T_CLIENT)
+        } else if (pick === T_PAGE) {
+          await bookingPage()
+          done.add(T_PAGE)
+        } else {
+          client = await agreement(pick === T_AGREEMENT ? null : client)
+          done.add(T_AGREEMENT)
+        }
+
+        // 4. Turn the first win into a habit
+        await say(done.size === 1 ? "Your first task is complete! What else can I take off your plate?" : "Done. What else can I take off your plate?")
+        next = []
+        if (!done.has(T_AGREEMENT)) next.push(client ? `Prepare ${client.first}’s agreement` : T_AGREEMENT)
+        if (!done.has(T_CLIENT)) next.push(T_CLIENT)
+        if (!done.has(T_PAGE)) next.push(T_PAGE)
+        if (done.has(T_PAGE)) next.push(T_LINK)
+        next.push(T_TOUR, T_DONE)
+      }
+    })()
+
+    // "Get ready for a new client"
+    async function newClient() {
+      await say("Let’s get them set up. What’s your client’s name?")
+      for (;;) {
+        const full = await wait({ kind: "input", placeholder: "Sandra Lewis", value: "", button: "Next" })
+        add({ from: "me", text: full })
+        const f = full.split(" ")[0]
+        await say(`What’s the best email for ${f}? I’ll use it to share their page with them.`)
+        const em = await wait({ kind: "input", placeholder: "sandra@email.com", value: "", button: "Next", skip: true, type: "email" })
+        add({ from: "me", text: em === SKIP ? "I’ll add it later" : em })
+        await say(`And a phone number for ${f}?`)
+        const ph = await wait({ kind: "input", placeholder: "(732) 555-0148", value: "", button: "Next", skip: true, type: "tel" })
+        add({ from: "me", text: ph === SKIP ? "I’ll add it later" : ph })
+        setTyping(`${nameRef.current} is setting up ${f}’s file`)
+        const res = await addClientFromChat(full, em === SKIP ? "" : em, ph === SKIP ? "" : ph).catch(() => ({ error: "Couldn’t add them just now." }) as { id?: string; error?: string })
+        await sleep(900)
+        setTyping(null)
+        if (!res.id) {
+          await say(`${res.error || "Couldn’t add them just now."} Let’s try that again. What’s your client’s name?`)
+          continue
+        }
+        add({ from: "card", text: "", card: { icon: "user", title: full, sub: "Client added", href: `/clients/${res.id}`, cta: `Open ${f}` } })
+        pop()
+        await sleep(500)
+        await say(`${f} is all set. Their messages, documents and next steps now live in one place.`)
+        return { id: res.id, first: f, full }
+      }
+    }
+
+    // "Prepare an agreement"
+    async function agreement(known: { id: string; first: string; full: string } | null) {
+      let c = known
+      if (!c) {
+        await say("Absolutely. Who are we preparing the agreement for?")
+        for (;;) {
+          const full = await wait({ kind: "input", placeholder: "Sandra Lewis", value: "", button: "Next" })
+          add({ from: "me", text: full })
+          const f = full.split(" ")[0]
+          await say(`What’s ${f}’s email? That’s where the agreement goes for signing.`)
+          const em = await wait({ kind: "input", placeholder: "sandra@email.com", value: "", button: "Next", skip: true, type: "email" })
+          add({ from: "me", text: em === SKIP ? "I’ll add it later" : em })
+          const res = await addClientFromChat(full, em === SKIP ? "" : em, "").catch(() => ({ error: "Couldn’t add them just now." }) as { id?: string; error?: string })
+          if (!res.id) {
+            await say(`${res.error || "Couldn’t add them just now."} Let’s try again. Who is the agreement for?`)
+            continue
+          }
+          c = { id: res.id, first: f, full }
+          break
+        }
+      } else await say(`On it. I’ll prepare ${c.first}’s agreement.`, undefined, 700)
+
+      if (p.hasTemplate) {
+        setTyping(`${nameRef.current} is preparing ${c.first}’s agreement`)
+        await sleep(1600)
+        setTyping(null)
+        await say(`${c.first}’s agreement is ready for your review.`)
+        add({ from: "card", text: "", card: { icon: "doc", title: "Buyer agreement", sub: `${c.full} · Filled in with your details`, href: `/clients/${c.id}`, cta: "Review and send" } })
+        pop()
+        await sleep(500)
+        await say(`Check the details, add anything that’s missing, and send it when you’re happy. Nothing goes to ${c.first} until you do.`)
+        return c
+      }
+
+      await say(
+        "I prepare agreements from your own buyer agreement, so they’re always in your words. Upload it here, and our team will turn it into your template, usually within one business day.",
+      )
+      const up = p.agreementDocId ? await wait({ kind: "doc" }) : SKIP
+      add({ from: "me", text: up === SKIP ? "I’ll send it later" : up })
+      await say(
+        up === SKIP
+          ? `No problem. Send it anytime from your dashboard, and ${c.first}’s agreement will be ready for your review once it’s set up.`
+          : `Got it. As soon as it’s set up, ${c.first}’s agreement will be waiting for your review.`,
+      )
+      return c
+    }
+
+    // "Create my booking page", built one piece at a time
+    async function bookingPage() {
       await say("Let’s set up your booking page, so you can share your first link today. Here’s how it looks right now.")
       setPageOn(true)
       pop()
@@ -403,9 +564,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       const lg = await wait({ kind: "upload", what: "logo" })
       add({ from: "me", text: lg === SKIP ? "I’ll add it later" : lg })
       if (lg !== SKIP) show("logo")
-      await say(ph2 !== SKIP || lg !== SKIP ? "That looks great." : "No problem. You can add those anytime in Settings.")
 
-      // Working hours
       await say(
         "A lot of agents tell me their clients text them all night. I’m here to help with that. Tell me your working hours, and I’ll only let clients book inside them.",
       )
@@ -431,51 +590,15 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       void saveHours(d, s0, e0).catch(() => {})
       await say("Done. Clients can only book you inside those hours, so your evenings stay yours.", `${nameRef.current} is updating your page`, 1400)
 
-      // How Marvberry helps with clients (only what works today)
-      await say("How would you like me to help with your clients? You can change this anytime.")
-      const c = await wait({ kind: "chips", options: ["Draft replies for me to approve", "Just me for now"] })
-      add({ from: "me", text: c })
-      const drafts = c !== "Just me for now"
-      void saveReplies(drafts).catch(() => {})
-      await say(
-        drafts
-          ? "Perfect. When a client messages you, I’ll have a reply drafted in your voice. Nothing goes out until you approve it."
-          : "Got it. Turn me on in Settings whenever you’d like a hand.",
-      )
-
-      // Phone calendar
       await say("Want your showings and bookings on your phone’s calendar too?")
       const cal = await wait({ kind: "chips", options: ["Add to my calendar", "Maybe later"] })
       add({ from: "me", text: cal })
       if (cal === "Add to my calendar") {
         window.location.href = `webcal://${feedPath}`
         await say("Your phone will ask you to confirm, and then everything shows up there.", `${nameRef.current} is connecting your calendar`, 1400)
-      } else await say("No problem. It’s on your Calendar page whenever you want it.")
-
-      // First step
-      await say(`Your page is ready.${callLabel ? ` Your setup call is ${callLabel}.` : ""} What can I take off your plate first?`)
-      for (;;) {
-        const go = await wait({ kind: "chips", options: ["Add my first client", "Send my booking link", "Show me around"] })
-        add({ from: "me", text: go })
-        if (go === "Add my first client") {
-          await say("Let’s do it. Taking you to your clients.", `${nameRef.current} is opening Clients`, 900)
-          await sleep(500)
-          return onDone("/clients")
-        }
-        if (go === "Show me around") {
-          await say("Happy to. Follow the glow.", undefined, 700)
-          await sleep(400)
-          return onTour()
-        }
-        try {
-          await navigator.clipboard.writeText(`https://www.${link}`)
-          await say("Copied. Paste it in your Instagram bio, your email signature, or a text to a client.")
-        } catch {
-          await say(`Here it is: ${link}. Paste it in your Instagram bio, your email signature, or a text to a client.`)
-        }
-        await say("Anything else?")
       }
-    })()
+      await say("Your booking page is ready to share.")
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -523,16 +646,38 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
           </div>
         )}
         <div className="feed" ref={feed} aria-live="polite">
-          {msgs.map((m) => (
-            <div key={m.id} className={`b ${m.from}`}>
-              {m.text}
-              {m.heart && (
-                <span className="heart" aria-label="loved">
-                  &#9829;
+          {msgs.map((m) =>
+            m.card ? (
+              <div key={m.id} className="cardm">
+                <span className="c-ic">
+                  {m.card.icon === "doc" ? (
+                    <svg viewBox="0 0 24 24" aria-hidden><path d="M7 3h7l5 5v13H7z" /><path d="M14 3v5h5M10 13h6M10 17h6" /></svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="8" r="3.6" /><path d="M5 20c.9-3.6 3.7-5.6 7-5.6s6.1 2 7 5.6" /></svg>
+                  )}
                 </span>
-              )}
-            </div>
-          ))}
+                <span className="c-tx">
+                  <span className="c-t">{m.card.title}</span>
+                  <span className="c-s">
+                    <span className="c-ok" aria-hidden>&#10003;</span>
+                    {m.card.sub}
+                  </span>
+                </span>
+                <button type="button" className="c-go" onClick={() => onDone(m.card!.href)}>
+                  {m.card.cta}
+                </button>
+              </div>
+            ) : (
+              <div key={m.id} className={`b ${m.from}`}>
+                {m.text}
+                {m.heart && (
+                  <span className="heart" aria-label="loved">
+                    &#9829;
+                  </span>
+                )}
+              </div>
+            ),
+          )}
           {typing && (
             <p className="typing">
               <span className="dots">
@@ -609,6 +754,23 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
               </label>
               <button type="button" className="own" onClick={() => reply(SKIP)} disabled={busy}>
                 {SKIP}
+              </button>
+              {err && <p className="err">{err}</p>}
+            </div>
+          )}
+          {ask?.kind === "doc" && (
+            <div className="chips">
+              <label className={`chip up${busy ? " busy" : ""}`}>
+                {busy ? "Uploading…" : "Upload my buyer agreement"}
+                <input
+                  type="file"
+                  accept="application/pdf,.doc,.docx,image/*"
+                  disabled={busy}
+                  onChange={(e) => uploadAgreement(e.target.files?.[0])}
+                />
+              </label>
+              <button type="button" className="own" onClick={() => reply(SKIP)} disabled={busy}>
+                I’ll send it later
               </button>
               {err && <p className="err">{err}</p>}
             </div>
@@ -751,6 +913,15 @@ const CSS = `
 .mbw-chat .url{margin:10px 0 0;padding-top:10px;border-top:1px solid rgba(22,21,26,.06);font-size:12.5px;color:#8d8b92}
 .mbw-chat .flash{animation:mbwFlash 1.2s ease}
 @keyframes mbwFlash{0%{background:#FBEDF5;box-shadow:0 0 0 4px #FBEDF5;transform:scale(1.04)}100%{background:transparent;box-shadow:0 0 0 0 transparent;transform:none}}
+.mbw-chat .cardm{align-self:stretch;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(22,21,26,.08);border-radius:18px;padding:12px 12px 12px 14px;animation:mbwMsg .45s cubic-bezier(.2,1.2,.4,1) both}
+.mbw-chat .c-ic{width:38px;height:38px;border-radius:12px;background:#FBEDF5;color:#BC559E;display:grid;place-items:center;flex:none}
+.mbw-chat .c-ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.mbw-chat .c-tx{display:flex;flex-direction:column;min-width:0;flex:1}
+.mbw-chat .c-t{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbw-chat .c-s{display:flex;align-items:center;gap:6px;font-size:12.5px;color:#6b6972;margin-top:2px}
+.mbw-chat .c-ok{width:16px;height:16px;border-radius:50%;background:#e5f6ec;color:#1f8a4c;display:grid;place-items:center;font-size:10px;flex:none}
+.mbw-chat .c-go{font:inherit;font-size:13px;font-weight:600;border:0;border-radius:999px;background:#16151a;color:#fff;padding:9px 14px;cursor:pointer;flex:none}
+@media (max-width:480px){.mbw-chat .cardm{flex-wrap:wrap}.mbw-chat .c-go{width:100%;padding:11px}}
 .mbw-chat .up{position:relative;overflow:hidden}
 .mbw-chat .up input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .mbw-chat .busy{opacity:.6}

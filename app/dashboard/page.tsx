@@ -190,6 +190,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     needsSetupCall = !lead
     if (lead?.call_at) callLabel = formatInTimeZone(new Date(lead.call_at as string), tz, "EEEE, MMMM d 'at' h:mm a")
   }
+  // For the onboarding chat: does the agent have an agreement template yet, and where their own agreement uploads to.
+  let hasTemplate = false
+  let agreementDocId = ""
+  if (sp.welcome === "1") {
+    const [{ count }, { data: ad }] = await Promise.all([
+      supabase.from("document_templates").select("id", { count: "exact", head: true }).eq("agent_id", user.id),
+      admin.from("onboarding_docs").select("id").eq("agent_id", user.id).eq("title", "Your buyer agreement").maybeSingle(),
+    ])
+    hasTemplate = (count ?? 0) > 0
+    agreementDocId = (ad?.id as string) || ""
+  }
   let setupDocs: { id: string; title: string; file_path: string | null; file_name: string | null; template_built: boolean }[] = []
   let setupThread: Msg[] = []
   if (onboarding) {
@@ -336,6 +347,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           dayStart={agent.day_start}
           dayEnd={agent.day_end}
           feedPath={`www.marvberry.com/api/calendar/${feedToken(agent.id)}`}
+          hasTemplate={hasTemplate}
+          agreementDocId={agreementDocId}
         />}
 
       <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
