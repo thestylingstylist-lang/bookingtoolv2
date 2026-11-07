@@ -140,6 +140,7 @@ export default function Home() {
       <div className="hero-wrap" id="top">
         <section className="hero">
           <div className="first">
+            <p className="chip"><span className="dot" />For real estate agents</p>
             <h1 className="rot-h">
               Marvberry<img className="inberry" src="/brand/berry-clear.webp" alt="" />, the AI assistant that
               <Rotator />
@@ -381,7 +382,7 @@ const CSS = `
 .hv h1{font-size:clamp(42px,1rem + 5.6vw,88px);line-height:1.02;letter-spacing:-.045em;font-weight:650;max-width:15ch;margin:24px auto 0}
 .hv .grad{background:linear-gradient(90deg,#BC559E,#E8857A 60%,#9C7CF0);-webkit-background-clip:text;background-clip:text;color:transparent}
 .hv .sub{font-size:clamp(18px,.9rem + .5vw,21px);line-height:1.55;color:var(--soft);max-width:38rem;margin:22px auto 0}
-.hv .rot-h{max-width:16ch;margin:0 auto;font-size:clamp(42px,1rem + 4.8vw,84px);line-height:1.02}
+.hv .rot-h{max-width:16ch;margin:22px auto 0;font-size:clamp(42px,1rem + 4.8vw,84px);line-height:1.02}
 .hv .inberry{display:inline-block;width:1.25em;height:1.25em;margin:-.2em .02em -.1em .12em;vertical-align:-.28em;object-fit:contain;animation:hvfl 5s ease-in-out infinite}
 .hv .rot{display:block;min-height:2.1em;margin-top:.12em}
 .hv .rot-line{display:inline-block;padding-bottom:.08em;animation:hvRot .6s cubic-bezier(.2,.9,.3,1) both}
