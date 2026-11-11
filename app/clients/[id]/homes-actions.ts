@@ -9,6 +9,8 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
 import { agentCard } from "@/lib/agent-card"
 import { offerEmail, type OfferTerms } from "@/lib/offer-email"
+import { fillPdf } from "@/lib/pdf-fill"
+import { isCustom, type PdfField } from "@/lib/pdf-fields"
 
 export type HomeResult = { ok: boolean; message?: string }
 
@@ -140,6 +142,7 @@ async function agentBits(supabase: Awaited<ReturnType<typeof createClient>>, use
   ])
   return {
     name: ((a?.full_name as string) || (a?.business_name as string) || "").trim(),
+    brokerage: ((a?.business_name as string) || "").trim(),
     tz: (a?.timezone as string) || "America/New_York",
     replyTo: ((a?.public_email as string) || u.user?.email || "").trim(),
   }
@@ -197,7 +200,7 @@ export async function sendOffer(_prev: HomeResult | null, formData: FormData): P
     })
     .eq("id", homeId)
 
-  const { data: client } = await supabase.from("clients").select("first_name, last_name").eq("id", home.client_id).maybeSingle()
+  const { data: client } = await supabase.from("clients").select("first_name, last_name, email, phone, address").eq("id", home.client_id).maybeSingle()
   const buyer = `${client?.first_name ?? ""} ${client?.last_name ?? ""}`.trim()
 
   const { data: offer, error } = await supabase
@@ -234,11 +237,49 @@ export async function sendOffer(_prev: HomeResult | null, formData: FormData): P
     }
   }
 
-  const mail = offerEmail({
-    agentName: me2.name,
-    message,
-    terms: termsFor(home as { address: string }, buyer, { amount, deposit, financing, contingencies, closing_on: closingOn, good_until: goodUntil }, me2.tz),
-  })
+  const terms = termsFor(home as { address: string }, buyer, { amount, deposit, financing, contingencies, closing_on: closingOn, good_until: goodUntil }, me2.tz)
+
+  // The agent's own offer form, filled in with this offer, in their brokerage's layout.
+  const formId = s(formData.get("pdfForm"), 60)
+  if (formId) {
+    const { data: form } = await supabase.from("pdf_templates").select("id, title, file_path, fields").eq("id", formId).maybeSingle()
+    if (form) {
+      const admin = createAdminClient()
+      const { data: blob } = await admin.storage.from("client-docs").download(form.file_path as string)
+      if (!blob) return { ok: false, message: "Couldn't open your offer form. Try again, or send without it." }
+      const fields = (form.fields ?? []) as PdfField[]
+      const values: Record<string, string> = {
+        date: formatInTimeZone(new Date(), me2.tz, "MMMM d, yyyy"),
+        client_name: buyer,
+        client_address: (client?.address as string) || "",
+        client_email: (client?.email as string) || "",
+        client_phone: (client?.phone as string) || "",
+        agent_name: me2.name,
+        brokerage: me2.brokerage,
+        property_address: terms.address,
+        offer_amount: terms.amount,
+        deposit: terms.deposit,
+        financing: terms.financing,
+        contingencies: terms.contingencies,
+        closing_date: terms.closing,
+        good_until: terms.goodUntil,
+        listing_agent: agentName,
+      }
+      for (const f of fields) if (isCustom(f.key)) values[f.key] = s(formData.get(`pdf:${f.key}`), 300)
+      try {
+        const filled = await fillPdf(new Uint8Array(await blob.arrayBuffer()), fields, values)
+        const path = `offers/${userId}/${offer.id}.pdf`
+        await admin.storage.from("client-docs").upload(path, filled, { contentType: "application/pdf", upsert: true })
+        const { data: link } = await admin.storage.from("client-docs").createSignedUrl(path, 60 * 60)
+        if (link?.signedUrl) attachments.unshift({ filename: `${form.title} - ${terms.street}.pdf`.replace(/[\\/:*?"<>|]/g, ""), path: link.signedUrl })
+      } catch {
+        await supabase.from("home_offers").delete().eq("id", offer.id)
+        return { ok: false, message: "Couldn't fill in your offer form. Nothing was sent. Try again." }
+      }
+    }
+  }
+
+  const mail = offerEmail({ agentName: me2.name, message, terms })
   const sent = await sendEmail({
     to: agentEmail,
     subject: mail.subject,

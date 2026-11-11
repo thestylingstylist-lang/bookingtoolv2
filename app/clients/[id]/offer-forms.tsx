@@ -4,6 +4,8 @@ import { useActionState, useEffect, useState } from "react"
 import { sendOffer, followUpOffer, type HomeResult } from "./homes-actions"
 
 export type DocView = { id: string; title: string }
+// The agent's own PDF offer form, and the blanks they type in when sending.
+export type FormView = { id: string; title: string; custom: string[] }
 export type OfferView = {
   id: string
   amount: string
@@ -29,12 +31,14 @@ export function OfferForm({
   home,
   clientFull,
   docs,
+  forms = [],
   onBack,
   onDone,
 }: {
   home: { id: string; address: string; agentName: string; agentBrokerage: string; agentEmail: string; agentPhone: string }
   clientFull: string
   docs: DocView[]
+  forms?: FormView[]
   onBack: () => void
   onDone: () => void
 }) {
@@ -56,6 +60,8 @@ export function OfferForm({
   })
   const [cont, setCont] = useState<string[]>(["Inspection", "Appraisal", "Mortgage"])
   const [picked, setPicked] = useState<string[]>(docs.map((d) => d.id))
+  const [formId, setFormId] = useState(forms[0]?.id ?? "")
+  const form = forms.find((x) => x.id === formId)
   const set = (k: keyof typeof f, v: string) => setF((o) => ({ ...o, [k]: v }))
   const street = home.address.split(",")[0]
   const agentFirst = f.agentName.trim().split(/\s+/)[0]
@@ -91,8 +97,8 @@ export function OfferForm({
           <label><span className={label}>Closing date</span><input name="closingOn" type="date" value={f.closingOn} onChange={(e) => set("closingOn", e.target.value)} className={input} /></label>
           <label className="col-span-2"><span className={label}>Offer good until</span>
             <div className="flex gap-2">
-              <input name="goodDate" type="date" value={f.goodDate} onChange={(e) => set("goodDate", e.target.value)} className={input} />
-              <input name="goodTime" type="time" value={f.goodTime} onChange={(e) => set("goodTime", e.target.value)} className={`${input} w-[150px] shrink-0`} aria-label="Time" />
+              <input name="goodDate" type="date" value={f.goodDate} onChange={(e) => set("goodDate", e.target.value)} className={`${input} min-w-0 flex-1`} />
+              <input name="goodTime" type="time" value={f.goodTime} onChange={(e) => set("goodTime", e.target.value)} className={`${input} !w-[150px] shrink-0`} aria-label="Time" />
             </div>
           </label>
         </div>
@@ -132,7 +138,30 @@ export function OfferForm({
             )
           })
         )}
-        <p className="mt-3 text-[12.5px] text-[#8e8c93]">Your brokerage&rsquo;s own offer form attaches here once we set it up with you.</p>
+        {forms.length > 0 ? (
+          <div className="mt-4 border-t border-[#efeeec] pt-4">
+            <p className={label}>Your offer form</p>
+            <select name="pdfForm" value={formId} onChange={(e) => setFormId(e.target.value)} className={input}>
+              {forms.map((x) => (
+                <option key={x.id} value={x.id}>{x.title}</option>
+              ))}
+              <option value="">Don&rsquo;t attach a form</option>
+            </select>
+            {form && form.custom.length > 0 && (
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                {form.custom.map((k) => (
+                  <label key={k}>
+                    <span className={label}>{k.slice(7)}</span>
+                    <input name={`pdf:${k}`} className={input} />
+                  </label>
+                ))}
+              </div>
+            )}
+            {form && <p className="mt-2 text-[12.5px] text-[#8e8c93]">Filled in with this offer and attached as a PDF, in your brokerage&rsquo;s own layout.</p>}
+          </div>
+        ) : (
+          <p className="mt-3 text-[12.5px] text-[#8e8c93]">Want your brokerage&rsquo;s own offer form attached? Upload it under Templates, and Marvberry fills it in for every offer.</p>
+        )}
       </div>
 
       <div className="mt-4">

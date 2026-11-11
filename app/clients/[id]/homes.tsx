@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { createPortal } from "react-dom"
 import { addHome, saveHome, setHomeStatus, removeHome, setOfferStatus, type HomeResult } from "./homes-actions"
-import { OfferForm, FollowUpForm, type OfferView, type DocView } from "./offer-forms"
+import { OfferForm, FollowUpForm, type OfferView, type DocView, type FormView } from "./offer-forms"
 
 export type HomeView = {
   id: string
@@ -56,12 +56,14 @@ export default function Homes({
   clientFull,
   homes,
   docs,
+  forms = [],
 }: {
   clientId: string
   clientFirst: string
   clientFull: string
   homes: HomeView[]
   docs: DocView[]
+  forms?: FormView[]
 }) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [startView, setStartView] = useState<View>("home")
@@ -144,7 +146,7 @@ export default function Homes({
         </div>
       )}
 
-      {open && createPortal(<HomePanel key={open.id} home={open} clientFirst={clientFirst} clientFull={clientFull} docs={docs} startView={startView} onClose={() => setOpenId(null)} />, document.body)}
+      {open && createPortal(<HomePanel key={open.id} home={open} clientFirst={clientFirst} clientFull={clientFull} docs={docs} forms={forms} startView={startView} onClose={() => setOpenId(null)} />, document.body)}
     </section>
   )
 }
@@ -154,6 +156,7 @@ function HomePanel({
   clientFirst,
   clientFull,
   docs,
+  forms,
   startView,
   onClose,
 }: {
@@ -161,6 +164,7 @@ function HomePanel({
   clientFirst: string
   clientFull: string
   docs: DocView[]
+  forms: FormView[]
   startView: View
   onClose: () => void
 }) {
@@ -199,7 +203,7 @@ function HomePanel({
         </button>
 
         {view === "offer" ? (
-          <OfferForm home={home} clientFull={clientFull} docs={docs} onBack={() => setView("home")} onDone={onClose} />
+          <OfferForm home={home} clientFull={clientFull} docs={docs} forms={forms} onBack={() => setView("home")} onDone={onClose} />
         ) : view === "follow" && home.offer ? (
           <FollowUpForm
             offer={home.offer}

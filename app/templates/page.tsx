@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
+import PdfUpload from "./pdf-upload"
 
 export const dynamic = "force-dynamic"
 
@@ -37,6 +38,11 @@ export default async function TemplatesPage({
     .select("id, title, created_at")
     .order("created_at", { ascending: false })
   const templates = (data ?? []) as Template[]
+  const { data: pdfData } = await supabase
+    .from("pdf_templates")
+    .select("id, title, created_at, fields")
+    .order("created_at", { ascending: false })
+  const pdfs = (pdfData ?? []) as (Template & { fields: unknown[] })[]
 
   return (
     <AppShell agent={agent}>
@@ -48,12 +54,15 @@ export default async function TemplatesPage({
             </p>
             <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your documents</h1>
           </div>
-          <Link
-            href="/templates/new"
-            className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
-          >
-            New template
-          </Link>
+          <div className="flex items-start gap-3">
+            <PdfUpload />
+            <Link
+              href="/templates/new"
+              className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              New template
+            </Link>
+          </div>
         </div>
 
         {params.error && (
@@ -83,6 +92,23 @@ export default async function TemplatesPage({
               </Link>
             ))}
           </div>
+        )}
+
+        {pdfs.length > 0 && (
+          <section className="mt-10">
+            <h2 className="font-semibold tracking-tight text-lg">Your PDF forms</h2>
+            <p className="mt-1 text-sm text-ink/55">Your own forms, with your logo and layout. Marvberry fills in the blanks.</p>
+            <div className="mt-4 divide-y divide-ink/5 overflow-hidden rounded-2xl border border-ink/10 bg-card">
+              {pdfs.map((t) => (
+                <Link key={t.id} href={`/templates/pdf/${t.id}`} className="flex items-center justify-between px-5 py-4 hover:bg-ink/5">
+                  <span className="font-medium">{t.title}</span>
+                  <span className="text-sm text-ink/40">
+                    {Array.isArray(t.fields) && t.fields.length ? `${t.fields.length} blanks · Edit` : "Place the blanks"}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
       </main>
     </AppShell>

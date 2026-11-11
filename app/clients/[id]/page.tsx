@@ -1,3 +1,4 @@
+import { customBlanks, type PdfField } from "@/lib/pdf-fields"
 import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
@@ -232,6 +233,13 @@ export default async function ClientJacket({
   const collected = (colData ?? []) as Collected[]
   const offers = (offerData ?? []) as Offer[]
   const notes = (noteData ?? []) as Note[]
+  // The agent's own PDF offer forms. Skipped quietly if the table isn't there yet.
+  const { data: formRows } = await supabase.from("pdf_templates").select("id, title, fields").eq("kind", "offer").order("created_at")
+  const pdfForms = ((formRows ?? []) as { id: string; title: string; fields: PdfField[] | null }[]).map((f) => ({
+    id: f.id,
+    title: f.title,
+    custom: customBlanks(f.fields ?? []),
+  }))
 
   const name = `${client.first_name} ${client.last_name}`.trim() || "Client"
   const fmt = new Intl.DateTimeFormat("en-US", {
@@ -358,6 +366,7 @@ export default async function ClientJacket({
             clientFull={`${client.first_name || ""} ${client.last_name || ""}`.trim()}
             homes={homes}
             docs={collected.filter((c) => c.file_path).map((c) => ({ id: c.id, title: c.title }))}
+            forms={pdfForms}
           />
         )}
 

@@ -17,6 +17,8 @@
     "date-fns-tz": "^3.2.0",
     "geist": "^1.7.2",
     "next": "^16.3.5",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.4.296",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "server-only": "^0.0.1",
