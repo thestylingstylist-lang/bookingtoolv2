@@ -7,6 +7,7 @@ import { toAgentConfig, MEETING_TYPES, type MeetingType } from "@/lib/config"
 import { isValidOpenSlot, formatSlot } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
 import { isAdminEmail } from "@/lib/admin"
+import { checkEmail } from "@/lib/email-check"
 import {
   sendEmail,
   clientConfirmationEmail,
@@ -41,6 +42,8 @@ export async function createBooking(
   if (!phone) return { ok: false, error: "Please enter a phone number." }
   if (!email) return { ok: false, error: "Please enter an email address." }
   if (!emailRe.test(email)) return { ok: false, error: "That email doesn't look right. Check it and try again." }
+  const emailProblem = await checkEmail(email)
+  if (emailProblem) return { ok: false, error: emailProblem }
   if (!(MEETING_TYPES as readonly string[]).includes(meetingType))
     return { ok: false, error: "Choose a phone or video call." }
   if (!slotStart) return { ok: false, error: "Pick a time slot to continue." }
