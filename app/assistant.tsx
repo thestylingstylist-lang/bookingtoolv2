@@ -3,6 +3,7 @@
 // the right and nudges the page over. Phone: the berry at the bottom opens it full screen.
 // The dashboard bar opens the same chat with what the agent typed.
 import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { usePathname, useRouter } from "next/navigation"
 import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat } from "./assistant-actions"
 import type { ChatAnswer, ChatCard } from "@/lib/agent-chat"
@@ -221,29 +222,25 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
       <div className="card">
         <p className="ck">{card.title} · {card.name}</p>
         <p className="cs">{card.email ? `Goes to ${card.email} to sign` : "No email on file. It goes on their page."}</p>
-        <div className={`doc ${edit ? "open" : ""}`}>{card.body}</div>
-        <button type="button" className="more" onClick={() => setEdit((v) => !v)}>{edit ? "Show less" : "Read the whole agreement"}</button>
+        <div className="doc">{card.body}</div>
         {state === "done" ? (
           <p className="ok">{note}</p>
         ) : (
           <div className="btns">
-            <button
-              type="button"
-              className="a"
-              disabled={state === "busy"}
-              onClick={async () => {
-                setState("busy")
-                const r = await sendAgreementFromChat(card.clientId, card.title, card.body).catch(() => ({ ok: false, message: "That didn’t send. Try again." }))
-                setNote(r.message)
-                setState(r.ok ? "done" : "error")
-              }}
-            >
-              {state === "busy" ? "Sending…" : "Send for signature"}
-            </button>
-            <button type="button" className="e" onClick={() => go(`/clients/${card.clientId}`)}>Open file</button>
+            <button type="button" className="a" onClick={() => setEdit(true)}>Review agreement</button>
           </div>
         )}
-        {state === "error" && <p className="err">{note}</p>}
+        {edit && (
+          <AgreementReview
+            card={card}
+            close={() => setEdit(false)}
+            sent={(msg) => {
+              setNote(msg)
+              setState("done")
+              setEdit(false)
+            }}
+          />
+        )}
       </div>
     )
 
@@ -333,6 +330,65 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
   )
 }
 
+// The full-size review: the whole agreement, readable, editable, and sent from here.
+function AgreementReview({ card, close, sent }: { card: Extract<ChatCard, { type: "agreement" }>; close: () => void; sent: (msg: string) => void }) {
+  const [body, setBody] = useState(card.body)
+  const [editing, setEditing] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState("")
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close()
+    window.addEventListener("keydown", onKey)
+    document.body.style.overflow = "hidden"
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      document.body.style.overflow = ""
+    }
+  }, [close])
+  return createPortal(
+    <div className="mbr" role="dialog" aria-modal="true" aria-label={`${card.title} for ${card.name}`} onClick={close}>
+      <div className="mbr-box" onClick={(e) => e.stopPropagation()}>
+        <div className="mbr-head">
+          <div>
+            <p className="t">{card.title}</p>
+            <p className="s">{card.name}{card.email ? ` · goes to ${card.email} to sign` : " · no email on file, it goes on their page"}</p>
+          </div>
+          <button type="button" className="x" onClick={close} aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div className="mbr-body">
+          {editing ? (
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} aria-label="Agreement text" />
+          ) : (
+            <div className="paper">{body}</div>
+          )}
+        </div>
+        <div className="mbr-foot">
+          {err && <p className="err">{err}</p>}
+          <button type="button" className="e" onClick={() => setEditing((v) => !v)}>{editing ? "Done editing" : "Edit"}</button>
+          <button
+            type="button"
+            className="a"
+            disabled={busy || !body.trim()}
+            onClick={async () => {
+              setBusy(true)
+              setErr("")
+              const r = await sendAgreementFromChat(card.clientId, card.title, body).catch(() => ({ ok: false, message: "That didn’t send. Try again." }))
+              setBusy(false)
+              if (r.ok) sent(r.message)
+              else setErr(r.message)
+            }}
+          >
+            {busy ? "Sending…" : "Send for signature"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
 const CSS = `
 .mba{position:fixed;top:0;right:0;bottom:0;z-index:60;width:380px;max-width:100vw;display:flex;flex-direction:column;background:#fff;border-left:1px solid rgba(22,21,26,.07);box-shadow:-20px 0 50px -40px rgba(22,21,26,.35);transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#16151a}
 .mba.on{transform:none}
@@ -365,8 +421,25 @@ const CSS = `
 .mba .ok{margin:2px 0 0;font-size:12.5px;color:#1f8a4c;font-weight:500}
 .mba .err{margin:0;font-size:12.5px;color:#b3261e}
 .mba .doc{margin:0;background:#F8F8F8;border-radius:12px;padding:10px 11px;font-size:12.5px;line-height:1.55;color:#3a3940;white-space:pre-wrap;max-height:120px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
-.mba .doc.open{max-height:340px;overflow-y:auto;-webkit-mask-image:none}
-.mba .more{align-self:flex-start;font:inherit;font-size:12.5px;color:#93407A;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.mbr{position:fixed;inset:0;z-index:80;background:rgba(22,21,26,.42);display:grid;place-items:center;padding:24px;font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#16151a;animation:mbaFade .2s both}
+.mbr-box{width:min(820px,100%);height:min(92vh,1000px);background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px -30px rgba(22,21,26,.5);animation:mbaIn .3s cubic-bezier(.2,.9,.3,1) both}
+.mbr-head{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 16px;border-bottom:1px solid rgba(22,21,26,.07)}
+.mbr-head .t{margin:0;font-size:18px;font-weight:600}
+.mbr-head .s{margin:3px 0 0;font-size:13px;color:#77757d}
+.mbr-head .x{margin-left:auto;width:36px;height:36px;border-radius:50%;border:0;background:transparent;display:grid;place-items:center;cursor:pointer;color:#55535b}
+.mbr-head .x:hover{background:#f3f2f5}
+.mbr svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.mbr-body{flex:1;overflow-y:auto;background:#F8F8F8;padding:24px}
+.mbr-body .paper{max-width:680px;margin:0 auto;background:#fff;border-radius:8px;padding:44px 48px;font-size:15px;line-height:1.7;white-space:pre-wrap;box-shadow:0 1px 3px rgba(22,21,26,.06)}
+.mbr-body textarea{display:block;width:100%;max-width:680px;min-height:100%;margin:0 auto;font:inherit;font-size:15px;line-height:1.7;border:1px solid #BC559E;border-radius:8px;padding:44px 48px;outline:none;resize:none;background:#fff;color:#16151a}
+.mbr-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid rgba(22,21,26,.07)}
+.mbr-foot button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:999px;padding:11px 20px;cursor:pointer}
+.mbr-foot .a{background:#16151a;color:#fff}
+.mbr-foot .a:disabled{opacity:.6}
+.mbr-foot .e{background:#EEEEF1;color:#16151a}
+.mbr-foot .err{margin:0 auto 0 0;font-size:13px;color:#b3261e}
+@keyframes mbaFade{from{opacity:0}to{opacity:1}}
+@media (max-width:639px){.mbr{padding:0}.mbr-box{height:100%;border-radius:0}.mbr-body{padding:12px}.mbr-body .paper,.mbr-body textarea{padding:24px 20px}}
 .mba .rows{display:flex;flex-direction:column;gap:5px;background:#F8F8F8;border-radius:12px;padding:10px 11px}
 .mba .rows p{margin:0;display:flex;gap:10px;font-size:13px;line-height:1.4}
 .mba .rows span{flex:none;width:96px;color:#8d8b92}
