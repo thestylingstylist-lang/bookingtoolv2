@@ -4,20 +4,32 @@
 // The dashboard bar opens the same chat with what the agent typed.
 import { useEffect, useRef, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { askMarvberry, sendFromChat, addShowingFromChat } from "./assistant-actions"
+import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat } from "./assistant-actions"
 import type { ChatAnswer, ChatCard } from "@/lib/agent-chat"
 
 export const ASK_EVENT = "mb-ask"
 const BERRY = "/brand/berry-clear.webp"
-const START_CHIPS = ["What’s waiting on me?", "Prepare an agreement", "Send a client a reminder", "Add a new client"]
+const START_CHIPS = ["What’s waiting on me?", "Prepare an agreement", "Prepare an offer", "Send a client an update"]
 
-type Line = { id: number; me: boolean; text: string; card?: ChatCard; chips?: string[] }
+type Line = { id: number; me: boolean; text: string; cards?: ChatCard[]; chips?: string[] }
+
+// What a card was, in words, so the assistant remembers it on the next turn.
+const cardNote = (c: ChatCard) =>
+  c.type === "message" ? `[Drafted a message to ${c.name}: "${c.body.slice(0, 300)}"]`
+  : c.type === "agreement" ? `[Prepared ${c.name}'s ${c.title} for review]`
+  : c.type === "offer" ? `[Prepared an offer for ${c.name}: ${c.rows.map((r) => `${r.k} ${r.v}`).join("; ")}]`
+  : c.type === "showing" ? `[Prepared a showing for ${c.name}: ${c.label} ${c.place}]`
+  : c.type === "client" ? `[Added ${c.name}, client id ${c.clientId}]`
+  : ""
 
 export default function Assistant({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
   const [open, setOpen] = useState(false)
   const [lines, setLines] = useState<Line[]>([])
   const [draft, setDraft] = useState("")
   const [thinking, setThinking] = useState(false)
+  const [name, setName] = useState("Marvberry")
+  const linesRef = useRef<Line[]>([])
+  linesRef.current = lines
   const feed = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLTextAreaElement>(null)
   const pathname = usePathname()
@@ -36,15 +48,23 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
     if (open) setTimeout(() => input.current?.focus(), 250)
   }, [open])
 
+  useEffect(() => {
+    assistantName().then(setName).catch(() => {})
+  }, [])
+
   async function ask(text: string) {
     const t = text.trim()
     if (!t || thinking) return
     setDraft("")
+    const history = [...linesRef.current, { id: 0, me: true, text: t }].map((l) => ({
+      me: l.me,
+      text: [l.text, ...(l.cards ?? []).map(cardNote)].filter(Boolean).join("\n"),
+    }))
     setLines((x) => [...x, { id: Date.now(), me: true, text: t }])
     setThinking(true)
-    const res: ChatAnswer = await askMarvberry(t, ctxClientId).catch(() => ({ reply: "I couldn’t work on that just now. Try again in a moment." }))
+    const res: ChatAnswer = await askMarvberry(history, ctxClientId).catch(() => ({ reply: "I couldn’t work on that just now. Try again in a moment." }))
     setThinking(false)
-    setLines((x) => [...x, { id: Date.now() + 1, me: false, text: res.reply, card: res.card, chips: res.chips }])
+    setLines((x) => [...x, { id: Date.now() + 1, me: false, text: res.reply, cards: res.cards, chips: res.chips }])
   }
 
   // The dashboard bar sends its text here.
@@ -69,16 +89,16 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
   return (
     <>
       {!open && (
-        <button type="button" className="mba-fab" onClick={() => show(true)} aria-label="Ask Marvberry">
+        <button type="button" className="mba-fab" onClick={() => show(true)} aria-label={`Ask ${name}`}>
           <img src={BERRY} alt="" />
         </button>
       )}
-      <aside className={`mba ${open ? "on" : ""}`} aria-hidden={!open} aria-label="Marvberry">
+      <aside className={`mba ${open ? "on" : ""}`} aria-hidden={!open} aria-label={name}>
         <style>{CSS}</style>
         <div className="mba-head">
           <img src={BERRY} alt="" />
           <div>
-            <p className="nm">Marvberry</p>
+            <p className="nm">{name}</p>
             <p className="st">{thinking ? "Working on it…" : "Here to help"}</p>
           </div>
           <button type="button" className="x" onClick={() => show(false)} aria-label="Close">
@@ -100,7 +120,7 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
           {lines.map((l) => (
             <div key={l.id} className="mba-line">
               <p className={`b ${l.me ? "me" : "bot"}`}>{l.text}</p>
-              {l.card && <Card card={l.card} close={() => show(false)} />}
+              {l.cards?.map((c, i) => <Card key={i} card={c} close={() => show(false)} />)}
               {l.chips && (
                 <div className="chips">
                   {l.chips.map((c) => (
@@ -124,7 +144,7 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
             ref={input}
             rows={1}
             value={draft}
-            placeholder="Tell Marvberry what needs to happen…"
+            placeholder={`Tell ${name} what to take care of…`}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -147,6 +167,7 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
   const [state, setState] = useState<"idle" | "busy" | "done" | "error">("idle")
   const [edit, setEdit] = useState(false)
   const [body, setBody] = useState(card.type === "message" ? card.body : "")
+  const [note, setNote] = useState("")
   const go = (href: string) => {
     close()
     router.push(href)
@@ -184,18 +205,80 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
       </div>
     )
 
+  if (card.type === "agreement_setup")
+    return (
+      <div className="card">
+        <p className="ck">Your buyer agreement</p>
+        <p className="cs">Upload it once, and every client’s is filled in for you.</p>
+        <div className="btns">
+          <button type="button" className="a" onClick={() => go("/dashboard#setup-card")}>Upload my agreement</button>
+        </div>
+      </div>
+    )
+
   if (card.type === "agreement")
     return (
       <div className="card">
-        <p className="ck">Buyer agreement · {card.name}</p>
-        <p className="cs">{card.ready ? "Filled in with your details" : "Waiting on your agreement"}</p>
-        <div className="btns">
-          {card.ready ? (
-            <button type="button" className="a" onClick={() => go(`/clients/${card.clientId}`)}>Review and send</button>
-          ) : (
-            <button type="button" className="a" onClick={() => go("/dashboard#setup-card")}>Upload my agreement</button>
-          )}
+        <p className="ck">{card.title} · {card.name}</p>
+        <p className="cs">{card.email ? `Goes to ${card.email} to sign` : "No email on file. It goes on their page."}</p>
+        <div className={`doc ${edit ? "open" : ""}`}>{card.body}</div>
+        <button type="button" className="more" onClick={() => setEdit((v) => !v)}>{edit ? "Show less" : "Read the whole agreement"}</button>
+        {state === "done" ? (
+          <p className="ok">{note}</p>
+        ) : (
+          <div className="btns">
+            <button
+              type="button"
+              className="a"
+              disabled={state === "busy"}
+              onClick={async () => {
+                setState("busy")
+                const r = await sendAgreementFromChat(card.clientId, card.title, card.body).catch(() => ({ ok: false, message: "That didn’t send. Try again." }))
+                setNote(r.message)
+                setState(r.ok ? "done" : "error")
+              }}
+            >
+              {state === "busy" ? "Sending…" : "Send for signature"}
+            </button>
+            <button type="button" className="e" onClick={() => go(`/clients/${card.clientId}`)}>Open file</button>
+          </div>
+        )}
+        {state === "error" && <p className="err">{note}</p>}
+      </div>
+    )
+
+  if (card.type === "offer")
+    return (
+      <div className="card">
+        <p className="ck">Offer · {card.name}</p>
+        <div className="rows">
+          {card.rows.map((r) => (
+            <p key={r.k}><span>{r.k}</span>{r.v}</p>
+          ))}
         </div>
+        {card.offer.message && <p className="cv">{card.offer.message}</p>}
+        {card.attach.length > 0 && <p className="cs">Attached: {card.attach.join(", ")}</p>}
+        {state === "done" ? (
+          <p className="ok">{note}</p>
+        ) : (
+          <div className="btns">
+            <button
+              type="button"
+              className="a"
+              disabled={state === "busy"}
+              onClick={async () => {
+                setState("busy")
+                const r = await sendOfferFromChat(card.clientId, card.offer).catch(() => ({ ok: false, message: "That didn’t send. Try again." }))
+                setNote(r.message)
+                setState(r.ok ? "done" : "error")
+              }}
+            >
+              {state === "busy" ? "Sending…" : "Send offer"}
+            </button>
+            <button type="button" className="e" onClick={() => go(`/clients/${card.clientId}`)}>Open file</button>
+          </div>
+        )}
+        {state === "error" && <p className="err">{note}</p>}
       </div>
     )
 
@@ -231,7 +314,7 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
     return (
       <div className="card">
         <p className="ck">{card.name}</p>
-        <p className="cs">Client added</p>
+        <p className="cs">{card.sub}</p>
         <div className="btns">
           <button type="button" className="a" onClick={() => go(`/clients/${card.clientId}`)}>Open {card.name.split(" ")[0]}</button>
         </div>
@@ -281,6 +364,12 @@ const CSS = `
 .mba .btns .e{background:#EEEEF1;color:#16151a}
 .mba .ok{margin:2px 0 0;font-size:12.5px;color:#1f8a4c;font-weight:500}
 .mba .err{margin:0;font-size:12.5px;color:#b3261e}
+.mba .doc{margin:0;background:#F8F8F8;border-radius:12px;padding:10px 11px;font-size:12.5px;line-height:1.55;color:#3a3940;white-space:pre-wrap;max-height:120px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
+.mba .doc.open{max-height:340px;overflow-y:auto;-webkit-mask-image:none}
+.mba .more{align-self:flex-start;font:inherit;font-size:12.5px;color:#93407A;background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.mba .rows{display:flex;flex-direction:column;gap:5px;background:#F8F8F8;border-radius:12px;padding:10px 11px}
+.mba .rows p{margin:0;display:flex;gap:10px;font-size:13px;line-height:1.4}
+.mba .rows span{flex:none;width:96px;color:#8d8b92}
 .mba .list{gap:0;padding:4px}
 .mba .li{display:flex;flex-direction:column;align-items:flex-start;gap:2px;font:inherit;text-align:left;background:none;border:0;border-radius:12px;padding:9px 10px;cursor:pointer}
 .mba .li:hover{background:#F8F8F8}

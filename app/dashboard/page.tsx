@@ -68,6 +68,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .maybeSingle()
   const agent = agentData as AgentRow | null
   if (!agent) redirect("/login")
+  const { data: named } = await supabase.from("agents").select("assistant_name").eq("id", user.id).maybeSingle()
+  const assistantName = ((named?.assistant_name as string) || "Marvberry").trim()
 
   const nowISO = new Date().toISOString()
   const { data: upcoming } = await supabase
@@ -323,7 +325,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {priorities.length ? "Here's what's important today. I'll help you get it handled." : "Nothing pressing today. Everything is on track."}
       </p>
       <div className="mt-6">
-        <AssistantBar />
+        <AssistantBar name={assistantName} />
       </div>
 
       {needsSetupCall && (

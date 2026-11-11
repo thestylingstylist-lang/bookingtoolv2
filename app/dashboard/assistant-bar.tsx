@@ -3,9 +3,9 @@
 import { useState } from "react"
 import { ASK_EVENT } from "../assistant"
 
-const PICKS = ["Prepare an agreement", "Send a client a reminder", "Schedule a showing", "What’s waiting on me?"]
+const PICKS = ["What’s waiting on me?", "Prepare an agreement", "Prepare an offer", "Send a client an update"]
 
-export default function AssistantBar() {
+export default function AssistantBar({ name = "Marvberry" }: { name?: string }) {
   const [text, setText] = useState("")
   const send = (t: string) => {
     const v = t.trim()
@@ -26,13 +26,13 @@ export default function AssistantBar() {
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="What can I take off your plate today?"
-          aria-label="Ask Marvberry"
+          placeholder={`What can ${name} take off your plate today?`}
+          aria-label={`Ask ${name}`}
           className="min-w-0 flex-1 bg-transparent text-[15px] text-[#16151a] outline-none placeholder:text-[#16151a]/45"
         />
         <button
           type="submit"
-          aria-label="Ask Marvberry"
+          aria-label={`Ask ${name}`}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#16151a] text-white"
         >
           <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
