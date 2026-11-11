@@ -15,6 +15,40 @@ function todayLabel(timezone: string) {
   return new Intl.DateTimeFormat("en-US", { timeZone: timezone || "America/New_York", month: "long", day: "numeric", year: "numeric" }).format(new Date())
 }
 
+// "Client’s Name (s)" -> "clientname"
+function norm(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[’‘`´]/g, "'")
+    .replace(/'s\b/g, "")
+    .replace(/\(s\)/g, "")
+    .replace(/[^a-z0-9]/g, "")
+}
+
+// Other ways templates word the blanks we already know.
+const ALIASES: Record<string, string> = {
+  client: "client name",
+  clientfullname: "client name",
+  buyer: "client name",
+  buyers: "client name",
+  buyername: "client name",
+  buyersname: "client name",
+  buyerfullname: "client name",
+  purchaser: "client name",
+  purchasername: "client name",
+  nameofbuyer: "client name",
+  nameofclient: "client name",
+  buyeraddress: "client address",
+  clientcurrentaddress: "client address",
+  buyeremail: "client email",
+  buyerphone: "client phone",
+  agent: "agent name",
+  buyeragent: "agent name",
+  buyersagent: "agent name",
+  firm: "brokerage",
+  brokeragename: "brokerage",
+}
+
 export type AgreementStatus =
   | { state: "no_template" }
   | { state: "signed"; title: string; signedAt: string }
@@ -58,17 +92,27 @@ export async function prepareAgreement(
     "today's date": todayLabel(tz),
     ...agreementAuto(toAgreementSettings(agent), tz),
   }
+  // Match blanks loosely: "Client's Name", "Client’s name", "Buyer Name" and
+  // "[[ client name ]]" are all the same blank. Anything that means the client's
+  // name, address, email or phone is filled from the file, never asked for.
+  const fromFile = (key: string): string | undefined => {
+    const n = norm(key)
+    for (const [k, v] of Object.entries(auto)) if (norm(k) === n) return v
+    const alias = ALIASES[n]
+    return alias ? auto[alias] : undefined
+  }
   const given: Record<string, string> = {}
-  for (const [k, v] of Object.entries(deal)) given[k.trim().toLowerCase()] = String(v ?? "").trim()
+  for (const [k, v] of Object.entries(deal)) given[norm(k)] = String(v ?? "").trim()
 
   const missing = parsePlaceholders(tpl.body)
-    .filter((p) => p.kind === "deal" && !given[p.key])
+    .filter((p) => p.kind === "deal" && fromFile(p.key) === undefined && !given[norm(p.key)])
     .map((p) => p.label)
   if (missing.length) return { state: "missing", title: tpl.title, templateId: tpl.id, missing }
 
   const body = tpl.body.replace(/\[\[([^\]]+)\]\]/g, (_m, inner: string) => {
     const key = inner.trim().toLowerCase()
-    return AUTO_FILL[key] !== undefined ? auto[key] ?? "" : given[key] ?? ""
+    if (AUTO_FILL[key] !== undefined) return auto[key] ?? ""
+    return fromFile(key) ?? given[norm(key)] ?? ""
   })
   return { state: "ready", title: tpl.title, templateId: tpl.id, body, email: (client.email as string) || null }
 }

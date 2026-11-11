@@ -280,7 +280,7 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
         }
         if (r.state === "signed") return `Already signed: "${r.title}", signed ${longDate(r.signedAt.slice(0, 10))}. Nothing to send.`
         if (r.state === "sent") return `Already sent on ${longDate(r.sentAt.slice(0, 10))} and waiting for the client's signature. Offer to draft a friendly reminder instead.`
-        if (r.state === "missing") return `The template "${r.title}" has blanks only the agent knows: ${r.missing.join(", ")}. Ask for them, then call again with blanks.`
+        if (r.state === "missing") return `The template "${r.title}" has blanks only the agent knows: ${r.missing.map((m) => `"${m}"`).join(", ")}. Ask the agent for them, then call again with blanks keyed by those exact labels. The client's name, address, email and phone come from the file automatically; never ask for them.`
         cards.push({ type: "agreement", clientId, name: nameOf(clientId), title: r.title, body: r.body, email: r.email })
         return `Ready. The agent sees the full agreement to review and send.${r.email ? "" : " The client has no email on file, so it will land on their page only. Mention it."}`
       }
