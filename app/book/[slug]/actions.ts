@@ -196,5 +196,8 @@ export async function createBooking(
     console.error("[booking] sales lead step failed (booking still saved):", err)
   }
 
+  try {
+    await admin.from("card_events").insert({ agent_id: agent.id, kind: "book" })
+  } catch {}
   return { ok: true, manageToken }
 }

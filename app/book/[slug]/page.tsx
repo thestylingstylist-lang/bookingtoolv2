@@ -6,10 +6,9 @@ import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
 import BookingForm from "./booking-form"
+import Card from "./card"
 
 export const dynamic = "force-dynamic"
-
-const SERIF = { fontFamily: "var(--font-geist-sans), -apple-system,'Segoe UI',Helvetica,Arial,sans-serif", letterSpacing: "-0.02em" }
 
 // Showcase default. Later each realtor picks their own colors in Settings.
 const THEME = {
@@ -86,75 +85,31 @@ export default async function BookPage({
     const { data } = await createAdminClient().from("agents").select("license_number").eq("id", agent.id).maybeSingle()
     license = ((data as { license_number?: string } | null)?.license_number ?? "").trim()
   } catch {}
-  const credentials = [agent.tagline, agent.business_name !== name ? agent.business_name : "", license ? `License ${license}` : ""].filter(Boolean)
+  const { badge, guideTitle } = await cardExtras(agent.id)
 
   return (
     <>
       <div
         style={{ ...THEME, fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-        className="grid min-h-screen bg-[var(--base)] text-[#16151a] lg:grid-cols-[500px_minmax(0,1fr)]"
+        className="grid min-h-screen bg-[#F4F1EA] text-[#16151a] lg:grid-cols-[480px_minmax(0,1fr)]"
       >
-        <aside className="flex flex-col bg-[var(--panel)] p-6 sm:p-10">
-          {agent.headshot_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={agent.headshot_url}
-              alt={name || "Agent"}
-              className="h-[340px] w-full rounded-[18px] bg-[var(--photo)] object-cover object-top lg:h-[450px]"
-            />
-          ) : (
-            <div
-              style={SERIF}
-              className="flex h-[240px] w-full items-center justify-center rounded-[18px] bg-[var(--photo)] text-6xl text-[#5d5b62] lg:h-[450px]"
-              aria-hidden
-            >
-              {initials}
-            </div>
-          )}
-
-          <div className="flex flex-col gap-[18px] px-2.5 pb-2 pt-7">
-            <h1 style={SERIF} className="text-[34px] font-medium leading-[1.05] sm:text-[38px]">
-              Thinking about buying <span>or selling?</span>
-            </h1>
-            <p className="whitespace-pre-line text-[15px] leading-relaxed text-[#5d5b62]">
-              {agent.welcome_message ||
-                "Book a free consultation and let\u2019s map out your next move together."}
-            </p>
-            <div className="h-px bg-[var(--panel-line)]" />
-            <div className="flex flex-col gap-2">
-              {name && (
-                <p style={SERIF} className="text-[30px] leading-none">
-                  {name}
-                </p>
-              )}
-              {credentials.length > 0 && (
-                <p className="text-xs uppercase leading-[1.8] tracking-[2px] text-[#5d5b62]">
-                  {credentials.map((c, i) => (
-                    <span key={i} className="block">
-                      {c}
-                    </span>
-                  ))}
-                </p>
-              )}
-              {agent.show_contact && (agent.public_phone || agent.public_email) && (
-                <div className="mt-1 flex flex-col gap-1 text-[14px] text-[#5d5b62]">
-                  {agent.public_phone && (
-                    <a href={`tel:${agent.public_phone}`} className="hover:text-[#16151a]">
-                      {agent.public_phone}
-                    </a>
-                  )}
-                  {agent.public_email && (
-                    <a href={`mailto:${agent.public_email}`} className="hover:text-[#16151a]">
-                      {agent.public_email}
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+        <aside className="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
+          <Card
+            slug={agent.slug}
+            name={name}
+            initials={initials}
+            title={["Real estate agent", agent.business_name && agent.business_name !== name ? agent.business_name : ""].filter(Boolean).join(" · ")}
+            line={agent.tagline || "Thinking about buying or selling? Let\u2019s talk."}
+            photo={agent.headshot_url}
+            phone={agent.show_contact ? agent.public_phone : ""}
+            email={agent.show_contact ? agent.public_email : ""}
+            badge={badge}
+            guideTitle={guideTitle}
+            fine={license ? [`License ${license}`] : []}
+          />
         </aside>
 
-        <main className="bg-white px-5 py-10 sm:px-14 sm:py-14 lg:pr-[72px]">
+        <main id="book" className="scroll-mt-4 bg-white px-5 py-10 sm:px-14 sm:py-14 lg:pr-[72px]">
           <div className="mx-auto max-w-[860px]">
             <BookingForm
               slots={slots}
@@ -175,4 +130,40 @@ export default async function BookPage({
       </div>
     </>
   )
+}
+
+// The reply badge is earned: it shows only once the agent has answered a few
+// card requests, and says how fast they usually do.
+async function cardExtras(agentId: string): Promise<{ badge: string; guideTitle: string }> {
+  let badge = ""
+  let guideTitle = ""
+  try {
+    const admin = createAdminClient()
+    const [{ data: g }, { data: rows }] = await Promise.all([
+      admin.from("agents").select("guide_title, guide_url").eq("id", agentId).maybeSingle(),
+      admin
+        .from("card_requests")
+        .select("created_at, replied_at")
+        .eq("agent_id", agentId)
+        .not("replied_at", "is", null)
+        .gte("created_at", new Date(Date.now() - 90 * 864e5).toISOString())
+        .limit(200),
+    ])
+    if (g?.guide_url) guideTitle = ((g.guide_title as string) || "").trim() || "Get my free buyer guide"
+    const mins = (rows ?? [])
+      .map((r) => (Date.parse(r.replied_at as string) - Date.parse(r.created_at as string)) / 60000)
+      .filter((m) => m >= 0)
+      .sort((a, b) => a - b)
+    if (mins.length >= 3) badge = replyBadge(mins[Math.floor(mins.length / 2)])
+  } catch {}
+  return { badge, guideTitle }
+}
+
+function replyBadge(m: number): string {
+  if (m <= 15) return "Usually replies within 15 minutes"
+  if (m <= 30) return "Usually replies within 30 minutes"
+  if (m <= 60) return "Usually replies within the hour"
+  if (m <= 180) return "Usually replies within a few hours"
+  if (m <= 1440) return "Usually replies the same day"
+  return ""
 }

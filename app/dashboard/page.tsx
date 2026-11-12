@@ -21,6 +21,7 @@ import SeenMarker from "./seen-marker"
 import { createAdminClient } from "@/lib/supabase/admin"
 import SupportThread, { type Msg } from "@/app/support/support-thread"
 import SetupUpload from "./setup-upload"
+import CardPanel from "./card-panel"
 
 // The client's outstanding item, said about them (agent-facing, calm, no blame).
 function theirThing(title: string, first: string) {
@@ -327,6 +328,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <div className="mt-6">
         <AssistantBar name={assistantName} />
       </div>
+
+      <CardPanel supabase={supabase} agentId={user.id} slug={agent.slug} />
 
       {needsSetupCall && (
         <Link href="/chat" className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[#EBC9E0] bg-[#FBEDF5] p-5 transition-colors hover:bg-[#F7E4F0]">
