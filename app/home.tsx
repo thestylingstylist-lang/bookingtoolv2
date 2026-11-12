@@ -124,6 +124,17 @@ function Motion() {
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false)
+  // Members see their way in: signed in -> straight to the dashboard; been here
+  // before on this device -> Log in. New visitors keep "Try Marvberry".
+  const [member, setMember] = useState<"" | "in" | "back">("")
+  useEffect(() => {
+    if (/(^|; )sb-[^=]+-auth-token(\.0)?=/.test(document.cookie)) setMember("in")
+    else {
+      try {
+        if (localStorage.getItem("mb-member")) setMember("back")
+      } catch {}
+    }
+  }, [])
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -165,8 +176,14 @@ export default function Home() {
         <nav>
           <a href="#how" className="hide-sm">How it works</a>
           <a href="#start" className="hide-sm">Pricing</a>
-          <a href="/login" className="hide-sm">Log in</a>
-          <a className="btn sm" href={START}>Try Marvberry</a>
+          {member === "" && <a href="/login" className="hide-sm">Log in</a>}
+          {member === "in" ? (
+            <a className="btn sm" href="/dashboard">Open Marvberry</a>
+          ) : member === "back" ? (
+            <a className="btn sm" href="/login">Log in</a>
+          ) : (
+            <a className="btn sm" href={START}>Try Marvberry</a>
+          )}
         </nav>
       </header>
 

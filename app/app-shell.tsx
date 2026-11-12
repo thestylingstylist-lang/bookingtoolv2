@@ -35,6 +35,12 @@ export default function AppShell({
 
   // Close the phone drawer whenever the page changes
   useEffect(() => setMobileOpen(false), [pathname])
+  // Remember this device belongs to a member, so the home page offers Log in.
+  useEffect(() => {
+    try {
+      localStorage.setItem("mb-member", "1")
+    } catch {}
+  }, [])
 
   // Stop the page scrolling behind the open drawer
   useEffect(() => {
