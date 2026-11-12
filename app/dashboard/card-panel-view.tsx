@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { markReplied, makeClient, saveGuide } from "./card-actions"
+import { createClient } from "@supabase/supabase-js"
+import { markReplied, makeClient, saveCardDetails, startGuideUpload, saveGuideFile, removeGuide } from "./card-actions"
 
 export type Req = {
   id: string
@@ -33,14 +34,59 @@ export default function CardPanelView(p: {
   asked: number
   waiting: Req[]
   guideTitle: string
-  guideUrl: string
+  hasGuide: boolean
+  guideBlurb: string
+  areas: string
+  address: string
+  paid: boolean
+  slug: string
 }) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
-  const [guideOpen, setGuideOpen] = useState(false)
+  const [edit, setEdit] = useState(false)
+  const [areas, setAreas] = useState(p.areas)
+  const [address, setAddress] = useState(p.address)
   const [gTitle, setGTitle] = useState(p.guideTitle)
-  const [gUrl, setGUrl] = useState(p.guideUrl)
+  const [gBlurb, setGBlurb] = useState(p.guideBlurb)
+  const [file, setFile] = useState<File | null>(null)
   const [gNote, setGNote] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  async function saveAll() {
+    setSaving(true)
+    setGNote("")
+    const d = await saveCardDetails(areas, address).catch(() => ({ ok: false, message: "Couldn’t save. Try again." }))
+    if (!d.ok) {
+      setSaving(false)
+      return setGNote(d.message)
+    }
+    let path = ""
+    if (file) {
+      if (!/\.pdf$/i.test(file.name)) {
+        setSaving(false)
+        return setGNote("Your guide has to be a PDF.")
+      }
+      const st = await startGuideUpload(file.size).catch(() => ({ ok: false as const, error: "Couldn’t start the upload. Try again." }))
+      if (!st.ok) {
+        setSaving(false)
+        return setGNote(st.error)
+      }
+      const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+      const { error } = await sb.storage.from("client-docs").uploadToSignedUrl(st.path, st.token, file, { contentType: "application/pdf" })
+      if (error) {
+        setSaving(false)
+        return setGNote("The upload didn’t finish. Try again.")
+      }
+      path = st.path
+    }
+    if (path || p.hasGuide) {
+      const g = await saveGuideFile(path, gTitle, gBlurb).catch(() => ({ ok: false, message: "Couldn’t save. Try again." }))
+      setGNote(g.message)
+    } else setGNote(d.message)
+    setSaving(false)
+    setFile(null)
+    router.refresh()
+  }
   const [busy, setBusy] = useState("")
 
   const qrHref = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(p.qr)}`
@@ -92,6 +138,11 @@ export default function CardPanelView(p: {
       {p.waiting.length > 0 && (
         <div className="mt-5 border-t border-[#f1f0ee] pt-5">
           <p className="text-[14px] font-medium text-[#93407A]">{p.waiting.length} waiting on you</p>
+          {!p.paid && (
+            <p className="mt-1 text-[13px] text-[#55535b]">
+              Want Marvberry to help you reply faster? <a href="/billing" className="text-[#93407A] underline underline-offset-4">See how it helps</a>
+            </p>
+          )}
           <ul className="mt-3 flex flex-col gap-3">
             {p.waiting.map((r) => {
               const first = r.name.split(" ")[0]
@@ -152,36 +203,48 @@ export default function CardPanelView(p: {
         </div>
       )}
 
-      <div className="mt-5 border-t border-[#f1f0ee] pt-4">
-        {!guideOpen ? (
-          <button type="button" onClick={() => setGuideOpen(true)} className="text-[13.5px] text-[#55535b] underline underline-offset-4">
-            {p.guideUrl ? `Your free guide: ${p.guideTitle || "Free buyer guide"}. Change it` : "Offer a free guide on your card"}
-          </button>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <p className="text-[13.5px] text-[#55535b]">Visitors leave their email to get it, and you get their details.</p>
-            <input value={gTitle} onChange={(e) => setGTitle(e.target.value)} placeholder="The New Buyer Guide" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] outline-none focus:border-[#BC559E]" />
-            <input value={gUrl} onChange={(e) => setGUrl(e.target.value)} placeholder="Link to the guide (Google Drive, Dropbox, your site)" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] outline-none focus:border-[#BC559E]" />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  const r = await saveGuide(gTitle, gUrl).catch(() => ({ ok: false, message: "Couldn’t save. Try again." }))
-                  setGNote(r.message)
-                  if (r.ok) router.refresh()
-                }}
-                className="rounded-full bg-[#16151a] px-4 py-2 text-[13px] font-medium text-white"
-              >
-                Save
-              </button>
-              <button type="button" onClick={() => setGuideOpen(false)} className="rounded-full bg-[#EEEEF1] px-4 py-2 text-[13px] font-medium text-[#16151a]">
-                Close
-              </button>
-              {gNote && <span className="text-[13px] text-[#55535b]">{gNote}</span>}
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#f1f0ee] pt-4 text-[13.5px]">
+        <button type="button" onClick={() => setEdit((v) => !v)} className="text-[#16151a] underline underline-offset-4">
+          {edit ? "Close" : "Edit your card"}
+        </button>
+        <a href="/dashboard/card-export" className="text-[#55535b] underline underline-offset-4">Export your contacts</a>
+      </div>
+      {edit && (
+        <div className="mt-4 flex flex-col gap-3">
+          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+            Areas you serve
+            <input value={areas} onChange={(e) => setAreas(e.target.value)} placeholder="Manhattan | Brooklyn" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+          </label>
+          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+            Office address
+            <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder={"23 Address Street\nNew York, NY 10001"} className="resize-none rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+          </label>
+          <div className="mt-1 rounded-xl bg-[#F8F8F8] p-4">
+            <p className="text-[14px] font-medium text-[#16151a]">Your free guide</p>
+            <p className="mt-0.5 text-[13px] text-[#55535b]">Visitors leave their email to get it. It goes out in your name, and you get their details.</p>
+            <input value={gTitle} onChange={(e) => setGTitle(e.target.value)} placeholder="The New Buyer Guide" className="mt-3 w-full rounded-lg border border-[#e6e5e3] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#BC559E]" />
+            <input value={gBlurb} onChange={(e) => setGBlurb(e.target.value)} placeholder="One line about what's inside" className="mt-2 w-full rounded-lg border border-[#e6e5e3] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#BC559E]" />
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-[13px]">
+              <label className="cursor-pointer rounded-full bg-white px-3.5 py-1.5 font-medium text-[#16151a] ring-1 ring-[#e6e5e3]">
+                {file ? file.name : p.hasGuide ? "Replace the PDF" : "Upload your guide (PDF)"}
+                <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              </label>
+              {p.hasGuide && (
+                <>
+                  <a href={`/book/${p.slug}/guide`} target="_blank" rel="noreferrer" className="text-[#55535b] underline underline-offset-4">View</a>
+                  <button type="button" onClick={async () => { await removeGuide().catch(() => {}); router.refresh() }} className="text-[#55535b] underline underline-offset-4">Remove</button>
+                </>
+              )}
             </div>
           </div>
-        )}
-      </div>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={saveAll} disabled={saving} className="rounded-full bg-[#16151a] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
+              {saving ? "Saving…" : "Save"}
+            </button>
+            {gNote && <span className="text-[13px] text-[#55535b]">{gNote}</span>}
+          </div>
+        </div>
+      )}
     </section>
   )
 }

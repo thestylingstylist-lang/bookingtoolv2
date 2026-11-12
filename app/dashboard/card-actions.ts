@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 async function me() {
   const supabase = await createClient()
@@ -51,4 +52,47 @@ export async function saveGuide(title: string, url: string): Promise<{ ok: boole
   if (error) return { ok: false, message: "Couldn’t save. Try again." }
   revalidatePath("/dashboard")
   return { ok: true, message: u ? "Saved. It’s on your card now." : "Removed from your card." }
+}
+
+// The details that show on the card.
+export async function saveCardDetails(areas: string, address: string): Promise<{ ok: boolean; message: string }> {
+  const { supabase, user } = await me()
+  if (!user) return { ok: false, message: "Please sign in again." }
+  const { error } = await supabase
+    .from("agents")
+    .update({ service_areas: areas.trim().slice(0, 120) || null, office_address: address.trim().slice(0, 200) || null })
+    .eq("id", user.id)
+  if (error) return { ok: false, message: "Couldn’t save. Try again." }
+  revalidatePath("/dashboard")
+  return { ok: true, message: "Saved. It’s on your card now." }
+}
+
+// Start uploading the agent's guide (a PDF) to private storage.
+export async function startGuideUpload(size: number): Promise<{ ok: true; path: string; token: string } | { ok: false; error: string }> {
+  const { user } = await me()
+  if (!user) return { ok: false, error: "Please sign in again." }
+  if (size > 25 * 1024 * 1024) return { ok: false, error: "That file is over 25 MB. Try a smaller PDF." }
+  const path = `guides/${user.id}/${crypto.randomUUID()}.pdf`
+  const { data, error } = await createAdminClient().storage.from("client-docs").createSignedUploadUrl(path)
+  if (error || !data) return { ok: false, error: "Couldn’t start the upload. Try again." }
+  return { ok: true, path, token: data.token }
+}
+
+export async function saveGuideFile(path: string, title: string, blurb: string): Promise<{ ok: boolean; message: string }> {
+  const { supabase, user } = await me()
+  if (!user) return { ok: false, message: "Please sign in again." }
+  if (path && !path.startsWith(`guides/${user.id}/`)) return { ok: false, message: "Couldn’t save. Try again." }
+  const patch: Record<string, string | null> = { guide_title: title.trim().slice(0, 80) || null, guide_blurb: blurb.trim().slice(0, 300) || null }
+  if (path) patch.guide_path = path
+  const { error } = await supabase.from("agents").update(patch).eq("id", user.id)
+  if (error) return { ok: false, message: "Couldn’t save. Try again." }
+  revalidatePath("/dashboard")
+  return { ok: true, message: "Saved. It’s on your card now." }
+}
+
+export async function removeGuide(): Promise<void> {
+  const { supabase, user } = await me()
+  if (!user) return
+  await supabase.from("agents").update({ guide_path: null, guide_url: null }).eq("id", user.id)
+  revalidatePath("/dashboard")
 }

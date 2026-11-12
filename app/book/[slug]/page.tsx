@@ -5,20 +5,10 @@ import { getAgentBySlug, findSlugRedirect } from "@/lib/agent"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
-import BookingForm from "./booking-form"
-import Card from "./card"
+import CardFlow from "./card-flow"
 
 export const dynamic = "force-dynamic"
 
-// Showcase default. Later each realtor picks their own colors in Settings.
-const THEME = {
-  "--base": "#f1f0ee",
-  "--panel": "#e6e5e3",
-  "--photo": "#d6d4d0",
-  "--panel-line": "#d4d2ce",
-  "--accent": "#16151a",
-  "--accent-soft": "#f1f0ee",
-} as React.CSSProperties
 
 export async function generateMetadata({
   params,
@@ -85,62 +75,43 @@ export default async function BookPage({
     const { data } = await createAdminClient().from("agents").select("license_number").eq("id", agent.id).maybeSingle()
     license = ((data as { license_number?: string } | null)?.license_number ?? "").trim()
   } catch {}
-  const { badge, guideTitle } = await cardExtras(agent.id)
+  const x = await cardExtras(agent.id)
 
   return (
-    <>
-      <div
-        style={{ ...THEME, fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-        className="grid min-h-screen bg-[#F4F1EA] text-[#16151a] lg:grid-cols-[480px_minmax(0,1fr)]"
-      >
-        <aside className="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
-          <Card
-            slug={agent.slug}
-            name={name}
-            initials={initials}
-            title={["Real estate agent", agent.business_name && agent.business_name !== name ? agent.business_name : ""].filter(Boolean).join(" · ")}
-            line={agent.tagline || "Thinking about buying or selling? Let\u2019s talk."}
-            photo={agent.headshot_url}
-            phone={agent.show_contact ? agent.public_phone : ""}
-            email={agent.show_contact ? agent.public_email : ""}
-            badge={badge}
-            guideTitle={guideTitle}
-            fine={license ? [`License ${license}`] : []}
-          />
-        </aside>
-
-        <main id="book" className="scroll-mt-4 bg-white px-5 py-10 sm:px-14 sm:py-14 lg:pr-[72px]">
-          <div className="mx-auto max-w-[860px]">
-            <BookingForm
-              slots={slots}
-              slug={agent.slug}
-              agent={{
-                name,
-                minutes: agent.slot_minutes,
-                phone: agent.public_phone,
-                email: agent.public_email,
-                timezone: agent.timezone,
-              }}
-            />
-            <p className="mt-14 text-xs text-[#9a989e]">
-              Your details are only used to schedule and prepare for your consultation.
-            </p>
-          </div>
-        </main>
-      </div>
-    </>
+    <CardFlow
+      slug={agent.slug}
+      name={name}
+      initials={initials}
+      title={["Real estate agent", agent.business_name && agent.business_name !== name ? agent.business_name : ""].filter(Boolean).join(" · ")}
+      tagline={agent.tagline}
+      photo={agent.headshot_url}
+      phone={agent.show_contact ? agent.public_phone : ""}
+      email={agent.show_contact ? agent.public_email : ""}
+      address={x.address}
+      areas={x.areas}
+      badge={x.badge}
+      guideTitle={x.guideTitle}
+      guideBlurb={x.guideBlurb}
+      license={license}
+      showMade={agent.subscription_status !== "active"}
+      minutes={agent.slot_minutes}
+      timezone={agent.timezone}
+      slots={slots}
+    />
   )
 }
 
 // The reply badge is earned: it shows only once the agent has answered a few
 // card requests, and says how fast they usually do.
-async function cardExtras(agentId: string): Promise<{ badge: string; guideTitle: string }> {
-  let badge = ""
-  let guideTitle = ""
+type Extras = { badge: string; guideTitle: string; guideBlurb: string; areas: string; address: string }
+
+async function cardExtras(agentId: string): Promise<Extras> {
+  const x: Extras = { badge: "", guideTitle: "", guideBlurb: "", areas: "", address: "" }
   try {
     const admin = createAdminClient()
-    const [{ data: g }, { data: rows }] = await Promise.all([
+    const [{ data: g }, { data: g2 }, { data: rows }] = await Promise.all([
       admin.from("agents").select("guide_title, guide_url").eq("id", agentId).maybeSingle(),
+      admin.from("agents").select("guide_path, guide_blurb, service_areas, office_address").eq("id", agentId).maybeSingle(),
       admin
         .from("card_requests")
         .select("created_at, replied_at")
@@ -149,14 +120,17 @@ async function cardExtras(agentId: string): Promise<{ badge: string; guideTitle:
         .gte("created_at", new Date(Date.now() - 90 * 864e5).toISOString())
         .limit(200),
     ])
-    if (g?.guide_url) guideTitle = ((g.guide_title as string) || "").trim() || "Get my free buyer guide"
+    if (g?.guide_url || g2?.guide_path) x.guideTitle = ((g?.guide_title as string) || "").trim() || "The New Buyer Guide"
+    x.guideBlurb = ((g2?.guide_blurb as string) || "").trim()
+    x.areas = ((g2?.service_areas as string) || "").trim()
+    x.address = ((g2?.office_address as string) || "").trim()
     const mins = (rows ?? [])
       .map((r) => (Date.parse(r.replied_at as string) - Date.parse(r.created_at as string)) / 60000)
       .filter((m) => m >= 0)
       .sort((a, b) => a - b)
-    if (mins.length >= 3) badge = replyBadge(mins[Math.floor(mins.length / 2)])
+    if (mins.length >= 3) x.badge = replyBadge(mins[Math.floor(mins.length / 2)])
   } catch {}
-  return { badge, guideTitle }
+  return x
 }
 
 function replyBadge(m: number): string {

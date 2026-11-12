@@ -38,7 +38,8 @@ export async function requestContact(slug: string, formData: FormData): Promise<
 
   const admin = createAdminClient()
   const { data: extra } = await admin.from("agents").select("guide_title, guide_url").eq("id", agent.id).maybeSingle()
-  const guideUrl = ((extra?.guide_url as string) || "").trim()
+  const { data: extra2 } = await admin.from("agents").select("guide_path").eq("id", agent.id).maybeSingle()
+  const guideUrl = extra2?.guide_path || extra?.guide_url ? `${siteUrl()}/book/${agent.slug}/guide` : ""
   const guideTitle = ((extra?.guide_title as string) || "").trim() || "Your guide"
   const { error } = await admin.from("card_requests").insert({
     agent_id: agent.id,

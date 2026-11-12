@@ -11,8 +11,9 @@ export default async function CardPanel({ supabase, agentId, slug }: { supabase:
   const [ev, rq, ag] = await Promise.all([
     supabase.from("card_events").select("kind").eq("agent_id", agentId).gte("created_at", since).limit(5000),
     supabase.from("card_requests").select("id, created_at, name, email, phone, message, wants_guide, replied_at, client_id").eq("agent_id", agentId).order("created_at", { ascending: false }).limit(60),
-    supabase.from("agents").select("guide_title, guide_url").eq("id", agentId).maybeSingle(),
+    supabase.from("agents").select("guide_title, guide_url, subscription_status").eq("id", agentId).maybeSingle(),
   ])
+  const { data: more } = await supabase.from("agents").select("guide_path, guide_blurb, service_areas, office_address").eq("id", agentId).maybeSingle()
   if (ev.error || rq.error) return null
 
   const count = (k: string) => (ev.data ?? []).filter((e) => e.kind === k).length
@@ -36,7 +37,12 @@ export default async function CardPanel({ supabase, agentId, slug }: { supabase:
       asked={recent.length}
       waiting={reqs.filter((r) => !r.replied_at)}
       guideTitle={(ag.data?.guide_title as string) || ""}
-      guideUrl={(ag.data?.guide_url as string) || ""}
+      hasGuide={!!(more?.guide_path || ag.data?.guide_url)}
+      guideBlurb={(more?.guide_blurb as string) || ""}
+      areas={(more?.service_areas as string) || ""}
+      address={(more?.office_address as string) || ""}
+      paid={ag.data?.subscription_status === "active"}
+      slug={slug}
     />
   )
 }
