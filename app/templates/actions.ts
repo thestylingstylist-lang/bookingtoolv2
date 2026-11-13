@@ -54,3 +54,15 @@ export async function updateTemplate(formData: FormData): Promise<void> {
   revalidatePath(`/templates/edit`)
   redirect(`/templates/edit?id=${id}&saved=1`)
 }
+
+// Delete a template. Agreements already sent from it keep their own copy.
+export async function deleteTemplate(id: string): Promise<void> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect("/login")
+  await supabase.from("document_templates").delete().eq("id", id).eq("agent_id", user.id)
+  revalidatePath("/templates")
+  redirect("/templates")
+}

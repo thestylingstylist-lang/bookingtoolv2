@@ -42,6 +42,7 @@ export async function proxy(request: NextRequest) {
 
   const guarded =
     path.startsWith("/dashboard") ||
+    path.startsWith("/my-card") ||
     path.startsWith("/settings") ||
     path.startsWith("/start-here") ||
     path.startsWith("/bookings") ||
@@ -70,13 +71,29 @@ export async function proxy(request: NextRequest) {
       .select("trial_ends_at, subscription_status")
       .eq("id", user.id)
       .maybeSingle()
+    // Free card accounts see Card, Calendar and Clients (plus settings and help), with no trial clock.
+    let plan = "full"
+    try {
+      const { data: p } = await supabase.from("agents").select("plan").eq("id", user.id).maybeSingle()
+      if (p?.plan === "card") plan = "card"
+    } catch {}
+    response.cookies.set("mb-plan", plan, { path: "/", sameSite: "lax" })
+    if (plan === "card") {
+      const open = ["/my-card", "/calendar", "/clients", "/settings"].some((x) => path.startsWith(x))
+      if (!open) {
+        const r = NextResponse.redirect(new URL("/my-card", request.url))
+        r.cookies.set("mb-plan", plan, { path: "/", sameSite: "lax" })
+        return r
+      }
+      return response
+    }
     const ended = !!agent?.trial_ends_at && new Date(agent.trial_ends_at).getTime() <= Date.now()
     const paid = ["active", "trialing", "past_due"].includes(agent?.subscription_status ?? "")
     if (ended && !paid) {
       return NextResponse.redirect(new URL("/billing", request.url))
     }
   }
-  if (user && (path === "/login" || path === "/signup" || path === "/team")) {
+  if (user && (path === "/login" || path === "/signup" || path === "/team" || path === "/card")) {
     return NextResponse.redirect(new URL(admin ? "/admin" : "/dashboard", request.url))
   }
 
@@ -86,6 +103,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/my-card/:path*",
     "/settings/:path*",
     "/start-here/:path*",
     "/bookings/:path*",
@@ -98,6 +116,7 @@ export const config = {
     "/support/:path*",
     "/login",
     "/signup",
+    "/card",
     "/team",
     "/reset-password",
   ],

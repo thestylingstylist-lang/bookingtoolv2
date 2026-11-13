@@ -1,6 +1,8 @@
 "use client"
 
 import { useMemo, useRef, useState } from "react"
+import { useFormStatus } from "react-dom"
+import { deleteTemplate } from "./actions"
 import { parsePlaceholders, SUGGESTED_CHIPS } from "@/lib/placeholders"
 
 type Props = {
@@ -22,6 +24,7 @@ export default function TemplateEditor({
 }: Props) {
   const [title, setTitle] = useState(initialTitle)
   const [body, setBody] = useState(initialBody)
+  const dirty = title !== initialTitle || body !== initialBody
   const areaRef = useRef<HTMLTextAreaElement>(null)
 
   const placeholders = useMemo(() => parsePlaceholders(body), [body])
@@ -148,12 +151,35 @@ export default function TemplateEditor({
         </div>
       )}
 
-      <button
-        type="submit"
-        className="mt-6 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
-      >
-        Save template
-      </button>
+      <div className="mt-6 flex items-center gap-4">
+        <SaveButton saved={!!saved && !dirty} />
+        {id && (
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm("Delete this template? Agreements you already sent keep their own copy.")) deleteTemplate(id)
+            }}
+            className="text-sm text-[#b3261e] underline underline-offset-4"
+          >
+            Delete template
+          </button>
+        )}
+      </div>
     </form>
+  )
+}
+
+// One save at a time: the button locks while saving, so a second press can't
+// make a copy, and it says "Saved" until something changes.
+function SaveButton({ saved }: { saved: boolean }) {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending || saved}
+      className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-60"
+    >
+      {pending ? "Saving…" : saved ? "Saved" : "Save template"}
+    </button>
   )
 }

@@ -148,7 +148,16 @@ export default function CardFlow(p: Props) {
 
   return (
     <div className="mbf">
-      <div key={screen} className={`pg ${back ? "back" : ""}`}>
+      <div className="side" aria-hidden>
+        {p.photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={p.photo} alt="" />
+        ) : (
+          <div className="ini s">{p.initials}</div>
+        )}
+      </div>
+      <div className="pane">
+      <div key={screen} className={`pg ${back ? "back" : ""} ${screen === "card" ? "home" : ""}`}>
         {screen === "card" && (
           <>
             <div className="hero">
@@ -160,7 +169,7 @@ export default function CardFlow(p: Props) {
               )}
               <div className="fade" />
             </div>
-            <div className="in c">
+            <div className="in c body">
               <h1 className="s u nm">{p.name}</h1>
               {p.title && <p className="u ttl">{p.title}</p>}
               {p.tagline ? (
@@ -193,19 +202,12 @@ export default function CardFlow(p: Props) {
               <p className="note" role="status">{note || (inApp ? "To save the contact, open this page in your browser." : "")}</p>
             </div>
 
-            {(p.phone || p.email || p.address) && (
-              <div className={`band s ${p.address ? "two" : ""}`}>
-                <span>
-                  {p.phone && <a href={`tel:${p.phone}`}>{p.phone}</a>}
-                  {p.email && <a href={`mailto:${p.email}`}>{p.email}</a>}
-                </span>
-                {p.address && <span className="addr">{p.address}</span>}
-              </div>
-            )}
-            {p.license && <p className="u lic c">License {p.license}</p>}
-            {p.showMade && (
-              <a className="made u" href="https://marvberry.com/?ref=card">Made with Marvberry</a>
-            )}
+            <div className="foot">
+              {p.license && <p className="u lic c">License {p.license}</p>}
+              {p.showMade && (
+                <a className="made u" href="https://marvberry.com/card?ref=card">Made with Marvberry</a>
+              )}
+            </div>
           </>
         )}
 
@@ -352,6 +354,7 @@ export default function CardFlow(p: Props) {
           </div>
         )}
       </div>
+      </div>
       <style>{CSS}</style>
     </div>
   )
@@ -359,48 +362,63 @@ export default function CardFlow(p: Props) {
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-.mbf{min-height:100vh;background:#FAFAFA;color:#2A2522;font-family:var(--font-geist-sans),system-ui,sans-serif;overflow-x:hidden}
-.mbf .pg{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;animation:mbfIn .38s cubic-bezier(.2,.8,.2,1) both}
+.mbf{min-height:100dvh;background:#FAFAFA;color:#2A2522;font-family:var(--font-geist-sans),system-ui,sans-serif;overflow-x:hidden}
+.mbf .side{display:none}
+.mbf .pane{min-height:100dvh}
+.mbf .pg{max-width:460px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;animation:mbfIn .38s cubic-bezier(.2,.8,.2,1) both}
 .mbf .pg.back{animation-name:mbfBack}
 @keyframes mbfIn{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:none}}
 @keyframes mbfBack{from{opacity:0;transform:translateX(-36px)}to{opacity:1;transform:none}}
+.mbf .pg.home .body{flex:1;justify-content:center}
+.mbf .foot{margin-top:auto}
+@media (min-width:768px){
+  .mbf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:100dvh;overflow:hidden}
+  .mbf .side{display:block;position:relative;height:100dvh;background:#e7e3dd;overflow:hidden}
+  .mbf .side img{width:100%;height:100%;object-fit:cover;object-position:center top}
+  .mbf .side .ini{height:100%;display:grid;place-items:center;font-size:120px;color:#9a9188}
+  .mbf .pane{height:100dvh;overflow-y:auto}
+  .mbf .pg{max-width:480px;min-height:100dvh;padding:0 8px}
+  .mbf .pg .hero{display:none}
+  .mbf .pg.home .nm{margin-top:0}
+  .mbf .top .av{display:none}
+}
 .mbf .s{font-family:'Cormorant Garamond','Iowan Old Style',Georgia,serif}
 .mbf .i{font-style:italic}
 .mbf .u{text-transform:uppercase}
 .mbf .c{text-align:center}
-.mbf .hero{position:relative;height:min(58vh,520px);min-height:380px;background:#e7e3dd;overflow:hidden}
+.mbf .hero{position:relative;height:40dvh;min-height:190px;background:#e7e3dd;overflow:hidden;flex:none}
 .mbf .hero img{width:100%;height:100%;object-fit:cover;object-position:top}
 .mbf .ini{height:100%;display:grid;place-items:center;font-size:84px;color:#9a9188}
 .mbf .fade{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 58%,#FAFAFA 99%)}
 .mbf .in{padding:0 28px;display:flex;flex-direction:column;align-items:stretch}
-.mbf .nm{margin:-10px 0 0;position:relative;font-size:32px;font-weight:400;letter-spacing:.06em;line-height:1.05}
-.mbf .ttl{margin:8px 0 0;font-size:10.5px;letter-spacing:.2em;color:#8a8279}
-.mbf .tag1{margin:16px 0 0;font-size:24px;color:#6b6259;line-height:1}
-.mbf .tag2{margin:4px 0 0;font-size:26px;line-height:1.1}
+.mbf .nm{margin:-6px 0 0;position:relative;font-size:clamp(26px,3.4vh,34px);font-weight:400;letter-spacing:.06em;line-height:1.05}
+.mbf .ttl{margin:6px 0 0;font-size:10.5px;letter-spacing:.2em;color:#8a8279}
+.mbf .tag1{margin:clamp(8px,1.6vh,16px) 0 0;font-size:clamp(19px,2.6vh,24px);color:#6b6259;line-height:1}
+.mbf .tag2{margin:4px 0 0;font-size:clamp(21px,2.8vh,26px);line-height:1.1}
 .mbf .tag{margin:16px 0 0;font-size:24px;font-style:italic;line-height:1.25}
 .mbf .badge{margin:14px 0 0;font-size:12px;color:#8a8279;display:flex;align-items:center;justify-content:center;gap:7px}
 .mbf .badge span{width:5px;height:5px;border-radius:50%;background:#BC559E}
-.mbf .btns{margin-top:30px;display:flex;flex-direction:column;gap:12px}
-.mbf .bt{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;background:transparent;border:1px solid #2A2522;border-radius:14px;padding:13px 16px;color:#2A2522;cursor:pointer;font:inherit;font-family:'Cormorant Garamond','Iowan Old Style',Georgia,serif;transition:background .2s}
+.mbf .btns{margin-top:clamp(14px,3vh,30px);display:flex;flex-direction:column;gap:clamp(8px,1.2vh,12px)}
+.mbf .bt{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;background:transparent;border:1px solid #2A2522;border-radius:14px;padding:clamp(9px,1.4vh,13px) 16px;color:#2A2522;cursor:pointer;font:inherit;font-family:'Cormorant Garamond','Iowan Old Style',Georgia,serif;transition:background .2s}
 .mbf .bt:hover{background:#f1efec}
 .mbf .bt.main{border-width:1.5px}
-.mbf .bt .t1{font-size:19px;line-height:1.2}
-.mbf .bt .t2{font-size:14px;color:#8a8279}
+.mbf .bt .t1{font-size:clamp(17px,2.2vh,19px);line-height:1.2}
+.mbf .bt .t2{font-size:clamp(13px,1.7vh,14px);color:#8a8279}
 .mbf .bt.go{margin-top:30px;font-size:19px;padding:12px}
 .mbf .bt:disabled{opacity:.4;cursor:default}
-.mbf .areas{margin:30px 0 0;font-size:22px;letter-spacing:.02em}
-.mbf .links{margin-top:18px;display:flex;justify-content:space-between;font-size:17px}
+.mbf .areas{margin:clamp(14px,2.8vh,30px) 0 0;font-size:clamp(18px,2.4vh,22px);letter-spacing:.02em}
+.mbf .links{margin-top:clamp(10px,1.8vh,18px);display:flex;justify-content:space-between;font-size:clamp(15px,2vh,17px)}
 .mbf .dot{display:inline-flex;align-items:center;gap:8px;color:#2A2522;text-decoration:none;background:none;border:0;border-bottom:1.5px dotted #2A2522;padding:0 0 2px;font:inherit;cursor:pointer}
 .mbf .dot.plain{font-size:16px}
 .mbf .dot svg,.mbf .bk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-.mbf .note{min-height:18px;margin:12px 0 0;font-size:12.5px;color:#93407A}
+.mbf .note{min-height:16px;margin:8px 0 0;font-size:12.5px;color:#93407A}
 .mbf .band{margin-top:28px;background:#EFECE8;padding:18px 24px;display:grid;gap:12px;font-size:15.5px;line-height:1.5}
 .mbf .band.two{grid-template-columns:1fr 1fr}
 .mbf .band span{display:flex;flex-direction:column}
 .mbf .band a{color:#2A2522;text-decoration:none;overflow-wrap:break-word}
 .mbf .band .addr{white-space:pre-line}
 .mbf .lic{margin:14px 0 0;font-size:10px;letter-spacing:.16em;color:#a39b90}
-.mbf .made{display:block;margin:28px auto 22px;font-size:9.5px;letter-spacing:.18em;color:#b8b1a7;text-decoration:none}
+.mbf .made{display:block;margin:10px auto 14px;font-size:9px;letter-spacing:.18em;color:#b8b1a7;text-decoration:none;text-align:center}
 .mbf .made:hover{color:#2A2522}
 .mbf .top{display:flex;align-items:center;gap:10px;padding:18px 20px 0}
 .mbf .bk{width:34px;height:34px;display:grid;place-items:center;border:0;background:none;color:#2A2522;cursor:pointer;margin-left:-8px}

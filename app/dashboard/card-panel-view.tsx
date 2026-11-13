@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
-import { markReplied, makeClient, saveCardDetails, startGuideUpload, saveGuideFile, removeGuide } from "./card-actions"
+import { markReplied, makeClient, saveCardDetails, startGuideUpload, saveGuideFile, removeGuide, startMarvberry } from "./card-actions"
 
 export type Req = {
   id: string
@@ -39,6 +39,7 @@ export default function CardPanelView(p: {
   areas: string
   address: string
   paid: boolean
+  free: boolean
   slug: string
 }) {
   const router = useRouter()
@@ -51,6 +52,20 @@ export default function CardPanelView(p: {
   const [file, setFile] = useState<File | null>(null)
   const [gNote, setGNote] = useState("")
   const [saving, setSaving] = useState(false)
+  const [offer, setOffer] = useState<Req | null>(null)
+  const [starting, setStarting] = useState(false)
+
+  async function yesMarvberry(r: Req | null) {
+    setStarting(true)
+    const ok = await startMarvberry().catch(() => false)
+    if (!ok) return setStarting(false)
+    document.cookie = "mb-plan=full; path=/"
+    if (r) {
+      const id = await makeClient(r.id).catch(() => null)
+      if (id) return router.push(`/clients/${id}`)
+    }
+    router.push("/dashboard")
+  }
 
   async function saveAll() {
     setSaving(true)
@@ -140,7 +155,12 @@ export default function CardPanelView(p: {
           <p className="text-[14px] font-medium text-[#93407A]">{p.waiting.length} waiting on you</p>
           {!p.paid && (
             <p className="mt-1 text-[13px] text-[#55535b]">
-              Want Marvberry to help you reply faster? <a href="/billing" className="text-[#93407A] underline underline-offset-4">See how it helps</a>
+              Want Marvberry to help you reply faster?{" "}
+              {p.free ? (
+                <button type="button" onClick={() => yesMarvberry(null)} className="text-[#93407A] underline underline-offset-4">Try it free</button>
+              ) : (
+                <a href="/billing" className="text-[#93407A] underline underline-offset-4">See how it helps</a>
+              )}
             </p>
           )}
           <ul className="mt-3 flex flex-col gap-3">
@@ -186,6 +206,7 @@ export default function CardPanelView(p: {
                       type="button"
                       disabled={busy === r.id}
                       onClick={async () => {
+                        if (p.free) return setOffer(r)
                         setBusy(r.id)
                         const id = await makeClient(r.id).catch(() => null)
                         setBusy("")
@@ -203,12 +224,31 @@ export default function CardPanelView(p: {
         </div>
       )}
 
+      {offer && (
+        <div className="mt-5 rounded-xl bg-[#FBEDF5] p-5">
+          <p className="text-[15px] font-medium text-[#16151a]">Ready to turn {offer.name.split(" ")[0]} into a client?</p>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-[#55535b]">Marvberry handles the agreement, the follow-up and everything after. Try it free for 14 days.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button type="button" disabled={starting} onClick={() => yesMarvberry(offer)} className="rounded-full bg-[#16151a] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
+              {starting ? "Opening Marvberry…" : "Try Marvberry free"}
+            </button>
+            <button type="button" onClick={() => setOffer(null)} className="rounded-full bg-white px-4 py-2 text-[13px] font-medium text-[#16151a]">Not now</button>
+          </div>
+        </div>
+      )}
+
       <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#f1f0ee] pt-4 text-[13.5px]">
         <button type="button" onClick={() => setEdit((v) => !v)} className="text-[#16151a] underline underline-offset-4">
           {edit ? "Close" : "Edit your card"}
         </button>
         <a href="/dashboard/card-export" className="text-[#55535b] underline underline-offset-4">Export your contacts</a>
       </div>
+      {p.free && !edit && (
+        <p className="mt-4 text-[13.5px] text-[#55535b]">
+          Want help with the follow-up?{" "}
+          <button type="button" disabled={starting} onClick={() => yesMarvberry(null)} className="text-[#93407A] underline underline-offset-4">Meet Marvberry</button>
+        </p>
+      )}
       {edit && (
         <div className="mt-4 flex flex-col gap-3">
           <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">

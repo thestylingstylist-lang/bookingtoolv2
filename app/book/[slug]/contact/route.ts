@@ -29,6 +29,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
   const name = (agent.full_name || agent.business_name || "Agent").trim()
   const parts = name.split(/\s+/)
   const last = parts.length > 1 ? parts.pop()! : ""
+  let address = ""
+  try {
+    const { data } = await createAdminClient().from("agents").select("office_address").eq("id", agent.id).maybeSingle()
+    address = ((data?.office_address as string) || "").trim()
+  } catch {}
   const lines = [
     "BEGIN:VCARD",
     "VERSION:3.0",
@@ -38,6 +43,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     "TITLE:Real estate agent",
     agent.public_phone ? `TEL;TYPE=CELL:${v(agent.public_phone)}` : "",
     agent.public_email ? `EMAIL;TYPE=INTERNET:${v(agent.public_email)}` : "",
+    address ? `ADR;TYPE=WORK:;;${v(address.replace(/\s*\n\s*/g, ", "))};;;;` : "",
     `URL:${siteUrl()}/book/${agent.slug}`,
     await photo(agent.headshot_url),
     "END:VCARD",

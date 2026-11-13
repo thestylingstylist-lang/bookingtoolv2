@@ -11,8 +11,7 @@ import Assistant from "./assistant"
 
 const KEY = "mb-menu-open"
 const HELP_HREF = "/support"
-const OX = "bg-white/25 backdrop-blur-2xl backdrop-saturate-150 border-r border-white/80 shadow-[1px_0_0_rgba(22,21,26,0.06)]"
-const GLOW = "radial-gradient(70% 38% at 15% 12%, rgba(244,178,214,1), transparent 70%), radial-gradient(70% 38% at 35% 55%, rgba(188,85,158,.35), transparent 70%), radial-gradient(70% 40% at 20% 90%, rgba(255,214,190,1), transparent 70%), radial-gradient(60% 30% at 70% 75%, rgba(205,190,255,.9), transparent 70%)"
+const OX = "bg-[#F8F8F8] border-r border-[#16151a]/[0.08]"
 
 export default function AppShell({
   agent,
@@ -25,6 +24,10 @@ export default function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false) // phone: drawer
   const [asst, setAsst] = useState(false) // the Marvberry chat panel
   const pathname = usePathname()
+  const [plan, setPlan] = useState("full")
+  useEffect(() => {
+    if (/(^|; )mb-plan=card/.test(document.cookie)) setPlan("card")
+  }, [pathname])
 
   // Remember the desktop choice between pages
   useEffect(() => {
@@ -73,7 +76,7 @@ export default function AppShell({
         </div>
 
         <div className="mt-8 flex-1">
-          <SidebarNav />
+          <SidebarNav plan={plan} />
           <div className="mt-2">
             <FeedbackWidget />
           </div>
@@ -135,7 +138,7 @@ export default function AppShell({
         />
         <aside
           className={
-            `absolute left-0 top-0 flex h-full w-72 max-w-[85vw] isolate flex-col overflow-hidden px-4 py-6 text-[#16151a] shadow-2xl transition-transform duration-200 bg-[#f7f6f4] ` +
+            `absolute left-0 top-0 flex h-full w-72 max-w-[85vw] isolate flex-col overflow-hidden px-4 py-6 text-[#16151a] shadow-2xl transition-transform duration-200 bg-[#F8F8F8] ` +
             (mobileOpen ? "translate-x-0" : "-translate-x-full")
           }
         >
@@ -148,17 +151,10 @@ export default function AppShell({
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
-          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 opacity-90" style={{ background: GLOW, filter: "blur(24px)" }} />
           <FullMenu />
         </aside>
       </div>
 
-      {/* soft brand wash the frosted rail sits on */}
-      <div
-        aria-hidden
-        className={"pointer-events-none fixed inset-y-0 left-0 z-0 hidden transition-[width] duration-200 sm:block " + (open ? "w-60" : "w-20")}
-        style={{ background: GLOW, filter: "blur(24px)" }}
-      />
       {/* ── Desktop rail (unchanged behavior) ── */}
       <aside
         className={
@@ -172,7 +168,7 @@ export default function AppShell({
           <>
             <img src="/marvberry-icon.png" alt="Marvberry" width={42} height={24} className="h-6 w-auto" />
             <div className="mt-8 flex-1">
-              <SidebarNav collapsed />
+              <SidebarNav collapsed plan={plan} />
               <div className="mt-2">
                 <FeedbackWidget collapsed />
               </div>
@@ -198,10 +194,10 @@ export default function AppShell({
       </aside>
 
       <div className={"relative z-10 min-w-0 flex-1 transition-[padding] duration-300 " + (asst ? "sm:pr-[380px]" : "")}>
-        <TrialBanner endsAt={agent.trial_ends_at} status={agent.subscription_status} />
+        {plan !== "card" && <TrialBanner endsAt={agent.trial_ends_at} status={agent.subscription_status} />}
         {children}
       </div>
-      <Assistant onOpenChange={setAsst} />
+      {plan !== "card" && <Assistant onOpenChange={setAsst} />}
     </div>
   )
 }

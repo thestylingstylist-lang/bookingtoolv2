@@ -20,6 +20,14 @@ const ICONS: Record<string, React.ReactNode> = {
       <path d="M10 21v-6h4v6" />
     </>
   ),
+  // card
+  "/my-card": (
+    <>
+      <rect x="6" y="2.5" width="12" height="19" rx="2" />
+      <circle cx="12" cy="9" r="2.5" />
+      <path d="M8.5 15.5h7M9.5 18h5" />
+    </>
+  ),
   // people
   "/clients": (
     <>
@@ -81,6 +89,7 @@ function Icon({ href, size = 20 }: { href: string; size?: number }) {
 const ITEMS: { href: string; label: string }[] = [
   { href: "/start-here", label: "Start here" },
   { href: "/dashboard", label: "Home" },
+  { href: "/my-card", label: "Card" },
   { href: "/clients", label: "Clients" },
   { href: "/calendar", label: "Calendar" },
   { href: "/bookings", label: "Bookings" },
@@ -88,12 +97,15 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/settings", label: "Settings" },
 ]
 
-export default function SidebarNav({ collapsed = false }: { collapsed?: boolean }) {
+// Free card accounts see their card, calendar, clients and settings.
+const CARD_PLAN = ["/my-card", "/calendar", "/clients", "/settings"]
+
+export default function SidebarNav({ collapsed = false, plan = "full" }: { collapsed?: boolean; plan?: string }) {
   const pathname = usePathname()
 
   return (
     <nav className={collapsed ? "flex flex-col items-center gap-3" : "space-y-1"}>
-      {ITEMS.map((item) => {
+      {ITEMS.filter((i) => plan !== "card" || CARD_PLAN.includes(i.href)).map((item) => {
         const active = pathname === item.href || pathname.startsWith(item.href + "/")
 
         if (collapsed) {

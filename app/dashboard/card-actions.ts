@@ -96,3 +96,18 @@ export async function removeGuide(): Promise<void> {
   await supabase.from("agents").update({ guide_path: null, guide_url: null }).eq("id", user.id)
   revalidatePath("/dashboard")
 }
+
+// A free card account says yes to Marvberry: the rest of the app opens, with a
+// fresh 14-day trial.
+export async function startMarvberry(): Promise<boolean> {
+  const { user } = await me()
+  if (!user) return false
+  const admin = createAdminClient()
+  const { data: a } = await admin.from("agents").select("plan, subscription_status").eq("id", user.id).maybeSingle()
+  if (a?.plan !== "card") return true
+  const patch: Record<string, string> = { plan: "full" }
+  if (!["active", "trialing", "past_due"].includes((a?.subscription_status as string) ?? "")) patch.trial_ends_at = new Date(Date.now() + 14 * 864e5).toISOString()
+  const { error } = await admin.from("agents").update(patch).eq("id", user.id)
+  revalidatePath("/", "layout")
+  return !error
+}
