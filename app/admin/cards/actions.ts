@@ -81,3 +81,38 @@ export async function deleteGiftCard(id: string): Promise<void> {
   await admin.auth.admin.deleteUser(id)
   revalidatePath("/admin/cards")
 }
+
+// Change a gift card after it's made. A new photo replaces the old one.
+export async function updateGiftCard(id: string, _prev: { error: string } | null, f: FormData): Promise<{ error: string }> {
+  if (!(await guard())) return { error: "Team only." }
+  const fullName = t(f, "fullName", 120)
+  if (!fullName) return { error: "Enter her name." }
+  const admin = createAdminClient()
+  const { data: card } = await admin.from("agents").select("gifted_at").eq("id", id).maybeSingle()
+  if (!card?.gifted_at) return { error: "That card isn’t a gift card." }
+  const { error } = await admin
+    .from("agents")
+    .update({
+      full_name: fullName,
+      business_name: t(f, "brokerage", 120) || fullName,
+      tagline: t(f, "tagline", 160),
+      public_phone: t(f, "phone", 40),
+      public_email: t(f, "email", 200).toLowerCase(),
+      service_areas: t(f, "areas", 120) || null,
+      office_address: String(f.get("address") ?? "").trim().slice(0, 200) || null,
+      office_phone: t(f, "officePhone", 40) || null,
+      website_url: t(f, "website", 300) || null,
+      instagram: t(f, "instagram", 60).replace(/^@/, "") || null,
+    })
+    .eq("id", id)
+  if (error) return { error: "Couldn’t save. Try again." }
+  try {
+    const photo = f.get("photo")
+    const url = await uploadImage(id, "headshot", photo instanceof File ? photo : null)
+    if (url) await admin.from("agents").update({ headshot_url: url }).eq("id", id)
+  } catch (e) {
+    return { error: `Saved, but the photo didn’t upload: ${(e as Error).message}` }
+  }
+  revalidatePath("/admin/cards")
+  return { error: "" }
+}

@@ -6,6 +6,7 @@ import { isAdminEmail } from "@/lib/admin"
 import { siteUrl } from "@/lib/stripe"
 import GiftForm from "./gift-form"
 import { deleteGiftCard } from "./actions"
+import EditCard from "./edit-card"
 
 export const dynamic = "force-dynamic"
 
@@ -19,7 +20,7 @@ export default async function AdminCards() {
 
   const { data: rows, error } = await createAdminClient()
     .from("agents")
-    .select("id, full_name, business_name, slug, headshot_url, claim_token, gifted_at")
+    .select("id, full_name, business_name, slug, headshot_url, claim_token, gifted_at, tagline, service_areas, instagram, website_url, public_phone, office_phone, public_email, office_address")
     .not("gifted_at", "is", null)
     .order("gifted_at", { ascending: false })
   const cards = await Promise.all(
@@ -42,7 +43,7 @@ export default async function AdminCards() {
 
       <section className="mt-8 flex flex-col gap-3">
         {cards.map((c) => (
-          <div key={c.id} className="flex items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-[#efeeec]">
+          <div key={c.id} className="flex flex-wrap items-center gap-4 rounded-2xl bg-white p-4 ring-1 ring-[#efeeec]">
             {c.headshot_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={c.headshot_url as string} alt="" className="h-14 w-14 rounded-full object-cover" />
@@ -56,6 +57,21 @@ export default async function AdminCards() {
               </p>
               <div className="mt-2 flex flex-wrap gap-3 text-[13px]">
                 <a href={c.preview} target="_blank" rel="noreferrer" className="underline underline-offset-4">Open her card</a>
+                <EditCard
+                  card={{
+                    id: c.id as string,
+                    fullName: (c.full_name as string) || "",
+                    brokerage: c.business_name && c.business_name !== c.full_name ? (c.business_name as string) : "",
+                    tagline: (c.tagline as string) || "",
+                    areas: (c.service_areas as string) || "",
+                    instagram: (c.instagram as string) || "",
+                    website: (c.website_url as string) || "",
+                    phone: (c.public_phone as string) || "",
+                    officePhone: (c.office_phone as string) || "",
+                    email: (c.public_email as string) || "",
+                    address: (c.office_address as string) || "",
+                  }}
+                />
                 <a href={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(c.qr)}`} download={`${c.slug}-card-qr.svg`} className="underline underline-offset-4">Download QR code</a>
                 {c.claim_token && (
                   <form action={deleteGiftCard.bind(null, c.id as string)}>
