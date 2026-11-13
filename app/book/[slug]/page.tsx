@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug, findSlugRedirect } from "@/lib/agent"
 import { claimTokenOf, isSuspended } from "@/lib/claim"
+import { igHandle } from "@/lib/instagram"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
@@ -139,7 +140,7 @@ async function cardExtras(agentId: string): Promise<Extras> {
     try {
       const { data: l } = await admin.from("agents").select("website_url, instagram").eq("id", agentId).maybeSingle()
       x.website = ((l?.website_url as string) || "").trim()
-      x.instagram = ((l?.instagram as string) || "").trim().replace(/^@/, "")
+      x.instagram = igHandle(l?.instagram as string)
     } catch {}
     const mins = (rows ?? [])
       .map((r) => (Date.parse(r.replied_at as string) - Date.parse(r.created_at as string)) / 60000)

@@ -208,8 +208,8 @@ export default function CardFlow(p: Props) {
                     <a href={p.website} target="_blank" rel="noreferrer" className="dot">See my homes ↗</a>
                   )}
                   {p.instagram && (
-                    <a href={`https://instagram.com/${p.instagram}`} target="_blank" rel="noreferrer" className="dot" aria-label={`Instagram @${p.instagram}`}>
-                      <svg viewBox="0 0 24 24" aria-hidden><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.2" cy="6.8" r=".6" /></svg>@{p.instagram}
+                    <a href={`https://instagram.com/${p.instagram}`} target="_blank" rel="noreferrer" className="ig" aria-label={`Instagram @${p.instagram}`}>
+                      <svg viewBox="0 0 24 24" aria-hidden><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.2" cy="6.8" r=".6" /></svg>
                     </a>
                   )}
                 </div>
@@ -442,6 +442,8 @@ const CSS = `
 .mbf .dot svg,.mbf .bk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
 .mbf .more{margin-top:clamp(8px,1.4vh,14px);display:flex;justify-content:center;gap:22px;font-size:clamp(14px,1.9vh,16px)}
 .mbf .more svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.4}
+.mbf .more .ig{display:inline-flex;align-items:center;color:#2A2522}
+.mbf .more .ig svg{width:21px;height:21px}
 .mbf .pg.gift{padding-bottom:84px}
 .mbf .claimbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px calc(14px + env(safe-area-inset-bottom));background:#2A2522;color:#FAFAFA}
 .mbf .claimbar p{margin:0;font-size:18px;font-style:italic}

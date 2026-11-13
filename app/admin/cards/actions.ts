@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { slugify, uniqueSlug, AGENT_DEFAULTS } from "@/lib/agent"
 import { uploadImage } from "@/lib/branding"
+import { igHandle } from "@/lib/instagram"
 
 async function guard() {
   const {
@@ -47,7 +48,7 @@ export async function createGiftCard(_prev: { error: string } | null, f: FormDat
     office_address: String(f.get("address") ?? "").trim().slice(0, 200) || null,
     office_phone: t(f, "officePhone", 40) || null,
     website_url: t(f, "website", 300) || null,
-    instagram: t(f, "instagram", 60).replace(/^@/, "") || null,
+    instagram: igHandle(t(f, "instagram", 300)) || null,
     timezone: AGENT_DEFAULTS.timezone,
     weekdays: AGENT_DEFAULTS.weekdays,
     day_start: AGENT_DEFAULTS.startHour,
@@ -102,7 +103,7 @@ export async function updateGiftCard(id: string, _prev: { error: string } | null
       office_address: String(f.get("address") ?? "").trim().slice(0, 200) || null,
       office_phone: t(f, "officePhone", 40) || null,
       website_url: t(f, "website", 300) || null,
-      instagram: t(f, "instagram", 60).replace(/^@/, "") || null,
+      instagram: igHandle(t(f, "instagram", 300)) || null,
     })
     .eq("id", id)
   if (error) return { error: "Couldn’t save. Try again." }

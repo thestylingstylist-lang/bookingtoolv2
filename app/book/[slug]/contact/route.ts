@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
 import { claimTokenOf } from "@/lib/claim"
+import { igHandle } from "@/lib/instagram"
 import { siteUrl } from "@/lib/stripe"
 
 // "Save contact": a contact file the phone opens straight into its contacts app,
@@ -42,7 +43,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     const { data: l } = await createAdminClient().from("agents").select("office_phone, website_url, instagram").eq("id", agent.id).maybeSingle()
     office = ((l?.office_phone as string) || "").trim()
     site = ((l?.website_url as string) || "").trim()
-    insta = ((l?.instagram as string) || "").trim().replace(/^@/, "")
+    insta = igHandle(l?.instagram as string)
   } catch {}
   const lines = [
     "BEGIN:VCARD",
