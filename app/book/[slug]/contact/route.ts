@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
+import { claimTokenOf } from "@/lib/claim"
 import { siteUrl } from "@/lib/stripe"
 
 // "Save contact": a contact file the phone opens straight into its contacts app,
@@ -22,17 +23,26 @@ async function photo(url: string): Promise<string> {
   }
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const agent = await getAgentBySlug(slug)
   if (!agent) return new Response("Not found", { status: 404 })
+  const token = await claimTokenOf(agent.id)
+  if (token && new URL(req.url).searchParams.get("claim") !== token) return new Response("Not found", { status: 404 })
   const name = (agent.full_name || agent.business_name || "Agent").trim()
   const parts = name.split(/\s+/)
   const last = parts.length > 1 ? parts.pop()! : ""
   let address = ""
+  let office = ""
+  let site = ""
+  let insta = ""
   try {
     const { data } = await createAdminClient().from("agents").select("office_address").eq("id", agent.id).maybeSingle()
     address = ((data?.office_address as string) || "").trim()
+    const { data: l } = await createAdminClient().from("agents").select("office_phone, website_url, instagram").eq("id", agent.id).maybeSingle()
+    office = ((l?.office_phone as string) || "").trim()
+    site = ((l?.website_url as string) || "").trim()
+    insta = ((l?.instagram as string) || "").trim().replace(/^@/, "")
   } catch {}
   const lines = [
     "BEGIN:VCARD",
@@ -42,15 +52,20 @@ export async function GET(_req: Request, { params }: { params: Promise<{ slug: s
     agent.business_name && agent.business_name !== name ? `ORG:${v(agent.business_name)}` : "",
     "TITLE:Real estate agent",
     agent.public_phone ? `TEL;TYPE=CELL:${v(agent.public_phone)}` : "",
+    office ? `TEL;TYPE=WORK:${v(office)}` : "",
     agent.public_email ? `EMAIL;TYPE=INTERNET:${v(agent.public_email)}` : "",
+    site ? `URL;TYPE=WORK:${v(site)}` : "",
+    insta ? `X-SOCIALPROFILE;TYPE=instagram:https://instagram.com/${v(insta)}` : "",
     address ? `ADR;TYPE=WORK:;;${v(address.replace(/\s*\n\s*/g, ", "))};;;;` : "",
     `URL:${siteUrl()}/book/${agent.slug}`,
     await photo(agent.headshot_url),
     "END:VCARD",
   ].filter(Boolean)
-  try {
-    await createAdminClient().from("card_events").insert({ agent_id: agent.id, kind: "save" })
-  } catch {}
+  if (!token) {
+    try {
+      await createAdminClient().from("card_events").insert({ agent_id: agent.id, kind: "save" })
+    } catch {}
+  }
   return new Response(lines.join("\r\n") + "\r\n", {
     headers: {
       "content-type": "text/vcard; charset=utf-8",

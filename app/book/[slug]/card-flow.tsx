@@ -29,6 +29,9 @@ type Props = {
   minutes: number
   timezone: string
   slots: Slot[]
+  website: string
+  instagram: string
+  claimToken: string
 }
 
 const LOOKING = [
@@ -53,9 +56,12 @@ export default function CardFlow(p: Props) {
   const [pending, start] = useTransition()
   const [inApp, setInApp] = useState(false)
   const first = p.name.split(" ")[0] || "I"
+  const q = p.claimToken ? `?claim=${p.claimToken}` : ""
+  const [tagA, tagB] = p.tagline.includes("|") ? p.tagline.split("|").map((t) => t.trim()) : ["", ""]
 
   useEffect(() => {
     setInApp(/Instagram|FBAN|FBAV|LinkedInApp|TikTok/i.test(navigator.userAgent))
+    if (p.claimToken) return
     const key = `mb-viewed-${p.slug}`
     try {
       if (sessionStorage.getItem(key)) return
@@ -157,7 +163,7 @@ export default function CardFlow(p: Props) {
         )}
       </div>
       <div className="pane">
-      <div key={screen} className={`pg ${back ? "back" : ""} ${screen === "card" ? "home" : ""}`}>
+      <div key={screen} className={`pg ${back ? "back" : ""} ${screen === "card" ? "home" : ""} ${p.claimToken ? "gift" : ""}`}>
         {screen === "card" && (
           <>
             <div className="hero">
@@ -172,7 +178,12 @@ export default function CardFlow(p: Props) {
             <div className="in c body">
               <h1 className="s u nm">{p.name}</h1>
               {p.title && <p className="u ttl">{p.title}</p>}
-              {p.tagline ? (
+              {tagA ? (
+                <>
+                  <p className="s i tag1">{tagA}</p>
+                  <p className="s tag2">{tagB}</p>
+                </>
+              ) : p.tagline ? (
                 <p className="s tag">{p.tagline}</p>
               ) : (
                 <>
@@ -191,8 +202,20 @@ export default function CardFlow(p: Props) {
               </div>
 
               {p.areas && <p className="s areas">{p.areas}</p>}
+              {(p.website || p.instagram) && (
+                <div className="more s">
+                  {p.website && (
+                    <a href={p.website} target="_blank" rel="noreferrer" className="dot">See my homes ↗</a>
+                  )}
+                  {p.instagram && (
+                    <a href={`https://instagram.com/${p.instagram}`} target="_blank" rel="noreferrer" className="dot" aria-label={`Instagram @${p.instagram}`}>
+                      <svg viewBox="0 0 24 24" aria-hidden><rect x="3.5" y="3.5" width="17" height="17" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.2" cy="6.8" r=".6" /></svg>@{p.instagram}
+                    </a>
+                  )}
+                </div>
+              )}
               <div className="links s">
-                <a href={`/book/${p.slug}/contact`} className="dot" onClick={() => setNote("Saved. Open the download to add it to your contacts.")}>
+                <a href={`/book/${p.slug}/contact${q}`} className="dot" onClick={() => setNote("Saved. Open the download to add it to your contacts.")}>
                   Save contact <svg viewBox="0 0 24 24" aria-hidden><path d="M12 4v11M7 10l5 5 5-5M5 20h14" /></svg>
                 </a>
                 <button type="button" className="dot" onClick={share}>
@@ -295,7 +318,7 @@ export default function CardFlow(p: Props) {
             <p className="s i sub">{talk === "phone" ? `${first} will call you at ${who.phone}` : `${first} will send a video link to ${who.email}`}</p>
             <div className="links s" style={{ justifyContent: "center", gap: 22 }}>
               <a className="dot" href={`/book/${p.slug}/ics?start=${encodeURIComponent(slot.startISO)}&type=${talk}`}>Add to calendar</a>
-              <a className="dot" href={`/book/${p.slug}/contact`}>Save contact</a>
+              <a className="dot" href={`/book/${p.slug}/contact${q}`}>Save contact</a>
             </div>
             <p className="fine" style={{ marginTop: 26 }}>
               A confirmation is in your inbox.{manage ? <> <a href={`/manage/${manage}`}>Need to change it?</a></> : null}
@@ -355,6 +378,12 @@ export default function CardFlow(p: Props) {
         )}
       </div>
       </div>
+      {p.claimToken && (
+        <div className="claimbar">
+          <p className="s">Made just for you, {first}.</p>
+          <a href={`/claim/${p.claimToken}`} className="s">Claim your card</a>
+        </div>
+      )}
       <style>{CSS}</style>
     </div>
   )
@@ -411,6 +440,14 @@ const CSS = `
 .mbf .dot{display:inline-flex;align-items:center;gap:8px;color:#2A2522;text-decoration:none;background:none;border:0;border-bottom:1.5px dotted #2A2522;padding:0 0 2px;font:inherit;cursor:pointer}
 .mbf .dot.plain{font-size:16px}
 .mbf .dot svg,.mbf .bk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.mbf .more{margin-top:clamp(8px,1.4vh,14px);display:flex;justify-content:center;gap:22px;font-size:clamp(14px,1.9vh,16px)}
+.mbf .more svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.4}
+.mbf .pg.gift{padding-bottom:84px}
+.mbf .claimbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px calc(14px + env(safe-area-inset-bottom));background:#2A2522;color:#FAFAFA}
+.mbf .claimbar p{margin:0;font-size:18px;font-style:italic}
+.mbf .claimbar a{flex:none;font-size:18px;color:#2A2522;background:#FAFAFA;border-radius:12px;padding:8px 16px;text-decoration:none}
+@media (min-width:768px){.mbf .pg.gift{padding-bottom:84px}
+.mbf .claimbar{left:50%}}
 .mbf .note{min-height:16px;margin:8px 0 0;font-size:12.5px;color:#93407A}
 .mbf .band{margin-top:28px;background:#EFECE8;padding:18px 24px;display:grid;gap:12px;font-size:15.5px;line-height:1.5}
 .mbf .band.two{grid-template-columns:1fr 1fr}

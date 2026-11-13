@@ -14,6 +14,7 @@ export default async function CardPanel({ supabase, agentId, slug }: { supabase:
     supabase.from("agents").select("guide_title, guide_url, subscription_status").eq("id", agentId).maybeSingle(),
   ])
   const { data: pl } = await supabase.from("agents").select("plan").eq("id", agentId).maybeSingle()
+  const { data: links } = await supabase.from("agents").select("website_url, instagram").eq("id", agentId).maybeSingle()
   const { data: more } = await supabase.from("agents").select("guide_path, guide_blurb, service_areas, office_address").eq("id", agentId).maybeSingle()
   if (ev.error || rq.error) return null
 
@@ -44,6 +45,8 @@ export default async function CardPanel({ supabase, agentId, slug }: { supabase:
       address={(more?.office_address as string) || ""}
       paid={ag.data?.subscription_status === "active"}
       free={pl?.plan === "card"}
+      website={(links?.website_url as string) || ""}
+      instagram={(links?.instagram as string) || ""}
       slug={slug}
     />
   )

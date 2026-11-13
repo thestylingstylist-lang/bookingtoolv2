@@ -55,14 +55,20 @@ export async function saveGuide(title: string, url: string): Promise<{ ok: boole
 }
 
 // The details that show on the card.
-export async function saveCardDetails(areas: string, address: string): Promise<{ ok: boolean; message: string }> {
+export async function saveCardDetails(areas: string, address: string, website = "", instagram = ""): Promise<{ ok: boolean; message: string }> {
   const { supabase, user } = await me()
   if (!user) return { ok: false, message: "Please sign in again." }
+  const w = website.trim()
+  if (w && !/^https?:\/\/\S+\.\S+/.test(w)) return { ok: false, message: "Paste the full link, starting with https://" }
   const { error } = await supabase
     .from("agents")
     .update({ service_areas: areas.trim().slice(0, 120) || null, office_address: address.trim().slice(0, 200) || null })
     .eq("id", user.id)
   if (error) return { ok: false, message: "Couldn’t save. Try again." }
+  await supabase
+    .from("agents")
+    .update({ website_url: w.slice(0, 300) || null, instagram: instagram.trim().replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, "").slice(0, 60) || null })
+    .eq("id", user.id)
   revalidatePath("/dashboard")
   return { ok: true, message: "Saved. It’s on your card now." }
 }

@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { formatInTimeZone } from "date-fns-tz"
 import { getAgentBySlug } from "@/lib/agent"
+import { claimTokenOf } from "@/lib/claim"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -49,7 +50,9 @@ async function fonts() {
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const agent = await getAgentBySlug(slug).catch(() => null)
+  const found = await getAgentBySlug(slug).catch(() => null)
+  // A gift card that hasn't been claimed shows nothing personal.
+  const agent = found && !(await claimTokenOf(found.id)) ? found : null
 
   const name = agent?.full_name || agent?.business_name || "Your agent"
   const business = agent?.business_name && agent.business_name !== name ? agent.business_name : ""

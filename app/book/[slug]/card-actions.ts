@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
+import { claimTokenOf } from "@/lib/claim"
 import { checkEmail } from "@/lib/email-check"
 import { sendEmail } from "@/lib/email"
 import { siteUrl } from "@/lib/stripe"
@@ -15,7 +16,7 @@ export async function logCardEvent(slug: string, kind: "view" | "share"): Promis
   if (kind !== "view" && kind !== "share") return
   try {
     const agent = await getAgentBySlug(slug)
-    if (agent) await createAdminClient().from("card_events").insert({ agent_id: agent.id, kind })
+    if (agent && !(await claimTokenOf(agent.id))) await createAdminClient().from("card_events").insert({ agent_id: agent.id, kind })
   } catch {}
 }
 
@@ -24,6 +25,7 @@ export type RequestResult = { ok: true; guide: boolean } | { ok: false; error: s
 export async function requestContact(slug: string, formData: FormData): Promise<RequestResult> {
   const agent = await getAgentBySlug(slug)
   if (!agent) return { ok: false, error: "This card is no longer available." }
+  if (await claimTokenOf(agent.id)) return { ok: false, error: "Claim your card first, and then it starts collecting requests." }
   if (String(formData.get("website") ?? "")) return { ok: true, guide: false } // bots fill hidden fields
 
   const name = String(formData.get("name") ?? "").trim().slice(0, 120)

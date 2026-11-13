@@ -40,6 +40,8 @@ export default function CardPanelView(p: {
   address: string
   paid: boolean
   free: boolean
+  website: string
+  instagram: string
   slug: string
 }) {
   const router = useRouter()
@@ -47,6 +49,8 @@ export default function CardPanelView(p: {
   const [edit, setEdit] = useState(false)
   const [areas, setAreas] = useState(p.areas)
   const [address, setAddress] = useState(p.address)
+  const [website, setWebsite] = useState(p.website)
+  const [insta, setInsta] = useState(p.instagram)
   const [gTitle, setGTitle] = useState(p.guideTitle)
   const [gBlurb, setGBlurb] = useState(p.guideBlurb)
   const [file, setFile] = useState<File | null>(null)
@@ -70,7 +74,7 @@ export default function CardPanelView(p: {
   async function saveAll() {
     setSaving(true)
     setGNote("")
-    const d = await saveCardDetails(areas, address).catch(() => ({ ok: false, message: "Couldn’t save. Try again." }))
+    const d = await saveCardDetails(areas, address, website, insta).catch(() => ({ ok: false, message: "Couldn’t save. Try again." }))
     if (!d.ok) {
       setSaving(false)
       return setGNote(d.message)
@@ -258,6 +262,14 @@ export default function CardPanelView(p: {
           <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
             Office address
             <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder={"23 Address Street\nNew York, NY 10001"} className="resize-none rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+          </label>
+          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+            Your Zillow page or website
+            <input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://www.zillow.com/profile/…" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+          </label>
+          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+            Instagram
+            <input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder="@yourhandle" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
           </label>
           <div className="mt-1 rounded-xl bg-[#F8F8F8] p-4">
             <p className="text-[14px] font-medium text-[#16151a]">Your free guide</p>

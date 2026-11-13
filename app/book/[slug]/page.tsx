@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound, permanentRedirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug, findSlugRedirect } from "@/lib/agent"
+import { claimTokenOf } from "@/lib/claim"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
@@ -18,6 +19,7 @@ export async function generateMetadata({
   const { slug } = await params
   const agent = await getAgentBySlug(slug)
   if (!agent) return { title: "Booking page not found", robots: { index: false } }
+  if (await claimTokenOf(agent.id)) return { title: "Your Marvberry Card", robots: { index: false } }
   const name = agent.full_name || agent.business_name || "your agent"
   const title = `Book a consultation with ${name}`
   const description =
@@ -33,10 +35,13 @@ export async function generateMetadata({
 
 export default async function BookPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ claim?: string }>
 }) {
   const { slug } = await params
+  const { claim } = await searchParams
   const agent = await getAgentBySlug(slug)
   if (!agent) {
     // An old link (e.g. before a rename) forwards to the agent's current page.
@@ -44,6 +49,9 @@ export default async function BookPage({
     if (current) permanentRedirect(`/book/${current}`)
     notFound()
   }
+  // A gift card is private until it's claimed: only its claim link opens it.
+  const token = await claimTokenOf(agent.id)
+  if (token && claim !== token) notFound()
 
   const cfg = toAgentConfig(agent)
 
@@ -97,16 +105,19 @@ export default async function BookPage({
       minutes={agent.slot_minutes}
       timezone={agent.timezone}
       slots={slots}
+      website={x.website}
+      instagram={x.instagram}
+      claimToken={token}
     />
   )
 }
 
 // The reply badge is earned: it shows only once the agent has answered a few
 // card requests, and says how fast they usually do.
-type Extras = { badge: string; guideTitle: string; guideBlurb: string; areas: string; address: string }
+type Extras = { badge: string; guideTitle: string; guideBlurb: string; areas: string; address: string; website: string; instagram: string }
 
 async function cardExtras(agentId: string): Promise<Extras> {
-  const x: Extras = { badge: "", guideTitle: "", guideBlurb: "", areas: "", address: "" }
+  const x: Extras = { badge: "", guideTitle: "", guideBlurb: "", areas: "", address: "", website: "", instagram: "" }
   try {
     const admin = createAdminClient()
     const [{ data: g }, { data: g2 }, { data: rows }] = await Promise.all([
@@ -124,6 +135,11 @@ async function cardExtras(agentId: string): Promise<Extras> {
     x.guideBlurb = ((g2?.guide_blurb as string) || "").trim()
     x.areas = ((g2?.service_areas as string) || "").trim()
     x.address = ((g2?.office_address as string) || "").trim()
+    try {
+      const { data: l } = await admin.from("agents").select("website_url, instagram").eq("id", agentId).maybeSingle()
+      x.website = ((l?.website_url as string) || "").trim()
+      x.instagram = ((l?.instagram as string) || "").trim().replace(/^@/, "")
+    } catch {}
     const mins = (rows ?? [])
       .map((r) => (Date.parse(r.replied_at as string) - Date.parse(r.created_at as string)) / 60000)
       .filter((m) => m >= 0)
