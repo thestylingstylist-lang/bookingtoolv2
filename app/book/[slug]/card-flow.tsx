@@ -205,7 +205,7 @@ export default function CardFlow(p: Props) {
               {(p.website || p.instagram) && (
                 <div className="more s">
                   {p.website && (
-                    <a href={p.website} target="_blank" rel="noreferrer" className="dot">See my homes ↗</a>
+                    <a href={p.website} target="_blank" rel="noreferrer" className="pill">See my homes</a>
                   )}
                   {p.instagram && (
                     <a href={`https://instagram.com/${p.instagram}`} target="_blank" rel="noreferrer" className="ig" aria-label={`Instagram @${p.instagram}`}>
@@ -440,7 +440,9 @@ const CSS = `
 .mbf .dot{display:inline-flex;align-items:center;gap:8px;color:#2A2522;text-decoration:none;background:none;border:0;border-bottom:1.5px dotted #2A2522;padding:0 0 2px;font:inherit;cursor:pointer}
 .mbf .dot.plain{font-size:16px}
 .mbf .dot svg,.mbf .bk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-.mbf .more{margin-top:clamp(8px,1.4vh,14px);display:flex;justify-content:center;gap:22px;font-size:clamp(14px,1.9vh,16px)}
+.mbf .more{margin-top:clamp(8px,1.4vh,14px);display:flex;justify-content:center;align-items:center;gap:14px;font-size:clamp(15px,1.9vh,16px)}
+.mbf .more .pill{display:inline-flex;align-items:center;border:1px solid #2A2522;border-radius:999px;padding:5px 16px;color:#2A2522;text-decoration:none;line-height:1.2;transition:background .2s}
+.mbf .more .pill:hover{background:#f1efec}
 .mbf .more svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.4}
 .mbf .more .ig{display:inline-flex;align-items:center;color:#2A2522}
 .mbf .more .ig svg{width:21px;height:21px}
