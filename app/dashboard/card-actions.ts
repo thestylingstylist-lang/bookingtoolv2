@@ -68,7 +68,7 @@ export async function saveCardDetails(areas: string, address: string, website = 
   if (error) return { ok: false, message: "Couldn’t save. Try again." }
   await supabase
     .from("agents")
-    .update({ website_url: w.slice(0, 300) || null, instagram: instagram.trim().replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/.*$/, "").slice(0, 60) || null })
+    .update({ website_url: w.slice(0, 300) || null, instagram: igHandle(instagram) || null })
     .eq("id", user.id)
   revalidatePath("/dashboard")
   return { ok: true, message: "Saved. It’s on your card now." }
