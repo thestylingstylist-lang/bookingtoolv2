@@ -3,6 +3,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
+import AccountControls from "./account-controls"
 import { statusOf, PILL, fmtDate, MONTHLY_PRICE } from "@/lib/admin-status"
 import { setAssistantPlan, extendTrial, makeSetupLink, sendPaymentLink, sendPasswordReset } from "./assistant-actions"
 import CopyLink from "./copy-link"
@@ -142,6 +143,7 @@ export default async function AdminAgentDetail({
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
         <h1 className="text-4xl font-semibold tracking-tight text-[#16151a]">{a.business_name || a.full_name || "Agent"}</h1>
         <span className={`rounded-full px-3 py-1 text-xs font-medium ${PILL[st.key]}`}>{st.label}</span>
+        {a.suspended_at && <span className="rounded-full bg-[#16151a] px-3 py-1 text-xs font-medium text-white">Suspended</span>}
       </div>
       <p className="mt-1 text-sm text-[#16151a]/55">
         {a.full_name}{a.full_name && loginEmail ? " · " : ""}{loginEmail}
@@ -361,6 +363,7 @@ export default async function AdminAgentDetail({
           </div>
         )}
       </Card>
+      <AccountControls id={id} name={a.full_name || a.business_name || "this agent"} suspended={!!a.suspended_at} />
     </main>
   )
 }

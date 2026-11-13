@@ -11,3 +11,13 @@ export async function claimTokenOf(agentId: string): Promise<string> {
     return ""
   }
 }
+
+// A suspended account's booking page is hidden.
+export async function isSuspended(agentId: string): Promise<boolean> {
+  try {
+    const { data } = await createAdminClient().from("agents").select("suspended_at").eq("id", agentId).maybeSingle()
+    return !!data?.suspended_at
+  } catch {
+    return false
+  }
+}

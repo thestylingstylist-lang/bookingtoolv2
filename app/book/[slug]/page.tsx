@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { notFound, permanentRedirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug, findSlugRedirect } from "@/lib/agent"
-import { claimTokenOf } from "@/lib/claim"
+import { claimTokenOf, isSuspended } from "@/lib/claim"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
@@ -52,6 +52,7 @@ export default async function BookPage({
   // A gift card is private until it's claimed: only its claim link opens it.
   const token = await claimTokenOf(agent.id)
   if (token && claim !== token) notFound()
+  if (await isSuspended(agent.id)) notFound()
 
   const cfg = toAgentConfig(agent)
 

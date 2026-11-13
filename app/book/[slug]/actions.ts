@@ -3,7 +3,7 @@
 import { agentCard } from "@/lib/agent-card"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { getAgentBySlug } from "@/lib/agent"
-import { claimTokenOf } from "@/lib/claim"
+import { claimTokenOf, isSuspended } from "@/lib/claim"
 import { toAgentConfig, MEETING_TYPES, type MeetingType } from "@/lib/config"
 import { isValidOpenSlot, formatSlot } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
@@ -29,6 +29,7 @@ export async function createBooking(
   const agent = await getAgentBySlug(slug)
   if (!agent) return { ok: false, error: "This booking page is no longer available." }
   if (await claimTokenOf(agent.id)) return { ok: false, error: "Claim your card first, and then it starts taking bookings." }
+  if (await isSuspended(agent.id)) return { ok: false, error: "This booking page is no longer available." }
 
   const firstName = String(formData.get("firstName") ?? "").trim()
   const lastName = String(formData.get("lastName") ?? "").trim()
