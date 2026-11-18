@@ -20,6 +20,12 @@ export type Lead = {
   created_at: string
   name: string
   phone: string | null
+  email: string | null
+  address: string | null
+  office_phone: string | null
+  years: string | null
+  sold_last_month: string | null
+  zillow_url: string | null
   brokerage: string | null
   town: string | null
   source: string | null

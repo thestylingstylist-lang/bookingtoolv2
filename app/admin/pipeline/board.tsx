@@ -239,9 +239,24 @@ function Panel({
           )}
           <div className="grid grid-cols-2 gap-3">
             <L k="Name"><input name="name" required defaultValue={lead?.name ?? ""} className={field} /></L>
-            <L k="Phone"><input name="phone" defaultValue={lead?.phone ?? ""} className={field} /></L>
+            <L k="Email"><input name="email" type="email" defaultValue={lead?.email ?? ""} className={field} /></L>
+            <L k="Cell"><input name="phone" defaultValue={lead?.phone ?? ""} className={field} /></L>
+            <L k="Office number"><input name="office_phone" defaultValue={lead?.office_phone ?? ""} className={field} /></L>
             <L k="Brokerage or team"><input name="brokerage" defaultValue={lead?.brokerage ?? ""} className={field} /></L>
             <L k="Town"><input name="town" defaultValue={lead?.town ?? ""} className={field} /></L>
+          </div>
+          <L k="Address"><input name="address" defaultValue={lead?.address ?? ""} className={field} /></L>
+          <div className="grid grid-cols-2 gap-3">
+            <L k="Years of experience"><input name="years" defaultValue={lead?.years ?? ""} className={field} /></L>
+            <L k="Sold last month"><input name="sold_last_month" defaultValue={lead?.sold_last_month ?? ""} className={field} /></L>
+          </div>
+          <L k="Zillow link">
+            <div className="flex items-center gap-2">
+              <input name="zillow_url" type="url" defaultValue={lead?.zillow_url ?? ""} className={field} />
+              {lead?.zillow_url && <a href={lead.zillow_url} target="_blank" rel="noreferrer" className="shrink-0 text-[13px] text-[#16151a] underline underline-offset-4">Open</a>}
+            </div>
+          </L>
+          <div className="grid grid-cols-2 gap-3">
             <L k="Source">
               <select name="source" defaultValue={lead?.source ?? ""} className={field}>
                 <option value="">—</option>
