@@ -1,10 +1,11 @@
-export const STAGES = ["texted", "replied", "yes", "claimed", "active", "paid", "lost"] as const
+export const STAGES = ["texted", "replied", "yes", "sent", "claimed", "active", "paid", "lost"] as const
 export type Stage = (typeof STAGES)[number]
 
 export const STAGE_LABEL: Record<Stage, string> = {
   texted: "Texted",
   replied: "Replied",
   yes: "Said Yes",
+  sent: "Card Sent",
   claimed: "Card Claimed",
   active: "Active Day 7",
   paid: "Paid $67/mo",
@@ -32,6 +33,7 @@ export type Lead = {
   agent_id: string | null
   replied_at: string | null
   yes_at: string | null
+  sent_at: string | null
   claimed_at: string | null
   active_at: string | null
   paid_at: string | null

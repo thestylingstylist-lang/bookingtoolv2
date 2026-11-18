@@ -42,7 +42,7 @@ export async function addLead(f: FormData) {
 // Moving forward stamps every stage up to this one (first time only), so the
 // numbers bar counts how far each lead got, even after Lost.
 const STAMP: Partial<Record<Stage, string>> = {
-  replied: "replied_at", yes: "yes_at", claimed: "claimed_at", active: "active_at", paid: "paid_at", lost: "lost_at",
+  replied: "replied_at", yes: "yes_at", sent: "sent_at", claimed: "claimed_at", active: "active_at", paid: "paid_at", lost: "lost_at",
 }
 
 export async function moveLead(id: string, stage: Stage) {
@@ -65,6 +65,8 @@ export async function updateLead(id: string, f: FormData) {
   const db = await requireAdmin()
   const name = str(f, "name")
   if (!name) return
+  const agentId = str(f, "agent_id")
+  const { data: before } = await db.from("pipeline_leads").select("agent_id, stage").eq("id", id).maybeSingle()
   await db
     .from("pipeline_leads")
     .update({
@@ -78,9 +80,18 @@ export async function updateLead(id: string, f: FormData) {
       message: str(f, "message"),
       notes: str(f, "notes"),
       next_follow_up: str(f, "next_follow_up"),
-      agent_id: str(f, "agent_id"),
+      agent_id: agentId,
     })
     .eq("id", id)
+  // Linking her card means it's been sent; if she already claimed it, say so.
+  if (agentId && before && agentId !== before.agent_id && ["texted", "replied", "yes", "sent"].includes(before.stage)) {
+    const { data: card } = await db.from("agents").select("claim_token").eq("id", agentId).maybeSingle()
+    const to: Stage = card && !card.claim_token ? "claimed" : "sent"
+    if (to !== before.stage) {
+      await moveLead(id, to)
+      await db.from("pipeline_touches").insert({ lead_id: id, note: to === "sent" ? "Sent her card" : "Linked her claimed card" })
+    }
+  }
   revalidatePath("/admin/pipeline")
 }
 

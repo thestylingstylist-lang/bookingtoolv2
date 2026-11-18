@@ -140,7 +140,7 @@ export default function Board({
               onDragOver={(e) => { e.preventDefault(); setOver(s) }}
               onDragLeave={() => setOver((o) => (o === s ? null : o))}
               onDrop={() => { if (dragId) move(dragId, s); setDragId(null); setOver(null) }}
-              className={`flex min-w-[190px] flex-1 flex-col gap-2 rounded-2xl p-2 transition-colors ${over === s ? "bg-[#FBEDF5]" : "bg-[#16151a]/[0.03]"}`}
+              className={`flex min-w-[168px] flex-1 flex-col gap-2 rounded-2xl p-2 transition-colors ${over === s ? "bg-[#FBEDF5]" : "bg-[#16151a]/[0.03]"}`}
             >
               <p className="flex items-center justify-between px-2 pt-1 text-[12px] font-medium text-[#55535b]">
                 {STAGE_LABEL[s]} <span className="text-[#8e8c93]">{col.length}</span>
@@ -228,6 +228,14 @@ function Panel({
         )}
 
         <form action={save} onChange={() => setSaved(false)} className="mt-5 flex flex-col gap-3">
+          {lead && (
+            <L k="Her gift card (linking it moves her to Card Sent)">
+              <select name="agent_id" defaultValue={lead.agent_id ?? ""} className={field}>
+                <option value="">Not linked</option>
+                {cards.map((c) => <option key={c.id} value={c.id}>{c.full_name || c.slug}</option>)}
+              </select>
+            </L>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <L k="Name"><input name="name" required defaultValue={lead?.name ?? ""} className={field} /></L>
             <L k="Phone"><input name="phone" defaultValue={lead?.phone ?? ""} className={field} /></L>
@@ -251,14 +259,6 @@ function Panel({
           {lead && <L k="Notes"><textarea name="notes" rows={3} defaultValue={lead.notes ?? ""} className={field} /></L>}
           <div className="grid grid-cols-2 gap-3">
             <L k="Next follow-up"><input name="next_follow_up" type="date" defaultValue={lead?.next_follow_up ?? ""} className={field} /></L>
-            {lead && (
-              <L k="Her card">
-                <select name="agent_id" defaultValue={lead.agent_id ?? ""} className={field}>
-                  <option value="">Not linked</option>
-                  {cards.map((c) => <option key={c.id} value={c.id}>{c.full_name || c.slug}</option>)}
-                </select>
-              </L>
-            )}
           </div>
           <div className="flex items-center gap-3">
             <button disabled={pending} className="rounded-full bg-[#16151a] px-5 py-2 text-[13px] font-medium text-white disabled:opacity-50">
