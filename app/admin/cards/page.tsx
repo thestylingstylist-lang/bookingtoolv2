@@ -9,6 +9,7 @@ import { deleteGiftCard } from "./actions"
 import EditCard from "./edit-card"
 import CopyShort from "./copy-short"
 import { shortCodeFor } from "@/lib/short-link"
+import { giftSummaries } from "@/lib/gift-events"
 
 export const dynamic = "force-dynamic"
 
@@ -25,12 +26,13 @@ export default async function AdminCards() {
     .select("id, full_name, business_name, slug, headshot_url, claim_token, gifted_at, tagline, service_areas, instagram, website_url, public_phone, office_phone, public_email, office_address")
     .not("gifted_at", "is", null)
     .order("gifted_at", { ascending: false })
+  const gifts = await giftSummaries((rows ?? []).filter((r) => r.claim_token).map((r) => r.id as string))
   const cards = await Promise.all(
     (rows ?? []).map(async (r) => {
       const preview = r.claim_token ? `${siteUrl()}/book/${r.slug}?claim=${r.claim_token}` : `${siteUrl()}/book/${r.slug}`
       const code = await shortCodeFor(r.id as string, (r.full_name as string) || "")
       const short = code ? `${siteUrl()}/c/${code}` : ""
-      const qr = await QRCode.toString(short || preview, { type: "svg", margin: 1, color: { dark: "#16151a", light: "#ffffff" } })
+      const qr = await QRCode.toString(short ? short + "?s=qr" : preview, { type: "svg", margin: 1, color: { dark: "#16151a", light: "#ffffff" } })
       return { ...r, preview, short, qr }
     }),
   )
@@ -60,6 +62,13 @@ export default async function AdminCards() {
                 {c.business_name} · {c.claim_token ? "Waiting to be claimed" : "Claimed"}
               </p>
               {c.short && <p className="text-[13px] text-[#55535b]">{c.short.replace(/^https?:\/\//, "")}</p>}
+              {c.claim_token && (
+                <p className="text-[13px] text-[#55535b]">
+                  {gifts[c.id]?.opens
+                    ? `Opened ${gifts[c.id].opens}× · last ${new Date(gifts[c.id].lastOpen!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}${gifts[c.id].claimStart ? " · started claiming" : ""}`
+                    : "Not opened yet"}
+                </p>
+              )}
               <div className="mt-2 flex flex-wrap gap-3 text-[13px]">
                 <a href={c.short || c.preview} target="_blank" rel="noreferrer" className="underline underline-offset-4">Open her card</a>
                 {c.short && <CopyShort url={c.short} />}

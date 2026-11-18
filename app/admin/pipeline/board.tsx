@@ -1,7 +1,7 @@
 "use client"
 import { useMemo, useState, useTransition } from "react"
 import { addLead, moveLead, updateLead, logTouch, deleteLead } from "./actions"
-import { STAGES, STAGE_LABEL, SOURCES, GOAL, alertFor, type Lead, type Stage, type Touch } from "./stages"
+import { STAGES, STAGE_LABEL, SOURCES, GOAL, VIA_LABEL, SCREEN_LABEL, alertFor, type Gift, type Lead, type Stage, type Touch } from "./stages"
 
 export type CardStat = { views: number; bookings: number }
 export type CardOption = { id: string; full_name: string | null; slug: string | null }
@@ -12,16 +12,18 @@ const ago = (iso: string, now: number) => {
   return d <= 0 ? "today" : d === 1 ? "yesterday" : `${d}d ago`
 }
 const short = (d: string) => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" })
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) + "%" : "—")
 
 const field = "w-full rounded-lg border border-[#16151a]/15 bg-white px-3 py-1.5 text-[13px] text-[#16151a]"
 const pick = "rounded-full border border-[#16151a]/15 bg-white px-3 py-1.5 text-[13px] text-[#16151a]"
 
 export default function Board({
-  leads, touches, cards, stats, missing, now: fixedNow,
+  leads, touches, cards, stats, gifts = {}, missing, now: fixedNow,
 }: {
-  leads: Lead[]; touches: Touch[]; cards: CardOption[]; stats: Record<string, CardStat>; missing?: boolean; now?: number
+  leads: Lead[]; touches: Touch[]; cards: CardOption[]; stats: Record<string, CardStat>; gifts?: Record<string, Gift>; missing?: boolean; now?: number
 }) {
+  const giftOf = (l: Lead) => (l.agent_id ? gifts[l.agent_id] : undefined)
   const [now] = useState(() => fixedNow ?? Date.now())
   const [moved, setMoved] = useState<Record<string, Stage>>({})
   const [openId, setOpenId] = useState<string | null>(null)
@@ -40,7 +42,7 @@ export default function Board({
       (!f.town || l.town === f.town) &&
       (!f.source || l.source === f.source),
   )
-  const due = all.map((l) => ({ l, a: alertFor(l, now) })).filter((x) => x.a) as { l: Lead; a: string }[]
+  const due = all.map((l) => ({ l, a: alertFor(l, now, giftOf(l)) })).filter((x) => x.a) as { l: Lead; a: string }[]
 
   // Numbers bar: how far every lead got, step to step.
   const n = (k: keyof Lead) => all.filter((l) => l[k]).length
@@ -146,7 +148,8 @@ export default function Board({
                 {STAGE_LABEL[s]} <span className="text-[#8e8c93]">{col.length}</span>
               </p>
               {col.map((l) => {
-                const a = alertFor(l, now)
+                const a = alertFor(l, now, giftOf(l))
+                const g = giftOf(l)
                 return (
                   <button
                     key={l.id}
@@ -161,6 +164,11 @@ export default function Board({
                     {l.phone && <p className="text-[12px] text-[#8e8c93]">{l.phone}</p>}
                     {(l.brokerage || l.town) && (
                       <p className="mt-1 text-[12px] text-[#55535b]">{[l.brokerage, l.town].filter(Boolean).join(" · ")}</p>
+                    )}
+                    {l.agent_id && (l.stage === "sent" || l.stage === "yes") && (
+                      <p className="mt-1 text-[12px] text-[#55535b]">
+                        {g?.opens ? `Opened ${g.opens}× · last ${ago(g.lastOpen!, now)}` : "Not opened yet"}
+                      </p>
                     )}
                     {l.hook && <p className="mt-1.5 line-clamp-2 text-[12px] italic text-[#55535b]">“{l.hook}”</p>}
                     <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#8e8c93]">
@@ -183,6 +191,8 @@ export default function Board({
           touches={open ? touches.filter((t) => t.lead_id === open.id) : []}
           cards={cards}
           stat={open?.agent_id ? stats[open.agent_id] : undefined}
+          gift={open ? giftOf(open) : undefined}
+          now={now}
           onMove={(s) => open && move(open.id, s)}
           onClose={() => { setOpenId(null); setAdding(false) }}
         />
@@ -192,9 +202,9 @@ export default function Board({
 }
 
 function Panel({
-  lead, touches, cards, stat, onMove, onClose,
+  lead, touches, cards, stat, gift, now, onMove, onClose,
 }: {
-  lead: Lead | null; touches: Touch[]; cards: CardOption[]; stat?: CardStat; onMove: (s: Stage) => void; onClose: () => void
+  lead: Lead | null; touches: Touch[]; cards: CardOption[]; stat?: CardStat; gift?: Gift; now: number; onMove: (s: Stage) => void; onClose: () => void
 }) {
   const [pending, start] = useTransition()
   const [note, setNote] = useState("")
@@ -225,6 +235,23 @@ function Panel({
                 Card: <b className="font-medium text-[#16151a]">{stat.views}</b> views · <b className="font-medium text-[#16151a]">{stat.bookings}</b> bookings
               </p>
             )}
+          </div>
+        )}
+
+        {lead?.agent_id && (
+          <div className="mt-5 rounded-xl bg-[#16151a]/[0.03] p-4 text-[13px]">
+            <p className="font-medium">Her gift card link</p>
+            <ul className="mt-2 flex flex-col gap-1 text-[#55535b]">
+              <li>
+                {gift?.opens
+                  ? `Opened ${gift.opens}× · first ${day(gift.firstOpen!)} · last ${ago(gift.lastOpen!, now)}`
+                  : "Not opened yet"}
+              </li>
+              {gift?.via.length ? <li>From {gift.via.map((v) => VIA_LABEL[v] || v).join(" and ")}</li> : null}
+              {gift?.screens.length ? <li>Looked at: {gift.screens.map((x) => SCREEN_LABEL[x] || x).join(", ")}</li> : null}
+              {gift?.claimStart && <li>Started claiming {day(gift.claimStart)}{gift.claimed ? "" : ", didn't finish"}</li>}
+              {gift?.claimed && <li className="text-[#16151a]">Claimed {day(gift.claimed)}</li>}
+            </ul>
           </div>
         )}
 

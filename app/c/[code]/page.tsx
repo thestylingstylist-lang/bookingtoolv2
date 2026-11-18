@@ -26,14 +26,15 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
   }
 }
 
-export default async function ShortCard({ params }: { params: Promise<{ code: string }> }) {
+export default async function ShortCard({ params, searchParams }: { params: Promise<{ code: string }>; searchParams: Promise<{ s?: string }> }) {
   const { code } = await params
+  const via = (await searchParams).s === "qr" ? "qr" : "short"
   const a = await agentByShortCode(code)
   if (!a) notFound()
   return (
     <BookPage
       params={Promise.resolve({ slug: a.slug })}
-      searchParams={Promise.resolve(a.claim_token ? { claim: a.claim_token } : {})}
+      searchParams={Promise.resolve(a.claim_token ? { claim: a.claim_token, via } : {})}
     />
   )
 }

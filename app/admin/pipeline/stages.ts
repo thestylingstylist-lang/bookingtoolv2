@@ -47,12 +47,27 @@ export type Lead = {
 
 export type Touch = { id: number; lead_id: string; created_at: string; note: string }
 
+export type Gift = {
+  opens: number
+  firstOpen: string | null
+  lastOpen: string | null
+  via: string[]
+  screens: string[]
+  claimStart: string | null
+  claimed: string | null
+}
+
+export const VIA_LABEL: Record<string, string> = { short: "your text", qr: "the QR code", link: "the long link" }
+export const SCREEN_LABEL: Record<string, string> = { time: "times", details: "booking form", ask: "contact form", done: "booked", sent: "sent a request" }
+
 const DAY = 864e5
 
 // What's due on a lead right now, or null. A logged touch after the
 // milestone clears it.
-export function alertFor(l: Lead, now = Date.now()): string | null {
+export function alertFor(l: Lead, now = Date.now(), g?: Gift): string | null {
   const last = new Date(l.last_contact_at).getTime()
+  if (g?.claimStart && !g.claimed && (l.stage === "sent" || l.stage === "yes") && last < new Date(g.claimStart).getTime())
+    return "Started claiming, didn't finish"
   if (l.stage === "texted" && now - last >= 3 * DAY) return "No reply in 3 days"
   if (l.claimed_at && (l.stage === "claimed" || l.stage === "active")) {
     const claimed = new Date(l.claimed_at).getTime()

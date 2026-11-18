@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { checkEmail } from "@/lib/email-check"
 import { markLeadClaimed } from "@/lib/pipeline-sync"
+import { recordGiftEvent } from "@/lib/gift-events"
 
 export type ClaimGiftState = { error: string; email: string }
 
@@ -32,6 +33,7 @@ export async function claimGift(token: string, _prev: ClaimGiftState | null, for
     .update({ claim_token: null, ...(agent.public_email ? {} : { public_email: email }) })
     .eq("id", agent.id)
   await markLeadClaimed(agent.id as string)
+  await recordGiftEvent(agent.id as string, "claimed", undefined, false)
 
   const supabase = await createClient()
   const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password })

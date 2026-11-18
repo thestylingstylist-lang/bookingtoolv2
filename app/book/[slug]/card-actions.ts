@@ -6,6 +6,7 @@ import { claimTokenOf } from "@/lib/claim"
 import { checkEmail } from "@/lib/email-check"
 import { sendEmail } from "@/lib/email"
 import { siteUrl } from "@/lib/stripe"
+import { recordGiftEvent } from "@/lib/gift-events"
 
 // What visitors do on an agent's card. Quietly does nothing if the card tables
 // aren't set up yet, so the booking page never breaks.
@@ -17,6 +18,15 @@ export async function logCardEvent(slug: string, kind: "view" | "share"): Promis
   try {
     const agent = await getAgentBySlug(slug)
     if (agent && !(await claimTokenOf(agent.id))) await createAdminClient().from("card_events").insert({ agent_id: agent.id, kind })
+  } catch {}
+}
+
+// A gift card's link at work: opened (and from where), and which screens she tapped.
+export async function logGiftEvent(slug: string, token: string, kind: "open" | "screen", detail: string): Promise<void> {
+  if (kind !== "open" && kind !== "screen") return
+  try {
+    const agent = await getAgentBySlug(slug)
+    if (agent && token && (await claimTokenOf(agent.id)) === token) await recordGiftEvent(agent.id, kind, detail)
   } catch {}
 }
 

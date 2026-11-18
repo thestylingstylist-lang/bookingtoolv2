@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import type { Lead, Touch } from "./stages"
+import { giftSummaries } from "@/lib/gift-events"
 import Board, { type CardStat, type CardOption } from "./board"
 
 export const dynamic = "force-dynamic"
@@ -35,5 +36,7 @@ export default async function PipelinePage() {
     }
   }
 
-  return <Board leads={leads} touches={touches} cards={cards} stats={stats} missing={!!ld.error} now={Date.now()} />
+  const gifts = await giftSummaries(ids)
+
+  return <Board gifts={gifts} leads={leads} touches={touches} cards={cards} stats={stats} missing={!!ld.error} now={Date.now()} />
 }

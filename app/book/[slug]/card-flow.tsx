@@ -5,7 +5,7 @@
 // all set; or the free guide (or "Not ready to book?") and its thank-you.
 import { useEffect, useMemo, useState, useTransition } from "react"
 import { createBooking } from "./actions"
-import { logCardEvent, requestContact } from "./card-actions"
+import { logCardEvent, logGiftEvent, requestContact } from "./card-actions"
 import type { Slot } from "@/lib/slots"
 
 type Screen = "card" | "time" | "details" | "done" | "ask" | "sent"
@@ -32,6 +32,7 @@ type Props = {
   website: string
   instagram: string
   claimToken: string
+  via?: string
 }
 
 const LOOKING = [
@@ -61,7 +62,15 @@ export default function CardFlow(p: Props) {
 
   useEffect(() => {
     setInApp(/Instagram|FBAN|FBAV|LinkedInApp|TikTok/i.test(navigator.userAgent))
-    if (p.claimToken) return
+    if (p.claimToken) {
+      const gk = `mb-gift-${p.slug}`
+      try {
+        if (sessionStorage.getItem(gk)) return
+        sessionStorage.setItem(gk, "1")
+      } catch {}
+      logGiftEvent(p.slug, p.claimToken, "open", p.via || "link").catch(() => {})
+      return
+    }
     const key = `mb-viewed-${p.slug}`
     try {
       if (sessionStorage.getItem(key)) return
@@ -92,6 +101,7 @@ export default function CardFlow(p: Props) {
     setBack(isBack)
     setErr("")
     setScreen(s)
+    if (p.claimToken && !isBack && s !== "card") logGiftEvent(p.slug, p.claimToken, "screen", s).catch(() => {})
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 

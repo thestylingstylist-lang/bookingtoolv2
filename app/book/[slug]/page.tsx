@@ -39,10 +39,10 @@ export default async function BookPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ claim?: string }>
+  searchParams: Promise<{ claim?: string; via?: string }>
 }) {
   const { slug } = await params
-  const { claim } = await searchParams
+  const { claim, via } = await searchParams
   const agent = await getAgentBySlug(slug)
   if (!agent) {
     // An old link (e.g. before a rename) forwards to the agent's current page.
@@ -110,6 +110,7 @@ export default async function BookPage({
       website={x.website}
       instagram={x.instagram}
       claimToken={token}
+      via={via === "short" || via === "qr" ? via : "link"}
     />
   )
 }

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import ClaimGiftForm from "./claim-gift-form"
+import { recordGiftEvent } from "@/lib/gift-events"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Claim your Marvberry Card", robots: { index: false } }
@@ -9,10 +10,11 @@ export default async function ClaimGiftPage({ params }: { params: Promise<{ toke
   const { token } = await params
   const { data: a } = await createAdminClient()
     .from("agents")
-    .select("full_name, slug, headshot_url, public_email")
+    .select("id, full_name, slug, headshot_url, public_email")
     .eq("claim_token", token)
     .maybeSingle()
   if (!a) notFound()
+  await recordGiftEvent(a.id as string, "claim_start")
   const first = String(a.full_name || "").split(" ")[0]
   return (
     <main className="claim">
