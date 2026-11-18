@@ -1,0 +1,100 @@
+"use server"
+
+import { revalidatePath } from "next/cache"
+import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { isAdminEmail } from "@/lib/admin"
+import { STAGES, type Stage } from "./stages"
+
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user || !isAdminEmail(user.email)) throw new Error("Not allowed")
+  return createAdminClient()
+}
+
+const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim() || null
+
+export async function addLead(f: FormData) {
+  const db = await requireAdmin()
+  const name = str(f, "name")
+  if (!name) return
+  const message = str(f, "message")
+  const { data } = await db
+    .from("pipeline_leads")
+    .insert({
+      name,
+      phone: str(f, "phone"),
+      brokerage: str(f, "brokerage"),
+      town: str(f, "town"),
+      source: str(f, "source"),
+      kind: f.get("kind") === "broker" ? "broker" : "solo",
+      hook: str(f, "hook"),
+      message,
+      next_follow_up: str(f, "next_follow_up"),
+    })
+    .select("id")
+    .single()
+  if (data) await db.from("pipeline_touches").insert({ lead_id: data.id, note: message ? "Texted: " + message : "Texted" })
+  revalidatePath("/admin/pipeline")
+}
+
+// Moving forward stamps every stage up to this one (first time only), so the
+// numbers bar counts how far each lead got, even after Lost.
+const STAMP: Partial<Record<Stage, string>> = {
+  replied: "replied_at", yes: "yes_at", claimed: "claimed_at", active: "active_at", paid: "paid_at", lost: "lost_at",
+}
+
+export async function moveLead(id: string, stage: Stage) {
+  const db = await requireAdmin()
+  if (!STAGES.includes(stage)) return
+  const { data: lead } = await db.from("pipeline_leads").select("*").eq("id", id).maybeSingle()
+  if (!lead || lead.stage === stage) return
+  const now = new Date().toISOString()
+  const patch: Record<string, string> = { stage }
+  const upTo = stage === "lost" ? ["lost"] : STAGES.slice(1, STAGES.indexOf(stage) + 1)
+  for (const s of upTo) {
+    const col = STAMP[s as Stage]
+    if (col && !lead[col]) patch[col] = now
+  }
+  await db.from("pipeline_leads").update(patch).eq("id", id)
+  revalidatePath("/admin/pipeline")
+}
+
+export async function updateLead(id: string, f: FormData) {
+  const db = await requireAdmin()
+  const name = str(f, "name")
+  if (!name) return
+  await db
+    .from("pipeline_leads")
+    .update({
+      name,
+      phone: str(f, "phone"),
+      brokerage: str(f, "brokerage"),
+      town: str(f, "town"),
+      source: str(f, "source"),
+      kind: f.get("kind") === "broker" ? "broker" : "solo",
+      hook: str(f, "hook"),
+      message: str(f, "message"),
+      notes: str(f, "notes"),
+      next_follow_up: str(f, "next_follow_up"),
+      agent_id: str(f, "agent_id"),
+    })
+    .eq("id", id)
+  revalidatePath("/admin/pipeline")
+}
+
+export async function logTouch(id: string, note: string) {
+  const db = await requireAdmin()
+  const text = note.trim()
+  if (!text) return
+  await db.from("pipeline_touches").insert({ lead_id: id, note: text })
+  await db.from("pipeline_leads").update({ last_contact_at: new Date().toISOString() }).eq("id", id)
+  revalidatePath("/admin/pipeline")
+}
+
+export async function deleteLead(id: string) {
+  const db = await requireAdmin()
+  await db.from("pipeline_leads").delete().eq("id", id)
+  revalidatePath("/admin/pipeline")
+}
