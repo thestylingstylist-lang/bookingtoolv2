@@ -56,7 +56,7 @@ export default function Board({
 
   const move = (id: string, stage: Stage) => {
     setMoved((m) => ({ ...m, [id]: stage }))
-    start(() => moveLead(id, stage))
+    start(async () => { await moveLead(id, stage) })
   }
   const open = all.find((l) => l.id === openId) ?? null
 
