@@ -199,10 +199,11 @@ function Panel({
   const [pending, start] = useTransition()
   const [note, setNote] = useState("")
   const [saved, setSaved] = useState(false)
+  const [err, setErr] = useState("")
 
   const save = (fd: FormData) =>
     start(async () => {
-      if (lead) { await updateLead(lead.id, fd); setSaved(true) }
+      if (lead) { const e = await updateLead(lead.id, fd); setErr(e || ""); setSaved(!e) }
       else { await addLead(fd); onClose() }
     })
 
@@ -265,6 +266,7 @@ function Panel({
               {pending ? "Saving…" : lead ? "Save" : "Add lead"}
             </button>
             {saved && <span className="text-[13px] text-[#8e8c93]">Saved</span>}
+            {err && <span className="text-[13px] text-[#b3261e]">{err}</span>}
           </div>
         </form>
 

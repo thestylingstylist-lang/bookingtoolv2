@@ -45,7 +45,7 @@ const STAMP: Partial<Record<Stage, string>> = {
   replied: "replied_at", yes: "yes_at", sent: "sent_at", claimed: "claimed_at", active: "active_at", paid: "paid_at", lost: "lost_at",
 }
 
-export async function moveLead(id: string, stage: Stage) {
+export async function moveLead(id: string, stage: Stage): Promise<string | void> {
   const db = await requireAdmin()
   if (!STAGES.includes(stage)) return
   const { data: lead } = await db.from("pipeline_leads").select("*").eq("id", id).maybeSingle()
@@ -57,17 +57,18 @@ export async function moveLead(id: string, stage: Stage) {
     const col = STAMP[s as Stage]
     if (col && !lead[col]) patch[col] = now
   }
-  await db.from("pipeline_leads").update(patch).eq("id", id)
+  const { error } = await db.from("pipeline_leads").update(patch).eq("id", id)
   revalidatePath("/admin/pipeline")
+  if (error) return "Couldn't move her: " + error.message
 }
 
-export async function updateLead(id: string, f: FormData) {
+export async function updateLead(id: string, f: FormData): Promise<string | void> {
   const db = await requireAdmin()
   const name = str(f, "name")
   if (!name) return
   const agentId = str(f, "agent_id")
   const { data: before } = await db.from("pipeline_leads").select("agent_id, stage").eq("id", id).maybeSingle()
-  await db
+  const { error: saveErr } = await db
     .from("pipeline_leads")
     .update({
       name,
@@ -83,12 +84,14 @@ export async function updateLead(id: string, f: FormData) {
       agent_id: agentId,
     })
     .eq("id", id)
+  if (saveErr) return "Couldn't save: " + saveErr.message
   // Linking her card means it's been sent; if she already claimed it, say so.
   if (agentId && before && ["texted", "replied", "yes", "sent"].includes(before.stage)) {
     const { data: card } = await db.from("agents").select("claim_token").eq("id", agentId).maybeSingle()
     const to: Stage = card && !card.claim_token ? "claimed" : "sent"
     if (to !== before.stage) {
-      await moveLead(id, to)
+      const err = await moveLead(id, to)
+      if (err) return err
       await db.from("pipeline_touches").insert({ lead_id: id, note: to === "sent" ? "Sent her card" : "Linked her claimed card" })
     }
   }
