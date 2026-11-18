@@ -7,6 +7,8 @@ import { siteUrl } from "@/lib/stripe"
 import GiftForm from "./gift-form"
 import { deleteGiftCard } from "./actions"
 import EditCard from "./edit-card"
+import CopyShort from "./copy-short"
+import { shortCodeFor } from "@/lib/short-link"
 
 export const dynamic = "force-dynamic"
 
@@ -26,8 +28,10 @@ export default async function AdminCards() {
   const cards = await Promise.all(
     (rows ?? []).map(async (r) => {
       const preview = r.claim_token ? `${siteUrl()}/book/${r.slug}?claim=${r.claim_token}` : `${siteUrl()}/book/${r.slug}`
-      const qr = await QRCode.toString(preview, { type: "svg", margin: 1, color: { dark: "#16151a", light: "#ffffff" } })
-      return { ...r, preview, qr }
+      const code = await shortCodeFor(r.id as string, (r.full_name as string) || "")
+      const short = code ? `${siteUrl()}/c/${code}` : ""
+      const qr = await QRCode.toString(short || preview, { type: "svg", margin: 1, color: { dark: "#16151a", light: "#ffffff" } })
+      return { ...r, preview, short, qr }
     }),
   )
 
@@ -55,8 +59,10 @@ export default async function AdminCards() {
               <p className="text-[13px] text-[#8e8c93]">
                 {c.business_name} · {c.claim_token ? "Waiting to be claimed" : "Claimed"}
               </p>
+              {c.short && <p className="text-[13px] text-[#55535b]">{c.short.replace(/^https?:\/\//, "")}</p>}
               <div className="mt-2 flex flex-wrap gap-3 text-[13px]">
-                <a href={c.preview} target="_blank" rel="noreferrer" className="underline underline-offset-4">Open her card</a>
+                <a href={c.short || c.preview} target="_blank" rel="noreferrer" className="underline underline-offset-4">Open her card</a>
+                {c.short && <CopyShort url={c.short} />}
                 <EditCard
                   card={{
                     id: c.id as string,

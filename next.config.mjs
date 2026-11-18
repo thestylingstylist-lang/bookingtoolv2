@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // fonts read at runtime by the booking-link preview card
-  outputFileTracingIncludes: { '/book/[slug]/*': ['./assets/og/**'] },
+  outputFileTracingIncludes: { '/book/[slug]/*': ['./assets/og/**'], '/c/[code]/*': ['./assets/og/**'] },
   // The old Vercel address forwards to the real site (API routes excluded so crons and webhooks keep working).
   async redirects() {
     return [
