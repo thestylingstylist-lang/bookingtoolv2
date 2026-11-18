@@ -84,7 +84,7 @@ export async function updateLead(id: string, f: FormData) {
     })
     .eq("id", id)
   // Linking her card means it's been sent; if she already claimed it, say so.
-  if (agentId && before && agentId !== before.agent_id && ["texted", "replied", "yes", "sent"].includes(before.stage)) {
+  if (agentId && before && ["texted", "replied", "yes", "sent"].includes(before.stage)) {
     const { data: card } = await db.from("agents").select("claim_token").eq("id", agentId).maybeSingle()
     const to: Stage = card && !card.claim_token ? "claimed" : "sent"
     if (to !== before.stage) {
