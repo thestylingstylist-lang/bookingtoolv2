@@ -53,7 +53,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
 
   const admin = createAdminClient()
   const [agentsRes, usersRes, unreadRes, feedbackRes, goalRes] = await Promise.all([
-    admin.from("agents").select("id, business_name, full_name, created_at, trial_ends_at, subscription_status").neq("business_name", DEMO_BUSINESS),
+    admin.from("agents").select("id, business_name, full_name, created_at, trial_ends_at, subscription_status").neq("business_name", DEMO_BUSINESS).neq("plan", "card"),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
     admin.from("support_messages").select("id", { count: "exact", head: true }).eq("from_team", false).eq("read_by_team", false),
     admin.from("feedback").select("id", { count: "exact", head: true }).gte("created_at", weekAgo),

@@ -34,6 +34,7 @@ export default async function AdminAgentsPage({
     .from("agents")
     .select("id, business_name, full_name, created_at, trial_ends_at, subscription_status")
     .neq("business_name", DEMO_BUSINESS)
+    .neq("plan", "card") // free cards and gift cards live in Gift cards and Pipeline, not here
     .order("created_at", { ascending: false })
     .limit(1000)
 
