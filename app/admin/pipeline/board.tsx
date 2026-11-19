@@ -1,7 +1,7 @@
 "use client"
 import { useMemo, useState, useTransition } from "react"
-import { addLead, moveLead, updateLead, logTouch, deleteLead } from "./actions"
-import { STAGES, STAGE_LABEL, SOURCES, GOAL, VIA_LABEL, SCREEN_LABEL, alertFor, type Gift, type Lead, type Stage, type Touch } from "./stages"
+import { addLead, moveLead, updateLead, logTouch, editTouch, deleteTouch, deleteLead } from "./actions"
+import { STAGES, STAGE_LABEL, SOURCES, GOAL, VIA_LABEL, SCREEN_LABEL, CHANNEL_LABEL, alertFor, type Gift, type Lead, type Stage, type Touch } from "./stages"
 
 export type CardStat = { views: number; bookings: number }
 export type CardOption = { id: string; full_name: string | null; slug: string | null }
@@ -208,6 +208,7 @@ function Panel({
 }) {
   const [pending, start] = useTransition()
   const [note, setNote] = useState("")
+  const [channel, setChannel] = useState("text")
   const [saved, setSaved] = useState(false)
   const [err, setErr] = useState("")
 
@@ -316,30 +317,35 @@ function Panel({
           <>
             <div className="mt-8 border-t border-[#efeeec] pt-5">
               <p className="text-[13px] font-medium">Touches</p>
+              <div className="mt-2 flex gap-1.5">
+                {Object.entries(CHANNEL_LABEL).map(([k, v]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setChannel(k)}
+                    className={`rounded-full px-3 py-1 text-[12px] ${channel === k ? "bg-[#16151a] text-white" : "border border-[#16151a]/15 text-[#55535b]"}`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
               <div className="mt-2 flex gap-2">
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Called, texted, left a voicemail…"
+                  placeholder="What happened, and the next step"
                   className={field}
                 />
                 <button
                   disabled={pending || !note.trim()}
-                  onClick={() => start(async () => { await logTouch(lead.id, note); setNote("") })}
+                  onClick={() => start(async () => { await logTouch(lead.id, note, channel); setNote("") })}
                   className="shrink-0 rounded-full border border-[#16151a]/15 px-4 text-[13px] disabled:opacity-40"
                 >
                   Log
                 </button>
               </div>
-              <ul className="mt-3 flex flex-col gap-2">
-                {touches.map((t) => (
-                  <li key={t.id} className="text-[13px]">
-                    <span className="text-[#8e8c93]">
-                      {new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </span>{" "}
-                    {t.note}
-                  </li>
-                ))}
+              <ul className="mt-3 flex flex-col gap-2.5">
+                {touches.map((t) => <TouchRow key={t.id} t={t} />)}
                 {touches.length === 0 && <li className="text-[13px] text-[#8e8c93]">Nothing logged yet.</li>}
               </ul>
             </div>
@@ -353,6 +359,48 @@ function Panel({
         )}
       </aside>
     </div>
+  )
+}
+
+function TouchRow({ t }: { t: Touch }) {
+  const [editing, setEditing] = useState(false)
+  const [text, setText] = useState(t.note)
+  const [ch, setCh] = useState(t.channel || "")
+  const [pending, start] = useTransition()
+  const when = new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+
+  if (editing)
+    return (
+      <li className="flex flex-col gap-2 rounded-lg bg-[#16151a]/[0.03] p-2.5 text-[13px]">
+        <div className="flex gap-1.5">
+          {Object.entries(CHANNEL_LABEL).map(([k, v]) => (
+            <button key={k} type="button" onClick={() => setCh(k)}
+              className={`rounded-full px-2.5 py-0.5 text-[12px] ${ch === k ? "bg-[#16151a] text-white" : "border border-[#16151a]/15 text-[#55535b]"}`}>
+              {v}
+            </button>
+          ))}
+        </div>
+        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} className={field} />
+        <div className="flex gap-3">
+          <button disabled={pending || !text.trim()} onClick={() => start(async () => { await editTouch(t.id, text, ch); setEditing(false) })}
+            className="rounded-full bg-[#16151a] px-4 py-1 text-[12px] text-white disabled:opacity-40">Save</button>
+          <button onClick={() => { setText(t.note); setCh(t.channel || ""); setEditing(false) }} className="text-[12px] text-[#8e8c93]">Cancel</button>
+        </div>
+      </li>
+    )
+
+  return (
+    <li className="group flex items-start justify-between gap-3 text-[13px]">
+      <p>
+        <span className="text-[#8e8c93]">{when}</span>
+        {t.channel && <span className="ml-1.5 rounded-full bg-[#F4F3F1] px-2 py-0.5 text-[11px] text-[#55535b]">{CHANNEL_LABEL[t.channel] || t.channel}</span>}{" "}
+        {t.note}
+      </p>
+      <span className="flex shrink-0 gap-2 text-[12px] text-[#8e8c93]">
+        <button onClick={() => setEditing(true)} className="hover:text-[#16151a]">Edit</button>
+        <button disabled={pending} onClick={() => { if (confirm("Delete this touch?")) start(async () => { await deleteTouch(t.id) }) }} className="hover:text-[#b3261e]">Delete</button>
+      </span>
+    </li>
   )
 }
 

@@ -45,7 +45,9 @@ export type Lead = {
   paid_at: string | null
 }
 
-export type Touch = { id: number; lead_id: string; created_at: string; note: string }
+export type Touch = { id: number; lead_id: string; created_at: string; note: string; channel?: string | null }
+
+export const CHANNEL_LABEL: Record<string, string> = { text: "Text", call: "Call", dm: "DM", email: "Email" }
 
 export type Gift = {
   opens: number

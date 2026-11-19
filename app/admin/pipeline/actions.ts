@@ -110,12 +110,32 @@ export async function updateLead(id: string, f: FormData): Promise<string | void
   revalidatePath("/admin/pipeline")
 }
 
-export async function logTouch(id: string, note: string) {
+const CHANNELS = ["text", "call", "dm", "email"]
+
+export async function logTouch(id: string, note: string, channel = "") {
   const db = await requireAdmin()
   const text = note.trim()
   if (!text) return
-  await db.from("pipeline_touches").insert({ lead_id: id, note: text })
+  const ch = CHANNELS.includes(channel) ? channel : null
+  const { error } = await db.from("pipeline_touches").insert({ lead_id: id, note: text, channel: ch })
+  if (error) await db.from("pipeline_touches").insert({ lead_id: id, note: text }) // before pipeline-4.sql
   await db.from("pipeline_leads").update({ last_contact_at: new Date().toISOString() }).eq("id", id)
+  revalidatePath("/admin/pipeline")
+}
+
+export async function editTouch(touchId: number, note: string, channel = "") {
+  const db = await requireAdmin()
+  const text = note.trim()
+  if (!text) return
+  const ch = CHANNELS.includes(channel) ? channel : null
+  const { error } = await db.from("pipeline_touches").update({ note: text, channel: ch }).eq("id", touchId)
+  if (error) await db.from("pipeline_touches").update({ note: text }).eq("id", touchId)
+  revalidatePath("/admin/pipeline")
+}
+
+export async function deleteTouch(touchId: number) {
+  const db = await requireAdmin()
+  await db.from("pipeline_touches").delete().eq("id", touchId)
   revalidatePath("/admin/pipeline")
 }
 

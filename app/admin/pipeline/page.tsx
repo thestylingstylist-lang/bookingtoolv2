@@ -17,7 +17,7 @@ export default async function PipelinePage() {
   const db = createAdminClient()
   const [ld, tc, ag] = await Promise.all([
     db.from("pipeline_leads").select("*").order("created_at", { ascending: false }).limit(1000),
-    db.from("pipeline_touches").select("id, lead_id, created_at, note").order("created_at", { ascending: false }).limit(5000),
+    db.from("pipeline_touches").select("*").order("created_at", { ascending: false }).limit(5000),
     db.from("agents").select("id, full_name, slug").not("gifted_at", "is", null).order("full_name"),
   ])
   const leads = (ld.data ?? []) as Lead[]
