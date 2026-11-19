@@ -1,5 +1,6 @@
 "use client"
 import { useMemo, useState, useTransition } from "react"
+import GiftForm from "../cards/gift-form"
 import { addLead, moveLead, updateLead, logTouch, editTouch, deleteTouch, deleteLead } from "./actions"
 import { STAGES, STAGE_LABEL, SOURCES, GOAL, VIA_LABEL, SCREEN_LABEL, CHANNEL_LABEL, alertFor, type Gift, type Lead, type Stage, type Touch } from "./stages"
 
@@ -186,7 +187,7 @@ export default function Board({
 
       {(open || adding) && (
         <Panel
-          key={open?.id ?? "new"}
+          key={open ? `${open.id}-${open.agent_id ?? ""}` : "new"}
           lead={open}
           touches={open ? touches.filter((t) => t.lead_id === open.id) : []}
           cards={cards}
@@ -209,6 +210,7 @@ function Panel({
   const [pending, start] = useTransition()
   const [note, setNote] = useState("")
   const [channel, setChannel] = useState("text")
+  const [making, setMaking] = useState(false)
   const [saved, setSaved] = useState(false)
   const [err, setErr] = useState("")
 
@@ -253,6 +255,38 @@ function Panel({
               {gift?.claimStart && <li>Started claiming {day(gift.claimStart)}{gift.claimed ? "" : ", didn't finish"}</li>}
               {gift?.claimed && <li className="text-[#16151a]">Claimed {day(gift.claimed)}</li>}
             </ul>
+          </div>
+        )}
+
+        {lead && !lead.agent_id && (
+          <div className="mt-5 rounded-xl bg-[#16151a]/[0.03] p-4">
+            {making ? (
+              <>
+                <p className="mb-3 text-[13px] font-medium">Make her card</p>
+                <GiftForm
+                  leadId={lead.id}
+                  onDone={() => setMaking(false)}
+                  prefill={{
+                    fullName: lead.name,
+                    brokerage: lead.brokerage ?? "",
+                    areas: lead.town ?? "",
+                    website: lead.zillow_url ?? "",
+                    phone: lead.phone ?? "",
+                    officePhone: lead.office_phone ?? "",
+                    email: lead.email ?? "",
+                    address: lead.address ?? "",
+                  }}
+                />
+                <button onClick={() => setMaking(false)} className="mt-3 text-[12px] text-[#8e8c93]">Not now</button>
+              </>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[13px] text-[#55535b]">No card yet.</p>
+                <button onClick={() => setMaking(true)} className="rounded-full bg-[#16151a] px-4 py-1.5 text-[13px] font-medium text-white">
+                  Make her card
+                </button>
+              </div>
+            )}
           </div>
         )}
 

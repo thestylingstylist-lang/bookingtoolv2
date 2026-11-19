@@ -20,27 +20,31 @@ export type GiftValues = {
 }
 
 // Makes a new gift card, or edits one when `card` is given.
-export default function GiftForm({ card, onDone }: { card?: GiftValues; onDone?: () => void }) {
+// From the Pipeline, `prefill` fills it in from her lead and `leadId` links the
+// new card back to that lead.
+export default function GiftForm({ card, onDone, prefill, leadId }: { card?: GiftValues; onDone?: () => void; prefill?: Partial<GiftValues>; leadId?: string }) {
   const [state, action, pending] = useActionState<{ error: string } | null, FormData>(card ? updateGiftCard.bind(null, card.id) : createGiftCard, null)
   const ref = useRef<HTMLFormElement>(null)
   useEffect(() => {
     if (state && !state.error) {
-      if (card) onDone?.()
+      if (card || leadId) onDone?.()
       else ref.current?.reset()
     }
-  }, [state, card, onDone])
+  }, [state, card, leadId, onDone])
+  const v = card ?? prefill
   return (
     <form ref={ref} action={action} className="grid gap-3 sm:grid-cols-2">
-      <input name="fullName" defaultValue={card?.fullName} placeholder="Her name" className={F} required />
-      <input name="brokerage" defaultValue={card?.brokerage} placeholder="Brokerage" className={F} />
-      <input name="tagline" defaultValue={card?.tagline} placeholder="Tagline. Use | for two lines: Real estate, | with you every step of the way." className={`${F} sm:col-span-2`} />
-      <input name="areas" defaultValue={card?.areas} placeholder="Areas (Princeton)" className={F} />
-      <input name="instagram" defaultValue={card?.instagram} placeholder="Instagram handle" className={F} />
-      <input name="website" defaultValue={card?.website} placeholder="Zillow or website link" className={`${F} sm:col-span-2`} />
-      <input name="phone" defaultValue={card?.phone} placeholder="Cell" className={F} />
-      <input name="officePhone" defaultValue={card?.officePhone} placeholder="Office phone" className={F} />
-      <input name="email" defaultValue={card?.email} placeholder="Email" className={F} />
-      <textarea name="address" defaultValue={card?.address} placeholder="Office address" rows={2} className={`${F} resize-none`} />
+      {leadId && <input type="hidden" name="leadId" value={leadId} />}
+      <input name="fullName" defaultValue={v?.fullName} placeholder="Her name" className={F} required />
+      <input name="brokerage" defaultValue={v?.brokerage} placeholder="Brokerage" className={F} />
+      <input name="tagline" defaultValue={v?.tagline} placeholder="Tagline. Use | for two lines: Real estate, | with you every step of the way." className={`${F} sm:col-span-2`} />
+      <input name="areas" defaultValue={v?.areas} placeholder="Areas (Princeton)" className={F} />
+      <input name="instagram" defaultValue={v?.instagram} placeholder="Instagram handle" className={F} />
+      <input name="website" defaultValue={v?.website} placeholder="Zillow or website link" className={`${F} sm:col-span-2`} />
+      <input name="phone" defaultValue={v?.phone} placeholder="Cell" className={F} />
+      <input name="officePhone" defaultValue={v?.officePhone} placeholder="Office phone" className={F} />
+      <input name="email" defaultValue={v?.email} placeholder="Email" className={F} />
+      <textarea name="address" defaultValue={v?.address} placeholder="Office address" rows={2} className={`${F} resize-none`} />
       <label className="flex items-center gap-3 text-[13.5px] text-[#55535b] sm:col-span-2">
         {card ? "New photo (optional)" : "Photo"}
         <input name="photo" type="file" accept="image/png,image/jpeg,image/webp" className="text-[13px]" />

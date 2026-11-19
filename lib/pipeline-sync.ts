@@ -27,3 +27,22 @@ export async function markLeadClaimed(agentId: string) {
     }
   } catch {}
 }
+
+// A card made from her lead: link it, and move her to Card Sent.
+export async function linkLeadToCard(leadId: string, agentId: string) {
+  try {
+    const db = createAdminClient()
+    const { data: l } = await db.from("pipeline_leads").select("stage, replied_at, yes_at, sent_at").eq("id", leadId).maybeSingle()
+    if (!l) return
+    const now = new Date().toISOString()
+    const early = ["texted", "replied", "yes"].includes(l.stage as string)
+    await db
+      .from("pipeline_leads")
+      .update({
+        agent_id: agentId,
+        ...(early ? { stage: "sent", replied_at: l.replied_at ?? now, yes_at: l.yes_at ?? now, sent_at: l.sent_at ?? now } : {}),
+      })
+      .eq("id", leadId)
+    await db.from("pipeline_touches").insert({ lead_id: leadId, note: "Made her card" })
+  } catch {}
+}

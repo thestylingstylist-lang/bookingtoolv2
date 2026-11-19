@@ -8,6 +8,7 @@ import { isAdminEmail } from "@/lib/admin"
 import { slugify, uniqueSlug, AGENT_DEFAULTS } from "@/lib/agent"
 import { uploadImage } from "@/lib/branding"
 import { igHandle } from "@/lib/instagram"
+import { linkLeadToCard } from "@/lib/pipeline-sync"
 
 async function guard() {
   const {
@@ -68,6 +69,11 @@ export async function createGiftCard(_prev: { error: string } | null, f: FormDat
   } catch (e) {
     revalidatePath("/admin/cards")
     return { error: `Card made, but the photo didn’t upload: ${(e as Error).message}` }
+  }
+  const leadId = t(f, "leadId", 60)
+  if (leadId) {
+    await linkLeadToCard(leadId, id)
+    revalidatePath("/admin/pipeline")
   }
   revalidatePath("/admin/cards")
   return { error: "" }
