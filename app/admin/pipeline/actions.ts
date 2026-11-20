@@ -62,15 +62,23 @@ export async function moveLead(id: string, stage: Stage): Promise<string | void>
   if (!lead || lead.stage === stage) return
   const now = new Date().toISOString()
   const patch: Record<string, string> = { stage }
+  const patch2: Record<string, string | null> = patch
   const upTo = stage === "lost" ? ["lost"] : STAGES.slice(1, STAGES.indexOf(stage) + 1)
   for (const s of upTo) {
     const col = STAMP[s as Stage]
-    if (col && !lead[col]) patch[col] = now
+    if (col && !lead[col]) patch2[col] = now
+  }
+  // Moving her back erases the stages she hasn't really reached.
+  if (stage !== "lost") {
+    for (const s of STAGES.slice(STAGES.indexOf(stage) + 1)) {
+      const col = STAMP[s as Stage]
+      if (col && lead[col]) patch2[col] = null
+    }
   }
   // Leaving the List means she was just texted: start the clock and log it.
   const texting = lead.stage === "list" && stage !== "lost"
   if (texting) patch.last_contact_at = now
-  const { error } = await db.from("pipeline_leads").update(patch).eq("id", id)
+  const { error } = await db.from("pipeline_leads").update(patch2).eq("id", id)
   if (!error && texting)
     await db.from("pipeline_touches").insert({ lead_id: id, note: lead.message ? "Texted: " + lead.message : "Texted" })
   revalidatePath("/admin/pipeline")
@@ -154,6 +162,13 @@ export async function deleteTouch(touchId: number) {
   const db = await requireAdmin()
   await db.from("pipeline_touches").delete().eq("id", touchId)
   revalidatePath("/admin/pipeline")
+}
+
+export async function starLead(id: string, starred: boolean): Promise<string | void> {
+  const db = await requireAdmin()
+  const { error } = await db.from("pipeline_leads").update({ starred }).eq("id", id)
+  revalidatePath("/admin/pipeline")
+  if (error) return /starred/.test(error.message) ? "Run supabase/pipeline-6.sql to turn on stars." : error.message
 }
 
 export async function deleteLead(id: string) {

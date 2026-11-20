@@ -38,6 +38,8 @@ export type Lead = {
   last_contact_at: string
   texted_at?: string | null
   has_website?: boolean | null
+  starred?: boolean | null
+  lost_at?: string | null
   next_follow_up: string | null
   agent_id: string | null
   replied_at: string | null
@@ -64,6 +66,20 @@ export type Gift = {
 
 export const VIA_LABEL: Record<string, string> = { short: "your text", qr: "the QR code", link: "the long link" }
 export const SCREEN_LABEL: Record<string, string> = { time: "times", details: "booking form", ask: "contact form", done: "booked", sent: "sent a request" }
+
+// How far a lead got. Where she sits now is the truth; only a Lost lead
+// falls back on the stages she reached before she was lost.
+const STAMPED: Partial<Record<Stage, keyof Lead>> = {
+  texted: "texted_at", replied: "replied_at", yes: "yes_at", sent: "sent_at", claimed: "claimed_at", active: "active_at", paid: "paid_at",
+}
+export function reached(l: Lead, s: Stage): boolean {
+  if (l.stage === "lost") {
+    if (s === "texted") return true
+    const col = STAMPED[s]
+    return !!(col && l[col])
+  }
+  return STAGES.indexOf(l.stage) >= STAGES.indexOf(s)
+}
 
 const DAY = 864e5
 

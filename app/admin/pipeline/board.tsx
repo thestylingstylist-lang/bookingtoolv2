@@ -1,8 +1,8 @@
 "use client"
 import { useMemo, useState, useTransition } from "react"
 import GiftForm from "../cards/gift-form"
-import { addLead, moveLead, updateLead, logTouch, editTouch, deleteTouch, deleteLead } from "./actions"
-import { STAGES, STAGE_LABEL, SOURCES, GOAL, VIA_LABEL, SCREEN_LABEL, CHANNEL_LABEL, alertFor, type Gift, type Lead, type Stage, type Touch } from "./stages"
+import { starLead, addLead, moveLead, updateLead, logTouch, editTouch, deleteTouch, deleteLead } from "./actions"
+import { STAGES, STAGE_LABEL, SOURCES, GOAL, VIA_LABEL, SCREEN_LABEL, CHANNEL_LABEL, alertFor, reached, type Gift, type Lead, type Stage, type Touch } from "./stages"
 
 export type CardStat = { views: number; bookings: number }
 export type CardOption = { id: string; full_name: string | null; slug: string | null }
@@ -27,14 +27,15 @@ export default function Board({
   const giftOf = (l: Lead) => (l.agent_id ? gifts[l.agent_id] : undefined)
   const [now] = useState(() => fixedNow ?? Date.now())
   const [moved, setMoved] = useState<Record<string, Stage>>({})
+  const [stars, setStars] = useState<Record<string, boolean>>({})
   const [openId, setOpenId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
   const [over, setOver] = useState<Stage | null>(null)
-  const [f, setF] = useState({ stage: "", kind: "", town: "", source: "", site: "" })
+  const [f, setF] = useState({ stage: "", kind: "", town: "", source: "", site: "", star: "" })
   const [, start] = useTransition()
 
-  const all = useMemo(() => leads.map((l) => (moved[l.id] ? { ...l, stage: moved[l.id] } : l)), [leads, moved])
+  const all = useMemo(() => leads.map((l) => ({ ...l, ...(moved[l.id] ? { stage: moved[l.id] } : {}), ...(l.id in stars ? { starred: stars[l.id] } : {}) })), [leads, moved, stars])
   const towns = useMemo(() => [...new Set(all.map((l) => l.town).filter(Boolean))].sort() as string[], [all])
   const shown = all.filter(
     (l) =>
@@ -42,23 +43,34 @@ export default function Board({
       (!f.kind || l.kind === f.kind) &&
       (!f.town || l.town === f.town) &&
       (!f.source || l.source === f.source) &&
-      (!f.site || (f.site === "yes") === !!l.has_website),
+      (!f.site || (f.site === "yes") === !!l.has_website) &&
+      (!f.star || !!l.starred),
   )
   const due = all.map((l) => ({ l, a: alertFor(l, now, giftOf(l)) })).filter((x) => x.a) as { l: Lead; a: string }[]
 
   // Numbers bar: how far every lead got, step to step.
-  const n = (k: keyof Lead) => all.filter((l) => l[k]).length
-  const texted = all.filter((l) => l.texted_at || l.stage !== "list")
+  // Counted by where each lead is now (a Lost lead counts how far she got).
+  const n = (st: Stage) => all.filter((l) => reached(l, st)).length
+  const texted = all.filter((l) => reached(l, "texted"))
   const week = texted.filter((l) => now - new Date(l.texted_at || l.created_at).getTime() < 7 * DAY).length
   const paying = all.filter((l) => l.stage === "paid").length
   const numbers = [
     { k: "Texted this week", v: String(week) },
-    { k: "Reply rate", v: pct(n("replied_at"), texted.length) },
-    { k: "Said yes", v: pct(n("yes_at"), n("replied_at")) },
-    { k: "Claimed", v: pct(n("claimed_at"), n("yes_at")) },
-    { k: "Paid", v: pct(n("paid_at"), n("claimed_at")) },
+    { k: "Reply rate", v: pct(n("replied"), texted.length) },
+    { k: "Said yes", v: pct(n("yes"), n("replied")) },
+    { k: "Claimed", v: pct(n("claimed"), n("yes")) },
+    { k: "Paid", v: pct(n("paid"), n("claimed")) },
   ]
 
+  const star = (l: Lead) => {
+    const v = !l.starred
+    setStars((m) => ({ ...m, [l.id]: v }))
+    start(async () => {
+      const e = await starLead(l.id, v)
+      if (e) { setStars((m) => ({ ...m, [l.id]: !v })); alertMsg(e) }
+    })
+  }
+  const [msg, alertMsg] = useState("")
   const move = (id: string, stage: Stage) => {
     setMoved((m) => ({ ...m, [id]: stage }))
     start(async () => { await moveLead(id, stage) })
@@ -138,12 +150,17 @@ export default function Board({
           <option value="yes">Has her own website</option>
           <option value="no">No website</option>
         </select>
+        <button type="button" onClick={() => setF({ ...f, star: f.star ? "" : "1" })} aria-pressed={!!f.star} className={`${pick} ${f.star ? "!bg-[#16151a] !text-white" : ""}`}>
+          ★ Starred only
+        </button>
       </section>
+
+      {msg && <p className="mt-3 text-[13px] text-[#b3261e]">{msg}</p>}
 
       {/* Board */}
       <section className="mt-4 flex gap-3 overflow-x-auto pb-4">
         {STAGES.map((s) => {
-          const col = shown.filter((l) => l.stage === s)
+          const col = shown.filter((l) => l.stage === s).sort((a, b) => Number(!!b.starred) - Number(!!a.starred))
           return (
             <div
               key={s}
@@ -159,13 +176,13 @@ export default function Board({
                 const a = alertFor(l, now, giftOf(l))
                 const g = giftOf(l)
                 return (
+                  <div key={l.id} className="relative">
                   <button
-                    key={l.id}
                     draggable
                     onDragStart={() => setDragId(l.id)}
                     onDragEnd={() => { setDragId(null); setOver(null) }}
                     onClick={() => setOpenId(l.id)}
-                    className={`rounded-xl bg-white p-3 text-left ring-1 transition hover:ring-[#16151a]/20 ${a ? "ring-[#BC559E]/40" : "ring-[#efeeec]"} ${dragId === l.id ? "opacity-40" : ""}`}
+                    className={`w-full rounded-xl bg-white p-3 pr-9 text-left ring-1 transition hover:ring-[#16151a]/20 ${a ? "ring-[#BC559E]/40" : "ring-[#efeeec]"} ${dragId === l.id ? "opacity-40" : ""}`}
                   >
                     {a && <p className="mb-1.5 text-[11px] font-medium text-[#93407A]">{a}</p>}
                     <p className="text-[14px] font-medium leading-tight">{l.name}</p>
@@ -186,6 +203,16 @@ export default function Board({
                       {l.next_follow_up && <span>Next {short(l.next_follow_up)}</span>}
                     </div>
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => star(l)}
+                    aria-pressed={!!l.starred}
+                    aria-label={l.starred ? `Unstar ${l.name}` : `Star ${l.name}`}
+                    className={`absolute right-1 top-1 flex h-9 w-9 items-center justify-center rounded-full text-[17px] leading-none transition hover:bg-[#16151a]/5 ${l.starred ? "text-[#16151a]" : "text-[#16151a]/25"}`}
+                  >
+                    {l.starred ? "★" : "☆"}
+                  </button>
+                  </div>
                 )
               })}
             </div>
