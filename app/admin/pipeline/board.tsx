@@ -31,7 +31,7 @@ export default function Board({
   const [adding, setAdding] = useState(false)
   const [dragId, setDragId] = useState<string | null>(null)
   const [over, setOver] = useState<Stage | null>(null)
-  const [f, setF] = useState({ stage: "", kind: "", town: "", source: "" })
+  const [f, setF] = useState({ stage: "", kind: "", town: "", source: "", site: "" })
   const [, start] = useTransition()
 
   const all = useMemo(() => leads.map((l) => (moved[l.id] ? { ...l, stage: moved[l.id] } : l)), [leads, moved])
@@ -41,17 +41,19 @@ export default function Board({
       (!f.stage || l.stage === f.stage) &&
       (!f.kind || l.kind === f.kind) &&
       (!f.town || l.town === f.town) &&
-      (!f.source || l.source === f.source),
+      (!f.source || l.source === f.source) &&
+      (!f.site || (f.site === "yes") === !!l.has_website),
   )
   const due = all.map((l) => ({ l, a: alertFor(l, now, giftOf(l)) })).filter((x) => x.a) as { l: Lead; a: string }[]
 
   // Numbers bar: how far every lead got, step to step.
   const n = (k: keyof Lead) => all.filter((l) => l[k]).length
-  const week = all.filter((l) => now - new Date(l.created_at).getTime() < 7 * DAY).length
+  const texted = all.filter((l) => l.texted_at || l.stage !== "list")
+  const week = texted.filter((l) => now - new Date(l.texted_at || l.created_at).getTime() < 7 * DAY).length
   const paying = all.filter((l) => l.stage === "paid").length
   const numbers = [
     { k: "Texted this week", v: String(week) },
-    { k: "Reply rate", v: pct(n("replied_at"), all.length) },
+    { k: "Reply rate", v: pct(n("replied_at"), texted.length) },
     { k: "Said yes", v: pct(n("yes_at"), n("replied_at")) },
     { k: "Claimed", v: pct(n("claimed_at"), n("yes_at")) },
     { k: "Paid", v: pct(n("paid_at"), n("claimed_at")) },
@@ -68,7 +70,7 @@ export default function Board({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-semibold tracking-tight">Pipeline</h1>
-          <p className="mt-1 text-[14px] text-[#55535b]">Every agent you text, from first message to paying member.</p>
+          <p className="mt-1 text-[14px] text-[#55535b]">Every agent on your list, from first look to paying member.</p>
         </div>
         <button onClick={() => setAdding(true)} className="rounded-full bg-[#16151a] px-5 py-2 text-[13px] font-medium text-white">
           Add lead
@@ -131,6 +133,11 @@ export default function Board({
           <option value="">All sources</option>
           {SOURCES.map((s) => <option key={s}>{s}</option>)}
         </select>
+        <select value={f.site} onChange={(e) => setF({ ...f, site: e.target.value })} className={pick}>
+          <option value="">Website or not</option>
+          <option value="yes">Has her own website</option>
+          <option value="no">No website</option>
+        </select>
       </section>
 
       {/* Board */}
@@ -143,7 +150,7 @@ export default function Board({
               onDragOver={(e) => { e.preventDefault(); setOver(s) }}
               onDragLeave={() => setOver((o) => (o === s ? null : o))}
               onDrop={() => { if (dragId) move(dragId, s); setDragId(null); setOver(null) }}
-              className={`flex min-w-[168px] flex-1 flex-col gap-2 rounded-2xl p-2 transition-colors ${over === s ? "bg-[#FBEDF5]" : "bg-[#16151a]/[0.03]"}`}
+              className={`flex min-w-[160px] flex-1 flex-col gap-2 rounded-2xl p-2 transition-colors ${over === s ? "bg-[#FBEDF5]" : "bg-[#16151a]/[0.03]"}`}
             >
               <p className="flex items-center justify-between px-2 pt-1 text-[12px] font-medium text-[#55535b]">
                 {STAGE_LABEL[s]} <span className="text-[#8e8c93]">{col.length}</span>
@@ -174,7 +181,8 @@ export default function Board({
                     {l.hook && <p className="mt-1.5 line-clamp-2 text-[12px] italic text-[#55535b]">“{l.hook}”</p>}
                     <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[#8e8c93]">
                       {l.source && <span className="rounded-full bg-[#F4F3F1] px-2 py-0.5">{l.source}</span>}
-                      <span>Last {ago(l.last_contact_at, now)}</span>
+                      {l.has_website && <span className="rounded-full bg-[#F4F3F1] px-2 py-0.5">Website</span>}
+                      {l.stage === "list" ? <span>Not texted yet</span> : <span>Last {ago(l.last_contact_at, now)}</span>}
                       {l.next_follow_up && <span>Next {short(l.next_follow_up)}</span>}
                     </div>
                   </button>
@@ -217,7 +225,7 @@ function Panel({
   const save = (fd: FormData) =>
     start(async () => {
       if (lead) { const e = await updateLead(lead.id, fd); setErr(e || ""); setSaved(!e) }
-      else { await addLead(fd); onClose() }
+      else { const e = await addLead(fd); if (e) setErr(e); else onClose() }
     })
 
   return (
@@ -336,6 +344,10 @@ function Panel({
           <L k="Message sent"><textarea name="message" rows={4} defaultValue={lead?.message ?? ""} className={field} /></L>
           {lead && <L k="Notes"><textarea name="notes" rows={3} defaultValue={lead.notes ?? ""} className={field} /></L>}
           <div className="grid grid-cols-2 gap-3">
+            <label className="col-span-2 flex min-h-[44px] items-center gap-2 text-[13px] text-[#16151a]">
+              <input type="checkbox" name="has_website" defaultChecked={!!lead?.has_website} className="h-4 w-4 accent-[#16151a]" />
+              Has her own website
+            </label>
             <L k="Next follow-up"><input name="next_follow_up" type="date" defaultValue={lead?.next_follow_up ?? ""} className={field} /></L>
           </div>
           <div className="flex items-center gap-3">

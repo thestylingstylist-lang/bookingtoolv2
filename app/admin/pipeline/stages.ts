@@ -1,7 +1,8 @@
-export const STAGES = ["texted", "replied", "yes", "sent", "claimed", "active", "paid", "lost"] as const
+export const STAGES = ["list", "texted", "replied", "yes", "sent", "claimed", "active", "paid", "lost"] as const
 export type Stage = (typeof STAGES)[number]
 
 export const STAGE_LABEL: Record<Stage, string> = {
+  list: "List",
   texted: "Texted",
   replied: "Replied",
   yes: "Said Yes",
@@ -35,6 +36,8 @@ export type Lead = {
   notes: string | null
   stage: Stage
   last_contact_at: string
+  texted_at?: string | null
+  has_website?: boolean | null
   next_follow_up: string | null
   agent_id: string | null
   replied_at: string | null

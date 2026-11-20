@@ -10,7 +10,7 @@ export async function markLeadClaimed(agentId: string) {
       .from("pipeline_leads")
       .select("id, replied_at, yes_at, sent_at")
       .eq("agent_id", agentId)
-      .in("stage", ["texted", "replied", "yes", "sent"])
+      .in("stage", ["list", "texted", "replied", "yes", "sent"])
     const now = new Date().toISOString()
     for (const l of data ?? []) {
       await db
@@ -35,7 +35,7 @@ export async function linkLeadToCard(leadId: string, agentId: string) {
     const { data: l } = await db.from("pipeline_leads").select("stage, replied_at, yes_at, sent_at").eq("id", leadId).maybeSingle()
     if (!l) return
     const now = new Date().toISOString()
-    const early = ["texted", "replied", "yes"].includes(l.stage as string)
+    const early = ["list", "texted", "replied", "yes"].includes(l.stage as string)
     await db
       .from("pipeline_leads")
       .update({

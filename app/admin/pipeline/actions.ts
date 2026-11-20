@@ -15,12 +15,13 @@ async function requireAdmin() {
 
 const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim() || null
 
-export async function addLead(f: FormData) {
+export async function addLead(f: FormData): Promise<string | void> {
   const db = await requireAdmin()
   const name = str(f, "name")
   if (!name) return
   const message = str(f, "message")
-  const { data } = await db
+  // New leads start on the List: found and vetted, not texted yet.
+  const { data, error } = await db
     .from("pipeline_leads")
     .insert({
       name,
@@ -38,17 +39,20 @@ export async function addLead(f: FormData) {
       hook: str(f, "hook"),
       message,
       next_follow_up: str(f, "next_follow_up"),
+      has_website: f.get("has_website") === "on",
+      stage: "list",
     })
     .select("id")
     .single()
-  if (data) await db.from("pipeline_touches").insert({ lead_id: data.id, note: message ? "Texted: " + message : "Texted" })
+  if (error) return "Couldn't add: " + error.message
+  if (data) await db.from("pipeline_touches").insert({ lead_id: data.id, note: "Added to the list" })
   revalidatePath("/admin/pipeline")
 }
 
 // Moving forward stamps every stage up to this one (first time only), so the
 // numbers bar counts how far each lead got, even after Lost.
 const STAMP: Partial<Record<Stage, string>> = {
-  replied: "replied_at", yes: "yes_at", sent: "sent_at", claimed: "claimed_at", active: "active_at", paid: "paid_at", lost: "lost_at",
+  texted: "texted_at", replied: "replied_at", yes: "yes_at", sent: "sent_at", claimed: "claimed_at", active: "active_at", paid: "paid_at", lost: "lost_at",
 }
 
 export async function moveLead(id: string, stage: Stage): Promise<string | void> {
@@ -63,7 +67,12 @@ export async function moveLead(id: string, stage: Stage): Promise<string | void>
     const col = STAMP[s as Stage]
     if (col && !lead[col]) patch[col] = now
   }
+  // Leaving the List means she was just texted: start the clock and log it.
+  const texting = lead.stage === "list" && stage !== "lost"
+  if (texting) patch.last_contact_at = now
   const { error } = await db.from("pipeline_leads").update(patch).eq("id", id)
+  if (!error && texting)
+    await db.from("pipeline_touches").insert({ lead_id: id, note: lead.message ? "Texted: " + lead.message : "Texted" })
   revalidatePath("/admin/pipeline")
   if (error) return "Couldn't move her: " + error.message
 }
@@ -74,9 +83,7 @@ export async function updateLead(id: string, f: FormData): Promise<string | void
   if (!name) return
   const agentId = str(f, "agent_id")
   const { data: before } = await db.from("pipeline_leads").select("agent_id, stage").eq("id", id).maybeSingle()
-  const { error: saveErr } = await db
-    .from("pipeline_leads")
-    .update({
+  const fields = {
       name,
       phone: str(f, "phone"),
       email: str(f, "email"),
@@ -94,11 +101,20 @@ export async function updateLead(id: string, f: FormData): Promise<string | void
       notes: str(f, "notes"),
       next_follow_up: str(f, "next_follow_up"),
       agent_id: agentId,
-    })
+  }
+  let { error: saveErr } = await db
+    .from("pipeline_leads")
+    .update({ ...fields, has_website: f.get("has_website") === "on" })
     .eq("id", id)
+  let note = ""
+  if (saveErr && /has_website/.test(saveErr.message)) {
+    // Before pipeline-5.sql: save everything else.
+    ;({ error: saveErr } = await db.from("pipeline_leads").update(fields).eq("id", id))
+    note = "Saved, except the website box. Run supabase/pipeline-5.sql to keep it."
+  }
   if (saveErr) return "Couldn't save: " + saveErr.message
   // Linking her card means it's been sent; if she already claimed it, say so.
-  if (agentId && before && ["texted", "replied", "yes", "sent"].includes(before.stage)) {
+  if (agentId && before && ["list", "texted", "replied", "yes", "sent"].includes(before.stage)) {
     const { data: card } = await db.from("agents").select("claim_token").eq("id", agentId).maybeSingle()
     const to: Stage = card && !card.claim_token ? "claimed" : "sent"
     if (to !== before.stage) {
@@ -108,6 +124,7 @@ export async function updateLead(id: string, f: FormData): Promise<string | void
     }
   }
   revalidatePath("/admin/pipeline")
+  if (note) return note
 }
 
 const CHANNELS = ["text", "call", "dm", "email"]
