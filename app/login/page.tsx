@@ -8,7 +8,7 @@ export default function LoginPage() {
     <main
       className="mb-app relative flex min-h-screen items-center justify-center px-5 py-16"
     >
-      <div className="relative w-full max-w-[400px] border border-[rgba(194,164,107,.45)] bg-white px-8 pb-7 pt-10 sm:px-10">
+      <div className="relative w-full max-w-[380px] px-2 pb-7 pt-4">
         <div className="mb-8 text-center">
           <Wordmark size={34} />
           <h1 className="mt-5 font-semibold tracking-tight text-[30px] leading-tight text-lxink">Log in</h1>

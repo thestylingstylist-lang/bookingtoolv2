@@ -5,7 +5,8 @@ import SignupForm from "./signup-form"
 
 export default function SignupPage() {
   return (
-    <main className="mb-app mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
+    <main className="mb-app min-h-screen">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
       <header className="mb-8">
         <Wordmark size={28} className="mb-8" />
         <p className="text-sm font-medium tracking-wide text-lxgold">Get started</p>
@@ -22,6 +23,7 @@ export default function SignupPage() {
         </Link>
       </p>
       <AuthFooter />
+    </div>
     </main>
   )
 }

@@ -60,3 +60,30 @@ body {
 .mb-app ::selection { background: #EFE5D2; }
 /* Lining figures, so 0 never reads as o. */
 .font-lux, .mb-app h1, .mb-app h2, .mb-app .font-serif { font-variant-numeric: lining-nums; }
+
+/* Open, airy forms: fields are fine gold underlines, never boxes. */
+.mb-app input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=submit]):not([type=button]):not([type=color]),
+.mb-app select,
+.mb-app textarea:not([rows]),
+.mb-app textarea[rows="1"], .mb-app textarea[rows="2"], .mb-app textarea[rows="3"] {
+  border: 0 !important;
+  border-bottom: 1px solid rgba(194, 164, 107, .6) !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.mb-app textarea[rows]:not([rows="1"]):not([rows="2"]):not([rows="3"]) {
+  border: 1px solid rgba(194, 164, 107, .45) !important;
+  border-radius: 2px !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+.mb-app input:focus, .mb-app select:focus, .mb-app textarea:focus { border-color: #8C7040 !important; }
+.mb-app input:disabled { color: #8f8b84; }
+/* A form never sits in a box on a different background. */
+.mb-app :is(.bg-white, .bg-card, .bg-lxfill):not(.fixed):not(.absolute):not(aside):not([role=dialog]):has(input:not([type=hidden]):not([type=checkbox]):not([type=radio]), textarea, select) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}

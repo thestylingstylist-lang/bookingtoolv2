@@ -48,5 +48,8 @@ export async function sendPortalLink(formData: FormData): Promise<void> {
     card: await agentCard(user.id),
     replyTo: user.email ?? undefined,
   })
+  // Remember it went out, so the client page can move on to the next action.
+  // (Column arrives with suite-sent.sql; a failure here changes nothing.)
+  if (ok) await supabase.from("clients").update({ portal_sent_at: new Date().toISOString() }).eq("id", clientId)
   redirect(`/clients/${clientId}?doc=${ok ? "portalsent" : "portalfail"}`)
 }

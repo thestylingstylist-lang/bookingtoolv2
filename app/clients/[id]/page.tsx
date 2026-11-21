@@ -245,6 +245,9 @@ export default async function ClientJacket({
     sale_url?: string | null
     private_showings?: boolean | null
   }
+  // Has the suite link gone out? Read apart: the column arrives with suite-sent.sql.
+  const { data: sentRow, error: sentErr } = await supabase.from("clients").select("portal_sent_at").eq("id", client.id).maybeSingle()
+  const linkSent = sentErr ? !!client.portal_token : !!(sentRow as { portal_sent_at?: string | null } | null)?.portal_sent_at
   const journeys = journeysFor(client.client_type)
   const buyPhase = toBuyPhase(client.phase)
   const sellPhase = toSellPhase(sell.sell_phase)
@@ -325,15 +328,34 @@ export default async function ClientJacket({
           </div>
           {/* Actions: their own full-width row on phones, inline on desktop */}
           <div className="flex w-full items-center gap-3 sm:w-auto">
-            <form action={sendPortalLink} className="flex-1 sm:order-last sm:flex-none">
-              <input type="hidden" name="clientId" value={client.id} />
-              <button
-                type="submit"
-                className="w-full rounded-[2px] border border-lxink bg-transparent px-3.5 py-2.5 text-sm text-lxink transition-colors hover:bg-lxink/[0.04] sm:w-auto sm:py-2 sm:text-xs"
-              >
-                Send suite link
-              </button>
-            </form>
+            {/* One dark button: this client's next action. */}
+            {(() => {
+              const j = journeys[0]
+              const cur = j === "sell" ? sellPhase : buyPhase
+              const list = phasesFor(j) as { key: Phase; label: string }[]
+              const nxt = list[list.findIndex((p) => p.key === cur) + 1]
+              const dark = "w-full rounded-[2px] border border-lxink bg-lxink px-3.5 py-2.5 text-sm text-lxbg transition-opacity hover:opacity-90 sm:w-auto sm:py-2 sm:text-xs"
+              const outline = "w-full rounded-[2px] border border-lxink bg-transparent px-3.5 py-2.5 text-sm text-lxink transition-colors hover:bg-lxink/[0.04] sm:w-auto sm:py-2 sm:text-xs"
+              return (
+                <>
+                  <form action={sendPortalLink} className="flex-1 sm:order-last sm:flex-none">
+                    <input type="hidden" name="clientId" value={client.id} />
+                    <button type="submit" className={linkSent ? outline : dark}>
+                      Send suite link
+                    </button>
+                  </form>
+                  {linkSent && nxt && (
+                    <form action={movePhase} className="flex-1 sm:order-last sm:flex-none">
+                      <input type="hidden" name="clientId" value={client.id} />
+                      <input type="hidden" name="to" value={nxt.key} />
+                      <button type="submit" className={dark}>
+                        Move to {stageLabel(nxt.key, privateShowings)}
+                      </button>
+                    </form>
+                  )}
+                </>
+              )
+            })()}
             {client.portal_token && (
               <a
                 href={`/portal/${client.portal_token}`}

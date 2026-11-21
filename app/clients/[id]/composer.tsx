@@ -70,7 +70,7 @@ export default function Composer({
         <button
           type="submit"
           disabled={writing}
-          className="rounded-[11px] bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="rounded-[2px] border border-lxink bg-transparent px-5 py-2.5 text-sm text-lxink transition-colors hover:bg-lxink/[0.04] disabled:opacity-40"
         >
           Send
         </button>

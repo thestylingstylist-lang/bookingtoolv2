@@ -10,7 +10,8 @@ export default async function ForgotPasswordPage({
 }) {
   const { error } = await searchParams
   return (
-    <main className="mb-app mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
+    <main className="mb-app min-h-screen">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
       <header className="mb-8">
         <Wordmark size={28} className="mb-8" />
         <p className="text-sm font-medium tracking-wide text-lxgold">Agent access</p>
@@ -32,6 +33,7 @@ export default async function ForgotPasswordPage({
         </Link>
       </p>
       <AuthFooter />
+    </div>
     </main>
   )
 }
