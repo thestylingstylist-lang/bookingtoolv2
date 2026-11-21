@@ -397,7 +397,7 @@ export default async function ClientJacket({
           )
         })}
 
-        {homeData && (
+        {homeData && journeys.includes("buy") && (
           <Homes
             clientId={client.id}
             clientFirst={client.first_name || ""}

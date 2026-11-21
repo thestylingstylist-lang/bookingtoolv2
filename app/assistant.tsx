@@ -39,7 +39,19 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
   const show = (v: boolean) => {
     setOpen(v)
     onOpenChange?.(v)
+    // The messages panel and the assistant take turns on the right.
+    if (v) window.dispatchEvent(new Event("mb:assistant-open"))
   }
+
+  // Opening the messages panel folds this one away.
+  useEffect(() => {
+    const close = () => {
+      setOpen(false)
+      onOpenChange?.(false)
+    }
+    window.addEventListener("mb:dock-open", close)
+    return () => window.removeEventListener("mb:dock-open", close)
+  }, [onOpenChange])
 
   useEffect(() => {
     feed.current?.scrollTo({ top: feed.current.scrollHeight, behavior: "smooth" })
@@ -458,6 +470,11 @@ const CSS = `
 .mba-fab{position:fixed;right:22px;bottom:22px;z-index:55;width:60px;height:60px;border-radius:50%;border:1px solid rgba(22,21,26,.06);background:#fff;box-shadow:0 14px 34px -14px rgba(188,85,158,.55);display:grid;place-items:center;cursor:pointer;transition:transform .2s}
 .mba-fab:hover{transform:translateY(-2px)}
 .mba-fab img{width:42px;height:42px;object-fit:contain;animation:mbaFloat 5s ease-in-out infinite}
+/* With the Messages pill in the corner: a small circle directly above it. */
+body[data-dock-ready] .mba-fab{right:22px;left:auto;bottom:84px;width:46px;height:46px;transform:none;box-shadow:0 1px 2px rgba(31,30,28,.08);border-color:rgba(194,164,107,.45)}
+body[data-dock-ready] .mba-fab:hover{transform:translateY(-1px)}
+body[data-dock-ready] .mba-fab img{width:32px;height:32px}
+body[data-dock="open"] .mba-fab{display:none}
 @keyframes mbaIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes mbaDot{0%,100%{opacity:.35}50%{opacity:1}}
 @keyframes mbaFloat{50%{transform:translateY(-3px)}}

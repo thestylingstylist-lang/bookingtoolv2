@@ -27,3 +27,8 @@ body {
   .stack-sm td.empty-sm { display: none; }
   .stack-sm td.cell-act { position: absolute; top: 12px; right: 14px; width: auto; }
 }
+
+/* Messages dock: on wide screens the open panel pushes the page over. */
+@media (min-width: 1200px) {
+  body[data-dock="open"] .mb-main { padding-right: 400px; }
+}

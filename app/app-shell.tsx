@@ -193,7 +193,7 @@ export default function AppShell({
         </button>
       </aside>
 
-      <div className={"relative z-10 min-w-0 flex-1 transition-[padding] duration-300 " + (asst ? "sm:pr-[380px]" : "")}>
+      <div className={"mb-main relative z-10 min-w-0 flex-1 transition-[padding] duration-300 " + (asst ? "sm:pr-[380px]" : "")}>
         {plan !== "card" && <TrialBanner endsAt={agent.trial_ends_at} status={agent.subscription_status} />}
         {children}
       </div>

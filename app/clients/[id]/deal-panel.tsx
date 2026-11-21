@@ -76,6 +76,13 @@ export default function DealPanel({
             <option value="investor">Investor</option>
             <option value="both">Buyer and seller</option>
           </select>
+          {clientType === "seller" ? (
+            // Sellers have no buying range. Keep any saved one as it was.
+            <>
+              <input type="hidden" name="budgetMin" value={budgetMin != null ? String(budgetMin) : ""} />
+              <input type="hidden" name="budgetMax" value={budgetMax != null ? String(budgetMax) : ""} />
+            </>
+          ) : (
           <div>
             <label className="mb-1 block text-[11px] uppercase tracking-[0.05em] text-[#5d5b62]">Buying range</label>
             <div className="flex items-center gap-2">
@@ -96,6 +103,7 @@ export default function DealPanel({
               />
             </div>
           </div>
+          )}
           <button type="submit" className="rounded-lg border border-[#e4e3e0] bg-white px-3 py-1.5 text-sm hover:bg-[#f1f0ee]">
             Save
           </button>

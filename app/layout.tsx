@@ -3,6 +3,7 @@ import "./globals.css"
 import "@fontsource/instrument-serif/400.css"
 import "@fontsource/instrument-serif/400-italic.css"
 import { GeistSans } from "geist/font/sans"
+import MessagesDock from "./messages-dock"
 
 const DESCRIPTION =
   "Clients book themselves, sign without the chase, and always know what's next. Made for solo real estate agents. 14-day trial, no card needed."
@@ -46,7 +47,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={GeistSans.variable}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <MessagesDock />
+      </body>
     </html>
   )
 }
