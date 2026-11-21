@@ -2,10 +2,9 @@
 -- Run once in the Supabase SQL editor before this version goes live.
 -- Safe to run twice.
 
--- 1. Client types: adds "investor". Drops any old check on the column.
+-- 1. Client types: allows "investor". Drops any old check on the column;
+--    the app only saves buyer, seller, investor or both.
 alter table public.clients drop constraint if exists clients_client_type_check;
-alter table public.clients add constraint clients_client_type_check
-  check (client_type is null or client_type in ('buyer', 'seller', 'investor', 'both'));
 
 -- 2. Stages. Buying: preparing, showing, offer, contract, closing.
 --    Selling: s_preparing, listing, open_house, offers, s_contract, s_closing.
