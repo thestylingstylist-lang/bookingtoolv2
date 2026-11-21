@@ -110,7 +110,8 @@ export default function DealPanel({
         </form>
       </section>
 
-      {/* Offers */}
+      {/* Offers they make on homes. Sellers track received offers in the seller tools. */}
+      {clientType !== "seller" && (
       <section>
         <h2 className="text-[13px] font-semibold">Offers</h2>
         {offers.length === 0 && <p className="mt-2 text-sm text-[#5d5b62]">No offers yet.</p>}
@@ -144,6 +145,7 @@ export default function DealPanel({
           </form>
         </details>
       </section>
+      )}
 
       {/* Notes */}
       <section>
