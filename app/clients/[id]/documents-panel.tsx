@@ -74,7 +74,7 @@ export default function DocumentsPanel({
         <input name="title" placeholder="e.g. Pay stubs" className={inputClass} />
         <button type="submit" className="rounded-lg border border-[#e4e3e0] bg-white px-3 text-sm hover:bg-[#f1f0ee]">Add</button>
       </form>
-      <p className="mt-2 text-xs text-[#5d5b62]">Clients can upload these from their portal, or tap Waiting to mark one received.</p>
+      <p className="mt-2 text-xs text-[#5d5b62]">Clients can upload these from their suite, or tap Waiting to mark one received.</p>
     </section>
   )
 }

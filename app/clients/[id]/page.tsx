@@ -69,9 +69,9 @@ const BANNERS: Record<string, { text: string; ok: boolean }> = {
     text: "The document is in the thread, but the email didn't go out. Try Resend.",
     ok: false,
   },
-  portalsent: { text: "Portal link sent. Your client can open their page from the email.", ok: true },
-  portalnoemail: { text: "This client has no email. Add one in Details, then send the portal link.", ok: false },
-  portalfail: { text: "The portal link email didn't go out. Please try again.", ok: false },
+  portalsent: { text: "Suite link sent. Your client can open their suite from the email.", ok: true },
+  portalnoemail: { text: "This client has no email. Add one in Details, then send the suite link.", ok: false },
+  portalfail: { text: "The suite link email didn't go out. Please try again.", ok: false },
 }
 
 const ERRORS: Record<string, string> = {
@@ -331,7 +331,7 @@ export default async function ClientJacket({
                 type="submit"
                 className="w-full rounded-[10px] bg-ox px-3.5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 sm:w-auto sm:py-2 sm:text-xs"
               >
-                Send portal link
+                Send suite link
               </button>
             </form>
             {client.portal_token && (
@@ -341,7 +341,7 @@ export default async function ClientJacket({
                 rel="noopener"
                 className="shrink-0 rounded-[10px] border border-[#e4e3e0] px-3.5 py-2.5 text-sm text-[#5d5b62] hover:text-ink sm:border-0 sm:px-0 sm:py-0 sm:text-xs sm:underline-offset-2 sm:hover:underline"
               >
-                Preview portal
+                Preview suite
               </a>
             )}
           </div>
@@ -562,7 +562,7 @@ export default async function ClientJacket({
                 canDraft={assistant.unlocked && ai.replies && messages.length > 0 && messages[messages.length - 1].sender === "client"}
               />
               <p className="mt-2 text-[11px] text-[#9a989e]">
-                {client.first_name || "Your client"} sees these messages on their portal and can reply there.
+                {client.first_name || "Your client"} sees these messages in their suite and can reply there.
               </p>
             </div>
           </>}
