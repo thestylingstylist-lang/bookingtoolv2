@@ -499,9 +499,9 @@ export default async function Portal({
   )
 
   const messagesPart = (
-    <section id="messages" className="flex h-full scroll-mt-6 flex-col">
+    <section id="messages" className="flex min-h-0 flex-1 scroll-mt-6 flex-col">
       <H2 className="mb-1">Messages with {agentFirst}</H2>
-      <div className="flex min-h-[300px] flex-1 flex-col justify-end gap-3.5 py-[18px] md:min-h-[430px]">
+      <div data-thread className="flex min-h-[300px] flex-1 flex-col gap-3.5 overflow-y-auto py-[18px] md:min-h-0 [&>:first-child]:mt-auto">
         {messages.length === 0 && <p className="m-0 text-center text-[13px] text-lxsoft">Write to {agentFirst} whenever you like.</p>}
         {messages.map((m) => {
           const me = m.sender === "client"
@@ -542,7 +542,21 @@ export default async function Portal({
   return (
     <main className="min-h-screen bg-lxbg font-luxsans text-lxink antialiased">
       <div className="mx-auto max-w-[1280px] px-6 pt-[30px] md:px-[120px] md:pt-[52px]">
-        <AgentHeader name={agentName} brokerage={agent?.business_name} />
+        {/* On a computer the header stays put, with a quiet way to write to the agent. */}
+        <div className="bg-lxbg md:sticky md:top-0 md:z-30 md:-mt-6 md:pt-6">
+          <AgentHeader
+            name={agentName}
+            brokerage={agent?.business_name}
+            action={
+              <a href="#messages" className="hidden items-center gap-2 font-luxsans text-[13px] text-lxink no-underline md:inline-flex">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round" aria-hidden>
+                  <path d="M4.5 5.5h15v10h-9l-4 3.5v-3.5h-2z" />
+                </svg>
+                <span className="[border-bottom:1px_solid_#C2A46B]">Message {agentFirst}</span>
+              </a>
+            }
+          />
+        </div>
 
         <div className="pb-6 pt-[26px] md:pb-[34px] md:pt-11">
           <h1 className="m-0 font-lux text-[28px] font-light leading-[1.12] md:text-[46px] md:leading-[1.1] md:tracking-[-.2px]">
@@ -573,6 +587,7 @@ export default async function Portal({
           homes={buying && homes.length ? <PortalHomes token={token} homes={homes} agentFirst={agentFirst} /> : undefined}
           documents={documents}
           messages={messagesPart}
+          agentFirst={agentFirst}
         />
         <div className="hidden md:block">
           <SuiteFooter />

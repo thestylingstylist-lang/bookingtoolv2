@@ -50,7 +50,17 @@ export function initialsOf(name: string) {
 }
 
 // The agent leads: monogram, name and brokerage over a fine gold line.
-export function AgentHeader({ name, brokerage, prefix = "" }: { name: string; brokerage?: string | null; prefix?: string }) {
+export function AgentHeader({
+  name,
+  brokerage,
+  prefix = "",
+  action,
+}: {
+  name: string
+  brokerage?: string | null
+  prefix?: string
+  action?: React.ReactNode
+}) {
   return (
     <header className={`flex items-center gap-3.5 border-b ${LINE} pb-[18px]`}>
       <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-lxgold font-lux text-[14px] tracking-[1px] text-lxink md:h-11 md:w-11 md:text-[16px]">
@@ -63,6 +73,7 @@ export function AgentHeader({ name, brokerage, prefix = "" }: { name: string; br
         </p>
         {brokerage && brokerage !== name && <p className="m-0 mt-0.5 font-luxsans text-[12px] text-lxsoft">{brokerage}</p>}
       </div>
+      {action && <div className="ml-auto">{action}</div>}
     </header>
   )
 }
