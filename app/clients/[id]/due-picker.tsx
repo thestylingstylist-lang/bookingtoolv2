@@ -31,8 +31,8 @@ export default function DuePicker({
   return (
     <span
       className={`relative inline-flex cursor-pointer items-center gap-1 text-xs ${
-        late ? "font-medium text-[#A8478B]" : strong ? "font-medium text-ink" : "text-[#5d5b62]"
-      } hover:text-ink`}
+        late ? "font-medium text-lxgolddeep" : strong ? "font-medium text-lxink" : "text-lxsoft"
+      } hover:text-lxink`}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <rect x="3" y="5" width="18" height="16" rx="2" />

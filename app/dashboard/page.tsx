@@ -322,7 +322,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <h1 className="font-semibold tracking-tight text-3xl sm:text-4xl">
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
-      <p className="mt-2 text-ink/60">
+      <p className="mt-2 text-lxink/60">
         {priorities.length ? "Here's what's important today. I'll help you get it handled." : "Nothing pressing today. Everything is on track."}
       </p>
       <div className="mt-6">
@@ -330,13 +330,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       </div>
 
       {needsSetupCall && (
-        <Link href="/chat" className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-[#EBC9E0] bg-[#FBEDF5] p-5 transition-colors hover:bg-[#F7E4F0]">
+        <Link href="/chat" className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-lxgold/50 bg-white p-5 transition-colors hover:bg-white">
           <img src="/brand/berry-clear.webp" alt="" className="h-9 w-9 shrink-0 object-contain" />
           <span className="min-w-0 flex-1">
             <span className="block font-semibold tracking-tight">Book your free setup call</span>
-            <span className="block text-sm text-ink/60">We&rsquo;ll set up your booking page, agreements and client steps with you.</span>
+            <span className="block text-sm text-lxink/60">We&rsquo;ll set up your booking page, agreements and client steps with you.</span>
           </span>
-          <span className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-white">Pick a time</span>
+          <span className="rounded-[2px] border border-lxink px-4 py-2 text-sm text-lxink">Pick a time</span>
         </Link>
       )}
 
@@ -360,62 +360,62 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((c) => (
-          <Link key={c.label} href={c.href} className="flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-card p-5 transition-colors hover:border-ink/25">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ink/[0.05] text-ink/70">
+          <Link key={c.label} href={c.href} className="flex items-start gap-3.5 rounded-2xl border border-lxink/10 bg-card p-5 transition-colors hover:border-lxink/25">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lxink/[0.05] text-lxink/70">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 {c.icon}
               </svg>
             </span>
             <span className="min-w-0">
-              <span className="block text-xs text-ink/55">{c.label}</span>
-              <span className="mt-0.5 block font-serif text-3xl font-semibold tracking-tight text-ink">{c.value}</span>
-              <span className="block text-xs text-ink/50">{c.note}</span>
+              <span className="block text-xs text-lxink/55">{c.label}</span>
+              <span className="mt-0.5 block font-serif text-3xl font-semibold tracking-tight text-lxink">{c.value}</span>
+              <span className="block text-xs text-lxink/50">{c.note}</span>
             </span>
           </Link>
         ))}
       </div>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <section className="rounded-2xl border border-ink/10 bg-card p-5">
+        <section className="rounded-2xl border border-lxink/10 bg-card p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
-            <Link href="/calendar" className="text-sm text-ink/60 hover:text-ink">Calendar &rarr;</Link>
+            <Link href="/calendar" className="text-sm text-lxink/60 hover:text-lxink">Calendar &rarr;</Link>
           </div>
           {upcomingRows.length === 0 ? (
-            <p className="mt-4 text-sm text-ink/60">Nothing scheduled yet. Share your link and bookings will show up here.</p>
+            <p className="mt-4 text-sm text-lxink/60">Nothing scheduled yet. Share your link and bookings will show up here.</p>
           ) : (
-            <ul className="mt-3 divide-y divide-ink/[0.07]">
+            <ul className="mt-3 divide-y divide-lxink/[0.07]">
               {upcomingRows.map((r) => (
                 <li key={r.key}>
                   <Link href={r.href} className="flex items-center justify-between gap-4 py-3 hover:opacity-80">
                     <span className="min-w-0">
                       <span className="block truncate font-medium">{r.title}</span>
-                      <span className="block text-sm text-ink/55">{r.sub}</span>
+                      <span className="block text-sm text-lxink/55">{r.sub}</span>
                     </span>
-                    <span className="whitespace-nowrap text-sm text-ink/60">{whenLabel(r.at)}</span>
+                    <span className="whitespace-nowrap text-sm text-lxink/60">{whenLabel(r.at)}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           )}
         </section>
-        <section className="rounded-2xl border border-ink/10 bg-card p-5">
+        <section className="rounded-2xl border border-lxink/10 bg-card p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-serif font-semibold tracking-tight text-xl">Recent client updates</h2>
-            <Link href="/clients" className="text-sm text-ink/60 hover:text-ink">Clients &rarr;</Link>
+            <Link href="/clients" className="text-sm text-lxink/60 hover:text-lxink">Clients &rarr;</Link>
           </div>
           {updates.length === 0 ? (
-            <p className="mt-4 text-sm text-ink/60">When a client messages you or signs, it shows up here.</p>
+            <p className="mt-4 text-sm text-lxink/60">When a client messages you or signs, it shows up here.</p>
           ) : (
-            <ul className="mt-3 divide-y divide-ink/[0.07]">
+            <ul className="mt-3 divide-y divide-lxink/[0.07]">
               {updates.map((u) => (
                 <li key={u.key}>
                   <Link href={u.href} className="flex items-center justify-between gap-4 py-3 hover:opacity-80">
                     <span className="min-w-0">
                       <span className="block truncate font-medium">{u.who}</span>
-                      <span className="block truncate text-sm text-ink/55">{u.line}</span>
+                      <span className="block truncate text-sm text-lxink/55">{u.line}</span>
                     </span>
-                    <span className="whitespace-nowrap text-xs text-ink/50">{ago(u.at)}</span>
+                    <span className="whitespace-nowrap text-xs text-lxink/50">{ago(u.at)}</span>
                   </Link>
                 </li>
               ))}
@@ -426,27 +426,27 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {onboarding && (
         <section className="mt-7 grid gap-5 lg:grid-cols-[1fr_380px]">
-          <div id="setup-card" className="rounded-2xl border-[1.5px] border-[#BC559E]/70 bg-card p-5 sm:p-6">
+          <div id="setup-card" className="rounded-2xl border-[1.5px] border-lxgold/70 bg-card p-5 sm:p-6">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-semibold tracking-tight text-xl text-ink">Your setup</h2>
-              {setupDocs.length > 0 && <span className="text-sm text-ink/55">{sentCount} of {setupDocs.length} sent</span>}
+              <h2 className="font-semibold tracking-tight text-xl text-lxink">Your setup</h2>
+              {setupDocs.length > 0 && <span className="text-sm text-lxink/55">{sentCount} of {setupDocs.length} sent</span>}
             </div>
-            <p className="mt-1 text-sm text-ink/60">
+            <p className="mt-1 text-sm text-lxink/60">
               {setupDocs.length
                 ? `Upload these and ${onboarding.owner} turns them into ready-to-use templates for you.`
                 : `${onboarding.owner} is setting up your account. Anything we need from you shows up here.`}
             </p>
             {setupDocs.length > 0 && (
               <>
-                <div className="mt-4 h-1.5 rounded-full bg-ink/[0.07]">
-                  <div className="h-1.5 rounded-full bg-[#BC559E]" style={{ width: `${(sentCount / setupDocs.length) * 100}%` }} />
+                <div className="mt-4 h-1.5 rounded-full bg-lxink/[0.07]">
+                  <div className="h-1.5 rounded-full bg-lxink" style={{ width: `${(sentCount / setupDocs.length) * 100}%` }} />
                 </div>
-                <ul className="mt-3 divide-y divide-ink/[0.07]">
+                <ul className="mt-3 divide-y divide-lxink/[0.07]">
                   {setupDocs.map((d) => (
                     <li key={d.id} className="flex items-center justify-between gap-4 py-3.5">
                       <div className="min-w-0">
                         <p className="font-medium">{d.title}</p>
-                        <p className="text-xs text-ink/55">
+                        <p className="text-xs text-lxink/55">
                           {!d.file_path ? "Waiting for your file" : d.template_built ? "Your template is ready" : "Received · we're building your template"}
                         </p>
                       </div>
@@ -466,12 +466,12 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
           <div>
             <div className="mb-2 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#BC559E] text-xs font-semibold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lxink text-xs font-semibold text-white">
                 {onboarding.owner.slice(0, 2).toUpperCase()}
               </span>
               <div>
                 <p className="text-sm font-semibold leading-tight">{onboarding.owner}</p>
-                <p className="text-xs text-ink/55">Your onboarding owner</p>
+                <p className="text-xs text-lxink/55">Your onboarding owner</p>
               </div>
             </div>
             <SupportThread messages={setupThread} teamName={onboarding.owner} compact />
@@ -480,25 +480,25 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       {news.items.length > 0 && (
-        <section className="mt-7 max-w-2xl rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
-          <p className="font-semibold tracking-tight text-lg leading-snug text-ink">{news.headline}</p>
+        <section className="mt-7 max-w-2xl rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6">
+          <p className="font-semibold tracking-tight text-lg leading-snug text-lxink">{news.headline}</p>
           <ul className="mt-4 space-y-2.5">
             {news.items.map((n, i) => (
               <li
                 key={n.key}
                 className={`flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 ${
-                  i === 0 ? "bg-ink text-paper" : "bg-ink/[0.04] text-ink"
+                  i === 0 ? "border border-[rgba(194,164,107,.55)] bg-white text-lxink" : "bg-lxink/[0.03] text-lxink"
                 }`}
               >
                 <div className="min-w-0">
-                  <p className={`text-[11px] font-semibold uppercase tracking-wider ${i === 0 ? "text-[#EE7C55]" : "text-ink/45"}`}>{n.kind}</p>
+                  <p className={`text-[11px] font-semibold uppercase tracking-wider ${i === 0 ? "text-lxgolddeep" : "text-lxink/45"}`}>{n.kind}</p>
                   <p className="mt-0.5 font-medium">{n.line}</p>
-                  <p className={`text-sm ${i === 0 ? "text-paper/70" : "text-ink/55"}`}>{n.sub}</p>
+                  <p className="text-sm text-lxink/55">{n.sub}</p>
                 </div>
                 <Link
                   href={n.href}
                   className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
-                    i === 0 ? "bg-paper text-ink" : "border border-ink/15 text-ink"
+                    i === 0 ? "border border-lxink text-lxink" : "border border-lxink/15 text-lxink"
                   }`}
                 >
                   {n.cta}
@@ -506,39 +506,39 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </li>
             ))}
           </ul>
-          {news.more > 0 && <p className="mt-3 text-sm text-ink/50">And {news.more} more.</p>}
+          {news.more > 0 && <p className="mt-3 text-sm text-lxink/50">And {news.more} more.</p>}
         </section>
       )}
 
       {priorities.length > 0 && (
         <section className="mt-7 max-w-2xl">
-          <ol className="divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-card">
+          <ol className="divide-y divide-lxink/10 rounded-2xl border border-lxink/10 bg-card">
             {priorities.map((p, i) => (
               <li key={p.key} className="flex items-start gap-4 p-5">
-                <span className={`font-semibold tracking-tight text-xl leading-6 ${i === 0 ? "text-[#BC559E]" : "text-ink/40"}`}>{i + 1}</span>
+                <span className={`font-semibold tracking-tight text-xl leading-6 ${i === 0 ? "text-lxgolddeep" : "text-lxink/40"}`}>{i + 1}</span>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{p.line}</p>
                   {p.action ? (
                     <>
-                      <p className="mt-1 text-sm text-ink/60">{p.sub}</p>
-                      <p className={`mt-1 text-xs ${p.urgent ? "text-[#BC559E]" : "text-ink/50"}`}>{p.open}</p>
-                      <Link href={p.href} className="mt-3 inline-block rounded-[10px] bg-ink px-4 py-2.5 text-sm font-medium text-paper hover:opacity-90">
+                      <p className="mt-1 text-sm text-lxink/60">{p.sub}</p>
+                      <p className={`mt-1 text-xs ${p.urgent ? "text-lxgolddeep" : "text-lxink/50"}`}>{p.open}</p>
+                      <Link href={p.href} className={`mt-3 inline-block rounded-[2px] px-4 py-2.5 text-sm ${i === 0 ? "bg-lxink text-lxbg hover:opacity-90" : "border border-lxink bg-transparent text-lxink hover:bg-lxink/[0.04]"}`}>
                         {p.action}
                       </Link>
                     </>
                   ) : (
-                    <p className="mt-1 text-sm text-ink/60">
-                      <span className={p.urgent ? "text-[#BC559E]" : ""}>{p.sub}</span> ·{" "}
-                      <Link href={p.href} className="text-ink underline underline-offset-4">{p.open}</Link>
+                    <p className="mt-1 text-sm text-lxink/60">
+                      <span className={p.urgent ? "text-lxgolddeep" : ""}>{p.sub}</span> ·{" "}
+                      <Link href={p.href} className="text-lxink underline underline-offset-4">{p.open}</Link>
                     </p>
                   )}
                 </div>
               </li>
             ))}
           </ol>
-          <p className="mt-4 text-sm text-ink/50">
+          <p className="mt-4 text-sm text-lxink/50">
             {more ? "There's a little more below." : "Everything else is on track."}{" "}
-            <a href="#coming-up" className="text-ink underline underline-offset-4">See the week</a>
+            <a href="#coming-up" className="text-lxink underline underline-offset-4">See the week</a>
           </p>
         </section>
       )}
@@ -548,20 +548,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {!complete && (
         <Link
           href="/start-here"
-          className="mt-6 flex items-center justify-between rounded-2xl border border-sage/30 bg-sage/5 p-5 hover:bg-sage/10"
+          className="mt-6 flex items-center justify-between rounded-2xl border border-lxgold/30 bg-lxgold/5 p-5 hover:bg-lxgold/10"
         >
           <div>
             <p className="font-medium">Finish setting up your page</p>
-            <p className="mt-0.5 text-sm text-ink/60">
+            <p className="mt-0.5 text-sm text-lxink/60">
               {done} of {total} steps done
             </p>
           </div>
-          <span className="text-sm text-sage">Start here &rarr;</span>
+          <span className="text-sm text-lxgold">Start here &rarr;</span>
         </Link>
       )}
 
       {sp.nudge && (
-        <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${sp.nudge === "sent" ? "bg-[#EEE9FF] text-sage" : "bg-[#f1f0ee] text-ink"}`}>
+        <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${sp.nudge === "sent" ? "bg-lxlav/50 text-lxgold" : "bg-lxfill text-lxink"}`}>
           {sp.nudge === "sent"
             ? "Sent. It's in their inbox and their thread."
             : sp.nudge === "noemail"
@@ -573,18 +573,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {ready.length > 0 && (
         <section className="mt-6">
           <h2 className="font-serif font-semibold tracking-tight text-xl">Ready to send</h2>
-          <p className="mt-1 text-sm text-ink/60">Client reminders, written in your voice. Nothing goes out until you send it.</p>
+          <p className="mt-1 text-sm text-lxink/60">Client reminders, written in your voice. Nothing goes out until you send it.</p>
           <ul className="mt-3 space-y-3">
             {ready.map((d) => {
               const first = d.clients?.first_name?.trim() || ""
               const thing = missingThing(d.title)
               return (
-                <li key={d.id} className="rounded-2xl border border-ink/10 bg-card p-5">
+                <li key={d.id} className="rounded-2xl border border-lxink/10 bg-card p-5">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <Link href={`/clients/${d.client_id}`} className="font-medium hover:underline">
                       {clientName(d)}
                     </Link>
-                    <span className={`text-sm ${isClose(d.due_on, tz) ? "font-medium text-ink" : "text-ink/60"}`}>
+                    <span className={`text-sm ${isClose(d.due_on, tz) ? "font-medium text-lxink" : "text-lxink/60"}`}>
                       {clientDueLabel(d.due_on, tz)}
                     </span>
                   </div>
@@ -597,32 +597,32 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                         name="body"
                         rows={4}
                         defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, missingDocs: missingByClient.get(d.client_id) ?? 0, phase: d.phase, suite: suiteName((d.clients as unknown as { client_type?: string | null } | null)?.client_type) })}
-                        className="w-full resize-y rounded-xl border border-ink/10 bg-[#f7f6f4] px-4 py-3 text-sm leading-relaxed outline-none focus:border-ink/30"
+                        className="w-full resize-y rounded-xl border border-lxink/10 bg-lxfill px-4 py-3 text-sm leading-relaxed outline-none focus:border-lxink/30"
                       />
                       <div className="flex gap-2">
-                        <button type="submit" className="rounded-[10px] bg-ink px-4 py-2.5 text-sm font-medium text-paper hover:opacity-90">
+                        <button type="submit" className="rounded-[2px] border border-lxink bg-transparent text-lxink hover:bg-lxink/[0.04] px-4 py-2.5 text-sm">
                           Send{agentFirstName ? ` as ${agentFirstName}` : ""}
                         </button>
                         <button
                           type="submit"
                           formAction={skipNudge}
-                          className="rounded-[10px] border border-ink/10 px-4 py-2.5 text-sm hover:bg-ink/5"
+                          className="rounded-[10px] border border-lxink/10 px-4 py-2.5 text-sm hover:bg-lxink/5"
                         >
                           Skip
                         </button>
                       </div>
                     </form>
                   ) : (
-                    <form action={skipNudge} className="mt-3 flex flex-wrap items-center gap-3 text-sm text-ink/60">
+                    <form action={skipNudge} className="mt-3 flex flex-wrap items-center gap-3 text-sm text-lxink/60">
                       <input type="hidden" name="stepId" value={d.id} />
                       <span>
                         Still missing {thing}.{" "}
-                        <Link href={`/clients/${d.client_id}`} className="text-ink underline">
+                        <Link href={`/clients/${d.client_id}`} className="text-lxink underline">
                           Add an email for {first || "them"}
                         </Link>{" "}
                         to send a reminder.
                       </span>
-                      <button type="submit" className="rounded-[10px] border border-ink/10 px-3 py-1.5 hover:bg-ink/5">
+                      <button type="submit" className="rounded-[10px] border border-lxink/10 px-3 py-1.5 hover:bg-lxink/5">
                         Skip
                       </button>
                     </form>
@@ -637,18 +637,18 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {[["Past due", pastDue], ["Coming up", comingUp]].map(([label, list]) => (list as DueStep[]).length > 0 && (
         <section key={label as string} id={label === "Coming up" ? "coming-up" : "past-due"} className="mt-6 scroll-mt-24">
           <h2 className="font-serif font-semibold tracking-tight text-xl">{label as string}</h2>
-          <ul className="mt-3 divide-y divide-ink/10 rounded-2xl border border-ink/10 bg-card">
+          <ul className="mt-3 divide-y divide-lxink/10 rounded-2xl border border-lxink/10 bg-card">
             {(list as DueStep[]).map((d) => (
               <li key={d.id}>
-                <Link href={`/clients/${d.client_id}?step=${d.id}#step-${d.id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-ink/[0.02]">
+                <Link href={`/clients/${d.client_id}?step=${d.id}#step-${d.id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-lxink/[0.02]">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{d.title}</p>
-                    <p className="text-xs text-ink/60">
+                    <p className="text-xs text-lxink/60">
                       {clientName(d)}
                       {toOwner(d.owner) === "client" ? ` · their step` : ""}
                     </p>
                   </div>
-                  <span className={`whitespace-nowrap text-sm ${isClose(d.due_on, tz) ? "font-medium text-ink" : "text-ink/60"}`}>
+                  <span className={`whitespace-nowrap text-sm ${isClose(d.due_on, tz) ? "font-medium text-lxink" : "text-lxink/60"}`}>
                     {agentDueLabel(d.due_on, tz)}
                   </span>
                 </Link>

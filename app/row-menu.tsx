@@ -39,7 +39,7 @@ export default function RowMenu({
         aria-label={`More options for ${label}`}
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-ink/50 hover:bg-ink/5 hover:text-ink"
+        className="flex h-8 w-8 items-center justify-center rounded-lg text-lxink/50 hover:bg-lxink/5 hover:text-lxink"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <circle cx="12" cy="5" r="1.8" />
@@ -58,7 +58,7 @@ export default function RowMenu({
           <input type="hidden" name="id" value={id} />
           <button
             type="submit"
-            className="whitespace-nowrap rounded-lg border border-ink/10 bg-white px-3 py-1.5 text-xs font-medium text-red-700 shadow-sm hover:bg-red-50"
+            className="whitespace-nowrap rounded-lg border border-lxink/10 bg-white px-3 py-1.5 text-xs font-medium text-red-700 shadow-sm hover:bg-red-50"
           >
             Delete
           </button>

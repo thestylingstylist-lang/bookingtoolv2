@@ -20,6 +20,9 @@ const config: Config = {
         lxsage: "#B9C7AE",
         lxlav: "#D9D0E6",
         lxblush: "#EBC4C8",
+        lxgolddeep: "#8C7040",
+        lxhair: "rgba(31,30,28,0.09)",
+        lxfill: "#F2F0ED",
       },
       fontFamily: {
         serif: ['var(--font-geist-sans)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],

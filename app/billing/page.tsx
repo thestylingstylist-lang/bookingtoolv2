@@ -38,26 +38,26 @@ export default async function BillingPage() {
   return (
     <AppShell agent={agent}>
       <main className="mx-auto max-w-xl px-6 py-12 sm:px-10">
-        <h1 className="font-serif font-semibold tracking-tight text-4xl text-ink">Billing</h1>
+        <h1 className="font-serif font-semibold tracking-tight text-4xl text-lxink">Billing</h1>
 
         {paid ? (
-          <div className="mt-8 rounded-2xl border border-[#e6e5e3] bg-white p-8">
-            <p className="text-sm text-[#77757c]">Your plan</p>
-            <p className="mt-1 text-2xl font-semibold text-ink">{current ? `${current.name} · ${current.price}/month` : "Marvberry"}</p>
-            <p className="mt-3 text-[#4f4d53]">Update your card, see receipts, or cancel anytime.</p>
+          <div className="mt-8 rounded-2xl border border-lxhair bg-white p-8">
+            <p className="text-sm text-lxsoft">Your plan</p>
+            <p className="mt-1 text-2xl font-semibold text-lxink">{current ? `${current.name} · ${current.price}/month` : "Marvberry"}</p>
+            <p className="mt-3 text-lxsoft">Update your card, see receipts, or cancel anytime.</p>
             <form action={openBillingPortal} className="mt-6">
-              <button className="rounded-full bg-[#16151a] px-6 py-3 font-medium text-white hover:bg-[#2e2d33]">
+              <button className="rounded-full bg-lxink px-6 py-3 font-medium text-white hover:bg-[#2e2d33]">
                 Manage billing
               </button>
             </form>
           </div>
         ) : (
           <div className="mt-8">
-            <p className="text-[#4f4d53]">
+            <p className="text-lxsoft">
               {ended ? "Your free trial has ended. Keep everything running for $67 a month." : "Keep everything running after your trial, for $67 a month."} Your
               clients, bookings and documents stay right where they are.
             </p>
-            <form action={startCheckout} className="mt-6 flex max-w-md flex-col rounded-2xl bg-[#16151a] p-7 text-[#eeedeb]">
+            <form action={startCheckout} className="mt-6 flex max-w-md flex-col rounded-2xl bg-lxink p-7 text-lxfill">
               <input type="hidden" name="plan" value="agent" />
               <p className="text-sm text-[#d6d4d0]">Marvberry</p>
               <p className="mt-1 text-4xl font-semibold text-white">
@@ -71,11 +71,11 @@ export default async function BillingPage() {
                 <li>Offers built and sent to the listing agent</li>
                 <li>Reminders and offer follow-ups</li>
               </ul>
-              <button className="mt-6 w-full rounded-full bg-white px-6 py-3 font-medium text-[#16151a] hover:bg-[#f4f3f1]">
+              <button className="mt-6 w-full rounded-full bg-white px-6 py-3 font-medium text-lxink hover:bg-lxbg">
                 Continue
               </button>
             </form>
-            <p className="mt-4 max-w-md text-center text-xs text-[#77757c]">Secure checkout by Stripe. Cancel anytime.</p>
+            <p className="mt-4 max-w-md text-center text-xs text-lxsoft">Secure checkout by Stripe. Cancel anytime.</p>
           </div>
         )}
       </main>

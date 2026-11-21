@@ -22,7 +22,7 @@ export default function BookingLink({ slug, compact = false }: { slug: string; c
       <button
         type="button"
         onClick={copy}
-        className="inline-flex items-center gap-2 rounded-lg border border-ink/20 px-4 py-2 text-sm font-medium text-ink/80 transition-colors hover:border-ink/40"
+        className="inline-flex items-center gap-2 rounded-lg border border-lxink/20 px-4 py-2 text-sm font-medium text-lxink/80 transition-colors hover:border-lxink/40"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
         {copied ? "Copied" : "Copy booking link"}
@@ -34,14 +34,14 @@ export default function BookingLink({ slug, compact = false }: { slug: string; c
     <div className="mt-2 flex items-center gap-3">
       <a
         href={`/book/${slug}`}
-        className="min-w-0 truncate font-medium text-brass hover:underline"
+        className="min-w-0 truncate font-medium text-lxink hover:underline"
       >
         {url}
       </a>
       <button
         type="button"
         onClick={copy}
-        className="shrink-0 rounded-lg border border-ink/20 px-3 py-1.5 text-xs text-ink/70 hover:border-ink/40"
+        className="shrink-0 rounded-lg border border-lxink/20 px-3 py-1.5 text-xs text-lxink/70 hover:border-lxink/40"
       >
         {copied ? "Copied" : "Copy"}
       </button>

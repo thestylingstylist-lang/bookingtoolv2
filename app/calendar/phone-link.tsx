@@ -17,8 +17,8 @@ export function CopyButton({ value, label = "Copy", dark = false }: { value: str
       }}
       className={
         dark
-          ? "shrink-0 rounded-[8px] bg-ink px-3 py-1.5 text-xs font-medium text-paper hover:opacity-90"
-          : "text-[13px] text-[#5d5b62] underline underline-offset-4 hover:text-ink"
+          ? "shrink-0 rounded-[2px] border border-lxink bg-transparent text-lxink hover:bg-lxink/[0.04] px-3 py-1.5 text-xs"
+          : "text-[13px] text-lxsoft underline underline-offset-4 hover:text-lxink"
       }
     >
       {copied ? "Copied" : label}

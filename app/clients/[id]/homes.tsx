@@ -48,7 +48,7 @@ function nextMove(h: HomeView, first: string): { line: string; action: string; d
 }
 
 const input =
-  "w-full rounded-xl border border-[#dddcd9] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
+  "w-full rounded-xl border border-lxhair bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/10"
 
 export default function Homes({
   clientId,
@@ -80,11 +80,11 @@ export default function Homes({
   const open = homes.find((h) => h.id === openId) ?? null
 
   return (
-    <section className="border-b border-[#e4e3e0] bg-white px-6 py-5">
+    <section className="border-b border-lxhair bg-white px-6 py-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-[15px] font-semibold">Homes</h2>
         {homes.length > 0 && (
-          <p className="text-[13px] text-[#5d5b62]">
+          <p className="text-[13px] text-lxsoft">
             {active.length} {active.length === 1 ? "home" : "homes"}
             {passed.length > 0 && (
               <>
@@ -99,14 +99,14 @@ export default function Homes({
         )}
       </div>
 
-      <form ref={formRef} action={add} className="mt-3 flex items-center gap-2 rounded-xl border border-[#e4e3e0] bg-white p-1.5 pl-4">
+      <form ref={formRef} action={add} className="mt-3 flex items-center gap-2 rounded-xl border border-lxhair bg-white p-1.5 pl-4">
         <input type="hidden" name="clientId" value={clientId} />
         <input
           name="home"
           placeholder="Paste a Zillow link or an address"
-          className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] outline-none placeholder:text-[#aaa6a0]"
+          className="min-w-0 flex-1 bg-transparent py-1.5 text-[15px] outline-none placeholder:text-[#a5a19a]"
         />
-        <button disabled={adding} className="shrink-0 rounded-lg bg-[#f1f0ee] px-4 py-2 text-sm font-medium disabled:opacity-60">
+        <button disabled={adding} className="shrink-0 rounded-lg bg-lxfill px-4 py-2 text-sm font-medium disabled:opacity-60">
           {adding ? "Adding…" : "Add home"}
         </button>
       </form>
@@ -120,12 +120,12 @@ export default function Homes({
             return (
               <div
                 key={h.id}
-                className={`flex w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-[#e4e3e0] bg-white p-4 ${isPassed ? "opacity-60" : ""}`}
+                className={`flex w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-lxhair bg-white p-4 ${isPassed ? "opacity-60" : ""}`}
               >
                 <button onClick={() => { setStartView("home"); setOpenId(h.id) }} className="text-left">
                   <p className="truncate text-[15.5px] font-semibold">{h.address.split(",")[0]}</p>
-                  <p className="mt-1 line-clamp-2 text-[13.5px] text-[#5d5b62]">
-                    {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-[#BC559E] align-[1px]" />}
+                  <p className="mt-1 line-clamp-2 text-[13.5px] text-lxsoft">
+                    {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-lxink align-[1px]" />}
                     {isPassed ? "Passed." : m.line}
                   </p>
                 </button>
@@ -135,7 +135,7 @@ export default function Homes({
                       setStartView(m.view)
                       setOpenId(h.id)
                     }}
-                    className="mt-3 self-start rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white"
+                    className="mt-3 self-start rounded-[2px] border border-lxink bg-transparent px-4 py-2 text-[13.5px] text-lxink"
                   >
                     {m.action}
                   </button>
@@ -196,9 +196,9 @@ function HomePanel({
 
   return (
     <div className="fixed inset-0 z-[60]">
-      <div onClick={onClose} className="absolute inset-0 bg-[#16151a]/30" />
+      <div onClick={onClose} className="absolute inset-0 bg-lxink/30" />
       <aside className="absolute inset-y-0 right-0 w-full overflow-y-auto bg-white px-6 py-6 shadow-2xl sm:w-[480px] sm:px-8">
-        <button onClick={onClose} aria-label="Close" className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-[#f1f0ee] text-[#5d5b62]">
+        <button onClick={onClose} aria-label="Close" className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-lxfill text-lxsoft">
           &#x2715;
         </button>
 
@@ -216,7 +216,7 @@ function HomePanel({
         ) : (
         <>
         <h3 className="pr-12 font-serif text-[26px] leading-tight">{home.address.split(",")[0]}</h3>
-        <p className="mt-1 text-sm text-[#5d5b62]">
+        <p className="mt-1 text-sm text-lxsoft">
           {home.address.split(",").slice(1).join(",").trim()}
           {home.listingUrl && (
             <>
@@ -229,11 +229,11 @@ function HomePanel({
         </p>
 
         {home.status === "active" && (
-          <div className="mt-5 rounded-2xl border border-[#EBC9E0] bg-[#fdf6f8] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-[#93407A]">Next move</p>
+          <div className="mt-5 rounded-2xl border border-lxgold/50 bg-[#fdf6f8] p-4">
+            <p className="text-[11px] font-semibold uppercase tracking-[.14em] text-lxgolddeep">Next move</p>
             <p className="mt-1.5 text-[15px] leading-relaxed">{m.line}</p>
             {(m.view === "offer" || m.view === "follow") && (
-              <button type="button" onClick={() => setView(m.view)} className="mt-3 rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-white">
+              <button type="button" onClick={() => setView(m.view)} className="mt-3 rounded-full bg-lxink px-4 py-2 text-[13.5px] font-medium text-white">
                 {m.action === "Follow up" ? `Follow up with ${home.agentName.trim().split(/\s+/)[0] || "the listing agent"}` : m.action}
               </button>
             )}
@@ -242,7 +242,7 @@ function HomePanel({
 
         {home.offer && (
           <div className="mt-6">
-            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">The offer</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">The offer</p>
             <p className="text-[14.5px]">
               <b className="font-medium">{home.offer.amount}</b> sent {home.offer.sentLabel}
               {home.agentName ? ` to ${home.agentName}` : ""}
@@ -256,7 +256,7 @@ function HomePanel({
                   disabled={pending}
                   onClick={() => start(() => setOfferStatus(home.offer!.id, st))}
                   className={`rounded-full border px-3 py-1.5 text-[13px] capitalize ${
-                    home.offer!.status === st ? "border-ink bg-ink text-white" : "border-[#dddcd9] text-[#5d5b62]"
+                    home.offer!.status === st ? "border-lxink bg-lxink text-white" : "border-lxhair text-lxsoft"
                   }`}
                 >
                   {st === "sent" ? "Waiting" : st}
@@ -276,16 +276,16 @@ function HomePanel({
           <input type="hidden" name="address" value={home.address} />
 
           <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">Showing</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">Showing</p>
             <div className="grid grid-cols-2 gap-3">
               <input type="date" name="showDate" value={v.showDate} onChange={(e) => set("showDate", e.target.value)} className={input} aria-label="Showing date" />
               <input type="time" name="showTime" value={v.showTime} onChange={(e) => set("showTime", e.target.value)} className={input} aria-label="Showing time" />
             </div>
-            <p className="mt-1.5 text-xs text-[#8e8c93]">It goes on your calendar too.</p>
+            <p className="mt-1.5 text-xs text-[#8f8b84]">It goes on your calendar too.</p>
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">Listing agent</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">Listing agent</p>
             <div className="grid grid-cols-2 gap-3">
               <input name="agentName" value={v.agentName} onChange={(e) => set("agentName", e.target.value)} placeholder="Name" className={input} />
               <input name="agentBrokerage" value={v.agentBrokerage} onChange={(e) => set("agentBrokerage", e.target.value)} placeholder="Brokerage" className={input} />
@@ -296,29 +296,29 @@ function HomePanel({
 
           <div>
             {home.clientNotes && (
-              <div className="mb-4 rounded-xl bg-[#f7f6f4] px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">{clientFirst ? `In ${clientFirst}'s words` : "In their words"}</p>
+              <div className="mb-4 rounded-xl bg-lxfill px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">{clientFirst ? `In ${clientFirst}'s words` : "In their words"}</p>
                 <p className="mt-1 whitespace-pre-wrap text-[14.5px]">{home.clientNotes}</p>
               </div>
             )}
-            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">{clientFirst ? `${clientFirst}'s notes` : "Notes"}</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">{clientFirst ? `${clientFirst}'s notes` : "Notes"}</p>
             <textarea name="notes" rows={3} value={v.notes} onChange={(e) => set("notes", e.target.value)} placeholder="Loved the kitchen. Backyard is small." className={input} />
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8e8c93]">Listing link</p>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">Listing link</p>
             <input name="listingUrl" value={v.listingUrl} onChange={(e) => set("listingUrl", e.target.value)} placeholder="Zillow or listing link" className={input} />
           </div>
 
           <div className="flex items-center gap-3">
-            <button disabled={saving} className="rounded-full bg-ink px-6 py-2.5 text-[15px] font-medium text-white disabled:opacity-60">
+            <button disabled={saving} className="rounded-full bg-lxink px-6 py-2.5 text-[15px] font-medium text-white disabled:opacity-60">
               {saving ? "Saving…" : "Save"}
             </button>
             {state?.message && <span className={`text-sm ${state.ok ? "text-[#1f5b33]" : "text-[#b42318]"}`}>{state.ok ? "✓ " : ""}{state.message}</span>}
           </div>
         </form>
 
-        <div className="mt-8 flex gap-5 border-t border-[#efeeec] pt-5 text-sm text-[#5d5b62]">
+        <div className="mt-8 flex gap-5 border-t border-lxhair pt-5 text-sm text-lxsoft">
           <button
             disabled={pending}
             onClick={() => start(() => setHomeStatus(home.id, home.status === "active" ? "passed" : "active"))}

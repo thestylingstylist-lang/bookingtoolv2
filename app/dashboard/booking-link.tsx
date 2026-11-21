@@ -21,14 +21,14 @@ export default function BookingLink({ slug }: { slug: string }) {
     <div className="mt-2 flex items-center gap-3">
       <a
         href={`/book/${slug}`}
-        className="truncate font-medium text-brass hover:underline"
+        className="truncate font-medium text-lxink hover:underline"
       >
         {url}
       </a>
       <button
         type="button"
         onClick={copy}
-        className="shrink-0 rounded-lg border border-ink/20 px-3 py-1.5 text-xs text-ink/70 hover:border-ink/40"
+        className="shrink-0 rounded-lg border border-lxink/20 px-3 py-1.5 text-xs text-lxink/70 hover:border-lxink/40"
       >
         {copied ? "Copied" : "Copy"}
       </button>

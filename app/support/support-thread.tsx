@@ -16,7 +16,7 @@ function Send() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-[#16151a] px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+      className="rounded-lg bg-lxink px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"
     >
       {pending ? "Sending…" : "Send"}
     </button>
@@ -46,10 +46,10 @@ export default function SupportThread({
   }, [messages.length])
 
   return (
-    <div className={(compact ? "" : "mt-8 ") + "rounded-2xl border border-[#16151a]/10 bg-white"}>
+    <div className={(compact ? "" : "mt-8 ") + "rounded-2xl border border-lxink/10 bg-white"}>
       <div ref={boxRef} className={(compact ? "h-[300px]" : "max-h-[55vh]") + " space-y-3 overflow-y-auto p-5"}>
         {messages.length === 0 && (
-          <p className="py-6 text-center text-sm text-[#16151a]/50">
+          <p className="py-6 text-center text-sm text-lxink/50">
             {compact ? `Questions about your setup? Ask ${teamName} here.` : "No messages yet. Ask us anything — setup, a client, a bug, an idea."}
           </p>
         )}
@@ -58,27 +58,27 @@ export default function SupportThread({
             <div
               className={
                 "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed " +
-                (m.from_team ? "bg-[#f4f3f1] text-[#16151a]" : "bg-[#16151a] text-white")
+                (m.from_team ? "bg-lxbg text-lxink" : "bg-lxink text-white")
               }
             >
-              {m.from_team && <p className="mb-0.5 text-xs font-semibold text-[#16151a]/55">{teamName}</p>}
+              {m.from_team && <p className="mb-0.5 text-xs font-semibold text-lxink/55">{teamName}</p>}
               <p className="whitespace-pre-wrap">{m.body}</p>
-              <p className={"mt-1 text-[11px] " + (m.from_team ? "text-[#16151a]/40" : "text-white/55")}>{when(m.created_at)}</p>
+              <p className={"mt-1 text-[11px] " + (m.from_team ? "text-lxink/40" : "text-white/55")}>{when(m.created_at)}</p>
             </div>
           </div>
         ))}
       </div>
-      <form ref={formRef} action={action} className="border-t border-[#16151a]/10 p-4">
+      <form ref={formRef} action={action} className="border-t border-lxink/10 p-4">
         <textarea
           name="body"
           rows={compact ? 2 : 3}
           maxLength={4000}
           required
           placeholder="Type your message…"
-          className="w-full resize-none rounded-lg border border-[#16151a]/15 px-3 py-2 text-sm outline-none focus:border-[#16151a]/40"
+          className="w-full resize-none rounded-lg border border-lxink/15 px-3 py-2 text-sm outline-none focus:border-lxink/40"
         />
         <div className="mt-2 flex items-center justify-between gap-3">
-          <p className={"text-sm " + (state?.ok ? "text-[#16151a]/60" : "text-[#b42318]")}>{state?.message ?? ""}</p>
+          <p className={"text-sm " + (state?.ok ? "text-lxink/60" : "text-[#b42318]")}>{state?.message ?? ""}</p>
           <Send />
         </div>
       </form>

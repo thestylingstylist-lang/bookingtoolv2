@@ -36,7 +36,7 @@ export default function PdfUpload() {
         type="button"
         disabled={busy}
         onClick={() => input.current?.click()}
-        className="rounded-lg border border-ink/15 bg-white px-5 py-2.5 text-sm font-medium transition-colors hover:bg-ink/5 disabled:opacity-60"
+        className="rounded-lg border border-lxink/15 bg-white px-5 py-2.5 text-sm font-medium transition-colors hover:bg-lxink/5 disabled:opacity-60"
       >
         {busy ? "Uploading…" : "Upload a PDF form"}
       </button>

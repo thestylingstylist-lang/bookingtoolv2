@@ -1,3 +1,4 @@
+import Wordmark from "../wordmark"
 import Link from "next/link"
 import ForgotForm from "./forgot-form"
 import AuthFooter from "@/app/auth-footer"
@@ -9,12 +10,12 @@ export default async function ForgotPasswordPage({
 }) {
   const { error } = await searchParams
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
+    <main className="mb-app mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
       <header className="mb-8">
-        <img src="/marvberry-wordmark.png" alt="Marvberry" width={130} height={26} className="mb-8 h-[26px] w-auto" />
-        <p className="text-sm font-medium tracking-wide text-sage">Agent access</p>
+        <Wordmark size={28} className="mb-8" />
+        <p className="text-sm font-medium tracking-wide text-lxgold">Agent access</p>
         <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Reset your password</h1>
-        <p className="mt-2 text-sm text-ink/60">
+        <p className="mt-2 text-sm text-lxink/60">
           Enter the email you signed up with and we&rsquo;ll send you a link.
         </p>
       </header>
@@ -24,9 +25,9 @@ export default async function ForgotPasswordPage({
         </p>
       )}
       <ForgotForm />
-      <p className="mt-6 text-center text-sm text-ink/60">
+      <p className="mt-6 text-center text-sm text-lxink/60">
         Remembered it?{" "}
-        <Link href="/login" className="font-medium text-brass hover:underline">
+        <Link href="/login" className="font-medium text-lxink hover:underline">
           Sign in
         </Link>
       </p>

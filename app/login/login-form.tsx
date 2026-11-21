@@ -4,8 +4,8 @@ import { useActionState, useState } from "react"
 import { signIn } from "./actions"
 
 const field =
-  "w-full rounded-xl border border-[#e4e3e0] bg-white px-4 py-3 text-base text-[#16151a] outline-none transition-colors focus:border-[#b89250] focus:ring-2 focus:ring-[#b89250]/15"
-const label = "mb-1.5 block text-[13px] text-[#8e8c93]"
+  "w-full rounded-xl border border-lxhair bg-white px-4 py-3 text-base text-lxink outline-none transition-colors focus:border-[#b89250] focus:ring-2 focus:ring-lxgold/15"
+const label = "mb-1.5 block text-[13px] text-[#8f8b84]"
 
 export default function LoginForm({ team = false }: { team?: boolean }) {
   const [state, formAction, pending] = useActionState(signIn, null)
@@ -40,7 +40,7 @@ export default function LoginForm({ team = false }: { team?: boolean }) {
           type="button"
           onClick={() => setShow((s) => !s)}
           aria-label={show ? "Hide password" : "Show password"}
-          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8e8c93] hover:text-[#16151a]"
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8f8b84] hover:text-lxink"
         >
           {show ? (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -65,17 +65,17 @@ export default function LoginForm({ team = false }: { team?: boolean }) {
       <button
         type="submit"
         disabled={pending}
-        className="!mt-7 w-full rounded-xl bg-[#16151a] px-6 py-3.5 text-[15px] font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
+        className="!mt-7 w-full rounded-xl bg-lxink px-6 py-3.5 text-[15px] font-medium text-white transition-opacity hover:opacity-85 disabled:opacity-50"
       >
         {pending ? "Logging in\u2026" : "Log in"}
       </button>
-      <div className="space-y-2.5 pt-1 text-center text-sm text-[#8e8c93]">
-        <a href="/forgot-password" className="block underline underline-offset-4 hover:text-[#16151a]">
+      <div className="space-y-2.5 pt-1 text-center text-sm text-[#8f8b84]">
+        <a href="/forgot-password" className="block underline underline-offset-4 hover:text-lxink">
           Forgot your password?
         </a>
         <p>
           No account yet?{" "}
-          <a href="/signup" className="text-[#16151a] underline underline-offset-4">
+          <a href="/signup" className="text-lxink underline underline-offset-4">
             Create one
           </a>
         </p>

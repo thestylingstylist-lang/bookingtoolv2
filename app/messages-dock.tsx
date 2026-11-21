@@ -10,7 +10,7 @@ import { loadInbox, loadThread, sendFromDock, clientFirstName, type InboxRow, ty
 // between pages never closes the chat, resets it or clears an unsent message.
 // Wide screens: the panel pushes the page over. Below 1200px it covers the page.
 
-const AGENT_PATHS = ["/dashboard", "/clients", "/calendar", "/bookings", "/templates", "/settings", "/start-here", "/billing"]
+const AGENT_PATHS = ["/dashboard", "/clients", "/calendar", "/bookings", "/templates", "/settings", "/start-here", "/billing", "/my-card", "/support"]
 const KEY = "mb-dock"
 const TINTS = ["#D6E6EC", "#B9C7AE", "#D9D0E6", "#EBC4C8"]
 const tint = (s: string) => TINTS[[...s].reduce((n, c) => n + c.charCodeAt(0), 0) % TINTS.length]

@@ -28,11 +28,11 @@ export default function SignupForm() {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-xl bg-ox px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-xl bg-lxink px-6 py-3 font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Creating your account\u2026" : "Get started free"}
       </button>
-      <p className="text-center text-xs text-ink/50">No credit card required.</p>
+      <p className="text-center text-xs text-lxink/50">No credit card required.</p>
     </form>
   )
 }
@@ -45,13 +45,13 @@ function Field({
 }: { label: string; name: string; hint?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm text-ink/70">{label}</span>
+      <span className="mb-1.5 block text-sm text-lxink/70">{label}</span>
       <input
         name={name}
         {...rest}
-        className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
+        className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/20"
       />
-      {hint && <span className="mt-1 block text-xs text-ink/40">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-lxink/40">{hint}</span>}
     </label>
   )
 }

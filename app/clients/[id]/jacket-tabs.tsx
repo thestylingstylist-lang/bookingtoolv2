@@ -90,30 +90,30 @@ export default function JacketTabs({
   return (
     <>
       <div className="grid min-h-0 flex-1 grid-cols-1 pb-16 lg:grid-cols-[minmax(0,1fr)_300px] lg:pb-0">
-        <div className={`flex-col bg-[#f1f0ee] px-5 py-6 lg:hidden ${show("tasks") || "flex"}`}>{tasks}</div>
-        <div className={`flex-col bg-[#f1f0ee] px-5 py-6 lg:hidden ${show("documents") || "flex"}`}>{documents}</div>
+        <div className={`flex-col bg-lxfill px-5 py-6 lg:hidden ${show("tasks") || "flex"}`}>{tasks}</div>
+        <div className={`flex-col bg-lxfill px-5 py-6 lg:hidden ${show("documents") || "flex"}`}>{documents}</div>
         <section className={`min-h-[70vh] flex-col bg-white lg:min-h-0 ${show("messages") || "flex"}`}>
           <button
             type="button"
             onClick={() => setSteps(true)}
             className={`hidden items-center gap-3 border-b px-6 py-3 text-left text-sm lg:flex ${
-              late ? "border-[#EBC9E0] bg-[#FBEDF5] hover:bg-[#F7E4F0]" : "border-[#e4e3e0] hover:bg-[#fafaf9]"
+              late ? "border-lxgold/50 bg-white hover:bg-white" : "border-lxhair hover:bg-[#fafaf9]"
             }`}
           >
-            {late > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-[#BC559E]" aria-hidden />}
+            {late > 0 && <span className="h-2 w-2 shrink-0 rounded-full bg-lxink" aria-hidden />}
             <span className="font-semibold">Steps &amp; documents</span>
             {late > 0 && (
-              <span className="shrink-0 font-semibold text-[#93407A]">
+              <span className="shrink-0 font-semibold text-lxgolddeep">
                 {late} {late === 1 ? "step" : "steps"} overdue
               </span>
             )}
-            {summary && <span className="min-w-0 flex-1 truncate text-[#5d5b62]">{summary}</span>}
-            <span className={`ml-auto shrink-0 ${late ? "font-medium text-[#93407A]" : "text-[#5d5b62]"}`}>Open &rsaquo;</span>
+            {summary && <span className="min-w-0 flex-1 truncate text-lxsoft">{summary}</span>}
+            <span className={`ml-auto shrink-0 ${late ? "font-medium text-lxgolddeep" : "text-lxsoft"}`}>Open &rsaquo;</span>
           </button>
           {messages}
         </section>
         <aside
-          className={`flex-col border-[#e4e3e0] bg-white px-5 py-6 lg:overflow-y-auto lg:border-l ${show("client") || "flex"}`}
+          className={`flex-col border-lxhair bg-white px-5 py-6 lg:overflow-y-auto lg:border-l ${show("client") || "flex"}`}
         >
           {client}
         </aside>
@@ -121,13 +121,13 @@ export default function JacketTabs({
 
       {steps && typeof document !== "undefined" && createPortal(
         <div className="fixed inset-0 z-[60] hidden lg:block">
-          <div onClick={() => setSteps(false)} className="absolute inset-0 bg-[#16151a]/30" />
-          <aside className="absolute inset-y-0 left-0 block w-[480px] max-w-[90vw] overflow-y-auto overscroll-contain bg-[#f1f0ee] px-6 py-6 shadow-2xl">
+          <div onClick={() => setSteps(false)} className="absolute inset-0 bg-lxink/30" />
+          <aside className="absolute inset-y-0 left-0 block w-[480px] max-w-[90vw] overflow-y-auto overscroll-contain bg-lxfill px-6 py-6 shadow-2xl">
             <button
               type="button"
               onClick={() => setSteps(false)}
               aria-label="Close"
-              className="mb-3 ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-[#5d5b62]"
+              className="mb-3 ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-lxsoft"
             >
               &#x2715;
             </button>
@@ -138,7 +138,7 @@ export default function JacketTabs({
         document.body,
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-[#e4e3e0] bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-lxhair bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
         {TABS.map((t) => {
           const on = tab === t.id
           return (
@@ -151,7 +151,7 @@ export default function JacketTabs({
               }}
               className={
                 "flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors " +
-                (on ? "text-[#16151a]" : "text-[#5d5b62]")
+                (on ? "text-lxink" : "text-lxsoft")
               }
               aria-current={on ? "page" : undefined}
             >

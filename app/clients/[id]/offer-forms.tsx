@@ -17,8 +17,8 @@ export type OfferView = {
 }
 
 const input =
-  "w-full rounded-xl border border-[#dddcd9] bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-ink focus:ring-2 focus:ring-ink/10"
-const label = "mb-1.5 block text-[12.5px] text-[#5d5b62]"
+  "w-full rounded-xl border border-lxhair bg-white px-3.5 py-2.5 text-[15px] outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/10"
+const label = "mb-1.5 block text-[12.5px] text-lxsoft"
 const section = "mb-3 flex items-baseline gap-2.5"
 const FIN = ["Conventional", "FHA", "VA", "Cash"]
 const CONT = ["Inspection", "Appraisal", "Mortgage", "Home sale"]
@@ -71,13 +71,13 @@ export function OfferForm({
 
   return (
     <form action={send}>
-      <button type="button" onClick={onBack} className="mb-4 text-sm text-[#5d5b62]">&larr; {street}</button>
+      <button type="button" onClick={onBack} className="mb-4 text-sm text-lxsoft">&larr; {street}</button>
       <h3 className="font-serif text-[26px] leading-tight">Make an offer</h3>
-      <p className="mt-1 text-sm text-[#5d5b62]">On {street}. It goes to the listing agent from you, and their reply comes to your email.</p>
+      <p className="mt-1 text-sm text-lxsoft">On {street}. It goes to the listing agent from you, and their reply comes to your email.</p>
       <input type="hidden" name="homeId" value={home.id} />
 
-      <div className="mt-6 rounded-2xl border border-[#e4e3e0] p-5">
-        <div className={section}><b className="font-serif font-normal text-[#BC559E]">01</b><p className="text-[15px] font-semibold">Listing agent</p></div>
+      <div className="mt-6 rounded-2xl border border-lxhair p-5">
+        <div className={section}><b className="font-serif font-normal text-lxgolddeep">01</b><p className="text-[15px] font-semibold">Listing agent</p></div>
         <div className="grid grid-cols-2 gap-3">
           <input name="agentName" value={f.agentName} onChange={(e) => set("agentName", e.target.value)} placeholder="Name" className={input} />
           <input name="agentBrokerage" value={f.agentBrokerage} onChange={(e) => set("agentBrokerage", e.target.value)} placeholder="Brokerage" className={input} />
@@ -86,10 +86,10 @@ export function OfferForm({
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-[#e4e3e0] p-5">
-        <div className={section}><b className="font-serif font-normal text-[#BC559E]">02</b><p className="text-[15px] font-semibold">The offer</p></div>
+      <div className="mt-4 rounded-2xl border border-lxhair p-5">
+        <div className={section}><b className="font-serif font-normal text-lxgolddeep">02</b><p className="text-[15px] font-semibold">The offer</p></div>
         {clientFull && (
-          <p className="mb-4 flex justify-between rounded-xl bg-[#f4f3f1] px-3.5 py-2.5 text-[14px]"><span className="text-[#8e8c93]">Buyer</span>{clientFull}</p>
+          <p className="mb-4 flex justify-between rounded-xl bg-lxbg px-3.5 py-2.5 text-[14px]"><span className="text-[#8f8b84]">Buyer</span>{clientFull}</p>
         )}
         <div className="grid grid-cols-2 gap-3">
           <label><span className={label}>Offer price</span><input name="amount" inputMode="numeric" value={f.amount} onChange={(e) => set("amount", money(e.target.value))} placeholder="$545,000" className={input} /></label>
@@ -106,7 +106,7 @@ export function OfferForm({
         <div className="flex flex-wrap gap-2">
           {FIN.map((x) => (
             <button type="button" key={x} onClick={() => set("financing", x)}
-              className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${f.financing === x ? "border-ink bg-ink text-white" : "border-[#dddcd9] text-[#5d5b62]"}`}>{x}</button>
+              className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${f.financing === x ? "border-lxink bg-lxink text-white" : "border-lxhair text-lxsoft"}`}>{x}</button>
           ))}
         </div>
         <input type="hidden" name="financing" value={f.financing} />
@@ -116,22 +116,22 @@ export function OfferForm({
             const on = cont.includes(x)
             return (
               <button type="button" key={x} onClick={() => setCont((c) => (on ? c.filter((y) => y !== x) : [...c, x]))}
-                className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${on ? "border-ink bg-ink text-white" : "border-[#dddcd9] text-[#5d5b62]"}`}>{x}</button>
+                className={`rounded-full border px-3.5 py-1.5 text-[13.5px] ${on ? "border-lxink bg-lxink text-white" : "border-lxhair text-lxsoft"}`}>{x}</button>
             )
           })}
         </div>
         {cont.map((c) => <input key={c} type="hidden" name="contingency" value={c} />)}
       </div>
 
-      <div className="mt-4 rounded-2xl border border-[#e4e3e0] p-5">
-        <div className={section}><b className="font-serif font-normal text-[#BC559E]">03</b><p className="text-[15px] font-semibold">What goes with it</p></div>
+      <div className="mt-4 rounded-2xl border border-lxhair p-5">
+        <div className={section}><b className="font-serif font-normal text-lxgolddeep">03</b><p className="text-[15px] font-semibold">What goes with it</p></div>
         {docs.length === 0 ? (
-          <p className="text-[14px] text-[#5d5b62]">No documents from {clientFull.split(" ")[0] || "your client"} yet. When they upload a pre-approval or proof of funds, it shows up here to attach.</p>
+          <p className="text-[14px] text-lxsoft">No documents from {clientFull.split(" ")[0] || "your client"} yet. When they upload a pre-approval or proof of funds, it shows up here to attach.</p>
         ) : (
           docs.map((d) => {
             const on = picked.includes(d.id)
             return (
-              <label key={d.id} className="flex items-center gap-3 border-t border-[#efeeec] py-2.5 text-[14.5px] first:border-0">
+              <label key={d.id} className="flex items-center gap-3 border-t border-lxhair py-2.5 text-[14.5px] first:border-0">
                 <input type="checkbox" name="doc" value={d.id} checked={on} onChange={() => setPicked((p) => (on ? p.filter((y) => y !== d.id) : [...p, d.id]))} className="h-4 w-4 accent-[#6E56CF]" />
                 {d.title}
               </label>
@@ -139,7 +139,7 @@ export function OfferForm({
           })
         )}
         {forms.length > 0 ? (
-          <div className="mt-4 border-t border-[#efeeec] pt-4">
+          <div className="mt-4 border-t border-lxhair pt-4">
             <p className={label}>Your offer form</p>
             <select name="pdfForm" value={formId} onChange={(e) => setFormId(e.target.value)} className={input}>
               {forms.map((x) => (
@@ -157,10 +157,10 @@ export function OfferForm({
                 ))}
               </div>
             )}
-            {form && <p className="mt-2 text-[12.5px] text-[#8e8c93]">Filled in with this offer and attached as a PDF, in your brokerage&rsquo;s own layout.</p>}
+            {form && <p className="mt-2 text-[12.5px] text-[#8f8b84]">Filled in with this offer and attached as a PDF, in your brokerage&rsquo;s own layout.</p>}
           </div>
         ) : (
-          <p className="mt-3 text-[12.5px] text-[#8e8c93]">Want your brokerage&rsquo;s own offer form attached? Upload it under Templates, and Marvberry fills it in for every offer.</p>
+          <p className="mt-3 text-[12.5px] text-[#8f8b84]">Want your brokerage&rsquo;s own offer form attached? Upload it under Templates, and Marvberry fills it in for every offer.</p>
         )}
       </div>
 
@@ -170,12 +170,12 @@ export function OfferForm({
       </div>
 
       <div className="mt-5 flex items-center gap-3">
-        <button disabled={sending} className="rounded-full bg-ink px-6 py-3 text-[15px] font-medium text-white disabled:opacity-60">
+        <button disabled={sending} className="rounded-full bg-lxink px-6 py-3 text-[15px] font-medium text-white disabled:opacity-60">
           {sending ? "Sending…" : `Send offer${f.amount ? ` of ${f.amount}` : ""}`}
         </button>
         {state && !state.ok && <span className="text-sm text-[#b42318]">{state.message}</span>}
       </div>
-      <p className="mt-3 text-[12.5px] leading-relaxed text-[#8e8c93]">Goes out in your name with your signature. The reply comes straight to your email, and the offer shows on this home.</p>
+      <p className="mt-3 text-[12.5px] leading-relaxed text-[#8f8b84]">Goes out in your name with your signature. The reply comes straight to your email, and the offer shows on this home.</p>
     </form>
   )
 }
@@ -205,15 +205,15 @@ export function FollowUpForm({
   )
   return (
     <form action={send}>
-      <button type="button" onClick={onBack} className="mb-4 text-sm text-[#5d5b62]">&larr; {street}</button>
+      <button type="button" onClick={onBack} className="mb-4 text-sm text-lxsoft">&larr; {street}</button>
       <h3 className="font-serif text-[26px] leading-tight">Follow up with {first}</h3>
-      <p className="mt-1 text-sm text-[#5d5b62]">Your offer of {offer.amount}{offer.goodLabel ? ` · good until ${offer.goodLabel}` : ""}</p>
+      <p className="mt-1 text-sm text-lxsoft">Your offer of {offer.amount}{offer.goodLabel ? ` · good until ${offer.goodLabel}` : ""}</p>
       <input type="hidden" name="offerId" value={offer.id} />
       <p className={`${label} mt-6`}>Message</p>
       <textarea name="message" rows={8} value={message} onChange={(e) => setMessage(e.target.value)} className={input} />
-      <p className="mt-2 text-[12.5px] text-[#8e8c93]">Written for you. Change anything before you send. The offer terms go with it.</p>
+      <p className="mt-2 text-[12.5px] text-[#8f8b84]">Written for you. Change anything before you send. The offer terms go with it.</p>
       <div className="mt-5 flex items-center gap-3">
-        <button disabled={sending} className="rounded-full bg-ink px-6 py-3 text-[15px] font-medium text-white disabled:opacity-60">
+        <button disabled={sending} className="rounded-full bg-lxink px-6 py-3 text-[15px] font-medium text-white disabled:opacity-60">
           {sending ? "Sending…" : "Send"}
         </button>
         {state && !state.ok && <span className="text-sm text-[#b42318]">{state.message}</span>}

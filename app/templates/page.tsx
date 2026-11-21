@@ -49,7 +49,7 @@ export default async function TemplatesPage({
       <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium tracking-wide text-sage">
+            <p className="text-sm font-medium tracking-wide text-lxgold">
               Templates
             </p>
             <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your documents</h1>
@@ -58,7 +58,7 @@ export default async function TemplatesPage({
             <PdfUpload />
             <Link
               href="/templates/new"
-              className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+              className="rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90"
             >
               New template
             </Link>
@@ -72,23 +72,23 @@ export default async function TemplatesPage({
         )}
 
         {templates.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
+          <div className="mt-8 rounded-2xl border border-lxink/10 bg-card p-10 text-center">
             <h2 className="font-serif font-semibold tracking-tight text-xl">No templates yet.</h2>
-            <p className="mt-2 text-ink/60">
+            <p className="mt-2 text-lxink/60">
               Set up a document once with your own wording, then send it to any
               client in seconds.
             </p>
           </div>
         ) : (
-          <div className="mt-8 divide-y divide-ink/5 overflow-hidden rounded-2xl border border-ink/10 bg-card">
+          <div className="mt-8 divide-y divide-lxink/5 overflow-hidden rounded-2xl border border-lxink/10 bg-card">
             {templates.map((t) => (
               <Link
                 key={t.id}
                 href={`/templates/edit?id=${t.id}`}
-                className="flex items-center justify-between px-5 py-4 hover:bg-ink/5"
+                className="flex items-center justify-between px-5 py-4 hover:bg-lxink/5"
               >
                 <span className="font-medium">{t.title}</span>
-                <span className="text-sm text-ink/40">Edit</span>
+                <span className="text-sm text-lxink/40">Edit</span>
               </Link>
             ))}
           </div>
@@ -97,12 +97,12 @@ export default async function TemplatesPage({
         {pdfs.length > 0 && (
           <section className="mt-10">
             <h2 className="font-semibold tracking-tight text-lg">Your PDF forms</h2>
-            <p className="mt-1 text-sm text-ink/55">Your own forms, with your logo and layout. Marvberry fills in the blanks.</p>
-            <div className="mt-4 divide-y divide-ink/5 overflow-hidden rounded-2xl border border-ink/10 bg-card">
+            <p className="mt-1 text-sm text-lxink/55">Your own forms, with your logo and layout. Marvberry fills in the blanks.</p>
+            <div className="mt-4 divide-y divide-lxink/5 overflow-hidden rounded-2xl border border-lxink/10 bg-card">
               {pdfs.map((t) => (
-                <Link key={t.id} href={`/templates/pdf/${t.id}`} className="flex items-center justify-between px-5 py-4 hover:bg-ink/5">
+                <Link key={t.id} href={`/templates/pdf/${t.id}`} className="flex items-center justify-between px-5 py-4 hover:bg-lxink/5">
                   <span className="font-medium">{t.title}</span>
-                  <span className="text-sm text-ink/40">
+                  <span className="text-sm text-lxink/40">
                     {Array.isArray(t.fields) && t.fields.length ? `${t.fields.length} blanks · Edit` : "Place the blanks"}
                   </span>
                 </Link>

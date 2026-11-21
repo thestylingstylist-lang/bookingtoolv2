@@ -26,7 +26,7 @@ export default async function NewTemplatePage() {
   return (
     <AppShell agent={agent}>
       <main className="mx-auto max-w-3xl px-6 py-12">
-        <Link href="/templates" className="text-sm text-ink/50 hover:text-ink">
+        <Link href="/templates" className="text-sm text-lxink/50 hover:text-lxink">
           &larr; Templates
         </Link>
         <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">New template</h1>

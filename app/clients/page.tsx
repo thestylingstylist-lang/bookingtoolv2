@@ -44,26 +44,26 @@ export default async function ClientsPage({
   const clients = (data ?? []) as Client[]
 
   const inputClass =
-    "w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm outline-none focus:border-sage"
+    "w-full rounded-lg border border-lxink/15 bg-white px-3 py-2 text-sm outline-none focus:border-lxgold"
 
   return (
     <AppShell agent={agent}>
       <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-        <p className="text-sm font-medium tracking-wide text-sage">Clients</p>
+        <p className="text-sm font-medium tracking-wide text-lxgold">Clients</p>
         <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your people</h1>
 
         {params.added && (
-          <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+          <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
             Client added.
           </p>
         )}
         {params.updated && (
-          <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+          <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
             Client updated.
           </p>
         )}
         {params.deleted && (
-          <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+          <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
             Client deleted.
           </p>
         )}
@@ -86,34 +86,34 @@ export default async function ClientsPage({
         {/* Add a client */}
         <form
           action={addClient}
-          className="mt-8 rounded-2xl border border-ink/10 bg-card p-6"
+          className="mt-8 rounded-2xl border border-lxink/10 bg-card p-6"
         >
           <h2 className="font-serif font-semibold tracking-tight text-xl">Add a client</h2>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm text-ink/60">First name</label>
+              <label className="mb-1 block text-sm text-lxink/60">First name</label>
               <input name="firstName" className={inputClass} />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-ink/60">Last name</label>
+              <label className="mb-1 block text-sm text-lxink/60">Last name</label>
               <input name="lastName" className={inputClass} />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-ink/60">Email</label>
+              <label className="mb-1 block text-sm text-lxink/60">Email</label>
               <input name="email" type="email" className={inputClass} />
             </div>
             <div>
-              <label className="mb-1 block text-sm text-ink/60">Phone</label>
+              <label className="mb-1 block text-sm text-lxink/60">Phone</label>
               <input name="phone" className={inputClass} />
             </div>
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-sm text-ink/60">Address</label>
+              <label className="mb-1 block text-sm text-lxink/60">Address</label>
               <input name="address" className={inputClass} />
             </div>
           </div>
           <button
             type="submit"
-            className="mt-5 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+            className="mt-5 rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90"
           >
             Add client
           </button>
@@ -121,16 +121,16 @@ export default async function ClientsPage({
 
         {/* List */}
         {clients.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
+          <div className="mt-8 rounded-2xl border border-lxink/10 bg-card p-10 text-center">
             <h2 className="font-serif font-semibold tracking-tight text-xl">No clients yet.</h2>
-            <p className="mt-2 text-ink/60">
+            <p className="mt-2 text-lxink/60">
               Add your first client above, and they&rsquo;ll appear here.
             </p>
           </div>
         ) : (
-          <div className="mt-8 rounded-2xl border border-ink/10 bg-card">
+          <div className="mt-8 rounded-2xl border border-lxink/10 bg-card">
             <table className="stack-sm w-full text-left text-sm">
-              <thead className="border-b border-ink/10 text-ink/50">
+              <thead className="border-b border-lxink/10 text-lxink/50">
                 <tr>
                   <th className="px-5 py-3 font-medium">Name</th>
                   <th className="px-5 py-3 font-medium">Contact</th>

@@ -45,9 +45,9 @@ export default function SendDocument({
       const v = (AUTO_FILL[key] !== undefined ? auto[key] : valueOf(key))?.trim() ?? ""
       parts.push(
         v ? (
-          <mark key={i++} className="rounded bg-[#FBEDF5] px-1 text-[#16151a]">{v}</mark>
+          <mark key={i++} className="rounded bg-white px-1 text-lxink">{v}</mark>
         ) : (
-          <mark key={i++} className="rounded bg-[#F7E4F0] px-1 italic text-[#A8478B]">
+          <mark key={i++} className="rounded bg-white px-1 italic text-lxgolddeep">
             {m[1].trim()} not on file
           </mark>
         )
@@ -61,14 +61,14 @@ export default function SendDocument({
   const guessKind = /disclos/i.test(template?.title ?? "") ? "disclosure" : "agreement"
 
   const inputClass =
-    "w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm outline-none focus:border-sage"
+    "w-full rounded-lg border border-lxink/15 bg-white px-3 py-2 text-sm outline-none focus:border-lxgold"
 
   if (!open) {
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-ink/20 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-ox hover:text-paper"
+        className="rounded-lg border border-lxink/20 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-lxink hover:text-lxbg"
       >
         Send a document
       </button>
@@ -77,9 +77,9 @@ export default function SendDocument({
 
   if (templates.length === 0) {
     return (
-      <div className="w-full rounded-xl border border-ink/10 bg-white p-4 text-sm">
-        <p className="text-ink/70">You don&rsquo;t have a template yet.</p>
-        <Link href="/templates/new" className="mt-2 inline-block text-sage underline">
+      <div className="w-full rounded-xl border border-lxink/10 bg-white p-4 text-sm">
+        <p className="text-lxink/70">You don&rsquo;t have a template yet.</p>
+        <Link href="/templates/new" className="mt-2 inline-block text-lxgold underline">
           Create your agreement template
         </Link>
       </div>
@@ -87,7 +87,7 @@ export default function SendDocument({
   }
 
   return (
-    <form action={sendDocument} className="w-full rounded-xl border border-ink/10 bg-white p-5">
+    <form action={sendDocument} className="w-full rounded-xl border border-lxink/10 bg-white p-5">
       <input type="hidden" name="clientId" value={clientId} />
       <div className="flex items-center justify-between">
         <h3 className="font-serif font-semibold tracking-tight text-lg">Send a document</h3>
@@ -97,14 +97,14 @@ export default function SendDocument({
             setOpen(false)
             setReviewing(false)
           }}
-          className="text-sm text-ink/50 hover:text-ink"
+          className="text-sm text-lxink/50 hover:text-lxink"
         >
           Cancel
         </button>
       </div>
 
       <div className={reviewing ? "hidden" : ""}>
-      <label className="mb-1 mt-4 block text-sm text-ink/60">Template</label>
+      <label className="mb-1 mt-4 block text-sm text-lxink/60">Template</label>
       <select
         name="templateId"
         value={templateId}
@@ -118,7 +118,7 @@ export default function SendDocument({
         ))}
       </select>
 
-      <label className="mb-1 mt-4 block text-sm text-ink/60">Type</label>
+      <label className="mb-1 mt-4 block text-sm text-lxink/60">Type</label>
       <select key={templateId} name="kind" defaultValue={guessKind} className={inputClass}>
         <option value="agreement">Agreement</option>
         <option value="disclosure">Disclosure</option>
@@ -126,11 +126,11 @@ export default function SendDocument({
 
       {deals.length > 0 && (
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-wide text-brass">Fill in for this client</p>
+          <p className="text-xs uppercase tracking-wide text-lxink">Fill in for this client</p>
           <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {deals.map((p) => (
               <div key={templateId + p.key}>
-                <label className="mb-1 block text-sm text-ink/60">{p.label}</label>
+                <label className="mb-1 block text-sm text-lxink/60">{p.label}</label>
                 <input
                   name={`blank:${p.key}`}
                   required
@@ -147,37 +147,37 @@ export default function SendDocument({
 
       {!reviewing ? (
         <>
-          <p className="mt-4 text-xs text-ink/50">
+          <p className="mt-4 text-xs text-lxink/50">
             Names, address, and today&rsquo;s date fill in automatically.
           </p>
           <button
             type="button"
             disabled={!ready}
             onClick={() => setReviewing(true)}
-            className="mt-4 rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="mt-4 rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             Review before sending
           </button>
         </>
       ) : (
         <>
-          <p className="mt-6 font-semibold tracking-tight text-[17px] text-[#16151a]">
+          <p className="mt-6 font-semibold tracking-tight text-[17px] text-lxink">
             Here&rsquo;s exactly what your client will see.
           </p>
-          <article className="mt-3 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-[#e6e5e3] bg-white p-6 font-[Georgia,serif] text-[15px] leading-relaxed text-[#4f4d53]">
+          <article className="mt-3 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-lxhair bg-white p-6 font-[Georgia,serif] text-[15px] leading-relaxed text-lxsoft">
             {preview}
           </article>
           <div className="mt-4 flex items-center gap-4">
             <button
               type="submit"
-              className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+              className="rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90"
             >
               Send for signature
             </button>
             <button
               type="button"
               onClick={() => setReviewing(false)}
-              className="text-sm text-ink/60 underline underline-offset-2 hover:text-ink"
+              className="text-sm text-lxink/60 underline underline-offset-2 hover:text-lxink"
             >
               Make a change
             </button>

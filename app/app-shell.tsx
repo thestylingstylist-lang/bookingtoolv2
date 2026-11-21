@@ -8,10 +8,11 @@ import { PRODUCT_NAME, SUPPORT_EMAIL } from "@/lib/support"
 import SidebarNav from "./sidebar-nav"
 import FeedbackWidget from "./feedback-widget"
 import Assistant from "./assistant"
+import "./suite-fonts"
 
 const KEY = "mb-menu-open"
 const HELP_HREF = "/support"
-const OX = "bg-[#F8F8F8] border-r border-[#16151a]/[0.08]"
+const OX = "bg-lxbg border-r border-[rgba(194,164,107,.45)]"
 
 export default function AppShell({
   agent,
@@ -68,11 +69,17 @@ export default function AppShell({
   function FullMenu() {
     return (
       <>
+        {/* Marvberry's own space: the gold wordmark leads, the agent sits under it. */}
         <div className="px-3">
-          <p className="font-serif font-semibold tracking-tight text-lg leading-tight">{agent.full_name || businessName}</p>
-          {agent.full_name && agent.business_name && (
-            <p className="mt-0.5 text-xs text-[#16151a]/45">{agent.business_name}</p>
-          )}
+          <a href="/dashboard" aria-label="Marvberry home" className="block font-lux text-[26px] font-normal leading-none tracking-[.04em] text-lxgold no-underline">
+            marvberry
+          </a>
+          <div className="mt-5 border-t border-[rgba(194,164,107,.45)] pt-4">
+            <p className="m-0 font-lux text-[17px] font-medium leading-tight text-lxink">{agent.full_name || businessName}</p>
+            {agent.full_name && agent.business_name && (
+              <p className="m-0 mt-0.5 text-[11.5px] text-lxsoft">{agent.business_name}</p>
+            )}
+          </div>
         </div>
 
         <div className="mt-8 flex-1">
@@ -85,18 +92,18 @@ export default function AppShell({
         {SUPPORT_EMAIL && (
           <a
             href={HELP_HREF}
-            className="mb-5 flex items-center gap-3 rounded-full border border-white/90 bg-white/70 p-1.5 pr-5 shadow-sm transition-colors hover:bg-white"
+            className="mb-5 flex items-center gap-3 rounded-full border border-[rgba(194,164,107,.45)] bg-white/60 p-1.5 pr-5 transition-colors hover:bg-white"
           >
-            <img src="/support-avatar.jpg" alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
-            <span className="text-base font-semibold text-[#16151a]">Need Help?</span>
+            <img src="/support-avatar.jpg" alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" />
+            <span className="font-lux text-[17px] text-lxink">Need help?</span>
           </a>
         )}
 
-        <a href="/billing" className="mb-2 block px-3 text-xs text-[#16151a]/45 underline underline-offset-2 hover:text-[#16151a]">
+        <a href="/billing" className="mb-2 block px-3 text-xs text-lxink/45 underline underline-offset-2 hover:text-lxink">
           Billing
         </a>
         <form action={signOut} className="px-3">
-          <button className="text-xs text-[#16151a]/45 underline underline-offset-2 hover:text-[#16151a]">
+          <button className="text-xs text-lxink/45 underline underline-offset-2 hover:text-lxink">
             Sign out
           </button>
         </form>
@@ -105,10 +112,10 @@ export default function AppShell({
   }
 
   return (
-    <div className="flex min-h-screen flex-col sm:flex-row">
+    <div className="mb-app flex min-h-screen flex-col bg-lxbg sm:flex-row">
       {/* ── Phone top bar: menu on the left, name/logo on the right ── */}
       <header
-        className={`sticky top-0 z-40 flex h-14 items-center justify-between px-3 text-[#16151a] sm:hidden bg-white/75 backdrop-blur-xl border-b border-[#16151a]/5`}
+        className={`sticky top-0 z-40 flex h-14 items-center justify-between px-3 text-lxink sm:hidden bg-white/75 backdrop-blur-xl border-b border-lxink/5`}
       >
         <button
           onClick={() => setMobileOpen(true)}
@@ -119,7 +126,7 @@ export default function AppShell({
             <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
-        <p className="truncate pl-3 font-serif font-semibold tracking-tight text-lg">{agent.full_name || businessName}</p>
+        <p className="truncate pl-3 font-lux text-[22px] font-light tracking-[.04em] text-lxgold">marvberry</p>
       </header>
 
       {/* ── Phone drawer: slides in from the left over a dim backdrop ── */}
@@ -138,14 +145,14 @@ export default function AppShell({
         />
         <aside
           className={
-            `absolute left-0 top-0 flex h-full w-72 max-w-[85vw] isolate flex-col overflow-hidden px-4 py-6 text-[#16151a] shadow-2xl transition-transform duration-200 bg-[#F8F8F8] ` +
+            `absolute left-0 top-0 flex h-full w-72 max-w-[85vw] isolate flex-col overflow-hidden px-4 py-6 text-lxink shadow-2xl transition-transform duration-200 bg-[#F8F8F8] ` +
             (mobileOpen ? "translate-x-0" : "-translate-x-full")
           }
         >
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"
-            className="absolute right-3 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[#16151a]/50 hover:bg-black/5 hover:text-[#16151a]"
+            className="absolute right-3 top-4 flex h-9 w-9 items-center justify-center rounded-full text-lxink/50 hover:bg-black/5 hover:text-lxink"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
               <path d="M6 6l12 12M18 6L6 18" />
@@ -158,7 +165,7 @@ export default function AppShell({
       {/* ── Desktop rail (unchanged behavior) ── */}
       <aside
         className={
-          `sticky top-0 z-40 hidden h-screen shrink-0 flex-col py-6 text-[#16151a] transition-[width] duration-200 sm:flex ${OX} ` +
+          `sticky top-0 z-40 hidden h-screen shrink-0 flex-col py-6 text-lxink transition-[width] duration-200 sm:flex ${OX} ` +
           (open ? "w-56 px-4" : "w-16 items-center px-2")
         }
       >
@@ -166,7 +173,7 @@ export default function AppShell({
           <FullMenu />
         ) : (
           <>
-            <img src="/marvberry-icon.png" alt="Marvberry" width={42} height={24} className="h-6 w-auto" />
+            <a href="/dashboard" aria-label="Marvberry home" className="font-lux text-[22px] italic leading-none text-lxgold no-underline">mb</a>
             <div className="mt-8 flex-1">
               <SidebarNav collapsed plan={plan} />
               <div className="mt-2">
@@ -185,7 +192,7 @@ export default function AppShell({
           onClick={toggle}
           aria-label={open ? "Collapse menu" : "Expand menu"}
           className={
-            "mt-5 flex h-8 w-8 items-center justify-center rounded-full text-[#16151a]/40 transition-colors hover:bg-white/70 hover:text-[#16151a] " +
+            "mt-5 flex h-8 w-8 items-center justify-center rounded-full text-lxink/40 transition-colors hover:bg-white/70 hover:text-lxink " +
             (open ? "ml-2" : "")
           }
         >
@@ -218,9 +225,9 @@ function TrialBanner({ endsAt, status }: { endsAt: string | null; status: string
         ? "Last day of your free trial."
         : `${days} days left in your free trial.`
   return (
-    <div className="border-b border-[#e6e5e3] bg-[#f4f3f1] px-6 py-2.5 text-center text-sm text-[#16151a]">
+    <div className="border-b border-lxhair bg-lxbg px-6 py-2.5 text-center text-sm text-lxink">
       {text}{" "}
-      <a href="/billing" className="font-semibold underline underline-offset-2">
+      <a href="/billing" className="border-b border-lxgold text-lxink no-underline">
         Pick your plan
       </a>
     </div>

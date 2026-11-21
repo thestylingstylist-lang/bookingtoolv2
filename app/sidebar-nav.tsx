@@ -75,7 +75,7 @@ function Icon({ href, size = 20 }: { href: string; size?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.4"
+      strokeWidth="1.1"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
@@ -116,11 +116,11 @@ export default function SidebarNav({ collapsed = false, plan = "full" }: { colla
               aria-label={item.label}
               className={
                 "group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors " +
-                (active ? "bg-[#16151a] text-white shadow-sm" : "text-[#16151a]/60 hover:bg-white/70 hover:text-[#16151a]")
+                (active ? "bg-lxink text-white shadow-sm" : "text-lxink/60 hover:bg-white/70 hover:text-lxink")
               }
             >
               <Icon href={item.href} />
-              <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-white px-2.5 py-1 text-xs font-medium text-[#16151a] opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+              <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md bg-white px-2.5 py-1 text-xs font-medium text-lxink opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
                 {item.label}
               </span>
             </Link>
@@ -132,8 +132,10 @@ export default function SidebarNav({ collapsed = false, plan = "full" }: { colla
             key={item.href}
             href={item.href}
             className={
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors " +
-              (active ? "bg-[#16151a] text-white shadow-sm" : "text-[#16151a]/60 hover:bg-white/70 hover:text-[#16151a]")
+              "relative flex items-center gap-3 rounded-[2px] px-3 py-2 text-[13.5px] transition-colors " +
+              (active
+                ? "bg-white text-lxink before:absolute before:inset-y-1.5 before:left-0 before:w-px before:bg-lxgold"
+                : "text-lxink/60 hover:bg-white/60 hover:text-lxink")
             }
           >
             <Icon href={item.href} size={18} />

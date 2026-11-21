@@ -111,11 +111,11 @@ export default function CardPanelView(p: {
   const qrHref = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(p.qr)}`
 
   return (
-    <section className="mt-8 rounded-2xl bg-white p-5 ring-1 ring-[#efeeec] sm:p-6">
+    <section className="mt-8 rounded-2xl bg-white p-5 ring-1 ring-lxhair sm:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1">
-          <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-[#8e8c93]">Your card</p>
-          <p className="mt-2 truncate text-[15px] text-[#16151a]">{p.url.replace(/^https?:\/\//, "")}</p>
+          <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-[#8f8b84]">Your card</p>
+          <p className="mt-2 truncate text-[15px] text-lxink">{p.url.replace(/^https?:\/\//, "")}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
@@ -124,46 +124,46 @@ export default function CardPanelView(p: {
                 setCopied(true)
                 setTimeout(() => setCopied(false), 1800)
               }}
-              className="rounded-full bg-[#16151a] px-4 py-2 text-[13px] font-medium text-white"
+              className="rounded-full bg-lxink px-4 py-2 text-[13px] font-medium text-white"
             >
               {copied ? "Copied" : "Copy link"}
             </button>
-            <a href={p.url} target="_blank" rel="noreferrer" className="rounded-full bg-[#EEEEF1] px-4 py-2 text-[13px] font-medium text-[#16151a]">
+            <a href={p.url} target="_blank" rel="noreferrer" className="rounded-full bg-lxfill px-4 py-2 text-[13px] font-medium text-lxink">
               Open card
             </a>
-            <a href={qrHref} download="my-card-qr.svg" className="rounded-full bg-[#EEEEF1] px-4 py-2 text-[13px] font-medium text-[#16151a]">
+            <a href={qrHref} download="my-card-qr.svg" className="rounded-full bg-lxfill px-4 py-2 text-[13px] font-medium text-lxink">
               Download QR code
             </a>
           </div>
         </div>
-        <div className="h-[96px] w-[96px] flex-none overflow-hidden rounded-lg ring-1 ring-[#efeeec] [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: p.qr }} />
+        <div className="h-[96px] w-[96px] flex-none overflow-hidden rounded-lg ring-1 ring-lxhair [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: p.qr }} />
       </div>
 
-      <div className="mt-6 grid grid-cols-5 gap-2 border-t border-[#f1f0ee] pt-5">
+      <div className="mt-6 grid grid-cols-5 gap-2 border-t border-lxhair pt-5">
         {p.stats.map((s) => (
           <div key={s.k}>
-            <p className="text-[22px] font-medium leading-none text-[#16151a]">{s.v}</p>
-            <p className="mt-1.5 text-[12px] text-[#8e8c93]">{s.k}</p>
+            <p className="text-[22px] font-medium leading-none text-lxink">{s.v}</p>
+            <p className="mt-1.5 text-[12px] text-[#8f8b84]">{s.k}</p>
           </div>
         ))}
       </div>
-      <p className="mt-4 text-[13.5px] text-[#55535b]">
+      <p className="mt-4 text-[13.5px] text-lxsoft">
         {p.asked === 0
           ? "When someone asks to be contacted, you’ll see whether you got back to them here."
           : `You answered ${p.answered} of ${p.asked} people who asked to be contacted.`}
-        <span className="text-[#8e8c93]"> Last 30 days.</span>
+        <span className="text-[#8f8b84]"> Last 30 days.</span>
       </p>
 
       {p.waiting.length > 0 && (
-        <div className="mt-5 border-t border-[#f1f0ee] pt-5">
-          <p className="text-[14px] font-medium text-[#93407A]">{p.waiting.length} waiting on you</p>
+        <div className="mt-5 border-t border-lxhair pt-5">
+          <p className="text-[14px] font-medium text-lxgolddeep">{p.waiting.length} waiting on you</p>
           {!p.paid && (
-            <p className="mt-1 text-[13px] text-[#55535b]">
+            <p className="mt-1 text-[13px] text-lxsoft">
               Want Marvberry to help you reply faster?{" "}
               {p.free ? (
-                <button type="button" onClick={() => yesMarvberry(null)} className="text-[#93407A] underline underline-offset-4">Try it free</button>
+                <button type="button" onClick={() => yesMarvberry(null)} className="text-lxgolddeep underline underline-offset-4">Try it free</button>
               ) : (
-                <a href="/billing" className="text-[#93407A] underline underline-offset-4">See how it helps</a>
+                <a href="/billing" className="text-lxgolddeep underline underline-offset-4">See how it helps</a>
               )}
             </p>
           )}
@@ -174,22 +174,22 @@ export default function CardPanelView(p: {
               return (
                 <li key={r.id} className="rounded-xl bg-[#F8F8F8] p-4">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-[15px] font-medium text-[#16151a]">{r.name}</p>
-                    <p className="flex-none text-[12px] text-[#8e8c93]">{ago(r.created_at)}</p>
+                    <p className="text-[15px] font-medium text-lxink">{r.name}</p>
+                    <p className="flex-none text-[12px] text-[#8f8b84]">{ago(r.created_at)}</p>
                   </div>
-                  <p className="mt-0.5 text-[13px] text-[#55535b]">
+                  <p className="mt-0.5 text-[13px] text-lxsoft">
                     {r.wants_guide ? "Got your guide" : "Asked you to reach out"}
                     {[r.email, r.phone].filter(Boolean).length ? ` · ${[r.email, r.phone].filter(Boolean).join(" · ")}` : ""}
                   </p>
-                  {r.message && <p className="mt-2 text-[13.5px] leading-relaxed text-[#16151a]">“{r.message}”</p>}
+                  {r.message && <p className="mt-2 text-[13.5px] leading-relaxed text-lxink">“{r.message}”</p>}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {r.email && (
-                      <a href={`mailto:${r.email}?subject=${encodeURIComponent("Thanks for reaching out")}&body=${body}`} className="rounded-full bg-[#16151a] px-3.5 py-1.5 text-[12.5px] font-medium text-white">
+                      <a href={`mailto:${r.email}?subject=${encodeURIComponent("Thanks for reaching out")}&body=${body}`} className="rounded-full bg-lxink px-3.5 py-1.5 text-[12.5px] font-medium text-white">
                         Email {first}
                       </a>
                     )}
                     {r.phone && (
-                      <a href={`sms:${r.phone}`} className="rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#16151a] ring-1 ring-[#e6e5e3]">
+                      <a href={`sms:${r.phone}`} className="rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-lxink ring-1 ring-lxhair">
                         Text {first}
                       </a>
                     )}
@@ -202,7 +202,7 @@ export default function CardPanelView(p: {
                         setBusy("")
                         router.refresh()
                       }}
-                      className="rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#16151a] ring-1 ring-[#e6e5e3]"
+                      className="rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-lxink ring-1 ring-lxhair"
                     >
                       I got back to them
                     </button>
@@ -216,7 +216,7 @@ export default function CardPanelView(p: {
                         setBusy("")
                         if (id) router.push(`/clients/${id}`)
                       }}
-                      className="rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-[#16151a] ring-1 ring-[#e6e5e3]"
+                      className="rounded-full bg-white px-3.5 py-1.5 text-[12.5px] font-medium text-lxink ring-1 ring-lxhair"
                     >
                       Make them a client
                     </button>
@@ -229,71 +229,71 @@ export default function CardPanelView(p: {
       )}
 
       {offer && (
-        <div className="mt-5 rounded-xl bg-[#FBEDF5] p-5">
-          <p className="text-[15px] font-medium text-[#16151a]">Ready to turn {offer.name.split(" ")[0]} into a client?</p>
-          <p className="mt-1 text-[13.5px] leading-relaxed text-[#55535b]">Marvberry handles the agreement, the follow-up and everything after. Try it free for 14 days.</p>
+        <div className="mt-5 rounded-xl bg-white p-5">
+          <p className="text-[15px] font-medium text-lxink">Ready to turn {offer.name.split(" ")[0]} into a client?</p>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-lxsoft">Marvberry handles the agreement, the follow-up and everything after. Try it free for 14 days.</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" disabled={starting} onClick={() => yesMarvberry(offer)} className="rounded-full bg-[#16151a] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
+            <button type="button" disabled={starting} onClick={() => yesMarvberry(offer)} className="rounded-full bg-lxink px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
               {starting ? "Opening Marvberry…" : "Try Marvberry free"}
             </button>
-            <button type="button" onClick={() => setOffer(null)} className="rounded-full bg-white px-4 py-2 text-[13px] font-medium text-[#16151a]">Not now</button>
+            <button type="button" onClick={() => setOffer(null)} className="rounded-full bg-white px-4 py-2 text-[13px] font-medium text-lxink">Not now</button>
           </div>
         </div>
       )}
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[#f1f0ee] pt-4 text-[13.5px]">
-        <button type="button" onClick={() => setEdit((v) => !v)} className="text-[#16151a] underline underline-offset-4">
+      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-lxhair pt-4 text-[13.5px]">
+        <button type="button" onClick={() => setEdit((v) => !v)} className="text-lxink underline underline-offset-4">
           {edit ? "Close" : "Edit your card"}
         </button>
-        <a href="/dashboard/card-export" className="text-[#55535b] underline underline-offset-4">Export your contacts</a>
+        <a href="/dashboard/card-export" className="text-lxsoft underline underline-offset-4">Export your contacts</a>
       </div>
       {p.free && !edit && (
-        <p className="mt-4 text-[13.5px] text-[#55535b]">
+        <p className="mt-4 text-[13.5px] text-lxsoft">
           Want help with the follow-up?{" "}
-          <button type="button" disabled={starting} onClick={() => yesMarvberry(null)} className="text-[#93407A] underline underline-offset-4">Meet Marvberry</button>
+          <button type="button" disabled={starting} onClick={() => yesMarvberry(null)} className="text-lxgolddeep underline underline-offset-4">Meet Marvberry</button>
         </p>
       )}
       {edit && (
         <div className="mt-4 flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+          <label className="flex flex-col gap-1 text-[13px] text-lxsoft">
             Areas you serve
-            <input value={areas} onChange={(e) => setAreas(e.target.value)} placeholder="Manhattan | Brooklyn" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+            <input value={areas} onChange={(e) => setAreas(e.target.value)} placeholder="Manhattan | Brooklyn" className="rounded-lg border border-lxhair px-3 py-2 text-[14px] text-lxink outline-none focus:border-lxgold" />
           </label>
-          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+          <label className="flex flex-col gap-1 text-[13px] text-lxsoft">
             Office address
-            <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder={"23 Address Street\nNew York, NY 10001"} className="resize-none rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+            <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} placeholder={"23 Address Street\nNew York, NY 10001"} className="resize-none rounded-lg border border-lxhair px-3 py-2 text-[14px] text-lxink outline-none focus:border-lxgold" />
           </label>
-          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+          <label className="flex flex-col gap-1 text-[13px] text-lxsoft">
             Your Zillow page or website
-            <input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://www.zillow.com/profile/…" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+            <input value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://www.zillow.com/profile/…" className="rounded-lg border border-lxhair px-3 py-2 text-[14px] text-lxink outline-none focus:border-lxgold" />
           </label>
-          <label className="flex flex-col gap-1 text-[13px] text-[#55535b]">
+          <label className="flex flex-col gap-1 text-[13px] text-lxsoft">
             Instagram
-            <input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder="@yourhandle" className="rounded-lg border border-[#e6e5e3] px-3 py-2 text-[14px] text-[#16151a] outline-none focus:border-[#BC559E]" />
+            <input value={insta} onChange={(e) => setInsta(e.target.value)} placeholder="@yourhandle" className="rounded-lg border border-lxhair px-3 py-2 text-[14px] text-lxink outline-none focus:border-lxgold" />
           </label>
           <div className="mt-1 rounded-xl bg-[#F8F8F8] p-4">
-            <p className="text-[14px] font-medium text-[#16151a]">Your free guide</p>
-            <p className="mt-0.5 text-[13px] text-[#55535b]">Visitors leave their email to get it. It goes out in your name, and you get their details.</p>
-            <input value={gTitle} onChange={(e) => setGTitle(e.target.value)} placeholder="The New Buyer Guide" className="mt-3 w-full rounded-lg border border-[#e6e5e3] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#BC559E]" />
-            <input value={gBlurb} onChange={(e) => setGBlurb(e.target.value)} placeholder="One line about what's inside" className="mt-2 w-full rounded-lg border border-[#e6e5e3] bg-white px-3 py-2 text-[14px] outline-none focus:border-[#BC559E]" />
+            <p className="text-[14px] font-medium text-lxink">Your free guide</p>
+            <p className="mt-0.5 text-[13px] text-lxsoft">Visitors leave their email to get it. It goes out in your name, and you get their details.</p>
+            <input value={gTitle} onChange={(e) => setGTitle(e.target.value)} placeholder="The New Buyer Guide" className="mt-3 w-full rounded-lg border border-lxhair bg-white px-3 py-2 text-[14px] outline-none focus:border-lxgold" />
+            <input value={gBlurb} onChange={(e) => setGBlurb(e.target.value)} placeholder="One line about what's inside" className="mt-2 w-full rounded-lg border border-lxhair bg-white px-3 py-2 text-[14px] outline-none focus:border-lxgold" />
             <div className="mt-2 flex flex-wrap items-center gap-3 text-[13px]">
-              <label className="cursor-pointer rounded-full bg-white px-3.5 py-1.5 font-medium text-[#16151a] ring-1 ring-[#e6e5e3]">
+              <label className="cursor-pointer rounded-full bg-white px-3.5 py-1.5 font-medium text-lxink ring-1 ring-lxhair">
                 {file ? file.name : p.hasGuide ? "Replace the PDF" : "Upload your guide (PDF)"}
                 <input type="file" accept="application/pdf" className="hidden" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
               </label>
               {p.hasGuide && (
                 <>
-                  <a href={`/book/${p.slug}/guide`} target="_blank" rel="noreferrer" className="text-[#55535b] underline underline-offset-4">View</a>
-                  <button type="button" onClick={async () => { await removeGuide().catch(() => {}); router.refresh() }} className="text-[#55535b] underline underline-offset-4">Remove</button>
+                  <a href={`/book/${p.slug}/guide`} target="_blank" rel="noreferrer" className="text-lxsoft underline underline-offset-4">View</a>
+                  <button type="button" onClick={async () => { await removeGuide().catch(() => {}); router.refresh() }} className="text-lxsoft underline underline-offset-4">Remove</button>
                 </>
               )}
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button type="button" onClick={saveAll} disabled={saving} className="rounded-full bg-[#16151a] px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
+            <button type="button" onClick={saveAll} disabled={saving} className="rounded-full bg-lxink px-4 py-2 text-[13px] font-medium text-white disabled:opacity-60">
               {saving ? "Saving…" : "Save"}
             </button>
-            {gNote && <span className="text-[13px] text-[#55535b]">{gNote}</span>}
+            {gNote && <span className="text-[13px] text-lxsoft">{gNote}</span>}
           </div>
         </div>
       )}

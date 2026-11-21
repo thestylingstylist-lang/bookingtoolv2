@@ -11,7 +11,7 @@ function SubmitBtn() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded-lg bg-gradient-to-r from-[#BC559E] to-[#EE7C55] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
+      className="rounded-lg bg-gradient-to-r from-lxgold to-lxgolddeep px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-60"
     >
       {pending ? "Sending…" : "Send feedback"}
     </button>
@@ -36,8 +36,8 @@ export default function FeedbackWidget({ collapsed = false }: { collapsed?: bool
         aria-label="Send feedback"
         className={
           collapsed
-            ? "group relative flex h-10 w-10 items-center justify-center rounded-lg text-[#16151a]/60 transition-colors hover:bg-white/70 hover:text-[#16151a]"
-            : "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[#16151a]/60 transition-colors hover:bg-white/70 hover:text-[#16151a]"
+            ? "group relative flex h-10 w-10 items-center justify-center rounded-lg text-lxink/60 transition-colors hover:bg-white/70 hover:text-lxink"
+            : "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-lxink/60 transition-colors hover:bg-white/70 hover:text-lxink"
         }
       >
         <svg width={collapsed ? 20 : 18} height={collapsed ? 20 : 18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0">
@@ -50,8 +50,8 @@ export default function FeedbackWidget({ collapsed = false }: { collapsed?: bool
         <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/30 p-4 sm:items-center" onClick={() => setOpen(false)}>
           <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/80 bg-white/90 p-6 shadow-xl backdrop-blur-xl" onClick={(e) => e.stopPropagation()}>
             <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full opacity-50" style={{background:"radial-gradient(circle, rgba(232,155,180,1), transparent 70%), radial-gradient(circle at 60% 40%, rgba(251,201,142,.9), transparent 70%)",filter:"blur(28px)"}} />
-            <h2 className="text-xl font-semibold tracking-tight text-[#16151a]">Help us build <em className="bg-gradient-to-r from-[#BC559E] to-[#EE7C55] bg-clip-text pr-1 font-serif italic text-transparent">your</em> Marvberry</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-[#16151a]/60">
+            <h2 className="text-xl font-semibold tracking-tight text-lxink">Help us build <em className="bg-gradient-to-r from-lxgold to-lxgolddeep bg-clip-text pr-1 font-serif italic text-transparent">your</em> Marvberry</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-lxink/60">
               Tell us what you’d love to see — or what to take away — to make
               Marvberry feel more like yours. The things that help you close
               faster, run smoother, and build stronger relationships with your
@@ -64,7 +64,7 @@ export default function FeedbackWidget({ collapsed = false }: { collapsed?: bool
                 required
                 autoFocus
                 placeholder="I wish Marvberry could…"
-                className="w-full resize-none rounded-lg border border-[#16151a]/15 p-3 text-sm text-[#16151a] outline-none focus:border-[#BC559E]"
+                className="w-full resize-none rounded-lg border border-lxink/15 p-3 text-sm text-lxink outline-none focus:border-lxgold"
               />
               {state && (
                 <p className={"mt-2 text-sm " + (state.ok ? "text-emerald-600" : "text-rose-600")}>
@@ -72,7 +72,7 @@ export default function FeedbackWidget({ collapsed = false }: { collapsed?: bool
                 </p>
               )}
               <div className="mt-4 flex items-center justify-end gap-2">
-                <button type="button" onClick={() => setOpen(false)} className="rounded-lg px-3.5 py-2 text-sm text-[#16151a]/60 hover:text-[#16151a]">
+                <button type="button" onClick={() => setOpen(false)} className="rounded-lg px-3.5 py-2 text-sm text-lxink/60 hover:text-lxink">
                   Close
                 </button>
                 <SubmitBtn />

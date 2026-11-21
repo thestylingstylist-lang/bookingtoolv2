@@ -61,21 +61,21 @@ export default async function BookingsPage({
   return (
     <AppShell agent={agent}>
     <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
-      <p className="text-sm font-medium tracking-wide text-sage">Bookings</p>
+      <p className="text-sm font-medium tracking-wide text-lxgold">Bookings</p>
       <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Your consultations</h1>
 
       {params.added === "1" && (
-        <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+        <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
           Added to your clients.
         </p>
       )}
       {params.added === "exists" && (
-        <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+        <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
           That person is already one of your clients.
         </p>
       )}
       {params.deleted && (
-        <p className="mt-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+        <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
           Booking deleted.
         </p>
       )}
@@ -93,16 +93,16 @@ export default async function BookingsPage({
       )}
 
       {bookings.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-ink/10 bg-card p-10 text-center">
+        <div className="mt-8 rounded-2xl border border-lxink/10 bg-card p-10 text-center">
           <h2 className="font-serif font-semibold tracking-tight text-xl">No bookings yet.</h2>
-          <p className="mt-2 text-ink/60">
+          <p className="mt-2 text-lxink/60">
             Share your booking link and new consultations will appear here.
           </p>
         </div>
       ) : (
-        <div className="mt-8 sm:overflow-x-auto rounded-2xl border border-ink/10 bg-card">
+        <div className="mt-8 sm:overflow-x-auto rounded-2xl border border-lxink/10 bg-card">
           <table className="stack-sm w-full text-left text-sm">
-            <thead className="border-b border-ink/10 text-ink">
+            <thead className="border-b border-lxink/10 text-lxink">
               <tr>
                 <th className="px-5 py-3 font-medium">When</th>
                 <th className="px-5 py-3 font-medium">Client</th>
@@ -121,7 +121,7 @@ export default async function BookingsPage({
                 return (
                   <tr
                     key={b.id}
-                    className={"border-b border-ink/5 last:border-0 " + (past ? "text-ink/70" : "")}
+                    className={"border-b border-lxink/5 last:border-0 " + (past ? "text-lxink/70" : "")}
                   >
                     <td className="cell-lead px-5 py-4 whitespace-nowrap">
                       {formatSlot(b.slot_start, agent.timezone)}
@@ -140,7 +140,7 @@ export default async function BookingsPage({
                     <td data-label="Contact" className={"px-5 py-4" + (b.phone || b.email ? "" : " empty-sm")}>
                       <div className="flex flex-col">
                         {b.phone && <span>{b.phone}</span>}
-                        {b.email && <span className="text-ink/80">{b.email}</span>}
+                        {b.email && <span className="text-lxink/80">{b.email}</span>}
                       </div>
                     </td>
                     <td data-label="Type" className="px-5 py-4">{b.meeting_type === "phone" ? "Phone" : "Video"}</td>
@@ -151,7 +151,7 @@ export default async function BookingsPage({
                       {isClient ? (
                         <Link
                           href={`/clients/${clientId}`}
-                          className="inline-flex items-center rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ox hover:text-paper"
+                          className="inline-flex items-center rounded-lg border border-lxink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-lxink hover:text-lxbg"
                         >
                           Open client
                         </Link>
@@ -160,7 +160,7 @@ export default async function BookingsPage({
                           <input type="hidden" name="bookingId" value={b.id} />
                           <button
                             type="submit"
-                            className="rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ox hover:text-paper"
+                            className="rounded-lg border border-lxink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-lxink hover:text-lxbg"
                           >
                             Add as client
                           </button>

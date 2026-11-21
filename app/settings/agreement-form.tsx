@@ -6,7 +6,7 @@ import { AGREEMENT_LENGTHS, lengthLabel, type AgreementSettings } from "@/lib/ag
 
 const pill = (on: boolean) =>
   "cursor-pointer rounded-full border px-4 py-2 text-sm transition-colors " +
-  (on ? "border-ink bg-ink text-paper" : "border-ink/15 bg-white/70 text-ink/70 hover:border-ink/40")
+  (on ? "border-lxink bg-lxink text-lxbg" : "border-lxink/15 bg-white/70 text-lxink/70 hover:border-lxink/40")
 
 export default function AgreementForm({ initial, commission = "" }: { initial: AgreementSettings; commission?: string }) {
   const [state, formAction, pending] = useActionState<SettingsResult | null, FormData>(
@@ -19,7 +19,7 @@ export default function AgreementForm({ initial, commission = "" }: { initial: A
   return (
     <form action={formAction} className="space-y-6">
       <div>
-        <span className="mb-2 block text-sm text-ink/70">How long your agreements run</span>
+        <span className="mb-2 block text-sm text-lxink/70">How long your agreements run</span>
         <div className="flex flex-wrap gap-2">
           {AGREEMENT_LENGTHS.map((d) => (
             <label key={d} className={pill(days === d)}>
@@ -35,13 +35,13 @@ export default function AgreementForm({ initial, commission = "" }: { initial: A
             </label>
           ))}
         </div>
-        <span className="mt-1.5 block text-xs text-ink/50">
+        <span className="mt-1.5 block text-xs text-lxink/50">
           The end date counts forward from the day you send it.
         </span>
       </div>
 
       <div>
-        <span className="mb-2 block text-sm text-ink/70">Agreement type</span>
+        <span className="mb-2 block text-sm text-lxink/70">Agreement type</span>
         <div className="flex flex-wrap gap-2">
           {[
             { v: "yes", label: "Exclusive", on: exclusive },
@@ -63,15 +63,15 @@ export default function AgreementForm({ initial, commission = "" }: { initial: A
       </div>
 
       <label className="block">
-        <span className="mb-1.5 block text-sm text-ink/70">Your usual commission</span>
+        <span className="mb-1.5 block text-sm text-lxink/70">Your usual commission</span>
         <input
           name="commission"
           defaultValue={commission}
           placeholder="2%"
           maxLength={40}
-          className="w-full max-w-[12rem] rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
+          className="w-full max-w-[12rem] rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/20"
         />
-        <span className="mt-1.5 block text-xs text-ink/50">
+        <span className="mt-1.5 block text-xs text-lxink/50">
           It fills in on every agreement you send. You can still change it for any client.
         </span>
       </label>
@@ -81,7 +81,7 @@ export default function AgreementForm({ initial, commission = "" }: { initial: A
           role="status"
           className={
             "rounded-lg px-4 py-3 text-sm " +
-            (state.ok ? "bg-sage/15 text-ink/80" : "bg-red-50 text-red-800")
+            (state.ok ? "bg-lxgold/15 text-lxink/80" : "bg-red-50 text-red-800")
           }
         >
           {state.message}
@@ -91,7 +91,7 @@ export default function AgreementForm({ initial, commission = "" }: { initial: A
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-ox px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="rounded-xl bg-lxink px-6 py-3 font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Saving\u2026" : "Save agreement"}
       </button>

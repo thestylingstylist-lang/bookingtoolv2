@@ -295,19 +295,19 @@ export default async function CalendarPage({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="font-semibold tracking-tight text-3xl tracking-tight sm:text-4xl">{week ? weekTitle : `${formatInTimeZone(now, tz, "EEEE, MMMM d")}.`}</h1>
-            <p className="mt-3 text-[15px] text-[#5d5b62]">
+            <p className="mt-3 text-[15px] text-lxsoft">
               {week ? weekHeadline : headline}
               {week ? weekTail : tail}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {week && (
-              <div className="flex items-center gap-1 text-[13px] text-[#5d5b62]">
-                <Link href={`/calendar?view=week&w=${addDays(monday, -7)}`} aria-label="Earlier week" className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white hover:text-ink">&lsaquo;</Link>
+              <div className="flex items-center gap-1 text-[13px] text-lxsoft">
+                <Link href={`/calendar?view=week&w=${addDays(monday, -7)}`} aria-label="Earlier week" className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white hover:text-lxink">&lsaquo;</Link>
                 {monday !== thisMonday && (
-                  <Link href="/calendar?view=week" className="px-1 underline underline-offset-4 hover:text-ink">This week</Link>
+                  <Link href="/calendar?view=week" className="px-1 underline underline-offset-4 hover:text-lxink">This week</Link>
                 )}
-                <Link href={`/calendar?view=week&w=${addDays(monday, 7)}`} aria-label="Later week" className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white hover:text-ink">&rsaquo;</Link>
+                <Link href={`/calendar?view=week&w=${addDays(monday, 7)}`} aria-label="Later week" className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-white hover:text-lxink">&rsaquo;</Link>
               </div>
             )}
             <div className="inline-flex rounded-[10px] bg-[#e9e7e3] p-[3px] text-[13px]">
@@ -318,7 +318,7 @@ export default async function CalendarPage({
                 <Link
                   key={t.label}
                   href={t.href}
-                  className={`rounded-[8px] px-4 py-1.5 ${t.on ? "bg-white font-medium shadow-[0_1px_2px_rgba(22,21,26,.12)]" : "text-[#5d5b62] hover:text-ink"}`}
+                  className={`rounded-[8px] px-4 py-1.5 ${t.on ? "bg-white font-medium shadow-[0_1px_2px_rgba(22,21,26,.12)]" : "text-lxsoft hover:text-lxink"}`}
                 >
                   {t.label}
                 </Link>
@@ -333,7 +333,7 @@ export default async function CalendarPage({
           </div>
         </div>
         {note && (
-          <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${note.ok ? "bg-[#EEE9FF] text-sage" : "bg-[#FBEDF5] text-[#A8478B]"}`}>{note.text}</p>
+          <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${note.ok ? "bg-lxlav/50 text-lxgold" : "bg-white text-lxgolddeep"}`}>{note.text}</p>
         )}
 
         {week ? (
@@ -353,7 +353,7 @@ export default async function CalendarPage({
           <div className="min-w-0 flex-1">
             {due.length > 0 && (
               <div className="mb-6 flex gap-4 sm:gap-5">
-                <div className="w-14 shrink-0 pt-2.5 text-right text-[11px] font-medium uppercase tracking-[.1em] text-[#8e8c93] sm:w-[76px]">Due</div>
+                <div className="w-14 shrink-0 pt-2.5 text-right text-[11px] font-medium uppercase tracking-[.1em] text-[#8f8b84] sm:w-[76px]">Due</div>
                 <div className="flex flex-1 flex-wrap gap-2">
                   {due.map((d) => {
                     const late = daysUntil(d.due_on, tz) < 0
@@ -362,7 +362,7 @@ export default async function CalendarPage({
                         key={d.id}
                         href={`/clients/${d.client_id}?step=${d.id}#step-${d.id}`}
                         className={`rounded-full border px-3.5 py-1.5 text-[13px] ${
-                          late ? "border-[#f3d3de] bg-[#FBEDF5] text-[#A8478B]" : "border-[#e4e3e0] bg-white text-[#5d5b62]"
+                          late ? "border-lxgold/40 bg-white text-lxgolddeep" : "border-lxhair bg-white text-lxsoft"
                         }`}
                       >
                         {d.clients?.first_name?.trim() || "Client"}: {d.title} · {late ? "past due" : "due today"}
@@ -378,10 +378,10 @@ export default async function CalendarPage({
                 if (r.kind === "now") {
                   return (
                     <div key="now" className="flex items-center gap-4 sm:gap-5">
-                      <div className="w-14 shrink-0 text-right text-[11px] font-medium uppercase tracking-[.1em] text-[#BC559E] sm:w-[76px]">Now</div>
+                      <div className="w-14 shrink-0 text-right text-[11px] font-medium uppercase tracking-[.1em] text-lxgolddeep sm:w-[76px]">Now</div>
                       <div className="flex flex-1 items-center">
-                        <span className="h-2 w-2 rounded-full bg-[#BC559E]" />
-                        <span className="h-px flex-1 bg-[#BC559E]/50" />
+                        <span className="h-2 w-2 rounded-full bg-lxink" />
+                        <span className="h-px flex-1 bg-lxink/50" />
                       </div>
                     </div>
                   )
@@ -391,17 +391,17 @@ export default async function CalendarPage({
                   return (
                     <div key={`open-${i}`} className="flex gap-4 sm:gap-5">
                       <div className="w-14 shrink-0 pt-3 text-right sm:w-[76px]">
-                        <p className="font-semibold tracking-tight text-[15px] leading-none text-[#8e8c93]">{timeOf(r.from)}</p>
+                        <p className="font-semibold tracking-tight text-[15px] leading-none text-[#8f8b84]">{timeOf(r.from)}</p>
                       </div>
                       <div className="flex flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl border border-dashed border-[#d6d2cc] px-5 py-3">
-                        <p className="font-semibold tracking-tight text-[14px] italic text-[#8e8c93]">
+                        <p className="font-semibold tracking-tight text-[14px] italic text-[#8f8b84]">
                           {r.until ? `Open until ${timeOf(r.until)}.` : "Open the rest of the day."}
                           {canBook ? " Clients can book this." : ""}
                         </p>
                         <form action={holdTime}>
                           <input type="hidden" name="from" value={r.from.toISOString()} />
                           <input type="hidden" name="until" value={(r.until ?? dayEnd).toISOString()} />
-                          <button type="submit" className="text-[12.5px] text-[#5d5b62] underline underline-offset-4 hover:text-ink">
+                          <button type="submit" className="text-[12.5px] text-lxsoft underline underline-offset-4 hover:text-lxink">
                             Hold this time
                           </button>
                         </form>
@@ -417,15 +417,15 @@ export default async function CalendarPage({
                   <div key={it.id} className={`flex gap-4 sm:gap-5 ${over ? "opacity-55" : ""}`}>
                     <div className="w-14 shrink-0 pt-4 text-right sm:w-[76px]">
                       <p className="font-semibold tracking-tight text-[17px] leading-none">{timeOf(it.start)}</p>
-                      <p className="mt-1.5 text-[12px] text-[#8e8c93]">{lengthLabel(it.end.getTime() - it.start.getTime())}</p>
+                      <p className="mt-1.5 text-[12px] text-[#8f8b84]">{lengthLabel(it.end.getTime() - it.start.getTime())}</p>
                     </div>
-                    <div className="flex flex-1 flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e4e3e0] bg-white py-4 pl-5 pr-3">
+                    <div className="flex flex-1 flex-wrap items-center justify-between gap-3 rounded-2xl border border-lxhair bg-white py-4 pl-5 pr-3">
                       <div className="flex min-w-0 items-stretch gap-4">
                         <span className="w-[3px] shrink-0 rounded-full" style={{ background: it.color }} />
                         <div className="min-w-0">
-                          <p className="text-[11px] font-medium uppercase tracking-[.1em] text-[#8e8c93]">{it.meta}</p>
+                          <p className="text-[11px] font-medium uppercase tracking-[.1em] text-[#8f8b84]">{it.meta}</p>
                           <p className="mt-1 text-[16px] font-medium">{it.title}</p>
-                          {it.sub && <p className="mt-0.5 text-[13.5px] text-[#5d5b62]">{it.sub}</p>}
+                          {it.sub && <p className="mt-0.5 text-[13.5px] text-lxsoft">{it.sub}</p>}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
@@ -434,20 +434,20 @@ export default async function CalendarPage({
                             href={`https://maps.apple.com/?q=${encodeURIComponent(it.event.place)}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="rounded-[9px] border border-[#e4e3e0] bg-white px-3.5 py-2 text-[13px] font-medium hover:border-ink/30"
+                            className="rounded-[9px] border border-lxhair bg-white px-3.5 py-2 text-[13px] font-medium hover:border-lxink/30"
                           >
                             Directions
                           </a>
                         )}
                         {b &&
                           (clientId ? (
-                            <Link href={`/clients/${clientId}`} className="rounded-[9px] border border-[#e4e3e0] bg-white px-3.5 py-2 text-[13px] font-medium hover:border-ink/30">
+                            <Link href={`/clients/${clientId}`} className="rounded-[9px] border border-lxhair bg-white px-3.5 py-2 text-[13px] font-medium hover:border-lxink/30">
                               Open client
                             </Link>
                           ) : (
                             <form action={addClientFromBooking}>
                               <input type="hidden" name="bookingId" value={b.id} />
-                              <button type="submit" className="rounded-[9px] border border-[#e4e3e0] bg-white px-3.5 py-2 text-[13px] font-medium hover:border-ink/30">
+                              <button type="submit" className="rounded-[9px] border border-lxhair bg-white px-3.5 py-2 text-[13px] font-medium hover:border-lxink/30">
                                 Add as client
                               </button>
                             </form>
@@ -464,17 +464,17 @@ export default async function CalendarPage({
 
             <div className="mt-9 flex gap-4 sm:gap-5">
               <div className="hidden w-[76px] shrink-0 sm:block" />
-              <div className="flex-1 border-t border-[#e4e3e0] pt-6">
+              <div className="flex-1 border-t border-lxhair pt-6">
                 <div className="flex items-baseline justify-between">
                   <p className="font-semibold tracking-tight text-[19px]">Coming up</p>
-                  <Link href="/bookings" className="text-[13px] text-[#5d5b62] underline underline-offset-4 hover:text-ink">
+                  <Link href="/bookings" className="text-[13px] text-lxsoft underline underline-offset-4 hover:text-lxink">
                     Every consultation
                   </Link>
                 </div>
                 {later.length === 0 ? (
-                  <p className="mt-3 text-[14.5px] text-[#5d5b62]">Nothing after today yet.</p>
+                  <p className="mt-3 text-[14.5px] text-lxsoft">Nothing after today yet.</p>
                 ) : (
-                  <div className="mt-3 divide-y divide-[#ebe8e4] text-[14.5px]">
+                  <div className="mt-3 divide-y divide-lxhair text-[14.5px]">
                     {later.map((it) => (
                       <Link
                         key={it.id}
@@ -491,10 +491,10 @@ export default async function CalendarPage({
                       >
                         <span className="min-w-0">
                           <span className="mr-3 inline-block h-2 w-2 rounded-full align-middle" style={{ background: it.color }} />
-                          <span className="mr-4 font-semibold tracking-tight text-[#8e8c93]">{formatInTimeZone(it.start, tz, "EEE, MMM d · h:mm a")}</span>
+                          <span className="mr-4 font-semibold tracking-tight text-[#8f8b84]">{formatInTimeZone(it.start, tz, "EEE, MMM d · h:mm a")}</span>
                           {it.line}
                         </span>
-                        <span className="shrink-0 text-[13px] text-[#8e8c93]">
+                        <span className="shrink-0 text-[13px] text-[#8f8b84]">
                           {it.booking ? (it.booking.meeting_type === "phone" ? "Phone" : "Video") : lengthLabel(it.end.getTime() - it.start.getTime())}
                         </span>
                       </Link>
@@ -506,14 +506,14 @@ export default async function CalendarPage({
           </div>
 
           <div className="w-full shrink-0 space-y-4 lg:w-[300px]">
-            <div className="rounded-2xl border border-[#e4e3e0] bg-white p-5">
+            <div className="rounded-2xl border border-lxhair bg-white p-5">
               <div className="flex items-baseline justify-between">
                 <p className="font-semibold tracking-tight text-[17px]">{formatInTimeZone(now, tz, "MMMM")}</p>
-                <p className="text-[12px] text-[#8e8c93]">{year}</p>
+                <p className="text-[12px] text-[#8f8b84]">{year}</p>
               </div>
               <div className="mt-4 grid grid-cols-7 gap-y-1.5 text-center text-[12px]">
                 {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                  <span key={i} className="text-[10.5px] text-[#8e8c93]">{d}</span>
+                  <span key={i} className="text-[10.5px] text-[#8f8b84]">{d}</span>
                 ))}
                 {Array.from({ length: lead }).map((_, i) => (
                   <span key={`l${i}`} />
@@ -525,12 +525,12 @@ export default async function CalendarPage({
                     <span
                       key={d}
                       className={`relative mx-auto flex h-8 w-8 items-center justify-center rounded-full ${
-                        isToday ? "bg-ink font-medium text-white" : d < dayNum ? "text-[#b9b6b1]" : ""
+                        isToday ? "bg-lxink font-medium text-white" : d < dayNum ? "text-[#a5a19a]" : ""
                       }`}
                     >
                       {d}
                       {busy.has(d) && (
-                        <i className={`absolute bottom-[3px] left-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full ${isToday ? "bg-white" : "bg-[#BC559E]"}`} />
+                        <i className={`absolute bottom-[3px] left-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full ${isToday ? "bg-white" : "bg-lxink"}`} />
                       )}
                     </span>
                   )
@@ -538,10 +538,10 @@ export default async function CalendarPage({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#e4e3e0] bg-white p-5">
+            <div className="rounded-2xl border border-lxhair bg-white p-5">
               <p className="font-semibold tracking-tight text-[17px]">On your phone</p>
-              <p className="mt-1 text-[13px] text-[#5d5b62]">Add it once. Every booking and due date shows up in your phone&rsquo;s calendar.</p>
-              <a href={`webcal://${feedPath}`} className="mt-4 block rounded-[10px] bg-ink px-4 py-2.5 text-center text-[13px] font-medium text-paper hover:opacity-90">
+              <p className="mt-1 text-[13px] text-lxsoft">Add it once. Every booking and due date shows up in your phone&rsquo;s calendar.</p>
+              <a href={`webcal://${feedPath}`} className="mt-4 block rounded-[2px] border border-lxink bg-transparent text-lxink hover:bg-lxink/[0.04] px-4 py-2.5 text-center text-[13px]">
                 Add to my phone
               </a>
               <div className="mt-3 text-center">
@@ -549,14 +549,14 @@ export default async function CalendarPage({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#e4e3e0] bg-white p-5">
+            <div className="rounded-2xl border border-lxhair bg-white p-5">
               <p className="font-semibold tracking-tight text-[17px]">Your hours</p>
-              <p className="mt-1 text-[13px] text-[#5d5b62]">When clients can book you.</p>
+              <p className="mt-1 text-[13px] text-lxsoft">When clients can book you.</p>
               <div className="mt-4 space-y-2 text-[13.5px]">
                 {hoursRows(agent.weekdays, agent.day_start, agent.day_end).map((r) => (
                   <div key={r.label} className="flex justify-between gap-3">
                     <span>{r.label}</span>
-                    <span className={r.on ? "text-[#5d5b62]" : "text-[#8e8c93]"}>{r.value}</span>
+                    <span className={r.on ? "text-lxsoft" : "text-[#8f8b84]"}>{r.value}</span>
                   </div>
                 ))}
               </div>
@@ -565,10 +565,10 @@ export default async function CalendarPage({
               </Link>
             </div>
 
-            <div className="rounded-2xl border border-[#e4e3e0] bg-[#f7f6f4] p-5">
+            <div className="rounded-2xl border border-lxhair bg-lxfill p-5">
               <p className="font-semibold tracking-tight text-[17px]">Your booking link</p>
-              <p className="mt-1 text-[13px] text-[#5d5b62]">Share it once. Your open times stay current.</p>
-              <div className="mt-4 flex items-center justify-between gap-2 rounded-[10px] border border-[#e4e3e0] bg-white py-2 pl-3 pr-2 text-[13px]">
+              <p className="mt-1 text-[13px] text-lxsoft">Share it once. Your open times stay current.</p>
+              <div className="mt-4 flex items-center justify-between gap-2 rounded-[10px] border border-lxhair bg-white py-2 pl-3 pr-2 text-[13px]">
                 <span className="min-w-0 truncate">{bookingUrl.replace("www.", "")}</span>
                 <CopyButton value={`https://${bookingUrl}`} dark />
               </div>

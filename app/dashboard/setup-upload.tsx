@@ -51,8 +51,8 @@ export default function SetupUpload({ docId, title, replace = false }: { docId: 
         onClick={() => input.current?.click()}
         className={
           replace
-            ? "text-xs font-medium text-ink/55 underline underline-offset-4 hover:text-ink disabled:opacity-60"
-            : "rounded-[10px] bg-ink px-4 py-2 text-sm font-medium text-paper hover:opacity-90 disabled:opacity-60"
+            ? "text-xs font-medium text-lxink/55 underline underline-offset-4 hover:text-lxink disabled:opacity-60"
+            : "rounded-[10px] bg-lxink px-4 py-2 text-sm font-medium text-lxbg hover:opacity-90 disabled:opacity-60"
         }
       >
         {busy ? "Uploading…" : replace ? "Replace" : "Upload"}

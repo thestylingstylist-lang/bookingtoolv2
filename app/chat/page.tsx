@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Wordmark from "../wordmark"
 import { generateSlots } from "@/lib/slots"
 import { createClient } from "@/lib/supabase/server"
 import BookingForm from "@/app/book/[slug]/booking-form"
@@ -50,7 +51,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
 
       <header className="top">
         <a href="/">
-          <img src="/marvberry-wordmark.png" alt="Marvberry" width={125} height={24} style={{ height: 24, width: "auto" }} />
+          <Wordmark size={26} />
         </a>
         {welcome && (
           <ol className="track" aria-label="Your progress">
@@ -172,7 +173,7 @@ const CSS = `
 .mbchat .fine{margin:32px 0 0;font-size:12.5px;color:#8d8b92}
 .mbchat .later{margin:16px 0 0;text-align:center;font-size:14px;color:#55535b}
 .mbchat .later a{color:#16151a;border-bottom:1px solid #BC559E;text-decoration:none}
-.mbchat [class~="bg-[#16151a]"]{background:#16151a}
+.mbchat [class~="bg-lxink"]{background:#16151a}
 @media (max-width:1239px){
   .mbchat .cols{max-width:980px}
   .mbchat .cols{grid-template-columns:1fr}
@@ -184,4 +185,29 @@ const CSS = `
   .mbchat .sig{margin:0;padding:0;border:0}
   .mbchat .main{order:-1}
 }
+/* ── Luxury restyle: signature white, fine gold lines, thin serif. Words unchanged. ── */
+.mbchat{font-family:Inter,"Helvetica Neue",Arial,sans-serif;color:#1F1E1C;background:#F8F8F8}
+.mbchat .glow{display:none}
+.mbchat h1,.mbchat h2,.mbchat h1[style],.mbchat h2[style],.mbchat .big,.mbchat .strong,.mbchat .w1,.mbchat .true{font-family:"Cormorant Garamond",Georgia,serif !important;font-weight:300 !important;letter-spacing:0 !important}
+.mbchat h3,.mbchat .name{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;letter-spacing:0}
+.mbchat .grad{background:none;-webkit-background-clip:initial;background-clip:initial;color:#8C7040;font-style:italic}
+.mbchat .btn{border-radius:2px;box-shadow:none;background:#1F1E1C;font-weight:400;letter-spacing:.3px;font-size:15px}
+.mbchat .kicker,.mbchat .week .d{color:#8C7040;font-weight:500}
+.mbchat .dot{background:#C2A46B}
+.mbchat .chip,.mbchat .tag{border-radius:999px;background:#fff;border:1px solid rgba(194,164,107,.45);font-weight:400}
+.mbchat .track li.done::before{background:#C2A46B;border-color:#C2A46B}
+.mbchat .track li.now::before{background:#C2A46B;border-color:#C2A46B}
+.mbchat .skip a,.mbchat .later a{border-bottom-color:#C2A46B}
+.mbchat .sub,.mbchat .juggle-body,.mbchat .week li p,.mbchat .then,.mbchat .quote,.mbchat .w2,.mbchat .later{color:#67635C}
+.mbchat .fine,.mbchat .note,.mbchat .role,.mbchat .track,.mbchat .foot{color:#8f8b84}
+.mbchat .col,.mbchat .card,.mbchat .photo,.mbchat .welcome{border-radius:4px;box-shadow:none}
+.mbchat .before{background:#F2F0ED}
+.mbchat .after{background:#fff;border:1px solid rgba(194,164,107,.55)}
+.mbchat .after li:last-child{color:#8C7040;font-weight:500}
+.mbchat .card{background:#fff;border:1px solid rgba(194,164,107,.45)}
+.mbchat .card li::before{background:#F3ECDF}
+.mbchat .card li::after{border-color:#8C7040}
+.mbchat .manifesto{background:#F8F8F8;border-top:1px solid rgba(194,164,107,.45)}
+.mbchat .week li,.mbchat .week li:last-child,.mbchat .foot,.mbchat .sig{border-color:rgba(194,164,107,.45)}
+
 `

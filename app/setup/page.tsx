@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Wordmark from "../wordmark"
 import { createClient } from "@/lib/supabase/server"
 import { buySetup } from "./actions"
 
@@ -52,7 +53,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       <div aria-hidden className="glow" />
 
       <header className="nav">
-        <a href="/"><img src="/marvberry-wordmark.png" alt="Marvberry" width={125} height={24} style={{ height: 24, width: "auto" }} /></a>
+        <a href="/"><Wordmark size={26} /></a>
         {offer ? (
           <ol className="track" aria-label="Your progress">
             <li className="done">Account created</li>
@@ -156,7 +157,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
       </section>
 
       <footer className="foot">
-        <img src="/marvberry-wordmark.png" alt="Marvberry" width={104} height={20} style={{ height: 20, width: "auto" }} />
+        <Wordmark size={21} />
         <nav><a href="/">Home</a><a href="/privacy">Privacy</a></nav>
       </footer>
     </div>
@@ -239,4 +240,29 @@ const CSS = `
 .mbs .foot{display:flex;justify-content:space-between;align-items:center;max-width:1160px;margin:0 auto;padding:32px 16px 44px;border-top:1px solid rgba(22,21,26,.09);font-size:14px;color:#8d8b92}
 .mbs .foot nav{display:flex;gap:20px}
 @media (max-width:720px){.mbs .ba{grid-template-columns:1fr}.mbs .week li{grid-template-columns:1fr;gap:6px}}
+/* ── Luxury restyle: signature white, fine gold lines, thin serif. Words unchanged. ── */
+.mbs{font-family:Inter,"Helvetica Neue",Arial,sans-serif;color:#1F1E1C;background:#F8F8F8}
+.mbs .glow{display:none}
+.mbs h1,.mbs h2,.mbs .big,.mbs .strong,.mbs .w1,.mbs .true{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;letter-spacing:0}
+.mbs h3,.mbs .name{font-family:"Cormorant Garamond",Georgia,serif;font-weight:500;letter-spacing:0}
+.mbs .grad{background:none;-webkit-background-clip:initial;background-clip:initial;color:#8C7040;font-style:italic}
+.mbs .btn{border-radius:2px;box-shadow:none;background:#1F1E1C;font-weight:400;letter-spacing:.3px;font-size:15px}
+.mbs .kicker,.mbs .week .d{color:#8C7040;font-weight:500}
+.mbs .dot{background:#C2A46B}
+.mbs .chip,.mbs .tag{border-radius:999px;background:#fff;border:1px solid rgba(194,164,107,.45);font-weight:400}
+.mbs .track li.done::before{background:#C2A46B;border-color:#C2A46B}
+.mbs .track li.now::before{background:#C2A46B;border-color:#C2A46B}
+.mbs .skip a,.mbs .later a{border-bottom-color:#C2A46B}
+.mbs .sub,.mbs .juggle-body,.mbs .week li p,.mbs .then,.mbs .quote,.mbs .w2,.mbs .later{color:#67635C}
+.mbs .fine,.mbs .note,.mbs .role,.mbs .track,.mbs .foot{color:#8f8b84}
+.mbs .col,.mbs .card,.mbs .photo,.mbs .welcome{border-radius:4px;box-shadow:none}
+.mbs .before{background:#F2F0ED}
+.mbs .after{background:#fff;border:1px solid rgba(194,164,107,.55)}
+.mbs .after li:last-child{color:#8C7040;font-weight:500}
+.mbs .card{background:#fff;border:1px solid rgba(194,164,107,.45)}
+.mbs .card li::before{background:#F3ECDF}
+.mbs .card li::after{border-color:#8C7040}
+.mbs .manifesto{background:#F8F8F8;border-top:1px solid rgba(194,164,107,.45)}
+.mbs .week li,.mbs .week li:last-child,.mbs .foot,.mbs .sig{border-color:rgba(194,164,107,.45)}
+
 `

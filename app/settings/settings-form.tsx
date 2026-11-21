@@ -30,7 +30,7 @@ export default function SettingsForm({
   return (
     <form action={formAction} className="space-y-6">
       {/* ---- Your business ---- */}
-      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+      <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 space-y-6">
         <Head title="Your business" sub="How your business shows up to clients." />
         <Text label="Business name" name="businessName" defaultValue={agent.business_name} required />
         <div className="grid gap-5 sm:grid-cols-2">
@@ -38,17 +38,17 @@ export default function SettingsForm({
           <Text label="Business email" name="publicEmail" type="email" defaultValue={agent.public_email} placeholder="Shown to clients" />
         </div>
         <label className="flex items-start gap-3">
-          <input type="checkbox" name="showContact" defaultChecked={agent.show_contact} className="mt-0.5 h-4 w-4 rounded border-ink/30 accent-ox" />
-          <span className="text-sm text-ink/70">
+          <input type="checkbox" name="showContact" defaultChecked={agent.show_contact} className="mt-0.5 h-4 w-4 rounded border-lxink/30 accent-lxink" />
+          <span className="text-sm text-lxink/70">
             Show my phone and email on the booking page
-            <span className="mt-0.5 block text-xs text-ink/50">When on, clients see them under your photo before they book.</span>
+            <span className="mt-0.5 block text-xs text-lxink/50">When on, clients see them under your photo before they book.</span>
           </span>
         </label>
         <Text label="Tagline (optional)" name="tagline" defaultValue={agent.tagline} placeholder="e.g. Helping first-time buyers feel at home" />
       </section>
 
       {/* ---- Your brand ---- */}
-      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+      <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 space-y-6">
         <Head title="Your brand" sub="Your logo and photo, on your booking page, your client pages and your emails." />
         <div className="grid gap-6 sm:grid-cols-2">
           <ImageField kind="logo" label="Logo" hint="Wide or square. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.logo_url} />
@@ -57,40 +57,40 @@ export default function SettingsForm({
       </section>
 
       {/* ---- Email signature ---- */}
-      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+      <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 space-y-6">
         <Head title="Email signature" sub="It goes under every email you send a client, with your business phone and email from above." />
         <SignaturePicker name={agent.full_name || agent.business_name} photo={agent.headshot_url} initial={signaturePhoto} />
         <div>
           <Text label="License number (optional)" name="licenseNumber" defaultValue={license} maxLength={40} />
-          <p className="mt-1.5 text-xs text-ink/50">Shows in your signature and on your booking page, under your name. Leave it blank and nothing shows.</p>
+          <p className="mt-1.5 text-xs text-lxink/50">Shows in your signature and on your booking page, under your name. Leave it blank and nothing shows.</p>
         </div>
       </section>
 
       {/* ---- Booking ---- */}
-      <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 space-y-6">
+      <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 space-y-6">
         <Head title="Booking" sub="Your booking link, your hours, and how clients book with you." />
         {bookingLink}
         <div>
           <Text label="Your video meeting link" name="meetingLink" defaultValue={meetingLink} placeholder="e.g. https://zoom.us/j/1234567890" maxLength={500} />
-          <p className="mt-1.5 text-xs text-ink/50">Your Zoom, Google Meet, or Teams link. It goes into every video booking confirmation.</p>
+          <p className="mt-1.5 text-xs text-lxink/50">Your Zoom, Google Meet, or Teams link. It goes into every video booking confirmation.</p>
         </div>
         <label className="block">
-          <span className="mb-1.5 block text-sm text-ink/70">Welcome message (optional)</span>
+          <span className="mb-1.5 block text-sm text-lxink/70">Welcome message (optional)</span>
           <textarea
             name="welcomeMessage"
             defaultValue={agent.welcome_message}
             rows={3}
             maxLength={600}
             placeholder="A short, warm note shown at the top of your booking page."
-            className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
+            className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/20"
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-sm text-ink/70">Timezone</span>
+          <span className="mb-1.5 block text-sm text-lxink/70">Timezone</span>
           <select
             name="timezone"
             defaultValue={agent.timezone}
-            className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass"
+            className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink"
           >
             {TIMEZONES.map((tz) => (
               <option key={tz} value={tz}>
@@ -101,7 +101,7 @@ export default function SettingsForm({
         </label>
 
         <fieldset>
-          <legend className="mb-2 text-sm text-ink/70">Working days</legend>
+          <legend className="mb-2 text-sm text-lxink/70">Working days</legend>
           <div className="flex flex-wrap gap-2">
             {WEEKDAY_LABELS.map(({ iso, label }) => (
               <label key={iso} className="cursor-pointer">
@@ -112,7 +112,7 @@ export default function SettingsForm({
                   defaultChecked={agent.weekdays.includes(iso)}
                   className="peer sr-only"
                 />
-                <span className="inline-block rounded-full border border-ink/20 px-4 py-2 text-sm text-ink/70 peer-checked:border-ox peer-checked:bg-ox peer-checked:text-paper">
+                <span className="inline-block rounded-full border border-lxink/20 px-4 py-2 text-sm text-lxink/70 peer-checked:border-lxink peer-checked:bg-lxink peer-checked:text-lxbg">
                   {label}
                 </span>
               </label>
@@ -151,11 +151,11 @@ export default function SettingsForm({
 
         <div className="grid gap-5 sm:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-sm text-ink/70">Minimum notice</span>
+            <span className="mb-1.5 block text-sm text-lxink/70">Minimum notice</span>
             <select
               name="minNoticeHours"
               defaultValue={String(agent.min_notice_hours ?? 24)}
-              className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass"
+              className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink"
             >
               <option value="0">No minimum</option>
               <option value="1">1 hour before</option>
@@ -165,7 +165,7 @@ export default function SettingsForm({
               <option value="24">24 hours (next day)</option>
               <option value="48">48 hours (2 days)</option>
             </select>
-            <p className="mt-1.5 text-xs text-ink/50">
+            <p className="mt-1.5 text-xs text-lxink/50">
               How far ahead clients must book. &ldquo;24 hours&rdquo; stops same-day bookings.
             </p>
           </label>
@@ -177,7 +177,7 @@ export default function SettingsForm({
           role="status"
           className={
             "rounded-lg px-4 py-3 text-sm " +
-            (state.ok ? "bg-sage/15 text-ink/80" : "bg-red-50 text-red-800")
+            (state.ok ? "bg-lxgold/15 text-lxink/80" : "bg-red-50 text-red-800")
           }
         >
           {state.message}
@@ -187,7 +187,7 @@ export default function SettingsForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-ox px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="rounded-xl bg-lxink px-6 py-3 font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Saving\u2026" : "Save company settings"}
       </button>
@@ -235,11 +235,11 @@ function ImageField({
 
   return (
     <div>
-      <span className="mb-1.5 block text-sm text-ink/70">{label}</span>
+      <span className="mb-1.5 block text-sm text-lxink/70">{label}</span>
       <div className="flex items-center gap-4">
         <div
           className={
-            "flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-ink/15 bg-white/70 " +
+            "flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-lxink/15 bg-white/70 " +
             shape
           }
         >
@@ -247,7 +247,7 @@ function ImageField({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={shown} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="text-xs text-ink/30">None</span>
+            <span className="text-xs text-lxink/30">None</span>
           )}
         </div>
         <div className="space-y-2">
@@ -257,7 +257,7 @@ function ImageField({
             name={kind}
             accept="image/png,image/jpeg,image/webp,image/gif"
             onChange={onPick}
-            className="block w-full text-sm text-ink/60 file:mr-3 file:rounded-lg file:border-0 file:bg-ox file:px-3 file:py-1.5 file:text-sm file:text-paper hover:file:opacity-90"
+            className="block w-full text-sm text-lxink/60 file:mr-3 file:rounded-[2px] file:border file:border-solid file:border-lxink file:bg-transparent file:px-3 file:py-1.5 file:text-sm file:text-lxink hover:file:opacity-90"
           />
           {shown && (
             <button
@@ -271,7 +271,7 @@ function ImageField({
           )}
         </div>
       </div>
-      <p className="mt-1.5 text-xs text-ink/50">{hint}</p>
+      <p className="mt-1.5 text-xs text-lxink/50">{hint}</p>
     </div>
   )
 }
@@ -283,11 +283,11 @@ function Text({
 }: { label: string; name: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm text-ink/70">{label}</span>
+      <span className="mb-1.5 block text-sm text-lxink/70">{label}</span>
       <input
         name={name}
         {...rest}
-        className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
+        className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/20"
       />
     </label>
   )
@@ -306,11 +306,11 @@ function Select({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm text-ink/70">{label}</span>
+      <span className="mb-1.5 block text-sm text-lxink/70">{label}</span>
       <select
         name={name}
         defaultValue={defaultValue}
-        className="w-full rounded-xl border border-ink/15 bg-white/70 px-4 py-3 outline-none focus:border-brass"
+        className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink"
       >
         {children}
       </select>
@@ -323,16 +323,16 @@ function SignaturePicker({ name, photo, initial }: { name: string; photo: string
   const [withPhoto, setWithPhoto] = useState(initial)
   const lines = (
     <div className="min-w-0">
-      <div className="font-serif text-[15px] text-ink">{name || "Your name"}</div>
-      <div className="mt-1 h-1.5 w-24 rounded-full bg-ink/15" />
-      <div className="mt-1.5 h-1.5 w-16 rounded-full bg-ink/10" />
-      <div className="mt-1.5 h-1.5 w-28 rounded-full bg-ink/10" />
+      <div className="font-serif text-[15px] text-lxink">{name || "Your name"}</div>
+      <div className="mt-1 h-1.5 w-24 rounded-full bg-lxink/15" />
+      <div className="mt-1.5 h-1.5 w-16 rounded-full bg-lxink/10" />
+      <div className="mt-1.5 h-1.5 w-28 rounded-full bg-lxink/10" />
     </div>
   )
   const option = (value: boolean, title: string, body: React.ReactNode) => (
     <label
       className={`block cursor-pointer rounded-2xl border p-4 transition ${
-        withPhoto === value ? "border-brass bg-white ring-2 ring-brass/20" : "border-ink/15 bg-white/60 hover:border-ink/30"
+        withPhoto === value ? "border-lxink bg-white ring-2 ring-lxink/20" : "border-lxink/15 bg-white/60 hover:border-lxink/30"
       }`}
     >
       <input
@@ -343,13 +343,13 @@ function SignaturePicker({ name, photo, initial }: { name: string; photo: string
         onChange={() => setWithPhoto(value)}
         className="sr-only"
       />
-      <div className="mb-3 text-sm text-ink/70">{title}</div>
+      <div className="mb-3 text-sm text-lxink/70">{title}</div>
       {body}
     </label>
   )
   return (
     <div>
-      <span className="mb-1.5 block text-sm text-ink/70">Your email signature</span>
+      <span className="mb-1.5 block text-sm text-lxink/70">Your email signature</span>
       <div className="grid gap-3 sm:grid-cols-2">
         {option(false, "Name and details", lines)}
         {option(
@@ -360,13 +360,13 @@ function SignaturePicker({ name, photo, initial }: { name: string; photo: string
               // eslint-disable-next-line @next/next/no-img-element
               <img src={photo} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" />
             ) : (
-              <div className="h-12 w-12 shrink-0 rounded-full bg-ink/10" />
+              <div className="h-12 w-12 shrink-0 rounded-full bg-lxink/10" />
             )}
             {lines}
           </div>,
         )}
       </div>
-      <p className="mt-1.5 text-xs text-ink/50">
+      <p className="mt-1.5 text-xs text-lxink/50">
         It goes under every email you send a client, with your name, business, license, phone, email and booking link.
         {withPhoto && !photo ? " Add a headshot above and it shows here." : ""}
       </p>
@@ -378,7 +378,7 @@ function Head({ title, sub }: { title: string; sub: string }) {
   return (
     <div>
       <h2 className="font-serif font-semibold tracking-tight text-xl">{title}</h2>
-      <p className="mt-1 text-sm text-ink/60">{sub}</p>
+      <p className="mt-1 text-sm text-lxink/60">{sub}</p>
     </div>
   )
 }

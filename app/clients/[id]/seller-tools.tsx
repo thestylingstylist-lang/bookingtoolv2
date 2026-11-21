@@ -14,9 +14,9 @@ export type SaleOffer = { id: string; amount: number; terms: string | null; stat
 export type SaleHome = { address: string | null; price: number | null; listedOn: string | null; url: string | null }
 
 const input =
-  "w-full min-w-0 rounded-lg border border-[#e4e3e0] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#5d5b62] focus:border-sage"
-const small = "text-[11px] uppercase tracking-[0.05em] text-[#5d5b62]"
-const btn = "rounded-lg border border-[#e4e3e0] bg-white px-3 py-1.5 text-sm hover:bg-[#f1f0ee]"
+  "w-full min-w-0 rounded-lg border border-lxhair bg-white px-3 py-1.5 text-sm outline-none placeholder:text-lxsoft focus:border-lxgold"
+const small = "text-[11px] uppercase tracking-[0.05em] text-lxsoft"
+const btn = "rounded-lg border border-lxhair bg-white px-3 py-1.5 text-sm hover:bg-lxfill"
 
 const STATUS_LABEL: Record<string, string> = {
   review: "Under review",
@@ -52,9 +52,9 @@ export default function SellerTools({
   return (
     <div className="mt-4 space-y-4">
       {/* Their home */}
-      <section className="rounded-xl border border-[#e4e3e0] bg-white px-4 py-4">
+      <section className="rounded-xl border border-lxhair bg-white px-4 py-4">
         <h3 className="text-sm font-semibold">{firstName ? `${firstName}’s home` : "Their home"}</h3>
-        <p className="mt-0.5 text-xs text-[#5d5b62]">Shown at the top of {who}&rsquo;s seller suite.</p>
+        <p className="mt-0.5 text-xs text-lxsoft">Shown at the top of {who}&rsquo;s seller suite.</p>
         <form action={saveSaleHome} className="mt-3 grid gap-2 sm:grid-cols-2">
           {hidden}
           <label className="sm:col-span-2">
@@ -80,11 +80,11 @@ export default function SellerTools({
       </section>
 
       {/* Open houses or private showings */}
-      <section className="rounded-xl border border-[#e4e3e0] bg-white px-4 py-4">
+      <section className="rounded-xl border border-lxhair bg-white px-4 py-4">
         <div className="flex items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold">{privateShowings ? "Private showings" : "Open houses"}</h3>
-            <p className="mt-0.5 text-xs text-[#5d5b62]">
+            <p className="mt-0.5 text-xs text-lxsoft">
               {privateShowings
                 ? "Vetted buyers only. Your client sees this stage as Private showings."
                 : "Dates and times your client sees. Add a short note after each one."}
@@ -97,9 +97,9 @@ export default function SellerTools({
               type="submit"
               role="switch"
               aria-checked={privateShowings}
-              className="flex items-center gap-2 whitespace-nowrap text-xs text-[#5d5b62]"
+              className="flex items-center gap-2 whitespace-nowrap text-xs text-lxsoft"
             >
-              <span className={`relative h-5 w-9 rounded-full transition-colors ${privateShowings ? "bg-ox" : "bg-[#d6d4d0]"}`}>
+              <span className={`relative h-5 w-9 rounded-full transition-colors ${privateShowings ? "bg-lxink" : "bg-[#d6d4d0]"}`}>
                 <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${privateShowings ? "left-[18px]" : "left-0.5"}`} />
               </span>
               Private showings
@@ -107,7 +107,7 @@ export default function SellerTools({
           </form>
         </div>
 
-        <ul className="mt-3 divide-y divide-[#e4e3e0]">
+        <ul className="mt-3 divide-y divide-lxhair">
           {openHouses.map((o) => (
             <li key={o.id} className="py-3">
               <div className="flex items-baseline justify-between gap-2">
@@ -115,12 +115,12 @@ export default function SellerTools({
                   {when.format(new Date(o.starts_at))}
                   {o.ends_at ? ` to ${endFmt.format(new Date(o.ends_at))}` : ""}
                 </span>
-                <span className="flex items-center gap-2 text-xs text-[#5d5b62]">
+                <span className="flex items-center gap-2 text-xs text-lxsoft">
                   {o.kind === "private" ? "Private showing" : "Open house"}
                   <form action={deleteOpenHouse}>
                     {hidden}
                     <input type="hidden" name="id" value={o.id} />
-                    <button type="submit" aria-label="Remove" className="px-1 hover:text-ink">&times;</button>
+                    <button type="submit" aria-label="Remove" className="px-1 hover:text-lxink">&times;</button>
                   </form>
                 </span>
               </div>
@@ -160,10 +160,10 @@ export default function SellerTools({
       </section>
 
       {/* Offers received */}
-      <section className="rounded-xl border border-[#e4e3e0] bg-white px-4 py-4">
+      <section className="rounded-xl border border-lxhair bg-white px-4 py-4">
         <h3 className="text-sm font-semibold">Offers received</h3>
-        <p className="mt-0.5 text-xs text-[#5d5b62]">Each offer, where it stands, and your note. {firstName || "Your client"} sees all three.</p>
-        <ul className="mt-3 divide-y divide-[#e4e3e0]">
+        <p className="mt-0.5 text-xs text-lxsoft">Each offer, where it stands, and your note. {firstName || "Your client"} sees all three.</p>
+        <ul className="mt-3 divide-y divide-lxhair">
           {offers.map((o) => (
             <li key={o.id} className="py-3">
               <div className="flex items-baseline justify-between gap-2">
@@ -171,11 +171,11 @@ export default function SellerTools({
                 <form action={deleteSaleOffer}>
                   {hidden}
                   <input type="hidden" name="id" value={o.id} />
-                  <button type="submit" aria-label="Remove" className="px-1 text-xs text-[#5d5b62] hover:text-ink">&times;</button>
+                  <button type="submit" aria-label="Remove" className="px-1 text-xs text-lxsoft hover:text-lxink">&times;</button>
                 </form>
               </div>
               {(o.terms || o.received_on) && (
-                <p className="text-xs text-[#5d5b62]">
+                <p className="text-xs text-lxsoft">
                   {[o.terms, o.received_on ? `Received ${o.received_on}` : ""].filter(Boolean).join(" · ")}
                 </p>
               )}

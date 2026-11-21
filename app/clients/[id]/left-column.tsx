@@ -15,7 +15,7 @@ export type Task = { id: string; title: string; done: boolean; owner?: string | 
 export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
 
 const inputClass =
-  "min-w-0 flex-1 rounded-lg border border-[#e4e3e0] bg-white px-3 py-1.5 text-sm outline-none placeholder:text-[#5d5b62] focus:border-sage"
+  "min-w-0 flex-1 rounded-lg border border-lxhair bg-white px-3 py-1.5 text-sm outline-none placeholder:text-lxsoft focus:border-lxgold"
 
 function Hidden({ clientId, id }: { clientId: string; id?: string }) {
   return (
@@ -31,7 +31,7 @@ function RemoveButton({ label }: { label: string }) {
     <button
       type="submit"
       aria-label={`Remove ${label}`}
-      className="px-1 text-[#5d5b62] opacity-0 transition-opacity hover:text-ink group-hover:opacity-100"
+      className="px-1 text-lxsoft opacity-0 transition-opacity hover:text-lxink group-hover:opacity-100"
     >
       &times;
     </button>
@@ -86,14 +86,14 @@ export default function LeftColumn({
 
   return (
     <div>
-    {heading && <h2 className="mb-2 mt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#5d5b62]">{heading}</h2>}
-    <div className="overflow-hidden rounded-xl border border-[#e4e3e0] bg-[#f7f6f4]">
+    {heading && <h2 className="mb-2 mt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-lxsoft">{heading}</h2>}
+    <div className="overflow-hidden rounded-xl border border-lxhair bg-lxfill">
       {PHASES.map((p, n) =>
         n === i ? (
-      <section key={p.key} className="border-l-[3px] border-[#BC559E] bg-white px-4 pb-5 pt-4 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-t-[#e4e3e0]">
+      <section key={p.key} className="border-l-[3px] border-lxgold bg-white px-4 pb-5 pt-4 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-t-[#e4e3e0]">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold text-ink">{current.label}</h2>
-          <span className="font-semibold tracking-tight text-xs text-[#BC559E]">You&apos;re here</span>
+          <h2 className="text-sm font-semibold text-lxink">{current.label}</h2>
+          <span className="font-semibold tracking-tight text-xs text-lxgolddeep">You&apos;re here</span>
         </div>
         {tasks.length === 0 && hasStandard && (
           <form action={addStandardSteps} className="mt-3">
@@ -101,7 +101,7 @@ export default function LeftColumn({
             <input type="hidden" name="phase" value={phase} />
             <button
               type="submit"
-              className="w-full rounded-lg border border-dashed border-[#c9c7c3] bg-white px-3 py-2.5 text-sm text-[#5d5b62] hover:border-ink hover:text-ink"
+              className="w-full rounded-lg border border-dashed border-lxhair bg-white px-3 py-2.5 text-sm text-lxsoft hover:border-lxink hover:text-lxink"
             >
               Add the standard {current.label.toLowerCase()} steps
             </button>
@@ -113,7 +113,7 @@ export default function LeftColumn({
               key={t.id}
               id={`step-${t.id}`}
               className={`group flex scroll-mt-24 items-start gap-2.5 py-2 ${
-                focus === t.id ? "-mx-2 rounded-lg bg-[#FBEDF5] px-2 ring-1 ring-[#e8c98f]" : ""
+                focus === t.id ? "-mx-2 rounded-lg bg-white px-2 ring-1 ring-lxgold/60" : ""
               }`}
             >
               <form action={toggleTask}>
@@ -123,18 +123,18 @@ export default function LeftColumn({
                   type="submit"
                   aria-label={t.done ? "Mark not done" : "Mark done"}
                   className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded-[5px] border-[1.5px] text-[10px] leading-none ${
-                    t.done ? "border-sage bg-sage text-white" : "border-[#c9c7c3] bg-white"
+                    t.done ? "border-lxgold bg-lxgold text-white" : "border-lxhair bg-white"
                   }`}
                 >
                   {t.done ? "\u2713" : ""}
                 </button>
               </form>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className={`text-sm ${t.done ? "text-[#5d5b62] line-through" : ""}`}>{t.title}</span>
+                <span className={`text-sm ${t.done ? "text-lxsoft line-through" : ""}`}>{t.title}</span>
                 {!t.done && (
                   <form action={setDueDate} className="flex items-center gap-1.5">
                     <Hidden clientId={clientId} id={t.id} />
-                    {toOwner(t.owner) === "client" && <span className="text-xs text-[#5d5b62]">{who} ·</span>}
+                    {toOwner(t.owner) === "client" && <span className="text-xs text-lxsoft">{who} ·</span>}
                     <DuePicker
                       submitOnChange
                       value={t.due_on}
@@ -146,10 +146,10 @@ export default function LeftColumn({
                   </form>
                 )}
                 {focus === t.id && nudge === "sent" && (
-                  <p className="text-xs text-sage">Reminder sent to {who}.</p>
+                  <p className="text-xs text-lxgold">Reminder sent to {who}.</p>
                 )}
                 {focus === t.id && nudge === "fail" && (
-                  <p className="text-xs text-brass">The reminder didn&apos;t go out. Try again.</p>
+                  <p className="text-xs text-lxink">The reminder didn&apos;t go out. Try again.</p>
                 )}
                 {!t.done && t.due_on && toOwner(t.owner) === "client" && canNudge(t.due_on, t.nudged_at, tz) && (
                   canEmail ? (
@@ -171,7 +171,7 @@ export default function LeftColumn({
                       })}
                     />
                   ) : (
-                    <p className="text-xs text-[#5d5b62]">Add an email for {who} to send a reminder.</p>
+                    <p className="text-xs text-lxsoft">Add an email for {who} to send a reminder.</p>
                   )
                 )}
               </div>
@@ -188,14 +188,14 @@ export default function LeftColumn({
           <input type="hidden" name="phase" value={phase} />
           <div className="flex gap-2">
             <input name="title" placeholder="Add a step" aria-label="Step" className={inputClass} />
-            <button type="submit" className="rounded-lg border border-[#e4e3e0] bg-white px-3 text-sm hover:bg-[#f1f0ee]">
+            <button type="submit" className="rounded-lg border border-lxhair bg-white px-3 text-sm hover:bg-lxfill">
               Add
             </button>
           </div>
           <div className="flex items-center gap-3">
-            <label className="flex items-center gap-1.5 text-xs text-[#5d5b62]">
+            <label className="flex items-center gap-1.5 text-xs text-lxsoft">
               For
-              <select name="owner" className="rounded-md border border-[#e4e3e0] bg-white px-1.5 py-0.5 text-xs text-ink">
+              <select name="owner" className="rounded-md border border-lxhair bg-white px-1.5 py-0.5 text-xs text-lxink">
                 <option value="agent">Me</option>
                 <option value="client">{who}</option>
               </select>
@@ -210,7 +210,7 @@ export default function LeftColumn({
             <input type="hidden" name="to" value={next.key} />
             <button
               type="submit"
-              className="w-full rounded-[10px] bg-ox px-3 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+              className="w-full rounded-[10px] bg-lxink px-3 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90"
             >
               Move to {next.label}
             </button>
@@ -220,7 +220,7 @@ export default function LeftColumn({
           <form action={movePhase} className="mt-2 text-center">
             <Hidden clientId={clientId} />
             <input type="hidden" name="to" value={prev.key} />
-            <button type="submit" className="text-xs text-[#5d5b62] underline underline-offset-2 hover:text-ink">
+            <button type="submit" className="text-xs text-lxsoft underline underline-offset-2 hover:text-lxink">
               Back to {prev.label}
             </button>
           </form>
@@ -229,10 +229,10 @@ export default function LeftColumn({
         ) : (
           <div
             key={p.key}
-            className="flex items-baseline justify-between px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-[#e4e3e0]"
+            className="flex items-baseline justify-between px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-lxhair"
           >
-            <span className="text-sm text-[#4f4d53]">{p.label}</span>
-            <span className="font-semibold tracking-tight text-xs text-[#8e8c93]">{n < i ? "Done" : n === i + 1 ? "Up next" : "Later"}</span>
+            <span className="text-sm text-lxsoft">{p.label}</span>
+            <span className="font-semibold tracking-tight text-xs text-[#8f8b84]">{n < i ? "Done" : n === i + 1 ? "Up next" : "Later"}</span>
           </div>
         )
       )}

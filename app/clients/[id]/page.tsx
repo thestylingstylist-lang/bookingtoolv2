@@ -309,19 +309,19 @@ export default async function ClientJacket({
     <AppShell agent={agent}>
       <main className="flex flex-col bg-white lg:h-screen lg:overflow-hidden">
         {/* Client header */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-3 border-b border-[#e4e3e0] px-5 py-4 sm:flex-nowrap sm:px-6">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-3 border-b border-lxhair px-5 py-4 sm:flex-nowrap sm:px-6">
           <Link
             href="/clients"
-            className="order-first basis-full text-xs text-[#5d5b62] underline-offset-2 hover:text-ink hover:underline sm:order-last sm:basis-auto"
+            className="order-first basis-full text-xs text-lxsoft underline-offset-2 hover:text-lxink hover:underline sm:order-last sm:basis-auto"
           >
             &larr; All clients
           </Link>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f1f0ee] font-serif font-semibold tracking-tight text-base text-[#16151a]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-lxfill font-serif font-semibold tracking-tight text-base text-lxink">
             {initials(client.first_name, client.last_name)}
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-semibold sm:text-[15px]">{name}</h1>
-            <p className="truncate text-xs text-[#5d5b62]">{client.phone || client.email || "\u00a0"}</p>
+            <p className="truncate text-xs text-lxsoft">{client.phone || client.email || "\u00a0"}</p>
           </div>
           {/* Actions: their own full-width row on phones, inline on desktop */}
           <div className="flex w-full items-center gap-3 sm:w-auto">
@@ -329,7 +329,7 @@ export default async function ClientJacket({
               <input type="hidden" name="clientId" value={client.id} />
               <button
                 type="submit"
-                className="w-full rounded-[10px] bg-ox px-3.5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 sm:w-auto sm:py-2 sm:text-xs"
+                className="w-full rounded-[2px] border border-lxink bg-transparent px-3.5 py-2.5 text-sm text-lxink transition-colors hover:bg-lxink/[0.04] sm:w-auto sm:py-2 sm:text-xs"
               >
                 Send suite link
               </button>
@@ -339,7 +339,7 @@ export default async function ClientJacket({
                 href={`/portal/${client.portal_token}`}
                 target="_blank"
                 rel="noopener"
-                className="shrink-0 rounded-[10px] border border-[#e4e3e0] px-3.5 py-2.5 text-sm text-[#5d5b62] hover:text-ink sm:border-0 sm:px-0 sm:py-0 sm:text-xs sm:underline-offset-2 sm:hover:underline"
+                className="shrink-0 rounded-[10px] border border-lxhair px-3.5 py-2.5 text-sm text-lxsoft hover:text-lxink sm:border-0 sm:px-0 sm:py-0 sm:text-xs sm:underline-offset-2 sm:hover:underline"
               >
                 Preview suite
               </a>
@@ -353,9 +353,9 @@ export default async function ClientJacket({
           const list = phasesFor(j) as { key: Phase; label: string }[]
           const ci = phaseIndex(cur)
           return (
-            <div key={j} className="border-b border-[#e4e3e0] bg-[#f5f5f5] px-6 py-4">
+            <div key={j} className="border-b border-lxhair bg-lxfill px-6 py-4">
               {journeys.length > 1 && (
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#5d5b62]">{j === "sell" ? "Selling" : "Buying"}</p>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-lxsoft">{j === "sell" ? "Selling" : "Buying"}</p>
               )}
               <div className="flex items-center">
                 {list.map((p, idx) => {
@@ -375,20 +375,20 @@ export default async function ClientJacket({
                           <span
                             className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-[1.5px] text-xs font-semibold ${
                               state === "done"
-                                ? "border-sage bg-sage text-white"
+                                ? "border-lxgold bg-lxgold text-white"
                                 : state === "now"
-                                  ? "border-ink bg-ox text-white"
-                                  : "border-[#d6d4d0] bg-white text-[#5d5b62]"
+                                  ? "border-lxink bg-lxink text-white"
+                                  : "border-lxhair bg-white text-lxsoft"
                             }`}
                           >
                             {state === "done" ? "\u2713" : idx + 1}
                           </span>
-                          <span className={`text-[13px] ${state === "now" ? "font-semibold" : state === "done" ? "" : "text-[#5d5b62]"}`}>
+                          <span className={`text-[13px] ${state === "now" ? "font-semibold" : state === "done" ? "" : "text-lxsoft"}`}>
                             {label}
                           </span>
                         </button>
                       </form>
-                      {idx < list.length - 1 && <div className={`mx-3 h-[1.5px] flex-1 ${idx < ci ? "bg-sage" : "bg-[#d3d2d5]"}`} />}
+                      {idx < list.length - 1 && <div className={`mx-3 h-[1.5px] flex-1 ${idx < ci ? "bg-lxgold" : "bg-[#d3d2d5]"}`} />}
                     </div>
                   )
                 })}
@@ -460,12 +460,12 @@ export default async function ClientJacket({
             {(sp.updated || banner || error) && (
               <div className="space-y-2 px-6 pt-4">
                 {sp.updated && (
-                  <p className="rounded-lg bg-[#EEE9FF] px-4 py-2.5 text-sm text-sage">Client updated.</p>
+                  <p className="rounded-lg bg-lxlav/50 px-4 py-2.5 text-sm text-lxgold">Client updated.</p>
                 )}
                 {banner && (
                   <p
                     className={`rounded-lg px-4 py-2.5 text-sm ${
-                      banner.ok ? "bg-[#EEE9FF] text-sage" : "bg-[#f1f0ee] text-brass"
+                      banner.ok ? "bg-lxlav/50 text-lxgold" : "bg-lxfill text-lxink"
                     }`}
                   >
                     {banner.text}
@@ -479,7 +479,7 @@ export default async function ClientJacket({
             <div className="flex flex-1 flex-col-reverse overflow-y-auto">
               <div className="flex flex-col gap-1 px-6 py-6">
                 {messages.length === 0 && (
-                  <p className="m-auto max-w-xs py-16 text-center text-sm text-[#5d5b62]">
+                  <p className="m-auto max-w-xs py-16 text-center text-sm text-lxsoft">
                     Nothing here yet. Send the agreement to get started.
                   </p>
                 )}
@@ -489,26 +489,26 @@ export default async function ClientJacket({
                   return (
                     <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
                       {doc ? (
-                        <div className="w-full max-w-sm rounded-2xl rounded-br-[5px] border border-[#e4e3e0] bg-white px-4 py-4 shadow-[0_3px_10px_rgba(0,0,0,0.04)]">
-                          <p className="text-[10px] uppercase tracking-[0.09em] text-[#5d5b62]">
+                        <div className="w-full max-w-sm rounded-2xl rounded-br-[5px] border border-lxhair bg-white px-4 py-4 shadow-[0_3px_10px_rgba(0,0,0,0.04)]">
+                          <p className="text-[10px] uppercase tracking-[0.09em] text-lxsoft">
                             Document to sign
                           </p>
                           <p className="mt-1 font-serif font-semibold tracking-tight text-xl">{doc.title}</p>
                           <div className="mt-3 flex items-center gap-3">
                             {doc.status === "signed" ? (
-                              <span className="rounded-full bg-[#EEE9FF] px-2.5 py-0.5 text-[11px] text-sage">
+                              <span className="rounded-full bg-lxlav/50 px-2.5 py-0.5 text-[11px] text-lxgold">
                                 Signed{doc.signed_at ? ` \u00b7 ${fmtDay.format(new Date(doc.signed_at))}` : ""}
                                 {doc.signer_name ? ` by ${doc.signer_name}` : ""}
                               </span>
                             ) : (
                               <>
-                                <span className="rounded-full bg-[#f1f0ee] px-2.5 py-0.5 text-[11px] text-brass">
+                                <span className="rounded-full bg-lxfill px-2.5 py-0.5 text-[11px] text-lxink">
                                   Sent &middot; waiting
                                 </span>
                                 <form action={resendDocument}>
                                   <input type="hidden" name="documentId" value={doc.id} />
                                   <input type="hidden" name="clientId" value={client.id} />
-                                  <button className="text-xs text-[#5d5b62] underline hover:text-ink">
+                                  <button className="text-xs text-lxsoft underline hover:text-lxink">
                                     Resend
                                   </button>
                                 </form>
@@ -519,13 +519,13 @@ export default async function ClientJacket({
                       ) : (
                         <div
                           className={`max-w-[74%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                            mine ? "rounded-br-[5px] bg-[#eeedeb]" : "rounded-bl-[5px] bg-[#f1f0ee]"
+                            mine ? "rounded-br-[5px] bg-[#eeedeb]" : "rounded-bl-[5px] bg-lxfill"
                           }`}
                         >
                           {m.body}
                         </div>
                       )}
-                      <span className="mx-1 mb-3 mt-1 text-[11px] text-[#9a989e]">
+                      <span className="mx-1 mb-3 mt-1 text-[11px] text-[#8f8b84]">
                         {fmt.format(new Date(m.created_at))}
                       </span>
                     </div>
@@ -534,7 +534,7 @@ export default async function ClientJacket({
               </div>
             </div>
 
-            <div className="border-t border-[#e4e3e0] px-6 py-4">
+            <div className="border-t border-lxhair px-6 py-4">
               <div className="mb-3">
                 <SendDocument
                   clientId={client.id}
@@ -561,7 +561,7 @@ export default async function ClientJacket({
                 clientFirst={client.first_name ?? ""}
                 canDraft={assistant.unlocked && ai.replies && messages.length > 0 && messages[messages.length - 1].sender === "client"}
               />
-              <p className="mt-2 text-[11px] text-[#9a989e]">
+              <p className="mt-2 text-[11px] text-[#8f8b84]">
                 {client.first_name || "Your client"} sees these messages in their suite and can reply there.
               </p>
             </div>

@@ -29,13 +29,13 @@ export default function JacketDetails({ client }: { client: Client }) {
   const [editing, setEditing] = useState(false)
 
   const inputClass =
-    "w-full rounded-lg border border-[#e4e3e0] bg-white px-3 py-2 text-sm outline-none focus:border-sage"
-  const labelClass = "mb-1 block text-[11px] uppercase tracking-[0.05em] text-[#5d5b62]"
+    "w-full rounded-lg border border-lxhair bg-white px-3 py-2 text-sm outline-none focus:border-lxgold"
+  const labelClass = "mb-1 block text-[11px] uppercase tracking-[0.05em] text-lxsoft"
 
   if (editing) {
     return (
       <section>
-        <h2 className="text-[13px] uppercase tracking-[0.06em] text-[#5d5b62]">Edit contact</h2>
+        <h2 className="text-[13px] uppercase tracking-[0.06em] text-lxsoft">Edit contact</h2>
         <form action={updateClient} className="mt-4 space-y-3">
           <input type="hidden" name="id" value={client.id} />
           <input type="hidden" name="returnTo" value={`/clients/${client.id}`} />
@@ -62,14 +62,14 @@ export default function JacketDetails({ client }: { client: Client }) {
           <div className="flex gap-3 pt-1">
             <button
               type="submit"
-              className="rounded-lg bg-ox px-4 py-2 text-sm font-medium text-paper transition-opacity hover:opacity-90"
+              className="rounded-lg bg-lxink px-4 py-2 text-sm font-medium text-lxbg transition-opacity hover:opacity-90"
             >
               Save
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="rounded-lg px-4 py-2 text-sm text-[#5d5b62] transition-colors hover:text-ink"
+              className="rounded-lg px-4 py-2 text-sm text-lxsoft transition-colors hover:text-lxink"
             >
               Cancel
             </button>
@@ -83,8 +83,8 @@ export default function JacketDetails({ client }: { client: Client }) {
   const type = client.client_type ? TYPE_LABEL[client.client_type] : undefined
 
   const row = (label: string, value: string | null) => (
-    <div className="border-b border-[#e4e3e0] py-3">
-      <p className="text-[11px] uppercase tracking-[0.05em] text-[#5d5b62]">{label}</p>
+    <div className="border-b border-lxhair py-3">
+      <p className="text-[11px] uppercase tracking-[0.05em] text-lxsoft">{label}</p>
       <p className="mt-0.5 break-words text-sm">{value || "\u2014"}</p>
     </div>
   )
@@ -92,21 +92,21 @@ export default function JacketDetails({ client }: { client: Client }) {
   return (
     <section>
       <div className="flex items-center justify-between">
-        <h2 className="text-[13px] uppercase tracking-[0.06em] text-[#5d5b62]">Contact</h2>
+        <h2 className="text-[13px] uppercase tracking-[0.06em] text-lxsoft">Contact</h2>
         <button
           onClick={() => setEditing(true)}
-          className="text-xs text-[#5d5b62] underline-offset-2 hover:text-ink hover:underline"
+          className="text-xs text-lxsoft underline-offset-2 hover:text-lxink hover:underline"
         >
           Edit
         </button>
       </div>
       <div className="mt-4 flex items-center gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#f1f0ee] font-serif font-semibold tracking-tight text-lg text-[#16151a]">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-lxfill font-serif font-semibold tracking-tight text-lg text-lxink">
           {initials(client.first_name, client.last_name)}
         </div>
         <div className="min-w-0">
           <p className="truncate font-serif font-semibold tracking-tight text-2xl leading-tight">{name}</p>
-          {type && <p className="text-xs text-[#5d5b62]">{type}</p>}
+          {type && <p className="text-xs text-lxsoft">{type}</p>}
         </div>
       </div>
       <div className="mt-3">

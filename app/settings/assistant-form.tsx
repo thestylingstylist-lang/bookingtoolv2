@@ -36,15 +36,15 @@ function Switch({
         />
         <span
           aria-hidden
-          className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${checked && !locked ? "bg-ink" : "bg-ink/15"}`}
+          className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition-colors ${checked && !locked ? "bg-lxink" : "bg-lxink/15"}`}
         >
           <span
             className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${checked && !locked ? "left-[22px]" : "left-0.5"}`}
           />
         </span>
         <span>
-          <span className="block text-[15px] font-medium text-ink">{title}</span>
-          <span className="mt-0.5 block text-[13.5px] leading-relaxed text-ink/60">{line}</span>
+          <span className="block text-[15px] font-medium text-lxink">{title}</span>
+          <span className="mt-0.5 block text-[13.5px] leading-relaxed text-lxink/60">{line}</span>
         </span>
       </label>
       {children && checked && !locked && <div className="ml-[60px] mt-3">{children}</div>}
@@ -52,8 +52,8 @@ function Switch({
   )
 }
 
-const group = "border-t border-ink/10 pt-5 first:border-0 first:pt-0"
-const groupTitle = "text-[13px] font-semibold uppercase tracking-[.12em] text-ink/45"
+const group = "border-t border-lxink/10 pt-5 first:border-0 first:pt-0"
+const groupTitle = "text-[13px] font-semibold uppercase tracking-[.12em] text-lxink/45"
 
 export default function AssistantForm({
   unlocked,
@@ -74,15 +74,15 @@ export default function AssistantForm({
   return (
     <form action={formAction} className="space-y-6">
       {locked && (
-        <div className="rounded-xl bg-ink/[0.04] p-4 text-sm leading-relaxed text-ink/70">
+        <div className="rounded-xl bg-lxink/[0.04] p-4 text-sm leading-relaxed text-lxink/70">
           Writing in your voice comes with the Marvberry Assistant plan.{" "}
-          <a href="/support" className="font-medium text-ink underline underline-offset-2">Ask us about it</a>. Your
+          <a href="/support" className="font-medium text-lxink underline underline-offset-2">Ask us about it</a>. Your
           morning update and offer follow-ups work on every plan.
         </div>
       )}
 
       {!locked && (
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-lxink/60">
           Marvberry writes up to 300 messages a month for you. If you ever reach that, it picks back up on the 1st, and
           everything else keeps working.
         </p>
@@ -100,8 +100,8 @@ export default function AssistantForm({
         >
           <label className="flex cursor-pointer items-start gap-3">
             <input type="checkbox" name="auto" checked={v.auto} onChange={(e) => set("auto")(e.target.checked)} className="mt-1 h-4 w-4 accent-[#16151a]" />
-            <span className="text-[13.5px] leading-relaxed text-ink/70">
-              <span className="font-medium text-ink">Send them for me.</span> They go out on their own each morning, in
+            <span className="text-[13.5px] leading-relaxed text-lxink/70">
+              <span className="font-medium text-lxink">Send them for me.</span> They go out on their own each morning, in
               your name. Leave this off to read each one first.
             </span>
           </label>
@@ -120,15 +120,15 @@ export default function AssistantForm({
         />
         {!locked && (
           <label className="block">
-            <span className="mb-1.5 block text-sm text-ink/70">A few messages you&rsquo;ve written</span>
+            <span className="mb-1.5 block text-sm text-lxink/70">A few messages you&rsquo;ve written</span>
             <textarea
               name="voice"
               rows={5}
               defaultValue={voice}
               placeholder={"Paste two or three texts or emails you've sent clients. Leave a blank line between each one."}
-              className="w-full resize-y rounded-xl border border-ink/15 bg-white/70 px-4 py-3 text-sm leading-relaxed outline-none focus:border-brass focus:ring-2 focus:ring-brass/20"
+              className="w-full resize-y rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 text-sm leading-relaxed outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/20"
             />
-            <span className="mt-1.5 block text-xs text-ink/50">
+            <span className="mt-1.5 block text-xs text-lxink/50">
               Your drafts learn how you sound from these and from what you send in Marvberry. Your clients never see this.
             </span>
           </label>
@@ -158,7 +158,7 @@ export default function AssistantForm({
       </section>
 
       {state && (
-        <p role="status" className={"rounded-lg px-4 py-3 text-sm " + (state.ok ? "bg-sage/15 text-ink/80" : "bg-red-50 text-red-800")}>
+        <p role="status" className={"rounded-lg px-4 py-3 text-sm " + (state.ok ? "bg-lxgold/15 text-lxink/80" : "bg-red-50 text-red-800")}>
           {state.message}
         </p>
       )}
@@ -166,7 +166,7 @@ export default function AssistantForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-ox px-6 py-3 font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="rounded-xl bg-lxink px-6 py-3 font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Saving…" : "Save"}
       </button>

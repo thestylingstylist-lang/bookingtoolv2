@@ -149,35 +149,35 @@ export default function PdfEditor({ id, title, url, initial }: { id: string; tit
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 sm:px-10">
-      <Link href="/templates" className="text-sm text-ink/50 hover:text-ink">&larr; Templates</Link>
+      <Link href="/templates" className="text-sm text-lxink/50 hover:text-lxink">&larr; Templates</Link>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-semibold tracking-tight text-3xl">{title}</h1>
-          <p className="mt-1 text-sm text-ink/55">Place the blanks where Marvberry should write. Your form keeps its logo and layout.</p>
+          <p className="mt-1 text-sm text-lxink/55">Place the blanks where Marvberry should write. Your form keeps its logo and layout.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={findBlanks} disabled={state !== "ready"} className="rounded-lg border border-ink/15 bg-white px-4 py-2.5 text-sm font-medium hover:bg-ink/5 disabled:opacity-50">
+          <button type="button" onClick={findBlanks} disabled={state !== "ready"} className="rounded-lg border border-lxink/15 bg-white px-4 py-2.5 text-sm font-medium hover:bg-lxink/5 disabled:opacity-50">
             Find blanks for me
           </button>
-          <button type="button" onClick={save} className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper hover:opacity-90">
+          <button type="button" onClick={save} className="rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg hover:opacity-90">
             {saved === "saving" ? "Saving…" : "Save"}
           </button>
         </div>
       </div>
-      {found && <p className="mt-3 text-sm text-[#93407A]">{found}</p>}
+      {found && <p className="mt-3 text-sm text-lxgolddeep">{found}</p>}
       {saved === "saved" && <p className="mt-3 text-sm text-green-700">Saved. Pick this form when you send an offer.</p>}
       {saved === "error" && <p className="mt-3 text-sm text-red-700">That didn’t save. Try again.</p>}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
         <div className="space-y-6" onPointerMove={move} onPointerUp={up}>
-          {state === "loading" && <p className="text-sm text-ink/50">Opening your form…</p>}
+          {state === "loading" && <p className="text-sm text-lxink/50">Opening your form…</p>}
           {state === "error" && <p className="text-sm text-red-700">Couldn’t open this PDF. Try uploading it again.</p>}
           {pages.map((p, i) => (
             <div
               key={i}
               data-page={i}
               onClick={(e) => addAt(e, i)}
-              className="relative mx-auto w-full max-w-[720px] cursor-crosshair overflow-hidden rounded-lg border border-ink/10 bg-white shadow-sm"
+              className="relative mx-auto w-full max-w-[720px] cursor-crosshair overflow-hidden rounded-lg border border-lxink/10 bg-white shadow-sm"
               style={{ aspectRatio: `${p.w} / ${p.h}`, backgroundImage: `url(${p.url})`, backgroundSize: "100% 100%" }}
             >
               {fields
@@ -188,32 +188,32 @@ export default function PdfEditor({ id, title, url, initial }: { id: string; tit
                     onPointerDown={(e) => down(e, f, "move")}
                     onClick={(e) => e.stopPropagation()}
                     className={`absolute flex cursor-move items-center overflow-hidden rounded-[3px] border px-1 text-[10px] leading-none ${
-                      sel === f.id ? "border-[#BC559E] bg-[#FBEDF5]/90 text-[#93407A]" : isCustom(f.key) ? "border-amber-400 bg-amber-50/85 text-amber-800" : "border-emerald-400 bg-emerald-50/85 text-emerald-800"
+                      sel === f.id ? "border-lxgold bg-white/90 text-lxgolddeep" : isCustom(f.key) ? "border-amber-400 bg-amber-50/85 text-amber-800" : "border-emerald-400 bg-emerald-50/85 text-emerald-800"
                     }`}
                     style={{ left: `${f.x * 100}%`, top: `${f.y * 100}%`, width: `${f.w * 100}%`, height: `${f.h * 100}%` }}
                     title={f.label}
                   >
                     <span className="truncate">{f.label}</span>
-                    <span onPointerDown={(e) => down(e, f, "size")} className="absolute bottom-0 right-0 h-2 w-2 cursor-nwse-resize bg-[#BC559E]" />
+                    <span onPointerDown={(e) => down(e, f, "size")} className="absolute bottom-0 right-0 h-2 w-2 cursor-nwse-resize bg-lxink" />
                   </div>
                 ))}
             </div>
           ))}
         </div>
 
-        <aside className="lg:sticky lg:top-6 h-fit rounded-2xl border border-ink/10 bg-card p-5">
+        <aside className="lg:sticky lg:top-6 h-fit rounded-2xl border border-lxink/10 bg-card p-5">
           {cur ? (
             <div className="space-y-4">
               <p className="font-semibold">This blank</p>
               <label className="block text-sm">
-                <span className="text-ink/60">What goes here</span>
+                <span className="text-lxink/60">What goes here</span>
                 <select
                   value={isCustom(cur.key) ? "custom" : cur.key}
                   onChange={(e) => {
                     const k = e.target.value === "custom" ? `custom:${isCustom(cur.key) ? cur.label : "New blank"}` : e.target.value
                     patch(cur.id, { key: k, label: labelFor(k) })
                   }}
-                  className="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2"
+                  className="mt-1 w-full rounded-lg border border-lxink/15 bg-white px-3 py-2"
                 >
                   {PDF_AUTO.map((a) => (
                     <option key={a.key} value={a.key}>{a.label}</option>
@@ -223,24 +223,24 @@ export default function PdfEditor({ id, title, url, initial }: { id: string; tit
               </label>
               {isCustom(cur.key) && (
                 <label className="block text-sm">
-                  <span className="text-ink/60">Name it</span>
+                  <span className="text-lxink/60">Name it</span>
                   <input
                     value={cur.label}
                     onChange={(e) => patch(cur.id, { label: e.target.value.slice(0, 60), key: `custom:${e.target.value.slice(0, 60)}` })}
-                    className="mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2"
+                    className="mt-1 w-full rounded-lg border border-lxink/15 bg-white px-3 py-2"
                   />
                 </label>
               )}
               <label className="block text-sm">
-                <span className="text-ink/60">Text size</span>
-                <input type="number" min={6} max={24} value={cur.size} onChange={(e) => patch(cur.id, { size: Number(e.target.value) || 11 })} className="mt-1 w-24 rounded-lg border border-ink/15 bg-white px-3 py-2" />
+                <span className="text-lxink/60">Text size</span>
+                <input type="number" min={6} max={24} value={cur.size} onChange={(e) => patch(cur.id, { size: Number(e.target.value) || 11 })} className="mt-1 w-24 rounded-lg border border-lxink/15 bg-white px-3 py-2" />
               </label>
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={cur.cover} onChange={(e) => patch(cur.id, { cover: e.target.checked })} />
                 <span>White out what’s printed here</span>
               </label>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setSel(null)} className="flex-1 rounded-lg border border-ink/15 px-3 py-2 text-sm">Done</button>
+                <button type="button" onClick={() => setSel(null)} className="flex-1 rounded-lg border border-lxink/15 px-3 py-2 text-sm">Done</button>
                 <button
                   type="button"
                   onClick={() => {
@@ -254,11 +254,11 @@ export default function PdfEditor({ id, title, url, initial }: { id: string; tit
               </div>
             </div>
           ) : (
-            <div className="space-y-3 text-sm text-ink/65">
-              <p className="font-semibold text-ink">How it works</p>
+            <div className="space-y-3 text-sm text-lxink/65">
+              <p className="font-semibold text-lxink">How it works</p>
               <p>Click anywhere on the form to add a blank, drag it into place, and pull the corner to fit the line.</p>
               <p><span className="rounded bg-emerald-50 px-1 text-emerald-800">Green</span> blanks fill in on their own. <span className="rounded bg-amber-50 px-1 text-amber-800">Amber</span> ones you type when you send.</p>
-              <p className="pt-2 text-ink/45">{fields.length} blank{fields.length === 1 ? "" : "s"} on this form.</p>
+              <p className="pt-2 text-lxink/45">{fields.length} blank{fields.length === 1 ? "" : "s"} on this form.</p>
               <form
                 action={async () => {
                   if (!confirm("Delete this form?")) return

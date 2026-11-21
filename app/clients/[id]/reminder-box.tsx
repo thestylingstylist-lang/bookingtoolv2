@@ -43,26 +43,26 @@ export default function ReminderBox({
         }
       }}
     >
-      <summary className="block cursor-pointer list-none rounded-lg border border-[#e4e3e0] bg-[#f7f6f4] px-3 py-2.5 [&::-webkit-details-marker]:hidden">
-        <span className="block text-xs font-semibold text-ink">Ready to send</span>
-        <span className="mt-0.5 block font-semibold tracking-tight text-xs text-[#5d5b62]">
+      <summary className="block cursor-pointer list-none rounded-lg border border-lxhair bg-lxfill px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+        <span className="block text-xs font-semibold text-lxink">Ready to send</span>
+        <span className="mt-0.5 block font-semibold tracking-tight text-xs text-lxsoft">
           {assistant ? "Your client reminder, written in your voice by Marvberry Assistant." : "Your client reminder."}
         </span>
-        <span className="mt-2 inline-block rounded-[8px] bg-ink px-2.5 py-1.5 text-xs font-medium text-paper group-open/rb:hidden">
+        <span className="mt-2 inline-block rounded-[2px] border border-lxink px-2.5 py-1.5 text-xs text-lxink group-open/rb:hidden">
           Read, edit, send.
         </span>
       </summary>
       <form action={sendNudge} className="mt-2 space-y-2">
         <input type="hidden" name="stepId" value={stepId} />
         <input type="hidden" name="from" value="client" />
-        {writing && <p className="text-xs text-[#5d5b62]">Writing this in your voice…</p>}
+        {writing && <p className="text-xs text-lxsoft">Writing this in your voice…</p>}
         <textarea
           name="body"
           rows={8}
           aria-label={`Reminder to ${who}`}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className={`w-full resize-y rounded-lg border border-[#e4e3e0] bg-white px-3 py-2 text-sm leading-relaxed outline-none transition-opacity focus:border-ink/30 ${
+          className={`w-full resize-y rounded-lg border border-lxhair bg-white px-3 py-2 text-sm leading-relaxed outline-none transition-opacity focus:border-lxink/30 ${
             writing ? "opacity-50" : ""
           }`}
         />
@@ -70,7 +70,7 @@ export default function ReminderBox({
           <button
             type="submit"
             disabled={writing || !text.trim()}
-            className="rounded-[10px] bg-ink px-3 py-2 text-xs font-medium text-paper hover:opacity-90 disabled:opacity-40"
+            className="rounded-[10px] bg-lxink px-3 py-2 text-xs font-medium text-lxbg hover:opacity-90 disabled:opacity-40"
           >
             Send{agentFirst ? ` as ${agentFirst}` : ""}
           </button>
@@ -78,7 +78,7 @@ export default function ReminderBox({
             type="button"
             onClick={write}
             disabled={writing}
-            className="text-xs text-[#5d5b62] underline underline-offset-2 hover:text-ink disabled:opacity-40"
+            className="text-xs text-lxsoft underline underline-offset-2 hover:text-lxink disabled:opacity-40"
           >
             Write it again
           </button>}

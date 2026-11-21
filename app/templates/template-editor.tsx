@@ -51,14 +51,14 @@ export default function TemplateEditor({
   }
 
   const inputClass =
-    "w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm outline-none focus:border-sage"
+    "w-full rounded-lg border border-lxink/15 bg-white px-3 py-2 text-sm outline-none focus:border-lxgold"
 
   return (
     <form action={action}>
       {id && <input type="hidden" name="id" value={id} />}
 
       {saved && (
-        <p className="mb-6 rounded-lg bg-sage/10 px-4 py-3 text-sm text-sage">
+        <p className="mb-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
           Template saved.
         </p>
       )}
@@ -68,7 +68,7 @@ export default function TemplateEditor({
         </p>
       )}
 
-      <label className="mb-1 block text-sm text-ink/60">Template name</label>
+      <label className="mb-1 block text-sm text-lxink/60">Template name</label>
       <input
         name="title"
         value={title}
@@ -77,13 +77,13 @@ export default function TemplateEditor({
         className={inputClass}
       />
 
-      <label className="mb-1 mt-6 block text-sm text-ink/60">
+      <label className="mb-1 mt-6 block text-sm text-lxink/60">
         Your wording
       </label>
-      <p className="mb-2 text-xs text-ink/50">
+      <p className="mb-2 text-xs text-lxink/50">
         Paste your broker&rsquo;s wording. Wrap anything that should become a
         blank in double brackets, like{" "}
-        <span className="rounded bg-ink/5 px-1 font-mono">[[Client name]]</span>.
+        <span className="rounded bg-lxink/5 px-1 font-mono">[[Client name]]</span>.
       </p>
 
       {/* One-tap common blanks */}
@@ -93,7 +93,7 @@ export default function TemplateEditor({
             type="button"
             key={c}
             onClick={() => insertChip(c)}
-            className="rounded-full border border-ink/15 bg-white px-3 py-1 text-xs text-ink/70 hover:border-sage hover:text-ink"
+            className="rounded-full border border-lxink/15 bg-white px-3 py-1 text-xs text-lxink/70 hover:border-lxgold hover:text-lxink"
           >
             + {c}
           </button>
@@ -112,18 +112,18 @@ export default function TemplateEditor({
 
       {/* Detected blanks */}
       {placeholders.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-ink/10 bg-card p-5">
+        <div className="mt-6 rounded-2xl border border-lxink/10 bg-card p-5">
           <h3 className="font-serif font-semibold tracking-tight text-lg">Blanks found</h3>
           {autos.length > 0 && (
             <div className="mt-3">
-              <p className="text-xs uppercase tracking-wide text-sage">
+              <p className="text-xs uppercase tracking-wide text-lxgold">
                 Filled automatically
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {autos.map((p) => (
                   <span
                     key={p.key}
-                    className="rounded-full bg-sage/15 px-3 py-1 text-xs text-sage"
+                    className="rounded-full bg-lxgold/15 px-3 py-1 text-xs text-lxgold"
                   >
                     {p.label}
                   </span>
@@ -177,7 +177,7 @@ function SaveButton({ saved }: { saved: boolean }) {
     <button
       type="submit"
       disabled={pending || saved}
-      className="rounded-lg bg-ox px-5 py-2.5 text-sm font-medium text-paper transition-opacity hover:opacity-90 disabled:opacity-60"
+      className="rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-60"
     >
       {pending ? "Saving…" : saved ? "Saved" : "Save template"}
     </button>

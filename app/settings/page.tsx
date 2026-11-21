@@ -65,7 +65,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
         <h1 className="font-serif font-semibold tracking-tight text-3xl">Settings</h1>
 
-        <nav className="mt-6 flex gap-7 border-b border-ink/10 text-[15px]">
+        <nav className="mt-6 flex gap-7 border-b border-lxink/10 text-[15px]">
           {[
             ["account", "Account"],
             ["company", "Company"],
@@ -73,7 +73,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <a
               key={k}
               href={`/settings?tab=${k}`}
-              className={`-mb-px border-b-2 pb-3 ${tab === k ? "border-ink font-semibold text-ink" : "border-transparent text-ink/50 hover:text-ink"}`}
+              className={`-mb-px border-b-2 pb-3 ${tab === k ? "border-lxink font-semibold text-lxink" : "border-transparent text-lxink/50 hover:text-lxink"}`}
             >
               {l}
             </a>
@@ -82,19 +82,19 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
         {tab === "account" ? (
           <div className="mt-8 max-w-2xl space-y-6">
-            <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
+            <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6">
               <h2 className="font-serif font-semibold tracking-tight text-xl">You</h2>
-              <p className="mt-1 text-sm text-ink/60">Your name, login email and password. Only you and the Marvberry team see this.</p>
+              <p className="mt-1 text-sm text-lxink/60">Your name, login email and password. Only you and the Marvberry team see this.</p>
               <div className="mt-6">
                 <AccountForm firstName={firstName} lastName={lastName} email={user.email ?? ""} />
               </div>
             </section>
-<section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
+<section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="font-serif font-semibold tracking-tight text-xl">Billing</h2>
-                <p className="mt-1 text-sm text-ink/60">Your plan, your payment card, and canceling.</p>
+                <p className="mt-1 text-sm text-lxink/60">Your plan, your payment card, and canceling.</p>
               </div>
-              <a href="/billing" className="rounded-full border border-ink/15 px-5 py-2.5 text-sm font-medium hover:bg-ink/[0.03]">Open billing</a>
+              <a href="/billing" className="rounded-full border border-lxink/15 px-5 py-2.5 text-sm font-medium hover:bg-lxink/[0.03]">Open billing</a>
             </section>
 
           </div>
@@ -109,7 +109,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
                   key={k}
                   href={`/settings?tab=company&section=${k}`}
                   className={`rounded-full px-4 py-2 text-[15px] lg:rounded-xl ${
-                    section === k ? "bg-ink/[0.06] font-semibold text-ink" : "text-ink/55 hover:text-ink"
+                    section === k ? "bg-lxink/[0.06] font-semibold text-lxink" : "text-lxink/55 hover:text-lxink"
                   }`}
                 >
                   {l}
@@ -118,9 +118,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </nav>
             {section === "ai" ? (
           <div className="space-y-6">
-            <section id="assistant" className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
+            <section id="assistant" className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6">
               <h2 className="font-serif font-semibold tracking-tight text-xl">Marvberry AI</h2>
-              <p className="mt-1 text-sm text-ink/60">Turn on what you want help with. Anything it writes goes out in your name.</p>
+              <p className="mt-1 text-sm text-lxink/60">Turn on what you want help with. Anything it writes goes out in your name.</p>
               <div className="mt-6">
                 <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} prefs={aiPrefs} />
               </div>
@@ -134,15 +134,15 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               meetingLink={meetingLink}
               signaturePhoto={signaturePhoto}
               bookingLink={
-                <div className="rounded-xl bg-ink/[0.03] p-4">
-                  <p className="text-sm text-ink/60">Your booking link. Share it with clients:</p>
+                <div className="rounded-xl bg-lxink/[0.03] p-4">
+                  <p className="text-sm text-lxink/60">Your booking link. Share it with clients:</p>
                   <BookingLink slug={agent.slug} />
                 </div>
               }
             />
-            <section className="rounded-2xl border border-ink/10 bg-card p-5 sm:p-6">
+            <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6">
               <h2 className="font-serif font-semibold tracking-tight text-xl">Deals</h2>
-              <p className="mt-1 text-sm text-ink/60">Set this once. Every agreement you send fills it in, so the only thing left is the commission.</p>
+              <p className="mt-1 text-sm text-lxink/60">Set this once. Every agreement you send fills it in, so the only thing left is the commission.</p>
               <div className="mt-6">
                 <AgreementForm initial={agreement} commission={commission} />
               </div>

@@ -32,3 +32,31 @@ body {
 @media (min-width: 1200px) {
   body[data-dock="open"] .mb-main { padding-right: 400px; }
 }
+
+/* ── Agent app: the luxury system (signature white, fine gold, thin serif) ──
+   Scoped to .mb-app (the app shell, sign-in and setup pages) so the public
+   site and booking pages keep their own look. */
+.mb-app {
+  font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+  background-color: #F8F8F8;
+  color: #1F1E1C;
+}
+.mb-app h1, .mb-app h1[class], .mb-app h2[class*="text-2xl"], .mb-app h2[class*="text-3xl"], .mb-app h2[class*="text-xl"], .mb-app h2[class*="text-lg"], .mb-app h2[class*="text-base"], .mb-app .font-serif {
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  font-weight: 300;
+  letter-spacing: 0;
+}
+.mb-app h1 { font-size: max(1em, 34px); line-height: 1.12; }
+.mb-app h2[class*="text-lg"], .mb-app h2[class*="text-base"], .mb-app h2[class*="text-xl"] { font-size: 23px; font-weight: 400; line-height: 1.2; }
+.mb-app .font-bold, .mb-app .font-semibold { font-weight: 500; }
+.mb-app .font-medium { font-weight: 500; }
+/* Quiet boxes: fine lines, almost square corners, no shadows. */
+.mb-app .rounded-xl, .mb-app .rounded-2xl, .mb-app .rounded-\[14px\], .mb-app .rounded-\[18px\], .mb-app .rounded-3xl { border-radius: 4px; }
+.mb-app .rounded-lg, .mb-app .rounded-md, .mb-app .rounded-\[10px\] { border-radius: 2px; }
+.mb-app .shadow, .mb-app .shadow-sm, .mb-app .shadow-md, .mb-app .shadow-lg, .mb-app .shadow-xl, .mb-app [class*="shadow-["] { box-shadow: none; }
+.mb-app button.bg-lxink, .mb-app a.bg-lxink { border-radius: 2px; }
+.mb-app input:focus, .mb-app textarea:focus, .mb-app select:focus { border-color: #C2A46B; outline: none; box-shadow: none; }
+.mb-app input, .mb-app textarea, .mb-app select { border-radius: 2px; }
+.mb-app ::selection { background: #EFE5D2; }
+/* Lining figures, so 0 never reads as o. */
+.font-lux, .mb-app h1, .mb-app h2, .mb-app .font-serif { font-variant-numeric: lining-nums; }
