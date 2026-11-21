@@ -1,4 +1,5 @@
 import "server-only"
+import { assistantDisplayName } from "@/lib/assistant-name"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { formatInTimeZone } from "date-fns-tz"
@@ -171,7 +172,7 @@ export async function handleRequest(
   if ((used ?? 0) >= MONTHLY_TASKS) return { reply: "You’ve used this month’s requests. They reset on the 1st." }
 
   const tz = (agent?.timezone as string) || "America/New_York"
-  const me = (agent?.assistant_name as string) || "Marvberry"
+  const me = assistantDisplayName(agent?.assistant_name)
   const agentName = ((agent?.full_name as string) || "").trim()
   const clients = (clientRows ?? []) as Client[]
   const ctx = ctxClientId ? clients.find((c) => c.id === ctxClientId) : undefined

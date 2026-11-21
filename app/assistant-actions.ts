@@ -1,4 +1,5 @@
 "use server"
+import { assistantDisplayName } from "@/lib/assistant-name"
 
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
@@ -30,7 +31,7 @@ export async function assistantName(): Promise<string> {
   } = await supabase.auth.getUser()
   if (!user) return "Marvberry"
   const { data } = await supabase.from("agents").select("assistant_name").eq("id", user.id).maybeSingle()
-  return ((data?.assistant_name as string) || "Marvberry").trim()
+  return assistantDisplayName(data?.assistant_name)
 }
 
 // The agent reviewed the agreement in the chat and tapped Send.

@@ -19,7 +19,7 @@ export default async function GetStarted() {
       <style>{CSS}</style>
       <div className="glow" aria-hidden />
       <section className="in">
-        <img className="berry" src="/brand/berry-clear.webp" alt="" />
+        <span className="berry" aria-hidden style={{ width: 56, height: 56, border: "1px solid #C2A46B", borderRadius: "50%", display: "grid", placeItems: "center", fontFamily: "'Cormorant Garamond', Georgia, serif", fontWeight: 300, fontSize: 30, color: "#C2A46B", background: "#F8F8F8" }}>D</span>
         <h1>You’re in{first ? `, ${first}` : ""}. How would you like to get started?</h1>
         <div className="cards">
           <a className="card main" href="/dashboard?welcome=1">

@@ -1,4 +1,6 @@
 "use client"
+
+import DMark from "../d-mark"
 // The top of the dashboard: tell Marvberry what needs to happen. Opens the chat with it.
 import { useState } from "react"
 import { ASK_EVENT } from "../assistant"
@@ -20,13 +22,13 @@ export default function AssistantBar({ name = "Marvberry" }: { name?: string }) 
           e.preventDefault()
           send(text)
         }}
-        className="flex items-center gap-3 rounded-full border border-lxgold/50 bg-white py-2 pl-2 pr-2 shadow-[0_14px_34px_-24px_rgba(188,85,158,.6)]"
+        className="flex items-center gap-3 py-2"
       >
-        <img src="/brand/berry-clear.webp" alt="" className="h-9 w-9 shrink-0 object-contain" />
+        <DMark size={36} letter={name} />
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={`What can ${name} take off your plate today?`}
+          placeholder={`Ask ${name} what to take off your plate today`}
           aria-label={`Ask ${name}`}
           className="min-w-0 flex-1 bg-transparent text-[15px] text-lxink outline-none placeholder:text-lxink/45"
         />

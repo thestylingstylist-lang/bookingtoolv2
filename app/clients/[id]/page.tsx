@@ -9,7 +9,7 @@ import JacketTabs from "./jacket-tabs"
 import Homes, { type HomeView } from "./homes"
 import type { OfferView } from "./offer-forms"
 import { movePhase } from "./checklist-actions"
-import { daysUntil } from "@/lib/due"
+import { daysUntil, agentDueLabel } from "@/lib/due"
 import { formatInTimeZone } from "date-fns-tz"
 import DocumentsPanel from "./documents-panel"
 import SendDocument from "./send-document"
@@ -20,8 +20,9 @@ import { aiPrefsFor } from "@/lib/ai-prefs"
 import { sendPortalLink } from "./portal-actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
-import { phasesFor, stageLabel, phaseIndex, toBuyPhase, toSellPhase, type Phase } from "@/lib/phases"
+import { phasesFor, stageLabel, phaseIndex, toBuyPhase, toSellPhase, toOwner, OWNER_LABEL, type Phase } from "@/lib/phases"
 import { journeysFor, suiteName } from "@/lib/suite"
+import { toggleTask } from "./checklist-actions"
 import SellerTools, { type OpenHouse, type SaleOffer } from "./seller-tools"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
 
@@ -310,7 +311,7 @@ export default async function ClientJacket({
 
   return (
     <AppShell agent={agent}>
-      <main className="flex flex-col bg-white lg:h-screen lg:overflow-hidden">
+      <main className="flex flex-col bg-white">
         {/* Client header */}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-3 border-b border-lxhair px-5 py-4 sm:flex-nowrap sm:px-6">
           <Link
@@ -419,16 +420,89 @@ export default async function ClientJacket({
           )
         })}
 
-        {homeData && journeys.includes("buy") && (
-          <Homes
-            clientId={client.id}
-            clientFirst={client.first_name || ""}
-            clientFull={`${client.first_name || ""} ${client.last_name || ""}`.trim()}
-            homes={homes}
-            docs={collected.filter((c) => c.file_path).map((c) => ({ id: c.id, title: c.title }))}
-            forms={pdfForms}
-          />
-        )}
+        {/* Now: the current stage's steps, open at the top. */}
+        <section className="border-b border-lxhair bg-white px-6 py-5">
+          <div className={`grid gap-8 ${journeys.length > 1 ? "lg:grid-cols-2" : ""}`}>
+            {journeys.map((j) => {
+              const cur = j === "sell" ? sellPhase : buyPhase
+              const rows = j === "sell" ? sellTasks : buyTasks
+              const tzz = agent.timezone || "America/New_York"
+              return (
+                <div key={j}>
+                  <div className="flex items-baseline justify-between gap-4">
+                    <p className="m-0 text-[13px] text-lxsoft">
+                      {journeys.length > 1 ? (j === "sell" ? "Selling \u00b7 " : "Buying \u00b7 ") : "Now \u00b7 "}
+                      <span className="font-lux text-[19px] italic text-lxink">{stageLabel(cur, privateShowings)}</span>
+                    </p>
+                    <Link href={`/clients/${client.id}?tab=tasks`} className="text-[12.5px] text-lxink no-underline [border-bottom:1px_solid_#C2A46B]">
+                      All steps and documents
+                    </Link>
+                  </div>
+                  {rows.length === 0 ? (
+                    <p className="mt-2 text-sm text-lxsoft">
+                      No steps here yet. Add them in <Link href={`/clients/${client.id}?tab=tasks`} className="text-lxink no-underline [border-bottom:1px_solid_#C2A46B]">all steps</Link>.
+                    </p>
+                  ) : (
+                    <ul className="mt-2 grid gap-x-8 sm:grid-cols-2">
+                      {rows.map((t) => (
+                        <li key={t.id} className="flex items-start gap-2.5 border-b border-lxhair py-2.5">
+                          <form action={toggleTask}>
+                            <input type="hidden" name="clientId" value={client.id} />
+                            <input type="hidden" name="id" value={t.id} />
+                            <input type="hidden" name="done" value={t.done ? "0" : "1"} />
+                            <button
+                              type="submit"
+                              aria-label={t.done ? `Mark ${t.title} not done` : `Mark ${t.title} done`}
+                              className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border text-[9px] leading-none ${
+                                t.done ? "border-lxgold bg-lxgold text-white" : "border-lxgold/60 bg-transparent"
+                              }`}
+                            >
+                              {t.done ? "\u2713" : ""}
+                            </button>
+                          </form>
+                          <span className="min-w-0 flex-1">
+                            <span className={`block text-sm ${t.done ? "text-lxsoft line-through" : "text-lxink"}`}>{t.title}</span>
+                            {!t.done && (
+                              <span className="block text-xs text-lxsoft">
+                                {OWNER_LABEL[toOwner(t.owner)]}
+                                {t.due_on ? ` \u00b7 ${agentDueLabel(t.due_on, tzz)}` : ""}
+                              </span>
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        {homeData && journeys.includes("buy") && (() => {
+          const homesEl = (
+            <Homes
+              clientId={client.id}
+              clientFirst={client.first_name || ""}
+              clientFull={`${client.first_name || ""} ${client.last_name || ""}`.trim()}
+              homes={homes}
+              docs={collected.filter((c) => c.file_path).map((c) => ({ id: c.id, title: c.title }))}
+              forms={pdfForms}
+            />
+          )
+          // Past Offer, the homes fold away; one click opens them.
+          const pastOffer = phaseIndex(buyPhase) > phaseIndex("offer")
+          return pastOffer ? (
+            <details className="group border-b border-lxhair bg-white">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-3 text-sm [&::-webkit-details-marker]:hidden">
+                <span>Homes <span className="text-lxsoft">{"\u00b7"} {homes.length}</span></span>
+                <span className="text-lxsoft group-open:hidden">Show</span>
+                <span className="hidden text-lxsoft group-open:inline">Hide</span>
+              </summary>
+              {homesEl}
+            </details>
+          ) : homesEl
+        })()}
 
         <JacketTabs
           initial={sp.step || sp.tab === "tasks" ? "tasks" : undefined}

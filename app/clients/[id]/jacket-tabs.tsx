@@ -89,10 +89,10 @@ export default function JacketTabs({
 
   return (
     <>
-      <div className="grid min-h-0 flex-1 grid-cols-1 pb-16 lg:grid-cols-[minmax(0,1fr)_300px] lg:pb-0">
+      <div className="grid min-h-0 flex-1 grid-cols-1 pb-16 lg:grid-cols-[minmax(0,1fr)_280px] lg:pb-0">
         <div className={`flex-col bg-lxfill px-5 py-6 lg:hidden ${show("tasks") || "flex"}`}>{tasks}</div>
         <div className={`flex-col bg-lxfill px-5 py-6 lg:hidden ${show("documents") || "flex"}`}>{documents}</div>
-        <section className={`min-h-[70vh] flex-col bg-white lg:min-h-0 ${show("messages") || "flex"}`}>
+        <section className={`min-h-[70vh] flex-col bg-white lg:h-[78vh] lg:min-h-[560px] ${show("messages") || "flex"}`}>
           <button
             type="button"
             onClick={() => setSteps(true)}
@@ -113,7 +113,7 @@ export default function JacketTabs({
           {messages}
         </section>
         <aside
-          className={`flex-col border-lxhair bg-white px-5 py-6 lg:overflow-y-auto lg:border-l ${show("client") || "flex"}`}
+          className={`flex-col border-lxhair bg-white px-5 pb-36 pt-6 lg:h-[78vh] lg:overflow-y-auto lg:border-l ${show("client") || "flex"}`}
         >
           {client}
         </aside>

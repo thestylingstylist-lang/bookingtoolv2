@@ -176,7 +176,7 @@ export default function Welcome(props: Props) {
         <div className="blob b2" />
         <div className="blob b3" />
         <div className="center">
-          <img src="/brand/berry-clear.webp" alt="" className="berry" />
+          <span className="berry dmk">D</span>
           <svg className="word" viewBox="0 0 900 120" aria-hidden>
             <text x="50%" y="88" textAnchor="middle">Welcome to Marvberry</text>
           </svg>
@@ -280,7 +280,7 @@ const T_PAGE = "Create my booking page"
 const T_LINK = "Copy my booking link"
 const T_TOUR = "Show me around"
 const T_DONE = "I’m good for now"
-const NAMES = ["Marvberry", "Sage", "Marv"]
+const NAMES = ["Diana", "Sage", "Marv"]
 const SKIP = "Skip for now"
 const DAY = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const pop = () => tone(880, 0, 0.12, 0.035)
@@ -297,7 +297,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
   const [msgs, setMsgs] = useState<Msg[]>([])
   const [typing, setTyping] = useState<string | null>(null)
   const [ask, setAsk] = useState<Ask | null>(null)
-  const [name, setName] = useState("Marvberry")
+  const [name, setName] = useState("Diana")
   const [draft, setDraft] = useState("")
   const [typingOwn, setTypingOwn] = useState(false)
   const [err, setErr] = useState("")
@@ -315,7 +315,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
   const answer = useRef<((v: string) => void) | null>(null)
   const feed = useRef<HTMLDivElement>(null)
   const ran = useRef(false)
-  const nameRef = useRef("Marvberry")
+  const nameRef = useRef("Diana")
   const link = `marvberry.com/book/${slug}`
 
   useEffect(() => {
@@ -392,7 +392,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       await sleep(400)
       // 1. Meet your assistant
       await say(
-        `Hi${first ? ` ${first}` : ""}! I’m Marvberry, your new real estate assistant. I’m here to help you spend less time on busywork and more time with your clients.`,
+        `Hi${first ? ` ${first}` : ""}! I’m Diana, your new real estate assistant. I’m here to help you spend less time on busywork and more time with your clients.`,
       )
       await say("First, what would you like to call me? You can always change this later.")
       const picked = await wait({ kind: "chips", options: NAMES, own: true })
@@ -403,7 +403,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       nameRef.current = picked
       setName(picked)
       void saveAssistantName(picked).catch(() => {})
-      await say(picked === "Marvberry" ? "Marvberry it is. So happy to meet you." : `${picked} it is. I love it.`)
+      await say(picked === "Diana" ? "Diana it is. So happy to meet you." : `${picked} it is. I love it.`)
 
       // 2. One real task, chosen by the agent
       await say("What can I help you get started with?")
@@ -613,7 +613,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       <div className="blob b3" />
       <div className="box">
         <div className="hd">
-          <img src="/brand/berry-clear.webp" alt="" className="av" />
+          <span className="av dmk" aria-hidden>{(nameRef.current || "D").charAt(0).toUpperCase()}</span>
           <div>
             <p className="nm">{name}</p>
             <p className="st">{typing ? "typing…" : "Online"}</p>
@@ -840,6 +840,7 @@ const CSS = `
 .mbw-hello .b3{background:#e3dcff;left:10vmax;bottom:-30vmax;animation:mbwDrift 19s ease-in-out infinite alternate}
 @keyframes mbwDrift{to{transform:translate(6vmax,4vmax) scale(1.1)}}
 .mbw-hello .center{position:relative;text-align:center;padding:24px;max-width:960px;width:100%}
+.mbw-hello .berry.dmk{box-sizing:border-box;border:1px solid #C2A46B;border-radius:50%;display:grid !important;place-items:center;font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:56px;color:#C2A46B;background:#F8F8F8}
 .mbw-hello .berry{width:104px;height:104px;object-fit:contain;margin:0 auto;display:block;
   animation:mbwPop 1.4s cubic-bezier(.2,1.4,.4,1) .3s both, mbwFloat 5s ease-in-out 1.8s infinite}
 @keyframes mbwPop{from{opacity:0;transform:scale(.4) translateY(30px)}to{opacity:1;transform:none}}
@@ -885,7 +886,8 @@ const CSS = `
   background:rgba(255,255,255,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(22,21,26,.07);border-radius:28px;
   box-shadow:0 40px 90px -30px rgba(22,21,26,.35);overflow:hidden}
 .mbw-chat .hd{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(22,21,26,.06)}
-.mbw-chat .av{width:34px;height:34px;object-fit:contain;animation:mbwFloat 5s ease-in-out infinite}
+.mbw-chat .av{width:34px;height:34px;object-fit:contain}
+.mbw-chat .av.dmk{box-sizing:border-box;flex:none;border:1px solid #C2A46B;border-radius:50%;display:grid;place-items:center;font-family:'Cormorant Garamond',Georgia,serif;font-weight:300;font-size:18px;color:#C2A46B;background:#F8F8F8}
 .mbw-chat .nm{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
 .mbw-chat .st{margin:1px 0 0;font-size:12.5px;color:#8d8b92}
 .mbw-chat .x{margin-left:auto;font:inherit;font-size:13px;color:#8d8b92;background:none;border:0;cursor:pointer;padding:6px}

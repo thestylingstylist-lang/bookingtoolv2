@@ -1,5 +1,5 @@
 "use client"
-// The Marvberry chat. Web: the berry in the corner opens a panel that slides in from
+// Diana, the assistant chat. Web: the gold D in the corner opens a panel that slides in from
 // the right and nudges the page over. Phone: the berry at the bottom opens it full screen.
 // The dashboard bar opens the same chat with what the agent typed.
 import { useEffect, useRef, useState } from "react"
@@ -9,7 +9,6 @@ import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgre
 import type { ChatAnswer, ChatCard } from "@/lib/agent-chat"
 
 export const ASK_EVENT = "mb-ask"
-const BERRY = "/brand/berry-clear.webp"
 const START_CHIPS = ["What’s waiting on me?", "Prepare an agreement", "Prepare an offer", "Send a client an update"]
 
 type Line = { id: number; me: boolean; text: string; cards?: ChatCard[]; chips?: string[] }
@@ -28,7 +27,7 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
   const [lines, setLines] = useState<Line[]>([])
   const [draft, setDraft] = useState("")
   const [thinking, setThinking] = useState(false)
-  const [name, setName] = useState("Marvberry")
+  const [name, setName] = useState("Diana")
   const linesRef = useRef<Line[]>([])
   linesRef.current = lines
   const feed = useRef<HTMLDivElement>(null)
@@ -102,14 +101,15 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
   return (
     <>
       {!open && (
-        <button type="button" className="mba-fab" onClick={() => show(true)} aria-label={`Ask ${name}`}>
-          <img src={BERRY} alt="" />
+        <button type="button" className="mba-fab" onClick={() => show(true)} aria-label={`Ask ${name}`} title={`Ask ${name}`}>
+          <span className="mba-d">{name.charAt(0).toUpperCase()}</span>
+          <span className="mba-tip">Ask {name}</span>
         </button>
       )}
       <aside className={`mba ${open ? "on" : ""}`} aria-hidden={!open} aria-label={name}>
         <style>{CSS}</style>
         <div className="mba-head">
-          <img src={BERRY} alt="" />
+          <span className="mba-d sm">{name.charAt(0).toUpperCase()}</span>
           <div>
             <p className="nm">{name}</p>
             <p className="st">{thinking ? "Working on it…" : "Here to help"}</p>
@@ -475,6 +475,14 @@ body[data-dock-ready] .mba-fab{right:22px;left:auto;bottom:84px;width:46px;heigh
 body[data-dock-ready] .mba-fab:hover{transform:translateY(-1px)}
 body[data-dock-ready] .mba-fab img{width:32px;height:32px}
 body[data-dock="open"] .mba-fab{display:none}
+/* Diana: a fine gold initial in a thin gold circle. */
+.mba-fab{background:#F8F8F8 !important;border:1px solid #C2A46B !important;box-shadow:none !important}
+.mba-fab img{display:none}
+.mba-d{font-family:"Cormorant Garamond",Georgia,serif;font-weight:300;color:#C2A46B;font-size:26px;line-height:1}
+body[data-dock-ready] .mba-fab .mba-d{font-size:22px}
+.mba-d.sm{width:34px;height:34px;flex:none;border:1px solid #C2A46B;border-radius:50%;display:grid;place-items:center;font-size:18px;background:#F8F8F8}
+.mba-tip{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);white-space:nowrap;font:400 12px Inter,"Helvetica Neue",Arial,sans-serif;color:#1F1E1C;background:#F8F8F8;border:1px solid rgba(194,164,107,.55);border-radius:2px;padding:5px 9px;opacity:0;pointer-events:none;transition:opacity .15s}
+.mba-fab:hover .mba-tip,.mba-fab:focus-visible .mba-tip{opacity:1}
 @keyframes mbaIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes mbaDot{0%,100%{opacity:.35}50%{opacity:1}}
 @keyframes mbaFloat{50%{transform:translateY(-3px)}}

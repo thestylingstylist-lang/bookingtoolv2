@@ -87,3 +87,6 @@ body {
   background-color: transparent !important;
   border-color: transparent !important;
 }
+
+/* Room at the bottom so the Messages pill and Diana never cover content. */
+body[data-dock-ready] .mb-main { padding-bottom: 140px; }

@@ -13,10 +13,9 @@ import { isAdminEmail } from "@/lib/admin"
 import { agentDueLabel, daysUntil, isClose, nudgeDraft, missingThing, canNudge, clientDueLabel } from "@/lib/due"
 import { toOwner } from "@/lib/phases"
 import { suiteName } from "@/lib/suite"
-import { sendNudge, skipNudge } from "./nudge-actions"
+import { assistantDisplayName } from "@/lib/assistant-name"
 import { formatInTimeZone } from "date-fns-tz"
 import { cookies } from "next/headers"
-import { whatsNew } from "@/lib/whats-new"
 import { SEEN_COOKIE, sinceFrom } from "@/lib/whats-new-shared"
 import SeenMarker from "./seen-marker"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -70,7 +69,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const agent = agentData as AgentRow | null
   if (!agent) redirect("/login")
   const { data: named } = await supabase.from("agents").select("assistant_name").eq("id", user.id).maybeSingle()
-  const assistantName = ((named?.assistant_name as string) || "Marvberry").trim()
+  const assistantName = assistantDisplayName(named?.assistant_name)
 
   const nowISO = new Date().toISOString()
   const { data: upcoming } = await supabase
@@ -175,7 +174,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // What changed since she last looked. Said only when something did.
   const seenRaw = (await cookies()).get(SEEN_COOKIE)?.value
   const since = sinceFrom(seenRaw, Date.now())
-  const news = await whatsNew(supabase, new Date(since).toISOString(), tz)
 
   // Onboarding with the Marvberry team: the "Your setup" card and the chat with
   // their owner. Gone once the team marks onboarding complete.
@@ -316,28 +314,72 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const signals = { agent, bookingCount: count ?? 0 }
   const { complete, done, total } = setupProgress(SETUP_STEPS, signals)
 
+  // ── Needs you today: replies, signatures, new bookings, and anything due. ──
+  type Need = { key: string; who: string; line: string; href: string; act: string; at: string }
+  const needs: Need[] = []
+  const { data: recentMsgs } = await supabase
+    .from("messages")
+    .select("client_id, sender, body, created_at, clients(first_name, last_name)")
+    .not("body", "is", null)
+    .gte("created_at", new Date(Date.now() - 14 * 86400000).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(200)
+  const lastByClient = new Map<string, { sender: string; body: string; created_at: string; clients: unknown }>()
+  for (const m of (recentMsgs ?? []) as unknown as { client_id: string; sender: string; body: string; created_at: string; clients: unknown }[]) {
+    if (!lastByClient.has(m.client_id)) lastByClient.set(m.client_id, m)
+  }
+  for (const [cid, m] of lastByClient) {
+    if (m.sender !== "client") continue // already answered
+    const quote = m.body.length > 70 ? m.body.slice(0, 70).trim() + "\u2026" : m.body
+    needs.push({ key: `r-${cid}`, who: nameOf(m.clients), line: `Replied: \u201c${quote}\u201d`, href: `/clients/${cid}`, act: "Reply", at: m.created_at })
+  }
+  const signedSince = new Date(Math.min(since, Date.now() - 2 * 86400000)).toISOString()
+  for (const d of (signedDocs ?? []) as unknown as { id: string; title: string; signed_at: string; client_id: string; clients: Named }[]) {
+    if (d.signed_at < signedSince) continue
+    needs.push({ key: `s-${d.id}`, who: nameOf(d.clients), line: `Signed the ${d.title}`, href: `/clients/${d.client_id}`, act: "Open", at: d.signed_at })
+  }
+  for (const b of next) {
+    if (clientFor.get(b.id)) continue
+    needs.push({
+      key: `b-${b.id}`,
+      who: `${b.first_name} ${b.last_name ?? ""}`.trim(),
+      line: `New booking: ${whenLabel(b.slot_start as string)} \u00b7 ${b.meeting_type === "phone" ? "Phone" : "Video"}`,
+      href: "/bookings",
+      act: "Add as client",
+      at: b.slot_start as string,
+    })
+  }
+  for (const d of [...pastDue, ...comingUp.filter((x) => daysUntil(x.due_on, tz) === 0)]) {
+    const pr = stepPriority(d)
+    needs.push({ key: `d-${d.id}`, who: clientName(d), line: `${pr.line} ${pr.action ? pr.open : pr.sub}`.trim(), href: pr.href, act: pr.action ?? "Open", at: d.due_on })
+  }
+  const shownNeeds = needs.slice(0, 8)
+  const honest = needs.length
+    ? `${needs.length === 1 ? "One thing needs" : `${needs.length} things need`} you today.`
+    : "Nothing needs you today. Everything is on track."
+  const setupLine = !complete || needsSetupCall
   return (
     <AppShell agent={agent}>
-    <main className="mx-auto max-w-6xl px-6 py-12 sm:px-10">
+    <main className="mx-auto max-w-4xl px-6 pb-32 pt-12 sm:px-10">
       <h1 className="font-semibold tracking-tight text-3xl sm:text-4xl">
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
-      <p className="mt-2 text-lxink/60">
-        {priorities.length ? "Here's what's important today. I'll help you get it handled." : "Nothing pressing today. Everything is on track."}
-      </p>
+      <p className="mt-2 text-lxink/60">{honest}</p>
       <div className="mt-6">
         <AssistantBar name={assistantName} />
       </div>
 
-      {needsSetupCall && (
-        <Link href="/chat" className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-lxgold/50 bg-white p-5 transition-colors hover:bg-white">
-          <img src="/brand/berry-clear.webp" alt="" className="h-9 w-9 shrink-0 object-contain" />
-          <span className="min-w-0 flex-1">
-            <span className="block font-semibold tracking-tight">Book your free setup call</span>
-            <span className="block text-sm text-lxink/60">We&rsquo;ll set up your booking page, agreements and client steps with you.</span>
-          </span>
-          <span className="rounded-[2px] border border-lxink px-4 py-2 text-sm text-lxink">Pick a time</span>
-        </Link>
+      {/* Setup, in one quiet line. Gone once setup is done. */}
+      {setupLine && (
+        <p className="mt-6 flex flex-wrap items-baseline gap-x-5 gap-y-1 border-y border-[rgba(194,164,107,.45)] py-3 text-sm text-lxink/70">
+          <span>{complete ? "Your page is set up." : `Finish setting up: ${done} of ${total} done.`}</span>
+          {!complete && (
+            <Link href="/start-here" className="border-b border-lxgold text-lxink no-underline">Continue setup</Link>
+          )}
+          {needsSetupCall && (
+            <Link href="/chat" className="border-b border-lxgold text-lxink no-underline">Book your free setup call</Link>
+          )}
+        </p>
       )}
 
       <SeenMarker since={since} />
@@ -358,210 +400,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           agreementDocId={agreementDocId}
         />}
 
-      <div className="mt-7 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((c) => (
-          <Link key={c.label} href={c.href} className="flex items-start gap-3.5 rounded-2xl border border-lxink/10 bg-card p-5 transition-colors hover:border-lxink/25">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-lxink/[0.05] text-lxink/70">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                {c.icon}
-              </svg>
-            </span>
-            <span className="min-w-0">
-              <span className="block text-xs text-lxink/55">{c.label}</span>
-              <span className="mt-0.5 block font-serif text-3xl font-semibold tracking-tight text-lxink">{c.value}</span>
-              <span className="block text-xs text-lxink/50">{c.note}</span>
-            </span>
-          </Link>
-        ))}
-      </div>
-
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <section className="rounded-2xl border border-lxink/10 bg-card p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
-            <Link href="/calendar" className="text-sm text-lxink/60 hover:text-lxink">Calendar &rarr;</Link>
-          </div>
-          {upcomingRows.length === 0 ? (
-            <p className="mt-4 text-sm text-lxink/60">Nothing scheduled yet. Share your link and bookings will show up here.</p>
-          ) : (
-            <ul className="mt-3 divide-y divide-lxink/[0.07]">
-              {upcomingRows.map((r) => (
-                <li key={r.key}>
-                  <Link href={r.href} className="flex items-center justify-between gap-4 py-3 hover:opacity-80">
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{r.title}</span>
-                      <span className="block text-sm text-lxink/55">{r.sub}</span>
-                    </span>
-                    <span className="whitespace-nowrap text-sm text-lxink/60">{whenLabel(r.at)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <section className="rounded-2xl border border-lxink/10 bg-card p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="font-serif font-semibold tracking-tight text-xl">Recent client updates</h2>
-            <Link href="/clients" className="text-sm text-lxink/60 hover:text-lxink">Clients &rarr;</Link>
-          </div>
-          {updates.length === 0 ? (
-            <p className="mt-4 text-sm text-lxink/60">When a client messages you or signs, it shows up here.</p>
-          ) : (
-            <ul className="mt-3 divide-y divide-lxink/[0.07]">
-              {updates.map((u) => (
-                <li key={u.key}>
-                  <Link href={u.href} className="flex items-center justify-between gap-4 py-3 hover:opacity-80">
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{u.who}</span>
-                      <span className="block truncate text-sm text-lxink/55">{u.line}</span>
-                    </span>
-                    <span className="whitespace-nowrap text-xs text-lxink/50">{ago(u.at)}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      {onboarding && (
-        <section className="mt-7 grid gap-5 lg:grid-cols-[1fr_380px]">
-          <div id="setup-card" className="rounded-2xl border-[1.5px] border-lxgold/70 bg-card p-5 sm:p-6">
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 className="font-semibold tracking-tight text-xl text-lxink">Your setup</h2>
-              {setupDocs.length > 0 && <span className="text-sm text-lxink/55">{sentCount} of {setupDocs.length} sent</span>}
-            </div>
-            <p className="mt-1 text-sm text-lxink/60">
-              {setupDocs.length
-                ? `Upload these and ${onboarding.owner} turns them into ready-to-use templates for you.`
-                : `${onboarding.owner} is setting up your account. Anything we need from you shows up here.`}
-            </p>
-            {setupDocs.length > 0 && (
-              <>
-                <div className="mt-4 h-1.5 rounded-full bg-lxink/[0.07]">
-                  <div className="h-1.5 rounded-full bg-lxink" style={{ width: `${(sentCount / setupDocs.length) * 100}%` }} />
-                </div>
-                <ul className="mt-3 divide-y divide-lxink/[0.07]">
-                  {setupDocs.map((d) => (
-                    <li key={d.id} className="flex items-center justify-between gap-4 py-3.5">
-                      <div className="min-w-0">
-                        <p className="font-medium">{d.title}</p>
-                        <p className="text-xs text-lxink/55">
-                          {!d.file_path ? "Waiting for your file" : d.template_built ? "Your template is ready" : "Received · we're building your template"}
-                        </p>
-                      </div>
-                      {d.file_path ? (
-                        <span className="flex flex-col items-end gap-1">
-                          <span className="text-sm font-medium text-[#1f5b33]">✓ Sent</span>
-                          {!d.template_built && <SetupUpload docId={d.id} title={d.title} replace />}
-                        </span>
-                      ) : (
-                        <SetupUpload docId={d.id} title={d.title} />
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-          <div>
-            <div className="mb-2 flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lxink text-xs font-semibold text-white">
-                {onboarding.owner.slice(0, 2).toUpperCase()}
-              </span>
-              <div>
-                <p className="text-sm font-semibold leading-tight">{onboarding.owner}</p>
-                <p className="text-xs text-lxink/55">Your onboarding owner</p>
-              </div>
-            </div>
-            <SupportThread messages={setupThread} teamName={onboarding.owner} compact />
-          </div>
-        </section>
-      )}
-
-      {news.items.length > 0 && (
-        <section className="mt-7 max-w-2xl rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6">
-          <p className="font-semibold tracking-tight text-lg leading-snug text-lxink">{news.headline}</p>
-          <ul className="mt-4 space-y-2.5">
-            {news.items.map((n, i) => (
-              <li
-                key={n.key}
-                className={`flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 ${
-                  i === 0 ? "border border-[rgba(194,164,107,.55)] bg-white text-lxink" : "bg-lxink/[0.03] text-lxink"
-                }`}
-              >
-                <div className="min-w-0">
-                  <p className={`text-[11px] font-semibold uppercase tracking-wider ${i === 0 ? "text-lxgolddeep" : "text-lxink/45"}`}>{n.kind}</p>
-                  <p className="mt-0.5 font-medium">{n.line}</p>
-                  <p className="text-sm text-lxink/55">{n.sub}</p>
-                </div>
-                <Link
-                  href={n.href}
-                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
-                    i === 0 ? "border border-lxink text-lxink" : "border border-lxink/15 text-lxink"
-                  }`}
-                >
-                  {n.cta}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {news.more > 0 && <p className="mt-3 text-sm text-lxink/50">And {news.more} more.</p>}
-        </section>
-      )}
-
-      {priorities.length > 0 && (
-        <section className="mt-7 max-w-2xl">
-          <ol className="divide-y divide-lxink/10 rounded-2xl border border-lxink/10 bg-card">
-            {priorities.map((p, i) => (
-              <li key={p.key} className="flex items-start gap-4 p-5">
-                <span className={`font-semibold tracking-tight text-xl leading-6 ${i === 0 ? "text-lxgolddeep" : "text-lxink/40"}`}>{i + 1}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">{p.line}</p>
-                  {p.action ? (
-                    <>
-                      <p className="mt-1 text-sm text-lxink/60">{p.sub}</p>
-                      <p className={`mt-1 text-xs ${p.urgent ? "text-lxgolddeep" : "text-lxink/50"}`}>{p.open}</p>
-                      <Link href={p.href} className={`mt-3 inline-block rounded-[2px] px-4 py-2.5 text-sm ${i === 0 ? "bg-lxink text-lxbg hover:opacity-90" : "border border-lxink bg-transparent text-lxink hover:bg-lxink/[0.04]"}`}>
-                        {p.action}
-                      </Link>
-                    </>
-                  ) : (
-                    <p className="mt-1 text-sm text-lxink/60">
-                      <span className={p.urgent ? "text-lxgolddeep" : ""}>{p.sub}</span> ·{" "}
-                      <Link href={p.href} className="text-lxink underline underline-offset-4">{p.open}</Link>
-                    </p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-4 text-sm text-lxink/50">
-            {more ? "There's a little more below." : "Everything else is on track."}{" "}
-            <a href="#coming-up" className="text-lxink underline underline-offset-4">See the week</a>
-          </p>
-        </section>
-      )}
-
-      <div className="mt-5"><BookingLink slug={agent.slug} compact /></div>
-
-      {!complete && (
-        <Link
-          href="/start-here"
-          className="mt-6 flex items-center justify-between rounded-2xl border border-lxgold/30 bg-lxgold/5 p-5 hover:bg-lxgold/10"
-        >
-          <div>
-            <p className="font-medium">Finish setting up your page</p>
-            <p className="mt-0.5 text-sm text-lxink/60">
-              {done} of {total} steps done
-            </p>
-          </div>
-          <span className="text-sm text-lxgold">Start here &rarr;</span>
-        </Link>
-      )}
-
       {sp.nudge && (
-        <p className={`mt-6 rounded-lg px-4 py-2.5 text-sm ${sp.nudge === "sent" ? "bg-lxlav/50 text-lxgold" : "bg-lxfill text-lxink"}`}>
+        <p className="mt-6 border-l-2 border-lxgold pl-3 text-sm text-lxink">
           {sp.nudge === "sent"
             ? "Sent. It's in their inbox and their thread."
             : sp.nudge === "noemail"
@@ -570,94 +410,98 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </p>
       )}
 
-      {ready.length > 0 && (
-        <section className="mt-6">
-          <h2 className="font-serif font-semibold tracking-tight text-xl">Ready to send</h2>
-          <p className="mt-1 text-sm text-lxink/60">Client reminders, written in your voice. Nothing goes out until you send it.</p>
-          <ul className="mt-3 space-y-3">
-            {ready.map((d) => {
-              const first = d.clients?.first_name?.trim() || ""
-              const thing = missingThing(d.title)
-              return (
-                <li key={d.id} className="rounded-2xl border border-lxink/10 bg-card p-5">
-                  <div className="flex flex-wrap items-baseline justify-between gap-2">
-                    <Link href={`/clients/${d.client_id}`} className="font-medium hover:underline">
-                      {clientName(d)}
-                    </Link>
-                    <span className={`text-sm ${isClose(d.due_on, tz) ? "font-medium text-lxink" : "text-lxink/60"}`}>
-                      {clientDueLabel(d.due_on, tz)}
-                    </span>
-                  </div>
-                  {d.clients?.email ? (
-                    <form action={sendNudge} className="mt-3 space-y-3">
-                      <input type="hidden" name="stepId" value={d.id} />
-                      <label className="sr-only" htmlFor={`nudge-${d.id}`}>Reminder to {clientName(d)}</label>
-                      <textarea
-                        id={`nudge-${d.id}`}
-                        name="body"
-                        rows={4}
-                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, missingDocs: missingByClient.get(d.client_id) ?? 0, phase: d.phase, suite: suiteName((d.clients as unknown as { client_type?: string | null } | null)?.client_type) })}
-                        className="w-full resize-y rounded-xl border border-lxink/10 bg-lxfill px-4 py-3 text-sm leading-relaxed outline-none focus:border-lxink/30"
-                      />
-                      <div className="flex gap-2">
-                        <button type="submit" className="rounded-[2px] border border-lxink bg-transparent text-lxink hover:bg-lxink/[0.04] px-4 py-2.5 text-sm">
-                          Send{agentFirstName ? ` as ${agentFirstName}` : ""}
-                        </button>
-                        <button
-                          type="submit"
-                          formAction={skipNudge}
-                          className="rounded-[10px] border border-lxink/10 px-4 py-2.5 text-sm hover:bg-lxink/5"
-                        >
-                          Skip
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <form action={skipNudge} className="mt-3 flex flex-wrap items-center gap-3 text-sm text-lxink/60">
-                      <input type="hidden" name="stepId" value={d.id} />
-                      <span>
-                        Still missing {thing}.{" "}
-                        <Link href={`/clients/${d.client_id}`} className="text-lxink underline">
-                          Add an email for {first || "them"}
-                        </Link>{" "}
-                        to send a reminder.
-                      </span>
-                      <button type="submit" className="rounded-[10px] border border-lxink/10 px-3 py-1.5 hover:bg-lxink/5">
-                        Skip
-                      </button>
-                    </form>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      )}
-
-      {[["Past due", pastDue], ["Coming up", comingUp]].map(([label, list]) => (list as DueStep[]).length > 0 && (
-        <section key={label as string} id={label === "Coming up" ? "coming-up" : "past-due"} className="mt-6 scroll-mt-24">
-          <h2 className="font-serif font-semibold tracking-tight text-xl">{label as string}</h2>
-          <ul className="mt-3 divide-y divide-lxink/10 rounded-2xl border border-lxink/10 bg-card">
-            {(list as DueStep[]).map((d) => (
-              <li key={d.id}>
-                <Link href={`/clients/${d.client_id}?step=${d.id}#step-${d.id}`} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-lxink/[0.02]">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{d.title}</p>
-                    <p className="text-xs text-lxink/60">
-                      {clientName(d)}
-                      {toOwner(d.owner) === "client" ? ` · their step` : ""}
-                    </p>
-                  </div>
-                  <span className={`whitespace-nowrap text-sm ${isClose(d.due_on, tz) ? "font-medium text-lxink" : "text-lxink/60"}`}>
-                    {agentDueLabel(d.due_on, tz)}
-                  </span>
+      <section className="mt-10">
+        <h2 className="font-serif font-semibold tracking-tight text-xl">Needs you today</h2>
+        {shownNeeds.length === 0 ? (
+          <p className="mt-3 text-sm text-lxink/60">You&rsquo;re all caught up.</p>
+        ) : (
+          <ul className="mt-2 divide-y divide-lxink/[0.07] border-y border-lxink/[0.07]">
+            {shownNeeds.map((n, i) => (
+              <li key={n.key} className="flex items-center justify-between gap-5 py-4">
+                <Link href={n.href} className="min-w-0 flex-1 no-underline hover:opacity-80">
+                  <span className="block font-lux text-[19px] text-lxink">{n.who}</span>
+                  <span className="mt-0.5 block truncate text-sm text-lxink/60">{n.line}</span>
+                </Link>
+                <Link
+                  href={n.href}
+                  className={`shrink-0 rounded-[2px] px-4 py-2 text-[13px] no-underline ${
+                    i === 0 ? "bg-lxink text-lxbg hover:opacity-90" : "border border-lxink text-lxink hover:bg-lxink/[0.04]"
+                  }`}
+                >
+                  {n.act}
                 </Link>
               </li>
             ))}
           </ul>
-        </section>
-      ))}
+        )}
+        {needs.length > shownNeeds.length && <p className="mt-3 text-sm text-lxink/50">And {needs.length - shownNeeds.length} more.</p>}
+      </section>
 
+      <section className="mt-10">
+        <div className="flex items-baseline justify-between">
+          <h2 className="font-serif font-semibold tracking-tight text-xl">Upcoming</h2>
+          <Link href="/calendar" className="text-sm text-lxink/60 no-underline hover:text-lxink">Calendar &rarr;</Link>
+        </div>
+        {upcomingRows.length === 0 ? (
+          <p className="mt-3 text-sm text-lxink/60">Nothing scheduled yet. Share your link and bookings will show up here.</p>
+        ) : (
+          <ul className="mt-2 divide-y divide-lxink/[0.07] border-y border-lxink/[0.07]">
+            {upcomingRows.map((r) => (
+              <li key={r.key}>
+                <Link href={r.href} className="flex items-center justify-between gap-4 py-3.5 no-underline hover:opacity-80">
+                  <span className="min-w-0">
+                    <span className="block truncate text-lxink">{r.title}</span>
+                    <span className="block text-sm text-lxink/55">{r.sub}</span>
+                  </span>
+                  <span className="whitespace-nowrap text-sm text-lxink/60">{whenLabel(r.at)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {onboarding && (
+        <section className="mt-12 grid gap-8 lg:grid-cols-[1fr_340px]">
+          <div id="setup-card">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="font-serif font-semibold tracking-tight text-xl text-lxink">Your setup</h2>
+              {setupDocs.length > 0 && <span className="text-sm text-lxink/55">{sentCount} of {setupDocs.length} sent</span>}
+            </div>
+            <p className="mt-1 text-sm text-lxink/60">
+              {setupDocs.length
+                ? `Upload these and ${onboarding.owner} turns them into ready-to-use templates for you.`
+                : `${onboarding.owner} is setting up your account. Anything we need from you shows up here.`}
+            </p>
+            {setupDocs.length > 0 && (
+              <ul className="mt-3 divide-y divide-lxink/[0.07] border-y border-lxink/[0.07]">
+                {setupDocs.map((d) => (
+                  <li key={d.id} className="flex items-center justify-between gap-4 py-3.5">
+                    <div className="min-w-0">
+                      <p>{d.title}</p>
+                      <p className="text-xs text-lxink/55">
+                        {!d.file_path ? "Waiting for your file" : d.template_built ? "Your template is ready" : "Received \u00b7 we're building your template"}
+                      </p>
+                    </div>
+                    {d.file_path ? (
+                      <span className="flex flex-col items-end gap-1">
+                        <span className="text-sm text-lxink/70">Sent</span>
+                        {!d.template_built && <SetupUpload docId={d.id} title={d.title} replace />}
+                      </span>
+                    ) : (
+                      <SetupUpload docId={d.id} title={d.title} />
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div>
+            <p className="mb-2 text-sm text-lxink/60">{onboarding.owner}, your onboarding owner</p>
+            <SupportThread messages={setupThread} teamName={onboarding.owner} compact />
+          </div>
+        </section>
+      )}
     </main>
     </AppShell>
   )
