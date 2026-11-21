@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react"
 import { saveClientNotes, askForOffer, type PortalHomeResult } from "./home-actions"
+import { H2, OUTLINE, QUIET, BTN, Tag } from "../../suite-ui"
 
 export type PortalHome = {
   id: string
@@ -19,14 +20,16 @@ export type PortalHome = {
 // and a way to say "I'd like to make an offer" whenever they decide.
 export default function PortalHomes({ token, homes, agentFirst }: { token: string; homes: PortalHome[]; agentFirst: string }) {
   return (
-    <div className="rounded-xl border border-[#e4e3e0] bg-white px-4 py-3.5">
-      <h2 className="mb-1 text-[10.5px] font-medium uppercase tracking-[0.09em] text-[#5d5b62]">Homes for you</h2>
-      <div className="mt-2 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {homes.map((h) => (
-          <HomeRow key={h.id} token={token} home={h} agentFirst={agentFirst} />
+    <section id="homes">
+      <H2 className="mb-6">Homes selected for you</H2>
+      <div className="grid gap-10 md:grid-cols-3 md:gap-0">
+        {homes.map((h, i) => (
+          <div key={h.id} className={`md:pr-7 ${i % 3 !== 2 ? "md:mr-7 md:border-r md:border-[rgba(31,30,28,.09)]" : ""}`}>
+            <HomeRow token={token} home={h} agentFirst={agentFirst} />
+          </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 }
 
@@ -39,54 +42,47 @@ function HomeRow({ token, home: h, agentFirst }: { token: string; home: PortalHo
   const asked = !!h.askedLabel || !!askState?.ok
 
   return (
-    <div className="flex flex-col rounded-[11px] border border-[#e4e3e0] p-3.5">
+    <article className="flex flex-col font-luxsans text-lxink">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-serif text-[19px] font-semibold leading-snug tracking-tight">{h.street}</p>
-          {h.town && <p className="text-[12.5px] text-[#5d5b62]">{h.town}</p>}
-        </div>
+        <p className="m-0 font-lux text-[28px] font-light leading-[1.1]">{h.street}</p>
+        {h.offer?.status === "accepted" && <Tag color="sage">Offer accepted</Tag>}
+      </div>
+      <div className="mt-1.5 flex items-baseline justify-between gap-3">
+        <span className="text-[12.5px] text-lxsoft">{h.town}</span>
         {h.listingUrl && (
-          <a href={h.listingUrl} target="_blank" rel="noreferrer" className="shrink-0 pt-1 text-[12.5px] text-[#5d5b62] underline underline-offset-2">
-            See the listing
+          <a href={h.listingUrl} target="_blank" rel="noreferrer" className="text-[12.5px] text-lxink no-underline [border-bottom:1px_solid_#C2A46B]">
+            View the listing
           </a>
         )}
       </div>
 
-      <p className="mt-1.5 text-[13.5px]">
-        {h.showing ? (h.shown ? `You saw it ${h.showing.replace(/ at .*/, "")}.` : `Showing ${h.showing}.`) : "I\u2019m setting up your showing."}
+      <p className="m-0 mt-[18px] text-[14px]">
+        {h.showing ? (h.shown ? `You visited ${h.showing.replace(/ at .*/, "")}.` : `You\u2019ll see it ${h.showing}.`) : "I\u2019m arranging your showing."}
       </p>
 
       {/* Where the offer stands */}
-      <div className="mt-3 flex-1">
+      <div className="mt-[18px]">
         {h.offer ? (
           <OfferLine offer={h.offer} agentFirst={agentFirst} />
         ) : asked ? (
-          <p className="rounded-[9px] bg-[#e5f1f0] px-3 py-2 text-[13px] text-[#2f7f7e]">
-            Got it. I&rsquo;ll put your offer together with you.
-          </p>
+          <p className="m-0 text-[14px] text-lxsoft">Thank you. I&rsquo;ll prepare your offer with you.</p>
         ) : confirm ? (
-          <form action={ask} className="rounded-[9px] border border-[#e4e3e0] bg-[#f7f6f4] px-3 py-2.5">
+          <form action={ask}>
             <input type="hidden" name="token" value={token} />
             <input type="hidden" name="homeId" value={h.id} />
-            <p className="text-[13px]">
-              I&rsquo;ll get on it right away.
-            </p>
-            <div className="mt-2 flex gap-2">
-              <button disabled={asking} className="rounded-[9px] bg-[#16151a] px-[15px] py-2 text-[13px] font-medium text-white disabled:opacity-60">
-                {asking ? "Sending…" : `Tell ${agentFirst}`}
+            <p className="m-0 text-[14px]">I&rsquo;ll start on it right away.</p>
+            <div className="mt-3 flex flex-wrap items-center gap-4">
+              <button disabled={asking} className={BTN}>
+                {asking ? "Sending\u2026" : `Tell ${agentFirst}`}
               </button>
-              <button type="button" onClick={() => setConfirm(false)} className="rounded-[9px] px-3 py-2 text-[13px] text-[#5d5b62]">
+              <button type="button" onClick={() => setConfirm(false)} className={QUIET}>
                 Not yet
               </button>
             </div>
             {askState && !askState.ok && <p className="mt-2 text-xs text-red-800">{askState.message}</p>}
           </form>
         ) : (
-          <button
-            type="button"
-            onClick={() => setConfirm(true)}
-            className="rounded-[9px] bg-[#16151a] px-[15px] py-2 text-[13px] font-medium text-white"
-          >
+          <button type="button" onClick={() => setConfirm(true)} className={OUTLINE}>
             I&rsquo;d like to make an offer
           </button>
         )}
@@ -94,55 +90,42 @@ function HomeRow({ token, home: h, agentFirst }: { token: string; home: PortalHo
 
       {/* Their own notes */}
       {openNotes ? (
-        <form action={saveNotes} className="mt-3">
+        <form action={saveNotes} className="mt-[22px]">
           <input type="hidden" name="token" value={token} />
           <input type="hidden" name="homeId" value={h.id} />
-          <label className="mb-1 block text-[12px] text-[#5d5b62]">Your notes. Only you and {agentFirst} see these.</label>
-          <textarea
-            name="notes"
-            rows={2}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="What did you love? What would you change?"
-            className="w-full resize-y rounded-[9px] border border-[#e4e3e0] bg-[#f1f0ee] px-3 py-2 text-[13.5px] outline-none placeholder:text-[#9a989e] focus:bg-white"
-          />
+          <label className="block text-[12px] text-lxsoft">
+            Your private notes. Only you and {agentFirst} can see them.
+            <textarea
+              name="notes"
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="What did you love? What would you change?"
+              className="mt-2 block w-full resize-y border-0 border-b border-[rgba(194,164,107,.55)] bg-transparent px-0 py-1.5 font-lux text-[17px] italic text-lxink outline-none placeholder:text-[#a5a19a]"
+            />
+          </label>
           <div className="mt-1.5 flex items-center gap-3">
-            <button disabled={saving} className="rounded-[9px] border border-[#e4e3e0] px-3 py-1.5 text-[12.5px] font-medium disabled:opacity-60">
-              {saving ? "Saving…" : "Save notes"}
+            <button disabled={saving} className={QUIET}>
+              {saving ? "Saving\u2026" : "Save notes"}
             </button>
-            {noteState && (
-              <span className={`text-[12px] ${noteState.ok ? "text-[#2f7f7e]" : "text-red-800"}`}>{noteState.message}</span>
-            )}
+            {noteState && <span className={`text-[12px] ${noteState.ok ? "text-lxsoft" : "text-red-800"}`}>{noteState.message}</span>}
           </div>
         </form>
       ) : (
-        <button type="button" onClick={() => setOpenNotes(true)} className="mt-3 self-start text-[12.5px] text-[#5d5b62] underline underline-offset-2">
-          Add your notes
+        <button type="button" onClick={() => setOpenNotes(true)} className={`${QUIET} mt-[18px] self-start`}>
+          Add a private note
         </button>
       )}
-    </div>
+    </article>
   )
 }
 
-function OfferLine({ offer: o, agentFirst }: { offer: NonNullable<PortalHome["offer"]>; agentFirst: string }) {
-  const tone = "rounded-[9px] px-3 py-2 text-[13px]"
-  if (o.status === "accepted")
-    return <p className={`${tone} bg-[#e5f1f0] font-medium text-[#2f7f7e]`}>Your {o.amount} offer was accepted!</p>
+function OfferLine({ offer: o }: { offer: NonNullable<PortalHome["offer"]>; agentFirst: string }) {
+  const tone = "m-0 text-[14px] leading-relaxed"
+  if (o.status === "accepted") return <p className={tone}>Your {o.amount} offer was accepted. Congratulations.</p>
   if (o.status === "countered")
-    return (
-      <p className={`${tone} bg-[#fdf1f5] text-[#a3305d]`}>
-        The seller countered your {o.amount} offer. Let&rsquo;s talk it through.
-      </p>
-    )
+    return <p className={tone}>The seller countered your {o.amount} offer. Let&rsquo;s talk it through.</p>
   if (o.status === "declined")
-    return (
-      <p className={`${tone} bg-[#f1f0ee] text-[#5d5b62]`}>
-        The seller passed on your {o.amount} offer. Let&rsquo;s talk about what&rsquo;s next.
-      </p>
-    )
-  return (
-    <p className={`${tone} bg-[#e5f1f0] text-[#2f7f7e]`}>
-      I sent your offer of {o.amount} on {o.sentLabel}.
-    </p>
-  )
+    return <p className={`${tone} text-lxsoft`}>The seller passed on your {o.amount} offer. Let&rsquo;s talk about what&rsquo;s next.</p>
+  return <p className={tone}>I sent your offer of {o.amount} on {o.sentLabel}.</p>
 }

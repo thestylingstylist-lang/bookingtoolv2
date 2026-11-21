@@ -16,6 +16,7 @@ type Client = {
 const TYPE_LABEL: Record<string, string> = {
   buyer: "Buyer",
   seller: "Seller",
+  investor: "Investor",
   both: "Buyer and seller",
 }
 

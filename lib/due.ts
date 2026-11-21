@@ -42,7 +42,7 @@ export function agentDueLabel(due: string, tz: string) {
 // What the client sees. Always the full day and date, nothing to guess.
 export function clientDueLabel(due: string, tz: string) {
   const n = daysUntil(due, tz)
-  if (n < 0) return `Past due, ${say(due, "long")}`
+  if (n < 0) return `This was due ${say(due, "long")}`
   if (n === 0) return `Due today, ${say(due, "long")}`
   if (n === 1) return `Due tomorrow, ${say(due, "long")}`
   return `Due ${say(due, "long")}`
@@ -84,6 +84,7 @@ export function nudgeDraft(o: {
   agentFirst: string
   missingDocs?: number
   phase?: string | null
+  suite?: string
 }) {
   const hi = o.clientFirst ? `Hey ${o.clientFirst}` : "Hey"
   const when = longDate(o.due)
@@ -108,11 +109,11 @@ export function nudgeDraft(o: {
     const them = n === 1 ? "it" : "them"
     const which = n === 1 ? "the document that's missing" : "the documents that are missing"
     const oneAtATime = n === 1 ? "" : ", one at a time"
-    return `${hi}, just a heads up, we're still missing ${noun}. ${when} is the date to have ${them} in. It's super easy — on your page just click ${which} and upload ${them}${oneAtATime}. Once you upload ${them}, I get ${them} right away.\n\n${o.agentFirst}`
+    return `${hi}, just a heads up, we're still missing ${noun}. ${when} is the date to have ${them} in. It's super easy — in your ${o.suite ?? "private suite"}, just click ${which} and upload ${them}${oneAtATime}. Once you upload ${them}, I get ${them} right away.\n\n${o.agentFirst}`
   }
 
   // Everything else: the plain heads-up.
-  return `${hi}, just a heads up, we're still missing ${o.thing}. ${dateLine} You can send ${itPronoun(o.thing)} from your page.\n\n${o.agentFirst}`
+  return `${hi}, just a heads up, we're still missing ${o.thing}. ${dateLine} You can send ${itPronoun(o.thing)} from your ${o.suite ?? "private suite"}.\n\n${o.agentFirst}`
 }
 
 function numword(n: number) {

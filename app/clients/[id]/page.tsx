@@ -20,7 +20,9 @@ import { aiPrefsFor } from "@/lib/ai-prefs"
 import { sendPortalLink } from "./portal-actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
-import { PHASES, phaseIndex, toPhase } from "@/lib/phases"
+import { phasesFor, stageLabel, phaseIndex, toBuyPhase, toSellPhase, type Phase } from "@/lib/phases"
+import { journeysFor, suiteName } from "@/lib/suite"
+import SellerTools, { type OpenHouse, type SaleOffer } from "./seller-tools"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
 
 export const dynamic = "force-dynamic"
@@ -82,6 +84,9 @@ const ERRORS: Record<string, string> = {
   offer: "Couldn't save that offer. Add a property address and try again.",
   note: "Couldn't save that note. Please try again.",
   phase: "Couldn't change the phase. Please try again.",
+  seller: "Couldn't save that. If this keeps happening, the seller tools may still be switching on.",
+  openhouse: "Couldn't save that open house. Add a date and a start time and try again.",
+  saleoffer: "Couldn't save that offer. Add an amount and try again.",
 }
 
 function initials(first: string, last: string) {
@@ -94,7 +99,7 @@ export default async function ClientJacket({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ updated?: string; doc?: string; error?: string; step?: string; nudge?: string }>
+  searchParams: Promise<{ updated?: string; doc?: string; error?: string; step?: string; nudge?: string; tab?: string }>
 }) {
   const { id } = await params
   const sp = await searchParams
@@ -225,11 +230,37 @@ export default async function ClientJacket({
   const assistant = await assistantFor(supabase, user.id)
   const docs = new Map(((docData ?? []) as Doc[]).map((d) => [d.id, d]))
   const templates = (tplData ?? []) as { id: string; title: string; body: string }[]
-  const phase = toPhase(client.phase)
-  const tasks = ((taskData ?? []) as (Task & { phase: string | null })[]).filter(
-    (t) => toPhase(t.phase) === phase
-  )
-  const pi = phaseIndex(phase)
+  // Seller fields live in their own columns. Read them apart so the page
+  // still opens before suites.sql has been run.
+  const { data: sellRow } = await supabase
+    .from("clients")
+    .select("sell_phase, sale_address, sale_price, sale_listed_on, sale_url, private_showings")
+    .eq("id", client.id)
+    .maybeSingle()
+  const sell = (sellRow ?? {}) as {
+    sell_phase?: string | null
+    sale_address?: string | null
+    sale_price?: number | null
+    sale_listed_on?: string | null
+    sale_url?: string | null
+    private_showings?: boolean | null
+  }
+  const journeys = journeysFor(client.client_type)
+  const buyPhase = toBuyPhase(client.phase)
+  const sellPhase = toSellPhase(sell.sell_phase)
+  const allTasks = (taskData ?? []) as (Task & { phase: string | null })[]
+  const buyTasks = allTasks.filter((t) => (t.phase ?? "showing") === buyPhase)
+  const sellTasks = allTasks.filter((t) => t.phase === sellPhase)
+  const phase: Phase = journeys[0] === "sell" ? sellPhase : buyPhase
+  const tasks = journeys[0] === "sell" ? sellTasks : buyTasks
+  const privateShowings = !!sell.private_showings
+  const isSeller = journeys.includes("sell")
+  const [{ data: ohRows }, { data: soRows }] = isSeller
+    ? await Promise.all([
+        supabase.from("open_houses").select("id, starts_at, ends_at, kind, feedback").eq("client_id", client.id).order("starts_at", { ascending: true }),
+        supabase.from("sale_offers").select("id, amount, terms, status, note, received_on").eq("client_id", client.id).order("created_at", { ascending: false }),
+      ])
+    : [{ data: [] }, { data: [] }]
   const collected = (colData ?? []) as Collected[]
   const offers = (offerData ?? []) as Offer[]
   const notes = (noteData ?? []) as Note[]
@@ -316,48 +347,55 @@ export default async function ClientJacket({
           </div>
         </div>
 
-        {/* Phase tracker */}
-        <div className="flex items-center border-b border-[#e4e3e0] bg-[#f5f5f5] px-6 py-4">
-          {PHASES.map((p, idx) => {
-            const state = idx < pi ? "done" : idx === pi ? "now" : "later"
-            return (
-              <div key={p.key} className={`flex items-center ${idx < PHASES.length - 1 ? "flex-1" : ""}`}>
-                <form action={movePhase}>
-                <input type="hidden" name="clientId" value={client.id} />
-                <input type="hidden" name="to" value={p.key} />
-                <button
-                  type="submit"
-                  disabled={state === "now"}
-                  title={state === "now" ? undefined : `Move ${client.first_name || "this client"} to ${p.label}`}
-                  className="group flex items-center gap-2.5 rounded-full py-1 pr-2 enabled:cursor-pointer enabled:hover:bg-white"
-                >
-                  <span
-                    className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-[1.5px] text-xs font-semibold ${
-                      state === "done"
-                        ? "border-sage bg-sage text-white"
-                        : state === "now"
-                          ? "border-ink bg-ox text-white"
-                          : "border-[#d6d4d0] bg-white text-[#5d5b62]"
-                    }`}
-                  >
-                    {state === "done" ? "\u2713" : idx + 1}
-                  </span>
-                  <span
-                    className={`text-[13px] ${
-                      state === "now" ? "font-semibold" : state === "done" ? "" : "text-[#5d5b62]"
-                    }`}
-                  >
-                    {p.label}
-                  </span>
-                </button>
-                </form>
-                {idx < PHASES.length - 1 && (
-                  <div className={`mx-4 h-[1.5px] flex-1 ${idx < pi ? "bg-sage" : "bg-[#d3d2d5]"}`} />
-                )}
+        {/* Stage trackers: one per journey */}
+        {journeys.map((j) => {
+          const cur = j === "sell" ? sellPhase : buyPhase
+          const list = phasesFor(j) as { key: Phase; label: string }[]
+          const ci = phaseIndex(cur)
+          return (
+            <div key={j} className="border-b border-[#e4e3e0] bg-[#f5f5f5] px-6 py-4">
+              {journeys.length > 1 && (
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#5d5b62]">{j === "sell" ? "Selling" : "Buying"}</p>
+              )}
+              <div className="flex items-center">
+                {list.map((p, idx) => {
+                  const state = idx < ci ? "done" : idx === ci ? "now" : "later"
+                  const label = stageLabel(p.key, privateShowings)
+                  return (
+                    <div key={p.key} className={`flex items-center ${idx < list.length - 1 ? "flex-1" : ""}`}>
+                      <form action={movePhase}>
+                        <input type="hidden" name="clientId" value={client.id} />
+                        <input type="hidden" name="to" value={p.key} />
+                        <button
+                          type="submit"
+                          disabled={state === "now"}
+                          title={state === "now" ? undefined : `Move ${client.first_name || "this client"} to ${label}`}
+                          className="group flex items-center gap-2.5 rounded-full py-1 pr-2 enabled:cursor-pointer enabled:hover:bg-white"
+                        >
+                          <span
+                            className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full border-[1.5px] text-xs font-semibold ${
+                              state === "done"
+                                ? "border-sage bg-sage text-white"
+                                : state === "now"
+                                  ? "border-ink bg-ox text-white"
+                                  : "border-[#d6d4d0] bg-white text-[#5d5b62]"
+                            }`}
+                          >
+                            {state === "done" ? "\u2713" : idx + 1}
+                          </span>
+                          <span className={`text-[13px] ${state === "now" ? "font-semibold" : state === "done" ? "" : "text-[#5d5b62]"}`}>
+                            {label}
+                          </span>
+                        </button>
+                      </form>
+                      {idx < list.length - 1 && <div className={`mx-3 h-[1.5px] flex-1 ${idx < ci ? "bg-sage" : "bg-[#d3d2d5]"}`} />}
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )
+        })}
 
         {homeData && (
           <Homes
@@ -371,13 +409,13 @@ export default async function ClientJacket({
         )}
 
         <JacketTabs
-          initial={sp.step ? "tasks" : undefined}
+          initial={sp.step || sp.tab === "tasks" ? "tasks" : undefined}
           late={tasks.filter((t) => !t.done && t.due_on && daysUntil(t.due_on, agent.timezone || "America/New_York") < 0).length}
           summary={(() => {
-            const now = tasks.filter((t) => (t.phase || "showing") === phase)
+            const now = tasks
             const doneN = now.filter((t) => t.done).length
             const got = collected.filter((c) => c.received).length
-            const label = PHASES[pi]?.label ?? ""
+            const label = stageLabel(phase, privateShowings)
             return [
               now.length ? `${label}: ${doneN} of ${now.length} steps done` : "",
               collected.length ? `${got} of ${collected.length} documents in` : "",
@@ -385,20 +423,38 @@ export default async function ClientJacket({
           })()}
           documents={<DocumentsPanel clientId={client.id} collected={collected} />}
           tasks={<>
-            <LeftColumn
-              clientId={client.id}
-              firstName={client.first_name}
-              phase={phase}
-              tasks={tasks}
-              tz={agent.timezone || "America/New_York"}
-              focus={sp.step}
-              nudge={sp.nudge}
-              canEmail={!!client.email}
-              agentFirst={(agent.full_name || "").trim().split(/\s+/)[0] || ""}
-              missingDocs={collected.filter((c) => !c.received).length}
-              collected={collected}
-              assistant={assistant.unlocked && ai.reminders}
-            />
+            {journeys.map((j) => (
+              <div key={j} className={j === journeys[0] ? "" : "mt-6"}>
+                <LeftColumn
+                  clientId={client.id}
+                  firstName={client.first_name}
+                  tz={agent.timezone || "America/New_York"}
+                  focus={sp.step}
+                  nudge={sp.nudge}
+                  canEmail={!!client.email}
+                  agentFirst={(agent.full_name || "").trim().split(/\s+/)[0] || ""}
+                  missingDocs={collected.filter((c) => !c.received).length}
+                  collected={collected}
+                  assistant={assistant.unlocked && ai.reminders}
+                  phase={j === "sell" ? sellPhase : buyPhase}
+                  tasks={j === "sell" ? sellTasks : buyTasks}
+                  privateShowings={privateShowings}
+                  suite={suiteName(client.client_type)}
+                  heading={journeys.length > 1 ? (j === "sell" ? "Selling" : "Buying") : undefined}
+                />
+                {j === "sell" && (
+                  <SellerTools
+                    clientId={client.id}
+                    firstName={client.first_name || ""}
+                    home={{ address: sell.sale_address ?? null, price: sell.sale_price ?? null, listedOn: sell.sale_listed_on ?? null, url: sell.sale_url ?? null }}
+                    privateShowings={privateShowings}
+                    openHouses={(ohRows ?? []) as OpenHouse[]}
+                    offers={(soRows ?? []) as SaleOffer[]}
+                    tz={agent.timezone || "America/New_York"}
+                  />
+                )}
+              </div>
+            ))}
           </>}
           messages={<>
             {(sp.updated || banner || error) && (

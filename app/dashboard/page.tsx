@@ -12,6 +12,7 @@ import AppShell from "@/app/app-shell"
 import { isAdminEmail } from "@/lib/admin"
 import { agentDueLabel, daysUntil, isClose, nudgeDraft, missingThing, canNudge, clientDueLabel } from "@/lib/due"
 import { toOwner } from "@/lib/phases"
+import { suiteName } from "@/lib/suite"
 import { sendNudge, skipNudge } from "./nudge-actions"
 import { formatInTimeZone } from "date-fns-tz"
 import { cookies } from "next/headers"
@@ -108,7 +109,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const tz = agent.timezone || "America/New_York"
   const { data: dueData } = await supabase
     .from("steps")
-    .select("id, title, owner, phase, due_on, nudged_at, client_id, clients(first_name, last_name, email, portal_token)")
+    .select("id, title, owner, phase, due_on, nudged_at, client_id, clients(first_name, last_name, email, portal_token, client_type)")
     .eq("done", false)
     .not("due_on", "is", null)
     .order("due_on", { ascending: true })
@@ -595,7 +596,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                         id={`nudge-${d.id}`}
                         name="body"
                         rows={4}
-                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, missingDocs: missingByClient.get(d.client_id) ?? 0, phase: d.phase })}
+                        defaultValue={nudgeDraft({ clientFirst: first, thing, due: d.due_on, tz, agentFirst: agentFirstName, missingDocs: missingByClient.get(d.client_id) ?? 0, phase: d.phase, suite: suiteName((d.clients as unknown as { client_type?: string | null } | null)?.client_type) })}
                         className="w-full resize-y rounded-xl border border-ink/10 bg-[#f7f6f4] px-4 py-3 text-sm leading-relaxed outline-none focus:border-ink/30"
                       />
                       <div className="flex gap-2">

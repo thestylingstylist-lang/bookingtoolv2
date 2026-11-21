@@ -3,17 +3,17 @@ import "server-only"
 // The one-tap reminder, sent in the realtor's name. It reads like she wrote
 // it herself, because she approved every word.
 
-import { letterHtml, button, esc } from "@/lib/letter"
+import { suiteLetter, sPara, sButton, esc } from "@/lib/letter"
 
-export function nudgeEmail(opts: { agentName: string; body: string; link: string }) {
+export function nudgeEmail(opts: { agentName: string; body: string; link: string; suite: string; brokerage?: string }) {
   // Her own words, exactly as she approved them (they already end with her name).
   const paras = opts.body
     .split(/\n{2,}/)
-    .map((p) => `<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">${esc(p).replace(/\n/g, "<br>")}</p>`)
+    .map((p) => sPara(esc(p).replace(/\n/g, "<br>")))
     .join("")
-  const html = letterHtml({ eyebrow: opts.agentName, body: paras + button(opts.link, "Open my page") })
-  const text = `${opts.body}\n\nOpen my page: ${opts.link}`
-  return { subject: `A quick reminder from ${opts.agentName}`, html, text }
+  const html = suiteLetter({ agentName: opts.agentName, brokerage: opts.brokerage, body: paras + sButton(opts.link, `Open your ${opts.suite}`) })
+  const text = `${opts.body}\n\nOpen your ${opts.suite}: ${opts.link}`
+  return { subject: `A gentle reminder from ${opts.agentName}`, html, text }
 }
 
 // The realtor's own morning note. Only ever goes to her.

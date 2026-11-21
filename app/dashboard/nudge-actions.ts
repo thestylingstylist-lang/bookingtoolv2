@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { sendEmail } from "@/lib/email"
+import { suiteName } from "@/lib/suite"
 import { nudgeEmail } from "@/lib/nudge-email"
 import { agentCard } from "@/lib/agent-card"
 
@@ -27,13 +28,13 @@ export async function sendNudge(formData: FormData): Promise<void> {
     fromClient ? `/clients/${step.client_id}?step=${stepId}&nudge=${k}#step-${stepId}` : `/dashboard?nudge=${k}`
 
   const [{ data: client }, { data: agent }] = await Promise.all([
-    supabase.from("clients").select("email, portal_token").eq("id", step.client_id).maybeSingle(),
+    supabase.from("clients").select("email, portal_token, client_type").eq("id", step.client_id).maybeSingle(),
     supabase.from("agents").select("full_name, business_name, public_email").eq("id", user.id).maybeSingle(),
   ])
   if (!client?.email) redirect(back("noemail"))
 
   const agentName = agent?.full_name || agent?.business_name || "Your agent"
-  const mail = nudgeEmail({ agentName, body, link: `https://www.marvberry.com/portal/${client.portal_token}` })
+  const mail = nudgeEmail({ agentName, brokerage: agent?.business_name || undefined, body, link: `https://www.marvberry.com/portal/${client.portal_token}`, suite: suiteName(client.client_type) })
   const ok = await sendEmail({
     to: client.email,
     ...mail,

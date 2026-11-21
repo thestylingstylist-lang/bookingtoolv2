@@ -1,5 +1,5 @@
 import "server-only"
-import { letterHtml, teamNote, details, para as lpara, textLink, withCard, type AgentCard } from "@/lib/letter"
+import { teamNote, details, para as lpara, textLink, withCard, suiteLetter, sPara, sWhen, sLinkLine, type AgentCard } from "@/lib/letter"
 
 // Sends transactional email via the Resend HTTP API. No SDK needed — we call
 // the REST endpoint directly with the API key already set in the environment.
@@ -119,9 +119,8 @@ export function manageUrl(token: string) {
 
 const firstOf = (name: string) => name.trim().split(/\s+/)[0] || name
 const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-const P = (t: string) =>
-  `<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">${t}</p>`
 
+// Client booking emails, in the suite letter look.
 function letter(o: {
   agentName: string
   heading: string
@@ -131,17 +130,10 @@ function letter(o: {
   signoff: string
   contact?: string
 }) {
-  const when = o.when
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:26px;">
-<tr><td style="font-family:Georgia,serif;font-size:11px;letter-spacing:.18em;color:#b89250;padding:0 0 3px;">WHEN</td></tr>
-<tr><td style="font-family:'Playfair Display',Georgia,serif;font-size:19px;color:#2b2520;padding:0 0 2px;">${o.when.label}</td></tr>
-<tr><td style="font-family:Georgia,serif;font-size:14px;color:#6d655b;padding:2px 0 0;">${o.when.sub}</td></tr>
-</table>`
-    : ""
-  return letterHtml({
-    eyebrow: o.agentName,
+  return suiteLetter({
+    agentName: o.agentName,
     heading: o.heading,
-    body: o.paras.map(P).join("") + when + (o.after ? `<div style="margin-top:16px;">${o.after}</div>` : ""),
+    body: o.paras.map(sPara).join("") + (o.when ? sWhen(o.when.label, o.when.sub) : "") + (o.after ?? ""),
     signoff: o.signoff,
     signature: firstOf(o.agentName),
     contact: o.contact,
@@ -150,11 +142,10 @@ function letter(o: {
 
 const joinLink = (url: string) =>
   url
-    ? `</p><p style="margin:12px 0 0;"><a href="${esc(url)}" style="font-family:Georgia,serif;font-size:15px;letter-spacing:.04em;color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;padding-bottom:3px;">Join the video call</a>`
+    ? `</p><p style="margin:12px 0 0;"><a href="${esc(url)}" style="font-family:Inter,'Helvetica Neue',Arial,sans-serif;font-size:14px;color:#1F1E1C;text-decoration:none;border-bottom:1px solid #C2A46B;padding-bottom:2px;">Join the video call</a>`
     : ""
 
-const manageLine = (url: string, words: string) =>
-  `<p style="margin:0;font-family:Georgia,serif;font-size:15px;line-height:1.6;color:#6d655b;">${words} <a href="${url}" style="color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;">Pick a new time or cancel</a></p>`
+const manageLine = (url: string, words: string) => sLinkLine(words, url, "Choose a new time or cancel")
 
 export function clientConfirmationEmail(opts: {
   meetingLink?: string
@@ -170,7 +161,7 @@ export function clientConfirmationEmail(opts: {
   const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
   const link = !phone && opts.meetingLink ? opts.meetingLink : ""
   const how = phone
-    ? "I'll call you at the number you gave me."
+    ? "I'll call you at the number you shared."
     : link
       ? "We'll meet by video. Here's the link to join:"
       : "I'll send you the video link before we meet."
@@ -180,31 +171,31 @@ export function clientConfirmationEmail(opts: {
     agentName: opts.agentName,
     heading: `You're booked${hi}.`,
     paras: [
-      "I&rsquo;m so glad you reached out. Our consultation is confirmed, and I&rsquo;m looking forward to talking with you.",
+      "Thank you for reaching out. Our consultation is confirmed, and I look forward to speaking with you.",
       how.replace(/'/g, "&rsquo;") + joinLink(link),
     ],
     when: { label: opts.whenLabel, sub: `A ${phone ? "phone" : "video"} call with ${esc(opts.agentName)}` },
-    after: opts.manageUrl ? manageLine(opts.manageUrl, "If something comes up, no problem.") : undefined,
+    after: opts.manageUrl ? manageLine(opts.manageUrl, "If something comes up, that&rsquo;s no trouble.") : undefined,
     signoff: "Talk soon,",
     contact,
   })
 
   const text = `You're booked${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
 
-I'm so glad you reached out. Our consultation is confirmed, and I'm looking forward to talking with you.
+Thank you for reaching out. Our consultation is confirmed, and I look forward to speaking with you.
 
 ${how}
 
 When: ${opts.whenLabel}
 A ${phone ? "phone" : "video"} call with ${opts.agentName}${opts.manageUrl ? `
 
-If something comes up, no problem. Pick a new time or cancel: ${opts.manageUrl}` : ""}
+If something comes up, that's no trouble. Choose a new time or cancel: ${opts.manageUrl}` : ""}
 
 Talk soon,
 ${firstOf(opts.agentName)}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `
 ${[opts.agentPhone, opts.agentEmail].filter(Boolean).join(" · ")}` : ""}`
 
-  return { subject: `You're booked with ${opts.agentName}`, html, text }
+  return { subject: `Your consultation with ${opts.agentName} is confirmed`, html, text }
 }
 
 export function chatConfirmationEmail(opts: {
@@ -354,7 +345,7 @@ export function clientReminderEmail(opts: {
   const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
   const link = !phone && opts.meetingLink ? opts.meetingLink : ""
   const how = phone
-    ? "I'll call you at the number you gave me."
+    ? "I'll call you at the number you shared."
     : link
       ? "We'll meet by video. Here's the link to join:"
       : "I'll send you the video link before we meet."
@@ -363,23 +354,23 @@ export function clientReminderEmail(opts: {
   const html = letter({
     agentName: opts.agentName,
     heading: `See you soon${hi}.`,
-    paras: ["A heads-up that our consultation is coming up. I&rsquo;m looking forward to it.", how.replace(/'/g, "&rsquo;") + joinLink(link)],
+    paras: ["A note that our consultation is coming up. I look forward to it.", how.replace(/'/g, "&rsquo;") + joinLink(link)],
     when: { label: opts.whenLabel, sub: `A ${phone ? "phone" : "video"} call with ${esc(opts.agentName)}` },
-    after: opts.manageUrl ? manageLine(opts.manageUrl, "If the time doesn&rsquo;t work anymore, that&rsquo;s okay.") : undefined,
+    after: opts.manageUrl ? manageLine(opts.manageUrl, "If the time no longer suits you, that&rsquo;s no trouble.") : undefined,
     signoff: "Talk soon,",
     contact,
   })
 
   const text = `See you soon${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
 
-A heads-up that our consultation is coming up. I'm looking forward to it.
+A note that our consultation is coming up. I look forward to it.
 
 ${how}
 
 When: ${opts.whenLabel}
 A ${phone ? "phone" : "video"} call with ${opts.agentName}${opts.manageUrl ? `
 
-If the time doesn't work anymore, that's okay. Pick a new time or cancel: ${opts.manageUrl}` : ""}
+If the time no longer suits you, that's no trouble. Choose a new time or cancel: ${opts.manageUrl}` : ""}
 
 Talk soon,
 ${firstOf(opts.agentName)}${[opts.agentPhone, opts.agentEmail].filter(Boolean).length ? `
@@ -413,11 +404,11 @@ Our consultation has moved to the new time below. Thank you for letting me know.
 When: ${opts.whenLabel}
 A ${phone ? "phone" : "video"} call with ${opts.agentName}
 
-Need to change it again? Pick a new time or cancel: ${opts.manageUrl}
+Need to change it again? Choose a new time or cancel: ${opts.manageUrl}
 
 Talk soon,
 ${firstOf(opts.agentName)}`
-  return { subject: `New time with ${opts.agentName}`, html, text }
+  return { subject: `Your new time with ${opts.agentName}`, html, text }
 }
 
 // Client: confirms their cancellation.
@@ -430,18 +421,18 @@ export function clientCancelledEmail(opts: {
   const hi = opts.clientFirstName ? `, ${esc(opts.clientFirstName)}` : ""
   const html = letter({
     agentName: opts.agentName,
-    heading: `No problem${hi}.`,
+    heading: `Of course${hi}.`,
     paras: [
       `Our consultation on ${opts.whenLabel} is cancelled. Whenever you&rsquo;re ready to talk, I&rsquo;m here.`,
     ],
-    after: `<p style="margin:0;"><a href="${opts.bookingUrl}" style="font-family:Georgia,serif;font-size:15px;color:#2b2520;text-decoration:none;border-bottom:1px solid #b89250;">Pick a new time</a></p>`,
+    after: sLinkLine("", opts.bookingUrl, "Choose a new time"),
     signoff: "Warmly,",
   })
-  const text = `No problem${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
+  const text = `Of course${opts.clientFirstName ? ", " + opts.clientFirstName : ""}.
 
 Our consultation on ${opts.whenLabel} is cancelled. Whenever you're ready to talk, I'm here.
 
-Pick a new time: ${opts.bookingUrl}
+Choose a new time: ${opts.bookingUrl}
 
 Warmly,
 ${firstOf(opts.agentName)}`

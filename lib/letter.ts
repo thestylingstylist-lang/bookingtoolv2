@@ -126,3 +126,96 @@ export function withCard(html: string, text: string, c: AgentCard | null | undef
     text: dropContact(text, c) + "\n" + cardText(c),
   }
 }
+
+// ---- The suite letter -------------------------------------------------------
+// Client emails in the luxury look: the agent's monogram, name and brokerage,
+// a fine gold line, a thin serif heading and a small sans body. No Marvberry
+// branding. Agents' own notes keep the letter above.
+
+const LX = {
+  bg: "#F8F8F8",
+  ink: "#1F1E1C",
+  body: "#3E3B37",
+  soft: "#67635C",
+  gold: "#C2A46B",
+  line: "#DCCBA6",
+  hair: "#E6E4E1",
+  blue: "#D6E6EC",
+  serif: "'Cormorant Garamond',Georgia,'Times New Roman',serif",
+  sans: "Inter,'Helvetica Neue',Arial,sans-serif",
+}
+
+export const sPara = (html: string) =>
+  `<p style="margin:16px 0 0;font-family:${LX.sans};font-size:15px;line-height:1.7;color:${LX.body};">${html}</p>`
+
+export const sSmall = (html: string) =>
+  `<p style="margin:18px 0 0;font-family:${LX.sans};font-size:12.5px;line-height:1.6;color:${LX.soft};">${html}</p>`
+
+export const sButton = (href: string, label: string) =>
+  `<p style="margin:28px 0 0;"><a href="${href}" style="display:inline-block;background:${LX.ink};color:${LX.bg};text-decoration:none;padding:14px 24px;border-radius:2px;font-family:${LX.sans};font-size:13px;letter-spacing:.3px;">${label}</a></p>`
+
+export const sLink = (href: string, label: string) =>
+  `<a href="${href}" style="color:${LX.ink};text-decoration:none;border-bottom:1px solid ${LX.gold};">${label}</a>`
+
+// "If something comes up, that's no trouble. Choose a new time or cancel"
+export const sLinkLine = (lead: string, href: string, label: string) =>
+  `<p style="margin:22px 0 0;font-family:${LX.sans};font-size:14px;line-height:1.6;color:${LX.soft};">${lead ? `${lead} ` : ""}${sLink(href, label)}</p>`
+
+export const sWhen = (label: string, sub: string) =>
+  `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:26px;border-top:1px solid ${LX.hair};border-bottom:1px solid ${LX.hair};">
+<tr><td style="padding:18px 0 0;font-family:${LX.sans};font-size:11.5px;letter-spacing:.4px;color:${LX.soft};"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${LX.blue};margin-right:8px;vertical-align:middle;"></span>When</td></tr>
+<tr><td style="padding:8px 0 0;font-family:${LX.serif};font-size:23px;color:${LX.ink};">${label}</td></tr>
+<tr><td style="padding:4px 0 18px;font-family:${LX.sans};font-size:13px;color:${LX.soft};">${sub}</td></tr>
+</table>`
+
+function initialsOf(name: string) {
+  return (
+    name
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w.charAt(0))
+      .join("")
+      .toUpperCase() || "·"
+  )
+}
+
+export function suiteLetter(o: {
+  agentName: string
+  brokerage?: string
+  heading?: string
+  body: string
+  signoff?: string
+  signature?: string
+  contact?: string
+}) {
+  const brokerage = o.brokerage && o.brokerage !== o.agentName ? o.brokerage : ""
+  return `<!doctype html>
+<html><head><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body style="margin:0;padding:0;background:${LX.bg};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${LX.bg};padding:44px 16px;">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 8px 18px;border-bottom:1px solid ${LX.line};">
+<table role="presentation" cellpadding="0" cellspacing="0"><tr>
+<td width="38" height="38" align="center" valign="middle" style="width:38px;height:38px;border:1px solid ${LX.gold};border-radius:50%;font-family:${LX.serif};font-size:13px;letter-spacing:1px;color:${LX.ink};">${esc(initialsOf(o.agentName))}</td>
+<td style="padding-left:12px;"><div style="font-family:${LX.serif};font-size:18px;font-weight:500;color:${LX.ink};">${esc(o.agentName)}</div>${brokerage ? `<div style="margin-top:1px;font-family:${LX.sans};font-size:12px;color:${LX.soft};">${esc(brokerage)}</div>` : ""}</td>
+</tr></table>
+</td></tr>
+${o.heading ? `<tr><td style="padding:30px 8px 0;"><h1 style="margin:0;font-family:${LX.serif};font-weight:300;font-size:34px;line-height:1.15;color:${LX.ink};">${o.heading}</h1></td></tr>` : ""}
+<tr><td style="padding:${o.heading ? "4px" : "14px"} 8px 0;">${o.body}</td></tr>
+${
+  o.signoff || o.signature
+    ? `<tr><td style="padding:34px 8px 0;">
+${o.signoff ? `<p style="margin:0;font-family:${LX.sans};font-size:15px;line-height:1.6;color:${LX.body};">${o.signoff}</p>` : ""}
+${o.signature ? `<!--sig--><p style="margin:4px 0 0;font-family:${LX.serif};font-style:italic;font-weight:300;font-size:32px;line-height:1.1;color:${LX.ink};">${esc(o.signature)}</p><!--/sig-->` : ""}
+${o.contact ? `<!--contact--><p style="margin:8px 0 0;font-family:${LX.sans};font-size:12.5px;color:${LX.soft};">${o.contact}</p><!--/contact-->` : ""}
+</td></tr>`
+    : ""
+}
+<!--card-->
+</table></td></tr></table>
+</body></html>`
+}

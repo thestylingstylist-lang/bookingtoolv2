@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { OFFER_DOCS, PHASES, toPhase } from "@/lib/phases"
+import { OFFER_DOCS, BUY_PHASES, SELL_PHASES, journeyOf, toPhase } from "@/lib/phases"
 import { toDue } from "@/lib/due"
 
 // Tasks (steps table) and documents collected (collected_docs table)
@@ -101,7 +101,8 @@ async function seedPhase(
     if (docError) return docError
   }
 
-  const steps = PHASES.find((p) => p.key === phase)?.steps ?? []
+  const steps = [...BUY_PHASES, ...SELL_PHASES].find((p) => p.key === phase)?.steps ?? []
+  if (steps.length === 0) return null
   const { error } = await supabase.from("steps").insert(
     steps.map((s, position) => ({
       agent_id: userId,
@@ -141,7 +142,9 @@ export async function movePhase(formData: FormData): Promise<void> {
   const to = toPhase(formData.get("to"))
   if (!clientId) redirect("/clients")
 
-  const { error } = await supabase.from("clients").update({ phase: to }).eq("id", clientId)
+  // Buying and selling stages are kept in separate columns.
+  const column = journeyOf(to) === "sell" ? "sell_phase" : "phase"
+  const { error } = await supabase.from("clients").update({ [column]: to }).eq("id", clientId)
   if (error) back(clientId, "phase")
 
   const seedError = await seedPhase(supabase, userId, clientId, to)

@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@supabase/supabase-js"
 import { startUpload, finishUpload } from "./upload-actions"
+import { QUIET } from "../../suite-ui"
 
 export default function UploadButton({ token, docId }: { token: string; docId: string }) {
   const input = useRef<HTMLInputElement>(null)
@@ -60,9 +61,9 @@ export default function UploadButton({ token, docId }: { token: string; docId: s
         type="button"
         disabled={busy}
         onClick={() => input.current?.click()}
-        className="text-xs font-medium text-[#16151a] hover:underline disabled:opacity-60"
+        className={QUIET}
       >
-        {busy ? "Uploading…" : "Upload ↑"}
+        {busy ? "Uploading…" : "Upload"}
       </button>
       {error && <span className="mt-0.5 max-w-[200px] text-right text-[11px] text-red-700">{error}</span>}
     </span>

@@ -70,9 +70,10 @@ export default function DealPanel({
         <form action={saveDeal} className="mt-3 space-y-3">
           <input type="hidden" name="clientId" value={clientId} />
           <select name="clientType" defaultValue={clientType ?? ""} className={inputClass}>
-            <option value="">Buyer or seller?</option>
+            <option value="">Buyer, seller or investor?</option>
             <option value="buyer">Buyer</option>
             <option value="seller">Seller</option>
+            <option value="investor">Investor</option>
             <option value="both">Buyer and seller</option>
           </select>
           <div>

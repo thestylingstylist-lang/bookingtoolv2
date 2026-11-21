@@ -6,6 +6,7 @@ import { agentDayEmail, nudgeEmail } from "@/lib/nudge-email"
 import { agentDueLabel, daysUntil, canNudge, nudgeDraft, missingThing } from "@/lib/due"
 import { draftReminderFor } from "@/lib/assistant"
 import { toOwner } from "@/lib/phases"
+import { suiteName } from "@/lib/suite"
 import { agentCard } from "@/lib/agent-card"
 import { sendCallEmail, scheduleHourEmail, TEAM_TZ, type CallRow } from "@/lib/onboarding-call"
 
@@ -163,7 +164,7 @@ async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
 
   const { data: steps } = await admin
     .from("steps")
-    .select("id, agent_id, client_id, title, owner, phase, due_on, nudged_at, clients(first_name, email, portal_token, phase)")
+    .select("id, agent_id, client_id, title, owner, phase, due_on, nudged_at, clients(first_name, email, portal_token, phase, client_type)")
     .in("agent_id", autos.map((a) => a.id as string))
     .eq("done", false)
     .not("due_on", "is", null)
@@ -178,7 +179,7 @@ async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
 
     for (const s of steps.filter((x) => x.agent_id === agent.id)) {
       if (toOwner(s.owner) !== "client" || !canNudge(s.due_on as string, s.nudged_at as string | null, tz)) continue
-      const c = s.clients as unknown as { first_name: string | null; email: string | null; portal_token: string | null; phase: string | null } | null
+      const c = s.clients as unknown as { first_name: string | null; email: string | null; portal_token: string | null; phase: string | null; client_type: string | null } | null
       if (!c?.email || !c.portal_token) continue
 
       let missingDocs = 0
@@ -200,9 +201,10 @@ async function sendAutoReminders(admin: ReturnType<typeof createAdminClient>) {
           agentFirst,
           missingDocs,
           phase: (s.phase as string | null) ?? c.phase,
+          suite: suiteName(c.client_type),
         })
 
-      const mail = nudgeEmail({ agentName, body, link: `https://www.marvberry.com/portal/${c.portal_token}` })
+      const mail = nudgeEmail({ agentName, body, link: `https://www.marvberry.com/portal/${c.portal_token}`, suite: suiteName(c.client_type) })
       const ok = await sendEmail({
         to: c.email,
         ...mail,

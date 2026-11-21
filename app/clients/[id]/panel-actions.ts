@@ -30,7 +30,7 @@ export async function saveDeal(formData: FormData): Promise<void> {
   const { supabase } = await agentOrLogin()
   const clientId = String(formData.get("clientId") ?? "")
   const t = String(formData.get("clientType") ?? "")
-  const clientType = ["buyer", "seller", "both"].includes(t) ? t : null
+  const clientType = ["buyer", "seller", "investor", "both"].includes(t) ? t : null
   const { error } = await supabase
     .from("clients")
     .update({

@@ -3,19 +3,15 @@ import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import { toAgentConfig } from "@/lib/config"
 import { generateSlots } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
+import "../../suite-fonts"
 import ManageView from "./manage-view"
+import { AgentHeader, SuiteFooter, BTN } from "../../suite-ui"
 
 export const dynamic = "force-dynamic"
 export const metadata = { title: "Your booking", robots: { index: false, follow: false } }
 
-const SERIF = { fontFamily: "var(--font-geist-sans), -apple-system,'Segoe UI',Helvetica,Arial,sans-serif", letterSpacing: "-0.02em" }
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-const THEME = {
-  "--base": "#f1f0ee",
-  "--accent": "#16151a",
-  "--accent-soft": "#f1f0ee",
-} as React.CSSProperties
 
 export default async function ManagePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -49,18 +45,10 @@ export default async function ManagePage({ params }: { params: Promise<{ token: 
   const agentName = agent ? agent.full_name || agent.business_name || "" : ""
 
   return (
-    <>
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=DM+Sans:wght@400;500&display=swap"
-        precedence="default"
-      />
-      <div
-        style={{ ...THEME, fontFamily: "'DM Sans', system-ui, sans-serif" }}
-        className="min-h-screen bg-[var(--base)] px-4 py-10 text-[#16151a] sm:py-16"
-      >
-        <main className="mx-auto max-w-[760px] rounded-[18px] bg-white px-5 py-10 sm:px-12 sm:py-12">
+    <div className="min-h-screen bg-lxbg px-[26px] pb-6 pt-10 font-luxsans text-lxink antialiased sm:pt-16">
+      <div className="mx-auto flex min-h-[calc(100vh-88px)] max-w-[680px] flex-col">
+        {agent && <AgentHeader name={agentName} brokerage={agent.business_name} />}
+        <main className="pt-[34px] sm:pt-11">
           {upcoming && booking && agent ? (
             <ManageView
               token={token}
@@ -75,24 +63,20 @@ export default async function ManagePage({ params }: { params: Promise<{ token: 
             />
           ) : (
             <div className="flex flex-col gap-4">
-              <h1 style={SERIF} className="text-[40px] font-medium leading-none">
-                This booking isn&rsquo;t active anymore.
-              </h1>
-              <p className="text-[15px] leading-relaxed text-[#5d5b62]">
-                It may have already happened, been cancelled, or moved.
-              </p>
+              <h1 className="m-0 font-lux text-[38px] font-light leading-[1.08] sm:text-[44px]">This booking isn&rsquo;t active anymore.</h1>
+              <p className="m-0 text-[14px] leading-relaxed text-lxsoft">It may have already happened, been cancelled, or moved.</p>
               {agent && (
-                <a
-                  href={`/book/${agent.slug}`}
-                  className="mt-2 flex h-12 w-fit items-center rounded-[10px] bg-[#16151a] px-6 text-[15px] font-medium text-white hover:opacity-90"
-                >
+                <a href={`/book/${agent.slug}`} className={`${BTN} mt-2 w-fit`}>
                   Book a new time
                 </a>
               )}
             </div>
           )}
         </main>
+        <div className="mt-auto">
+          <SuiteFooter />
+        </div>
       </div>
-    </>
+    </div>
   )
 }

@@ -2,28 +2,31 @@ import "server-only"
 
 // Emails for the signing flow, in the same open-letter look as every email.
 
-import { letterHtml, teamNote, para, button, small, esc } from "@/lib/letter"
+import { teamNote, para, button, esc, suiteLetter, sPara, sButton, sSmall } from "@/lib/letter"
 
 // To the client: "please review and sign".
 export function signRequestEmail(opts: {
   clientFirstName: string
   agentName: string
+  brokerage?: string
   title: string
   link: string
 }) {
-  const hi = opts.clientFirstName ? `Hi ${esc(opts.clientFirstName)},` : "Hi,"
-  const html = letterHtml({
-    eyebrow: opts.agentName,
-    heading: "A document for you to sign",
+  const hello = opts.clientFirstName ? `Hello ${esc(opts.clientFirstName)}.` : "Hello."
+  const html = suiteLetter({
+    agentName: opts.agentName,
+    brokerage: opts.brokerage,
+    heading: "A document for your signature",
     body:
-      para(`${hi} I&rsquo;ve sent you the <strong>${esc(opts.title)}</strong>. Give it a read, and you can sign right from your phone.`) +
-      button(opts.link, "Review and sign") +
-      small("This link is private to you. Questions? Just reply to this email."),
+      sPara(`${hello} I&rsquo;ve sent you the <strong style="font-weight:500;">${esc(opts.title)}</strong>. Take your time reading it, and you can sign right from your phone.`) +
+      sButton(opts.link, "Review and sign") +
+      sSmall("This link is private to you. If you have questions, simply reply to this email."),
     signoff: "Thank you,",
     signature: opts.agentName.trim().split(/\s+/)[0],
   })
-  const text = `${hi}\n\n${opts.agentName} sent you the ${opts.title} to review and sign.\n\nReview and sign: ${opts.link}\n\nThis link is private to you. Questions? Just reply to this email.`
-  return { subject: `Please sign: ${opts.title}`, html, text }
+  const helloText = opts.clientFirstName ? `Hello ${opts.clientFirstName}.` : "Hello."
+  const text = `${helloText} I've sent you the ${opts.title}. Take your time reading it, and you can sign right from your phone.\n\nReview and sign: ${opts.link}\n\nThis link is private to you. If you have questions, simply reply to this email.`
+  return { subject: `For your signature: ${opts.title}`, html, text }
 }
 
 // To the realtor: "your client signed".

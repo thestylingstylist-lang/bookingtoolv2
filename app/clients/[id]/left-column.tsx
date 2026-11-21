@@ -6,7 +6,7 @@ import {
   addStandardSteps,
   setDueDate,
 } from "./checklist-actions"
-import { PHASES, phaseIndex, toOwner, type Phase } from "@/lib/phases"
+import { phasesFor, journeyOf, stageLabel, phaseIndex, toOwner, type Phase } from "@/lib/phases"
 import { agentDueLabel, isClose, canNudge, nudgeDraft, missingThing, daysUntil } from "@/lib/due"
 import ReminderBox from "./reminder-box"
 import DuePicker from "./due-picker"
@@ -51,6 +51,10 @@ export default function LeftColumn({
   missingDocs,
   collected = [],
   assistant = false,
+  privateShowings = false,
+  suite,
+  heading,
+  children,
 }: {
   clientId: string
   firstName: string
@@ -64,14 +68,25 @@ export default function LeftColumn({
   missingDocs?: number
   collected?: Collected[]
   assistant?: boolean
+  privateShowings?: boolean
+  suite?: string
+  heading?: string
+  children?: React.ReactNode
 }) {
   const who = firstName || "Client"
   const i = phaseIndex(phase)
+  const PHASES = (phasesFor(journeyOf(phase)) as { key: Phase; label: string }[]).map((p) => ({
+    key: p.key,
+    label: stageLabel(p.key, privateShowings),
+  }))
   const current = PHASES[i]
   const next = PHASES[i + 1]
   const prev = PHASES[i - 1]
+  const hasStandard = (phasesFor(journeyOf(phase)) as { key: Phase; steps: unknown[] }[])[i]?.steps.length > 0
 
   return (
+    <div>
+    {heading && <h2 className="mb-2 mt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[#5d5b62]">{heading}</h2>}
     <div className="overflow-hidden rounded-xl border border-[#e4e3e0] bg-[#f7f6f4]">
       {PHASES.map((p, n) =>
         n === i ? (
@@ -80,7 +95,7 @@ export default function LeftColumn({
           <h2 className="text-sm font-semibold text-ink">{current.label}</h2>
           <span className="font-semibold tracking-tight text-xs text-[#BC559E]">You&apos;re here</span>
         </div>
-        {tasks.length === 0 && (
+        {tasks.length === 0 && hasStandard && (
           <form action={addStandardSteps} className="mt-3">
             <Hidden clientId={clientId} />
             <input type="hidden" name="phase" value={phase} />
@@ -152,6 +167,7 @@ export default function LeftColumn({
                         agentFirst: agentFirst ?? "",
                         missingDocs: /document/i.test(t.title) ? missingDocs ?? 0 : 0,
                         phase: t.phase ?? phase,
+                        suite,
                       })}
                     />
                   ) : (
@@ -166,6 +182,7 @@ export default function LeftColumn({
             </li>
           ))}
         </ul>
+        {children}
         <form action={addTask} className="mt-2 space-y-2">
           <Hidden clientId={clientId} />
           <input type="hidden" name="phase" value={phase} />
@@ -219,6 +236,7 @@ export default function LeftColumn({
           </div>
         )
       )}
+    </div>
     </div>
   )
 }

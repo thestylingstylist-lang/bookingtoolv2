@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react"
 import type { Slot } from "@/lib/slots"
 import { rescheduleBooking, cancelBooking } from "./actions"
-
-const SERIF = { fontFamily: "var(--font-geist-sans), -apple-system,'Segoe UI',Helvetica,Arial,sans-serif", letterSpacing: "-0.02em" }
+import { BTN, QUIET, HAIR } from "../../suite-ui"
 
 function fmt(iso: string, tz: string, opts: Intl.DateTimeFormatOptions) {
   return new Intl.DateTimeFormat("en-US", { timeZone: tz, ...opts }).format(new Date(iso))
@@ -121,23 +120,24 @@ export default function ManageView({
     })
   }
 
-  const blackBtn =
-    "flex h-12 items-center justify-center rounded-[10px] bg-[#16151a] px-6 text-[15px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-  const quietBtn = "text-[15px] text-[#5d5b62] underline underline-offset-4 hover:text-[#16151a]"
+  const blackBtn = BTN
+  const quietBtn = QUIET
+  const h1 = "m-0 font-lux text-[38px] font-light leading-[1.08] sm:text-[44px]"
+  const lede = "m-0 text-[14px] leading-relaxed text-lxsoft"
 
   const summary = (iso: string) => (
-    <div className="flex flex-col gap-1.5 rounded-[14px] bg-[var(--base)] px-6 py-5">
-      <span style={SERIF} className="text-[26px] leading-none">
-        Consultation call with {agentFirst}
-      </span>
-      <span className="text-[15px] text-[#5d5b62]">
-        {longWhen(iso, tz)} · {minutes} minutes · {type}
-      </span>
+    <div className={`border-y ${HAIR} py-[22px]`}>
+      <p className="m-0 font-lux text-[24px]">Consultation call with {agentFirst}</p>
+      <p className="m-0 mt-2 text-[13px] leading-relaxed text-lxsoft">
+        {longWhen(iso, tz)}
+        <br />
+        {minutes} minutes &middot; {type}
+      </p>
     </div>
   )
 
   const errorBox = error && (
-    <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
+    <p role="alert" className="m-0 border-l-2 border-lxblush pl-3 text-[13.5px] text-lxink">
       {error}
     </p>
   )
@@ -145,13 +145,11 @@ export default function ManageView({
   if (mode === "moved") {
     return (
       <div className="flex flex-col gap-6">
-        <h1 style={SERIF} className="text-[44px] font-medium leading-none">
+        <h1 className={h1}>
           You&rsquo;re all set{firstName ? ", " : "."}
           {firstName && <span>{firstName}.</span>}
         </h1>
-        <p className="text-[17px] leading-relaxed text-[#5d5b62]">
-          Your call has moved. A confirmation is on its way to your email.
-        </p>
+        <p className={lede}>Your call has been moved. A confirmation is on its way to your inbox.</p>
         {summary(selected)}
       </div>
     )
@@ -160,11 +158,9 @@ export default function ManageView({
   if (mode === "cancelled") {
     return (
       <div className="flex flex-col gap-6">
-        <h1 style={SERIF} className="text-[44px] font-medium leading-none">
-          Your call is cancelled.
-        </h1>
-        <p className="text-[17px] leading-relaxed text-[#5d5b62]">
-          {agentFirst} has been told. If you&rsquo;d like to talk another time, you can book again anytime.
+        <h1 className={h1}>Your call is cancelled.</h1>
+        <p className={lede}>
+          We&rsquo;ve let {agentFirst} know. Whenever you&rsquo;d like to talk, you&rsquo;re welcome to book again.
         </p>
         <a href={bookUrl} className={`${blackBtn} w-fit`}>
           Book a new time
@@ -176,9 +172,7 @@ export default function ManageView({
   if (mode === "cancel") {
     return (
       <div className="flex flex-col gap-6">
-        <h1 style={SERIF} className="text-[40px] font-medium leading-none">
-          Cancel this call?
-        </h1>
+        <h1 className={h1}>Cancel this call?</h1>
         {summary(current)}
         {errorBox}
         <div className="flex flex-wrap items-center gap-5">
@@ -197,26 +191,22 @@ export default function ManageView({
     return (
       <div className="flex flex-col gap-7">
         <div className="flex flex-col gap-2">
-          <h1 style={SERIF} className="text-[40px] font-medium leading-none">
-            Pick a new time
-          </h1>
-          <p className="text-[15px] text-[#5d5b62]">Times shown in {tzAbbr(tz) || tz}.</p>
+          <h1 className={h1}>Choose a new time</h1>
+          <p className="m-0 text-[13px] text-lxsoft">Times shown in {tzAbbr(tz) || tz}.</p>
         </div>
 
         {days.length === 0 ? (
-          <p className="text-[15px] text-[#5d5b62]">No other open times right now. Please check back soon.</p>
+          <p className={lede}>There are no other open times just now. Please check back soon.</p>
         ) : (
           <div className="flex flex-col gap-4">
-            <p style={SERIF} className="text-[28px] leading-none">
-              {visible[0]?.month}
-            </p>
-            <div className="grid grid-cols-[22px_minmax(0,1fr)_22px] items-center gap-3 border-y border-[#e2e0dc] py-4">
+            <p className="m-0 font-lux text-[24px] italic">{visible[0]?.month}</p>
+            <div className={`grid grid-cols-[22px_minmax(0,1fr)_22px] items-center gap-2.5 border-y ${HAIR} py-4`}>
               <button
                 type="button"
                 aria-label="Earlier dates"
                 disabled={safePage === 0}
                 onClick={() => setPage(safePage - 1)}
-                className="text-[#16151a] disabled:text-[#d6d4d0]"
+                className="text-lxink disabled:text-[rgba(31,30,28,.25)]"
               >
                 <Chevron dir="left" />
               </button>
@@ -230,12 +220,12 @@ export default function ManageView({
                       onClick={() => setActiveDay(d.key)}
                       aria-pressed={on}
                       className={
-                        "flex h-20 flex-col items-center justify-center gap-1 rounded-[14px] border-[1.5px] border-[#16151a] transition-colors " +
-                        (on ? "bg-[#16151a] text-white" : "text-[#16151a] hover:bg-[var(--accent-soft)]")
+                        "flex h-[72px] flex-col items-center justify-center gap-1 rounded-[2px] border text-lxink transition-colors " +
+                        (on ? "border-lxink bg-lxblue" : "border-[rgba(31,30,28,.2)] hover:border-lxink")
                       }
                     >
-                      <span className="text-2xl">{d.num}</span>
-                      <span className="text-[11px] tracking-[1.5px]">{d.weekday}</span>
+                      <span className="font-lux text-[24px]">{d.num}</span>
+                      <span className="text-[10px] tracking-[1.4px]">{d.weekday}</span>
                     </button>
                   )
                 })}
@@ -245,14 +235,14 @@ export default function ManageView({
                 aria-label="Later dates"
                 disabled={safePage >= pages - 1}
                 onClick={() => setPage(safePage + 1)}
-                className="text-[#16151a] disabled:text-[#d6d4d0]"
+                className="text-lxink disabled:text-[rgba(31,30,28,.25)]"
               >
                 <Chevron dir="right" />
               </button>
             </div>
 
             {active && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                 {active.slots.map((s) => {
                   const on = selected === s.startISO
                   return (
@@ -262,10 +252,8 @@ export default function ManageView({
                       onClick={() => setSelected(s.startISO)}
                       aria-pressed={on}
                       className={
-                        "flex h-12 items-center justify-center rounded-[10px] text-[15px] transition-colors " +
-                        (on
-                          ? "border-[1.5px] border-[var(--accent)] bg-[var(--accent-soft)] font-medium"
-                          : "border border-[#e2e0dc] bg-white hover:border-[var(--accent)]")
+                        "flex h-[46px] items-center justify-center rounded-[2px] border text-[14px] text-lxink transition-colors " +
+                        (on ? "border-lxgold bg-lxblue" : "border-[rgba(31,30,28,.09)] bg-white hover:border-lxgold")
                       }
                     >
                       {timeLabel(s.startISO, tz)}
@@ -278,8 +266,8 @@ export default function ManageView({
         )}
 
         {selected && (
-          <p className="text-[15px] text-[#16151a]">
-            New time: <span className="font-medium">{longWhen(selected, tz)}</span>
+          <p className="m-0 text-[14px]">
+            New time: <span className="font-lux text-[17px]">{longWhen(selected, tz)}</span>
           </p>
         )}
         {errorBox}
@@ -306,16 +294,16 @@ export default function ManageView({
   return (
     <div className="flex flex-col gap-7">
       <div className="flex flex-col gap-3">
-        <h1 style={SERIF} className="text-[44px] font-medium leading-none">
+        <h1 className={h1}>
           Your booking{firstName ? ", " : ""}
           {firstName && <span>{firstName}</span>}
         </h1>
-        <p className="text-[17px] leading-relaxed text-[#5d5b62]">Need to change something? Pick a new time or cancel below.</p>
+        <p className={lede}>If your plans have changed, choose a new time or cancel below.</p>
       </div>
       {summary(current)}
       <div className="flex flex-wrap items-center gap-5">
         <button type="button" onClick={() => setMode("pick")} className={blackBtn}>
-          Pick a new time
+          Choose a new time
         </button>
         <button type="button" onClick={() => setMode("cancel")} className={quietBtn}>
           Cancel booking
@@ -327,7 +315,7 @@ export default function ManageView({
 
 function Chevron({ dir }: { dir: "left" | "right" }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d={dir === "left" ? "M15 18l-6-6 6-6" : "M9 18l6-6-6-6"} />
     </svg>
   )

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 import { sendEmail } from "@/lib/email"
 import { portalLinkEmail } from "@/lib/portal-email"
 import { agentCard } from "@/lib/agent-card"
+import { suiteName } from "@/lib/suite"
 
 const SITE = "https://www.marvberry.com"
 
@@ -21,7 +22,7 @@ export async function sendPortalLink(formData: FormData): Promise<void> {
   if (!clientId) redirect("/clients")
 
   const [{ data: client }, { data: agent }] = await Promise.all([
-    supabase.from("clients").select("first_name, email, portal_token").eq("id", clientId).maybeSingle(),
+    supabase.from("clients").select("first_name, email, portal_token, client_type").eq("id", clientId).maybeSingle(),
     supabase.from("agents").select("full_name, business_name").eq("id", user.id).maybeSingle(),
   ])
   if (!client) redirect("/clients")
@@ -39,7 +40,7 @@ export async function sendPortalLink(formData: FormData): Promise<void> {
   const link = `${SITE}/portal/${token}`
 
   const agentName = agent?.full_name || agent?.business_name || "Your agent"
-  const mail = portalLinkEmail({ clientFirstName: client.first_name ?? "", agentName, link })
+  const mail = portalLinkEmail({ clientFirstName: client.first_name ?? "", agentName, brokerage: agent?.business_name || undefined, link, suite: suiteName(client.client_type) })
   const ok = await sendEmail({
     to: client.email,
     ...mail,

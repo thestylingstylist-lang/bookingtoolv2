@@ -1,8 +1,9 @@
+import "../../suite-fonts"
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { suiteName } from "@/lib/suite"
+import { BTN, LINE, SuiteFooter, initialsOf } from "../../suite-ui"
 import SignBlock from "./sign-block"
-
-const HAND = { fontFamily: "'Caveat', cursive" }
 
 export const dynamic = "force-dynamic"
 export const metadata = { robots: { index: false, follow: false } }
@@ -39,10 +40,13 @@ export default async function SignPage({
 
   // Once it's signed, point them to their page for what comes next.
   let portalHref = ""
+  let suite = "private suite"
   if (signed && doc.client_id) {
-    const { data: client } = await admin.from("clients").select("portal_token").eq("id", doc.client_id).maybeSingle()
+    const { data: client } = await admin.from("clients").select("portal_token, client_type").eq("id", doc.client_id).maybeSingle()
     if (client?.portal_token) portalHref = `/portal/${client.portal_token}`
+    suite = suiteName(client?.client_type)
   }
+  const agentFirst = (agent?.full_name || "").trim().split(/\s+/)[0] || from
   const signedLabel =
     signed && doc.signed_at
       ? new Intl.DateTimeFormat("en-US", {
@@ -64,76 +68,67 @@ export default async function SignPage({
         }).format(new Date(doc.signed_at))
       : ""
 
+  const brokerage = agent?.business_name && agent.full_name ? agent.business_name : ""
+  const line = (label: string, content: React.ReactNode) => (
+    <div>
+      <p className="m-0 text-[12px] text-lxsoft">{label}</p>
+      <div className="flex h-[50px] items-end border-b border-lxink pb-1.5">{content}</div>
+    </div>
+  )
+
   return (
-    <main className="min-h-screen bg-[#f1f0ee] px-5 py-12 text-[#2b2520]">
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap"
-      />
-      <div className="mx-auto max-w-2xl">
-        <p className="text-sm text-[#8a8072]">
-          From {from}
-          {agent?.business_name && agent.full_name ? ` · ${agent.business_name}` : ""}
-        </p>
-        <h1 className="mt-2 font-[Georgia,serif] text-[28px] leading-tight text-[#2b2520]">{doc.title}</h1>
+    <main className="min-h-screen bg-lxbg px-[26px] pb-8 pt-10 font-luxsans text-lxink antialiased md:pt-16">
+      <div className="mx-auto max-w-[680px]">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-lxgold font-lux text-[13px] tracking-[1px]">
+            {initialsOf(from)}
+          </div>
+          <div>
+            <p className="m-0 text-[12px] text-lxsoft">Prepared by</p>
+            <p className="m-0 mt-px font-lux text-[18px] font-medium">
+              {from}
+              {brokerage && <span className="font-luxsans text-[12px] font-normal text-lxsoft"> &middot; {brokerage}</span>}
+            </p>
+          </div>
+        </div>
+        <h1 className="m-0 mt-7 font-lux text-[34px] font-light leading-[1.1] md:text-[42px]">{doc.title}</h1>
+        <div className={`my-6 h-px border-t ${LINE}`} />
 
         {signed && (
-          <div className="mt-8 rounded-xl border border-[#e6e5e3] bg-white px-6 py-7 text-center shadow-[0_8px_30px_rgba(43,37,32,0.06)] sm:px-10">
-            <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-[#4f6b45] text-white" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <div className="flex flex-col items-center px-2 pb-8 pt-2.5 text-center">
+            <span className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-lxgold" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F1E1C" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12.5l4.5 4.5L19 7.5" />
               </svg>
             </span>
-            <p className="mt-4 font-[Georgia,serif] text-[24px] leading-tight text-[#2b2520]">Agreement signed</p>
-            <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-[#4a433b]">
-              You&rsquo;re all set. This agreement is signed below, and {from} has your copy.
-              {portalHref ? " Your next steps are waiting on your page." : ""}
+            <p className="m-0 mt-[18px] font-lux text-[30px] font-light">Agreement signed</p>
+            <p className="m-0 mt-2.5 max-w-md text-[14px] leading-relaxed text-lxsoft">
+              Thank you. Your agreement is signed below, and {agentFirst} has a copy.
+              {portalHref ? ` Your next steps are waiting in your ${suite}.` : ""}
             </p>
             {portalHref && (
-              <a
-                href={portalHref}
-                className="mt-6 inline-block rounded-[10px] bg-[#16151a] px-5 py-3 text-[15px] font-medium text-white hover:opacity-90"
-              >
-                Head to your portal
+              <a href={portalHref} className={`${BTN} mt-6`}>
+                Open your {suite}
               </a>
             )}
           </div>
         )}
 
-        <div className="mt-8 rounded-xl border border-[#e6e5e3] bg-white px-6 py-8 shadow-[0_8px_30px_rgba(43,37,32,0.06)] sm:px-10">
-          <article className="whitespace-pre-wrap font-[Georgia,serif] text-[15px] leading-relaxed text-[#4a433b]">
-            {doc.body}
-          </article>
+        <article className="whitespace-pre-wrap font-lux text-[18px] leading-[1.6] text-lxink">{doc.body}</article>
 
-          {signed ? (
-            <div className="mt-10 border-t border-[#e6e5e3] pt-8">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-[1fr_170px]">
-                <div>
-                  <p className="text-[13px] text-[#8a8072]">Buyer&rsquo;s signature</p>
-                  <div className="relative mt-1 h-14 border-b border-[#2b2520]/50">
-                    <span
-                      style={HAND}
-                      className="absolute bottom-0.5 left-1 text-[38px] leading-none text-[#1f2a5c]"
-                    >
-                      {doc.signer_name}
-                    </span>
-                  </div>
-                  <p className="mt-1.5 text-[13px] text-[#4a433b]">{doc.signer_name}</p>
-                </div>
-                <div>
-                  <p className="text-[13px] text-[#8a8072]">Date</p>
-                  <div className="mt-1 flex h-14 items-end border-b border-[#2b2520]/50 pb-2 text-[15px] text-[#2b2520]">
-                    {signedDate}
-                  </div>
-                </div>
-              </div>
-              <p className="mt-5 text-xs text-[#8a8072]">Signed electronically on {signedLabel}.</p>
+        {signed ? (
+          <div className={`mt-8 border-t ${LINE} pt-[22px]`}>
+            <div className="grid grid-cols-[minmax(0,1fr)_120px] gap-[18px] sm:grid-cols-[minmax(0,1fr)_170px]">
+              {line("Buyer\u2019s signature", <span className="font-lux text-[30px] italic leading-none">{doc.signer_name}</span>)}
+              {line("Date", <span className="text-[13px]">{signedDate}</span>)}
             </div>
-          ) : (
-            <SignBlock token={token} today={today} error={sp.error} />
-          )}
-        </div>
+            <p className="m-0 mt-3.5 text-[11.5px] text-lxsoft">Signed electronically on {signedLabel}.</p>
+          </div>
+        ) : (
+          <SignBlock token={token} today={today} error={sp.error} />
+        )}
 
+        <SuiteFooter />
       </div>
     </main>
   )

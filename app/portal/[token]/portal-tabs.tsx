@@ -1,91 +1,78 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
-type Tab = "next" | "homes" | "documents" | "messages"
+type Tab = "next" | "yourhome" | "homes" | "documents" | "messages"
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  {
-    id: "next",
-    label: "Next step",
-    icon: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M9 12l2 2 4-4" />
-      </>
-    ),
-  },
-  {
-    id: "homes",
-    label: "Homes",
-    icon: (
-      <>
-        <path d="M4 11l8-7 8 7" />
-        <path d="M6 10v10h12V10" />
-      </>
-    ),
-  },
-  {
-    id: "documents",
-    label: "Documents",
-    icon: (
-      <>
-        <path d="M7 3h7l5 5v13H7z" />
-        <path d="M14 3v5h5" />
-      </>
-    ),
-  },
-  {
-    id: "messages",
-    label: "Messages",
-    icon: <path d="M4 5h16v11H9l-5 4V5z" />,
-  },
-]
+const ICONS: Record<Tab, React.ReactNode> = {
+  next: (
+    <>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M8.5 12.2l2.3 2.3 4.7-4.8" />
+    </>
+  ),
+  yourhome: (
+    <>
+      <path d="M4 11l8-6 8 6v8H4z" />
+      <path d="M10 19v-5h4v5" />
+    </>
+  ),
+  homes: (
+    <>
+      <path d="M4 11l8-6 8 6v8H4z" />
+      <path d="M10 19v-5h4v5" />
+    </>
+  ),
+  documents: (
+    <>
+      <path d="M7 3.5h7l4 4V20.5H7z" />
+      <path d="M14 3.5v4h4" />
+    </>
+  ),
+  messages: <path d="M4.5 5.5h15v10h-9l-4 3.5v-3.5h-2z" />,
+}
 
-// Desktop: the same two-column layout as before (left stack + messages).
-// Phone/tablet: one section at a time, switched from a bottom tab bar.
+const LABEL: Record<Tab, string> = {
+  next: "Next step",
+  yourhome: "Your home",
+  homes: "Homes",
+  documents: "Documents",
+  messages: "Messages",
+}
+
+// Where an in-page link lands on a phone.
+const HASH_TAB: Record<string, Tab> = { "#messages": "messages", "#documents": "documents", "#offers": "yourhome", "#homes": "homes" }
+
+// Computer: every section down one page, progress and documents beside messages.
+// Phone: one section at a time, switched from a tab bar along the bottom.
 export default function PortalTabs({
-  homes,
   next,
+  progress,
+  yourHome,
+  homes,
   documents,
   messages,
-  startTab = "next",
 }: {
-  homes?: React.ReactNode
   next: React.ReactNode
+  progress: React.ReactNode
+  yourHome?: React.ReactNode
+  homes?: React.ReactNode
   documents: React.ReactNode
   messages: React.ReactNode
-  startTab?: Tab
 }) {
-  const [tab, setTab] = useState<Tab>(startTab)
+  const [tab, setTab] = useState<Tab>("next")
   const on = (t: Tab) => tab === t
-  const msgRef = useRef<HTMLDivElement>(null)
+  const tabs: Tab[] = ["next", ...(yourHome ? (["yourhome"] as Tab[]) : []), ...(homes ? (["homes"] as Tab[]) : []), "documents", "messages"]
 
-  // Phone: stretch the Messages card down to just above the bottom bar.
-  useEffect(() => {
-    const fit = () => {
-      const el = msgRef.current
-      if (!el) return
-      if (window.innerWidth >= 768 || tab !== "messages") {
-        el.style.minHeight = ""
-        return
-      }
-      const top = el.getBoundingClientRect().top + window.scrollY
-      el.style.minHeight = Math.max(320, window.innerHeight - top - 88) + "px"
-    }
-    fit()
-    window.addEventListener("resize", fit)
-    return () => window.removeEventListener("resize", fit)
-  }, [tab])
-
-  // "#messages" (after sending, or the "Message" button) opens the Messages tab.
   useEffect(() => {
     const sync = () => {
-      if (window.location.hash === "#messages") setTab("messages")
+      const t = HASH_TAB[window.location.hash]
+      if (t) setTab(t)
     }
     const click = (e: MouseEvent) => {
-      const a = (e.target as HTMLElement).closest('a[href="#messages"]')
-      if (a) setTab("messages")
+      const a = (e.target as HTMLElement).closest("a[href^='#']") as HTMLAnchorElement | null
+      const t = a ? HASH_TAB[a.getAttribute("href") || ""] : undefined
+      if (t) setTab(t)
     }
     sync()
     window.addEventListener("hashchange", sync)
@@ -96,50 +83,43 @@ export default function PortalTabs({
     }
   }, [])
 
+  const part = (t: Tab) => (on(t) ? "block" : "hidden md:block")
+  const lineTop = "md:border-t md:border-[rgba(194,164,107,.55)]"
+
   return (
     <>
-      {homes && <div className={`mt-3 ${on("homes") ? "" : "hidden md:block"}`}>{homes}</div>}
-      <div className="mt-3 grid items-stretch gap-3 pb-20 md:grid-cols-[1fr_1.2fr] md:pb-0">
-        <div className="flex flex-col gap-3">
-          <div className={on("next") ? "flex flex-col gap-3" : "hidden md:flex md:flex-col md:gap-3"}>
-            {next}
-          </div>
-          <div className={on("documents") ? "" : "hidden md:block"}>{documents}</div>
+      <div className={`${part("next")} ${lineTop} pt-2 md:pb-11 md:pt-9`}>{next}</div>
+      {yourHome && <div className={`${part("yourhome")} ${lineTop} pt-2 md:pb-11 md:pt-9`}>{yourHome}</div>}
+      {homes && <div className={`${part("homes")} ${lineTop} pt-2 md:pb-11 md:pt-9`}>{homes}</div>}
+
+      <div className={`${on("next") ? "mt-12" : "mt-2"} grid gap-11 pb-28 md:mt-0 md:grid-cols-2 md:gap-[72px] md:pb-0 md:pt-[38px] ${lineTop}`}>
+        <div className="flex flex-col gap-11">
+          <div className={on("next") ? "block" : "hidden md:block"}>{progress}</div>
+          <div className={part("documents")}>{documents}</div>
         </div>
-        <div ref={msgRef} className={on("messages") ? "flex flex-col" : "hidden md:flex md:flex-col"}>
-          {messages}
-        </div>
+        <div className={on("messages") ? "flex flex-col" : "hidden md:flex md:flex-col"}>{messages}</div>
       </div>
 
-      <nav className={`fixed inset-x-0 bottom-0 z-30 grid ${homes ? "grid-cols-4" : "grid-cols-3"} border-t border-[#e4e3e0] bg-white pb-[env(safe-area-inset-bottom)] md:hidden`}>
-        {TABS.filter((t) => t.id !== "homes" || homes).map((t) => (
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[rgba(194,164,107,.55)] bg-lxbg px-2 pb-[max(18px,env(safe-area-inset-bottom))] pt-3 md:hidden"
+        aria-label="Sections"
+      >
+        {tabs.map((t) => (
           <button
-            key={t.id}
+            key={t}
             type="button"
             onClick={() => {
-              setTab(t.id)
+              setTab(t)
               window.scrollTo({ top: 0 })
             }}
-            className={
-              "flex h-16 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors " +
-              (on(t.id) ? "text-[#16151a]" : "text-[#5d5b62]")
-            }
-            aria-current={on(t.id) ? "page" : undefined}
+            aria-current={on(t) ? "page" : undefined}
+            className={`relative flex min-h-[52px] flex-1 flex-col items-center gap-1 font-luxsans text-[10.5px] ${on(t) ? "text-lxink" : "text-lxsoft"}`}
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={on(t.id) ? 2 : 1.6}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              {t.icon}
+            {on(t) && <span className="absolute -top-[9px] h-px w-[18px] bg-lxgold" />}
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              {ICONS[t]}
             </svg>
-            {t.label}
+            {LABEL[t]}
           </button>
         ))}
       </nav>
