@@ -909,8 +909,11 @@ async function propose(ctx: Ctx, input: Record<string, unknown>): Promise<string
     case "follow_up_offer": {
       const oid = S(input.offer_id, 60)
       const msg = S(input.message, 2000)
-      const { data: o } = await db.from("home_offers").select("id, client_id, homes(address)").eq("id", oid).maybeSingle()
+      const { data: o } = await db.from("home_offers").select("id, client_id, home_id, homes(address, agent_name, agent_email)").eq("id", oid).maybeSingle()
       if (!o || !ctx.clients.some((c) => c.id === o.client_id)) return "That offer isn't there."
+      const h = o.homes as { address?: string; agent_name?: string; agent_email?: string } | null
+      if (!h?.agent_email || !EMAIL.test(h.agent_email))
+        return `The seller's agent's email isn't saved on ${h?.address ?? "that home"} (home id ${o.home_id}). Ask for ${h?.agent_name ? `${h.agent_name}'s` : "their"} email graciously, save it with update_home (agent_email), then propose the follow-up again.`
       if (!msg) return "Write a short, warm follow-up to the seller's agent in the agent's voice, then propose again with it as message."
       const addr = (o.homes as { address?: string } | null)?.address ?? "the home"
       plan = { title: `Follow up on the offer for ${addr}`, detail: msg, button: "Send follow-up", args: { offerId: oid, message: msg } }
@@ -963,7 +966,7 @@ async function propose(ctx: Ctx, input: Record<string, unknown>): Promise<string
 }
 
 // Runs an approved card. Called only from the agent's tap.
-export async function runConfirmed(op: string, args: Record<string, string>): Promise<{ ok: boolean; message: string }> {
+export async function runConfirmed(op: string, args: Record<string, string>): Promise<{ ok: boolean; message: string; detail?: string }> {
   const a = (k: string) => String(args[k] ?? "").slice(0, 4000)
   let r: Result = { ok: false, err: "Unknown action" }
   let ok = "Done."
@@ -1024,7 +1027,23 @@ export async function runConfirmed(op: string, args: Record<string, string>): Pr
       break
   }
   if (op.startsWith("delete_") || op === "remove_home") ok = "Deleted."
-  return r.ok ? { ok: true, message: ok } : { ok: false, message: "That didn't go through. Try again in a moment, or do it on the page." }
+  if (r.ok) return { ok: true, message: ok }
+  console.error(`[diana-ops] ${op} failed:`, r.err)
+  return { ok: false, message: plainReason(op, r.err), detail: `${op} failed: ${r.err || "no reason given by the action"}` }
+}
+
+// The action's own reason, said plainly, with the fix in the same breath.
+function plainReason(op: string, err?: string) {
+  const e = (err ?? "").toLowerCase()
+  if (/listing agent.s email|agent.s email first/.test(e)) return "The seller's agent's email isn't saved on that home yet. Add it on the home, and I'll send it straight away."
+  if (/email didn.t go out|mailfail/.test(e)) return "The email didn't go out on our side. Tap again in a minute, and it should send."
+  if (/sign in/.test(e)) return "Your session ended. Sign in again, then tap once more."
+  if (/gone|refresh/.test(e)) return "That's no longer there. Refresh the page, and I'll pick it up from there."
+  if (/noemail|no email|their email/.test(e)) return "They don't have an email yet. Add it on their file, and I'll send it."
+  if (err && err.length < 140 && /[a-z]/i.test(err) && !/[{}\[\]]|error:|exception/i.test(err)) return err
+  return op === "follow_up_offer" || op.startsWith("send") || op.startsWith("resend")
+    ? "That didn't send. Tap again in a moment; if it still won't go, it can be sent from the client's page."
+    : "That didn't go through. Tap again in a moment; if it still won't, it can be done on the page."
 }
 
 export const journeyOfStage = journeyOf

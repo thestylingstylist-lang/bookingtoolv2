@@ -290,9 +290,11 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
               disabled={state === "busy"}
               onClick={async () => {
                 setState("busy")
-                const r = card.stepId
-                  ? await confirmOp("send_reminder", { stepId: card.stepId, body }).catch(() => ({ ok: false }))
-                  : await sendFromChat(card.clientId, body).catch(() => ({ ok: false }))
+                const fallback = { ok: false, message: "That didn’t send. Check your connection, then tap again." }
+                const r: { ok: boolean; message?: string } = card.stepId
+                  ? await confirmOp("send_reminder", { stepId: card.stepId, body }).catch(() => fallback)
+                  : await sendFromChat(card.clientId, body).catch(() => fallback)
+                setNote(r.message ?? "")
                 setState(r.ok ? "done" : "error")
               }}
             >
@@ -301,7 +303,7 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
             <button type="button" className="e" onClick={() => setEdit((v) => !v)}>{edit ? "Done editing" : "Edit"}</button>
           </div>
         )}
-        {state === "error" && <p className="err">That didn’t send. Try again.</p>}
+        {state === "error" && <p className="err">{note || "That didn’t send. Tap again in a moment."}</p>}
       </div>
     )
 
@@ -402,7 +404,7 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
             <button type="button" className="e" onClick={() => go("/calendar")}>Open calendar</button>
           </div>
         )}
-        {state === "error" && <p className="err">That didn’t save. Try again.</p>}
+        {state === "error" && <p className="err">That didn’t save. Tap again in a moment, or add it from the calendar.</p>}
       </div>
     )
 
@@ -537,7 +539,7 @@ const CSS = `
 .mba .btns .e{background:#EEEEF1;color:#16151a}
 .mba .btns .q{flex:none;font-weight:400;background:none;padding:0;border:0;border-bottom:1px solid #C2A46B;border-radius:0;color:#1F1E1C;font-size:13px}
 .mba .ok{margin:2px 0 0;font-size:12.5px;color:#1f8a4c;font-weight:500}
-.mba .err{margin:0;font-size:12.5px;color:#b3261e}
+.mba .err{margin:0;font-size:12.5px;color:#b3261e;white-space:pre-wrap}
 .mba .doc{margin:0;background:#F8F8F8;border-radius:12px;padding:10px 11px;font-size:12.5px;line-height:1.55;color:#3a3940;white-space:pre-wrap;max-height:120px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
 .mbr{position:fixed;inset:0;z-index:80;background:rgba(22,21,26,.42);display:grid;place-items:center;padding:24px;font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#16151a;animation:mbaFade .2s both}
 .mbr-box{width:min(820px,100%);height:min(92vh,1000px);background:#fff;border-radius:20px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px -30px rgba(22,21,26,.5);animation:mbaIn .3s cubic-bezier(.2,.9,.3,1) both}

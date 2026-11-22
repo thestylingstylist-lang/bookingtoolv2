@@ -62,6 +62,7 @@ export async function sendAgreementFromChat(clientId: string, title: string, bod
   const r = await deliverAgreement(supabase, user.id, user.email ?? undefined, origin, clientId, title, body.slice(0, 60000))
   revalidatePath(`/clients/${clientId}`)
   if (r === "sent") return { ok: true, message: "Sent for signature." }
+  if (r !== "noemail" && r !== "mailfail" && isAdminEmail(user.email)) return { ok: false, message: `That didn’t send. Tap again in a moment.\n\nFor the Marvberry team: deliverAgreement returned "${r}".` }
   if (r === "noemail") return { ok: true, message: "It’s on their page. Add their email so they get the link." }
   if (r === "mailfail") return { ok: true, message: "Saved to their page, but the email didn’t go out. Resend it from their file." }
   return { ok: false, message: "That didn’t send. Try again." }
@@ -98,11 +99,14 @@ export async function sendOfferFromChat(clientId: string, o: OfferDraft): Promis
   f.set("pdfForm", o.formId)
   for (const [k, v] of Object.entries(o.formBlanks)) f.set(`pdf:${k}`, v)
   const r = await sendOffer(null, f)
-  return { ok: r.ok, message: r.message ?? (r.ok ? "Offer sent." : "That didn’t send. Try again.") }
+  return withTeamLine(
+    { ok: r.ok, message: r.message ?? (r.ok ? "Offer sent." : "That didn’t send. Tap again in a moment."), detail: r.ok ? undefined : `sendOffer: ${r.message ?? "no reason given"}` },
+    isAdminEmail(user.email),
+  )
 }
 
 // The agent tapped Send on a drafted message: it goes into the client's thread, same as typing it there.
-export async function sendFromChat(clientId: string, body: string): Promise<{ ok: boolean }> {
+export async function sendFromChat(clientId: string, body: string): Promise<{ ok: boolean; message?: string }> {
   const text = body.trim().slice(0, 4000)
   if (!clientId || !text) return { ok: false }
   const supabase = await createClient()
@@ -111,7 +115,10 @@ export async function sendFromChat(clientId: string, body: string): Promise<{ ok
   } = await supabase.auth.getUser()
   if (!user) return { ok: false }
   const { error } = await supabase.from("messages").insert({ agent_id: user.id, client_id: clientId, sender: "agent", body: text })
-  if (error) return { ok: false }
+  if (error) {
+    console.error("[sendFromChat]", error)
+    return withTeamLine({ ok: false, message: "That didn’t send. Tap again in a moment.", detail: `messages insert: ${error.message}` }, isAdminEmail(user.email))
+  }
   revalidatePath(`/clients/${clientId}`)
   return { ok: true }
 }
@@ -206,7 +213,13 @@ export async function confirmOp(op: string, args: Record<string, string>): Promi
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, message: "Your session ended. Sign in again." }
   if (!CONFIRMABLE.has(op)) return { ok: false, message: "That isn't something I can do from here." }
-  return runConfirmed(op, args)
+  try {
+    const r = await runConfirmed(op, args)
+    return withTeamLine(r, isAdminEmail(user.email))
+  } catch (e) {
+    console.error("[confirmOp]", op, e)
+    return withTeamLine({ ok: false, message: "That didn’t go through. Tap again in a moment.", detail: `${op} threw: ${(e as Error)?.message ?? e}` }, isAdminEmail(user.email))
+  }
 }
 
 // ---------------------------------------------------------------- conversations
@@ -280,4 +293,10 @@ export async function clearMemories(): Promise<{ ok: boolean }> {
   const ok = await forgetAll(supabase, user.id)
   revalidatePath("/settings")
   return { ok }
+}
+
+// The Marvberry team sees the technical reason under any failed card.
+function withTeamLine(r: { ok: boolean; message: string; detail?: string }, team: boolean): { ok: boolean; message: string } {
+  if (r.ok || !team || !r.detail) return { ok: r.ok, message: r.message }
+  return { ok: false, message: `${r.message}\n\nFor the Marvberry team: ${r.detail}` }
 }
