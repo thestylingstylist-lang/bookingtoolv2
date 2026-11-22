@@ -1,6 +1,7 @@
 import "server-only"
 import { assistantDisplayName } from "@/lib/assistant-name"
 import { loadMeetAgent, availability, openTimes, toMeetKind } from "@/lib/meetings"
+import { OPS_TOOLS, OPS_NAMES, runOp, clientDetails } from "@/lib/diana-ops"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { formatInTimeZone } from "date-fns-tz"
@@ -16,7 +17,8 @@ import { customBlanks, type PdfField } from "@/lib/pdf-fields"
 // as a card the agent sends with one tap.
 
 export type ChatCard =
-  | { type: "message"; clientId: string; name: string; body: string }
+  | { type: "message"; clientId: string; name: string; body: string; stepId?: string }
+  | { type: "confirm"; op: string; args: Record<string, string>; title: string; detail: string; button: string }
   | { type: "agreement"; clientId: string; name: string; title: string; body: string; email: string | null }
   | { type: "agreement_setup" }
   | { type: "showing"; clientId: string; name: string; place: string; date: string; start: string; end: string; label: string }
@@ -80,7 +82,7 @@ const TOOLS: AgentTool[] = [
   {
     name: "client_file",
     description:
-      "Everything on one client's file: contact details, stage, agreement status, homes they're looking at, offers, documents collected, open steps, and the latest messages. Check this before acting for a client.",
+      "Everything on one client's file, with ids: details, journey stage and next stage, open steps, documents and signatures, documents to collect, homes and offers, listing, open houses, offers received, notes, upcoming events. Read this before acting for a client.",
     input_schema: { type: "object", properties: { client_id: { type: "string" } }, required: ["client_id"] },
   },
   {
@@ -97,7 +99,13 @@ const TOOLS: AgentTool[] = [
     description: "Add a new client. Only when the agent asked to add someone.",
     input_schema: {
       type: "object",
-      properties: { first_name: { type: "string" }, last_name: { type: "string" }, email: { type: "string" }, phone: { type: "string" } },
+      properties: {
+        first_name: { type: "string" },
+        last_name: { type: "string" },
+        email: { type: "string" },
+        phone: { type: "string" },
+        confirmed_new: { type: "boolean", description: "Only after the agent confirmed this is a different person from a similar existing client." },
+      },
       required: ["first_name"],
     },
   },
@@ -121,21 +129,6 @@ const TOOLS: AgentTool[] = [
       type: "object",
       properties: { client_id: { type: "string" }, about: { type: "string", description: "What the message should say, with every fact it needs." } },
       required: ["client_id", "about"],
-    },
-  },
-  {
-    name: "schedule_showing",
-    description: "Put a showing on the agent's calendar for a client. The agent taps Add.",
-    input_schema: {
-      type: "object",
-      properties: {
-        client_id: { type: "string" },
-        address: { type: "string" },
-        date: { type: "string", description: "YYYY-MM-DD" },
-        start: { type: "string", description: "HH:MM, 24-hour" },
-        end: { type: "string", description: "HH:MM, 24-hour, only if the agent said it" },
-      },
-      required: ["client_id", "date", "start"],
     },
   },
   {
@@ -206,6 +199,7 @@ const TOOLS: AgentTool[] = [
       required: ["client_id", "kind", "minutes", "message"],
     },
   },
+  ...OPS_TOOLS.filter((x) => x.name !== "client_details"),
 ]
 
 export async function handleRequest(
@@ -235,6 +229,7 @@ export async function handleRequest(
   const clients = (clientRows ?? []) as Client[]
   const ctx = ctxClientId ? clients.find((c) => c.id === ctxClientId) : undefined
   const cards: ChatCard[] = []
+  const opsCtx = { db: db as unknown as Parameters<typeof clientDetails>[0]["db"], agentId, tz, clients: clients as { id: string; first_name: string | null; last_name: string | null }[], cards: cards as Parameters<typeof clientDetails>[0]["cards"] }
   const nameOf = (id: string) => {
     const c = clients.find((x) => x.id === id)
     return c ? full(c) : ""
@@ -277,6 +272,15 @@ How you carry yourself. These are principles, not scripts.
 - When there's an obvious next step, propose it confidently as a single, simple yes-or-no question that keeps things moving forward. Never sound tentative: no "whenever you like", "if you'd like" or "I can... if you want". You propose, and the agent decides.
 - When the agent shares news without asking for anything, first respond to it the way a caring person would, then ask one gentle, serving question about how you can help. Don't assume the next step or offer a plan unprompted. Your questions should feel like natural conversation that leads somewhere, not a checklist.
 
+What you can do, and when you ask. These are principles, not scripts.
+- You can do everything the agent can do in Marvberry: clients and their details, steps and stages, documents and signatures, templates, homes and offers, seller tools, the calendar, bookings, meetings, messages, reminders, the suite link, settings and the card.
+- If the agent asked for it, just do it and confirm in one line.
+- If it's your own idea, propose it first and wait for a yes.
+- Anything that sends something, notifies a client or deletes something always waits for a yes, even when the agent asked. Use propose, or a draft the agent approves.
+- Before adding anything new (a client, home, step, event, template, open house or document to collect), check it isn't already there. If you're unsure whether it's the same thing, ask.
+- Your next steps fit where the client is in their journey. Read their file: their stage, what's still open in it, and what comes next.
+- Some things are done on their page rather than in chat: uploading a logo or headshot, placing blanks on a PDF template, billing and passwords. Point the agent to the page in one line.
+
 Arranging meetings. These are principles, not scripts.
 - You can see the agent's whole Marvberry calendar with check_calendar. When asked about availability, answer briefly from it, in plain sentences.
 - To arrange a meeting, only ask for what you don't already know, one simple question at a time. If they haven't said how, first ask whether they'd like to meet in person or over the phone. Only if it's in person, ask where: at the property or somewhere else. Never suggest a place yourself. If they already said "phone", go straight to times.
@@ -308,7 +312,7 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
       }
 
       case "client_file":
-        return clientFile(db, clientId, tz)
+        return clientDetails(opsCtx, clientId)
 
       case "whats_waiting": {
         const [{ data: steps }, { data: offers }] = await Promise.all([
@@ -351,6 +355,19 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
         const first = str(input.first_name, 80)
         if (!first) return "Ask for their name."
         const email = str(input.email, 200)
+        const phone = str(input.phone, 40).replace(/\D/g, "")
+        const last = str(input.last_name, 80)
+        if (!input.confirmed_new) {
+          const { data: same } = await db.from("clients").select("id, first_name, last_name, email, phone").eq("agent_id", agentId).limit(400)
+          const match = (same ?? []).find(
+            (c) =>
+              (email && c.email && c.email.toLowerCase() === email.toLowerCase()) ||
+              (phone.length >= 7 && String(c.phone ?? "").replace(/\D/g, "").endsWith(phone.slice(-7))) ||
+              (c.first_name?.toLowerCase() === first.toLowerCase() && (!last || !c.last_name || c.last_name.toLowerCase() === last.toLowerCase())),
+          )
+          if (match)
+            return `There's already a client named ${match.first_name ?? ""} ${match.last_name ?? ""}`.trim() + ` (id ${match.id}). Ask the agent, as one natural question, whether it's the same person. If it's someone new, call add_client again with confirmed_new true.`
+        }
         const { data, error } = await db
           .from("clients")
           .insert({
@@ -449,6 +466,7 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
       case "prepare_offer":
         return prepareOffer(db, clientId, input, cards, nameOf(clientId))
     }
+    if (OPS_NAMES.has(name)) return runOp(opsCtx, name, input)
     return "Unknown tool."
   }
 

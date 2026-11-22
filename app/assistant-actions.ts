@@ -11,6 +11,7 @@ import { deliverAgreement } from "@/lib/agreement-fill"
 import { sendOffer } from "./clients/[id]/homes-actions"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendInvite, toMeetKind } from "@/lib/meetings"
+import { runConfirmed } from "@/lib/diana-ops"
 
 // The assistant chat, from any app page. ctxClientId is set when the agent is in a client's file.
 export async function askMarvberry(history: ChatTurn[], ctxClientId: string | null): Promise<ChatAnswer> {
@@ -170,4 +171,34 @@ export async function sendMeetingFromChat(o: {
   if (!r.ok) return { ok: false, needsEmail: r.needsEmail, message: `${r.message}${team && r.detail ? `\n\nFor the Marvberry team: ${r.detail}` : ""}` }
   revalidatePath(`/clients/${o.clientId}`)
   return { ok: true, message: `Sent. I’m holding those times until ${r.holdUntil}, and I’ll let you know when ${r.first} picks.` }
+}
+
+// The agent tapped yes on one of Diana's approval cards.
+const CONFIRMABLE = new Set([
+  "send_document",
+  "resend_document",
+  "send_suite_link",
+  "follow_up_offer",
+  "support_message",
+  "send_reminder",
+  "delete_client",
+  "delete_booking",
+  "delete_note",
+  "delete_step",
+  "delete_collected",
+  "delete_template",
+  "remove_home",
+  "delete_open_house",
+  "delete_sale_offer",
+  "delete_event",
+])
+
+export async function confirmOp(op: string, args: Record<string, string>): Promise<{ ok: boolean; message: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, message: "Your session ended. Sign in again." }
+  if (!CONFIRMABLE.has(op)) return { ok: false, message: "That isn't something I can do from here." }
+  return runConfirmed(op, args)
 }

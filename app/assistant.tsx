@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname, useRouter } from "next/navigation"
-import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat, sendMeetingFromChat } from "./assistant-actions"
+import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat, sendMeetingFromChat, confirmOp } from "./assistant-actions"
 import type { ChatAnswer, ChatCard } from "@/lib/agent-chat"
 
 export const ASK_EVENT = "mb-ask"
@@ -20,6 +20,7 @@ const cardNote = (c: ChatCard) =>
   : c.type === "offer" ? `[Prepared an offer for ${c.name}: ${c.rows.map((r) => `${r.k} ${r.v}`).join("; ")}]`
   : c.type === "showing" ? `[Prepared a showing for ${c.name}: ${c.label} ${c.place}]`
   : c.type === "client" ? `[Added ${c.name}, client id ${c.clientId}]`
+  : c.type === "confirm" ? `[Asked the agent to approve: ${c.title}]`
   : c.type === "times" ? `[Suggested ${c.minutes}-minute times for ${c.name}: ${c.options.map((o) => o.label).join("; ")}. The agent picks and approves the invitation on the card.]`
   : ""
 
@@ -206,7 +207,9 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
               disabled={state === "busy"}
               onClick={async () => {
                 setState("busy")
-                const r = await sendFromChat(card.clientId, body).catch(() => ({ ok: false }))
+                const r = card.stepId
+                  ? await confirmOp("send_reminder", { stepId: card.stepId, body }).catch(() => ({ ok: false }))
+                  : await sendFromChat(card.clientId, body).catch(() => ({ ok: false }))
                 setState(r.ok ? "done" : "error")
               }}
             >
@@ -332,6 +335,7 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
     )
 
   if (card.type === "times") return <TimesCard card={card} />
+  if (card.type === "confirm") return <ConfirmCard card={card} />
 
   return (
     <div className="card list">
@@ -624,6 +628,44 @@ function TimesCard({ card }: { card: TimesCardData }) {
           {note && <p className="err" style={{ whiteSpace: "pre-wrap" }}>{note}</p>}
         </>
       )}
+    </div>
+  )
+}
+
+type ConfirmData = Extract<ChatCard, { type: "confirm" }>
+
+// Anything that sends, notifies a client or deletes waits for the agent's yes.
+function ConfirmCard({ card }: { card: ConfirmData }) {
+  const router = useRouter()
+  const [state, setState] = useState<"idle" | "busy" | "done" | "no" | "error">("idle")
+  const [note, setNote] = useState("")
+  if (state === "no") return <div className="card"><p className="cs">Left as it is.</p></div>
+  return (
+    <div className="card">
+      <p className="ck">{card.title}</p>
+      <p className="cv">{card.detail}</p>
+      {state === "done" ? (
+        <p className="ok">{note}</p>
+      ) : (
+        <div className="btns">
+          <button
+            type="button"
+            className="a"
+            disabled={state === "busy"}
+            onClick={async () => {
+              setState("busy")
+              const r = await confirmOp(card.op, card.args).catch(() => ({ ok: false, message: "That didn’t go through. Check your connection, then try again." }))
+              setNote(r.message)
+              setState(r.ok ? "done" : "error")
+              if (r.ok) router.refresh()
+            }}
+          >
+            {state === "busy" ? "Working…" : card.button}
+          </button>
+          <button type="button" className="e" onClick={() => setState("no")}>Not now</button>
+        </div>
+      )}
+      {state === "error" && <p className="err">{note}</p>}
     </div>
   )
 }
