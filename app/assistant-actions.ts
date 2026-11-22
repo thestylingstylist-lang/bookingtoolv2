@@ -206,13 +206,31 @@ const CONFIRMABLE = new Set([
   "delete_event",
 ])
 
-export async function confirmOp(op: string, args: Record<string, string>): Promise<{ ok: boolean; message: string }> {
+export async function confirmOp(
+  op: string,
+  args: Record<string, string>,
+  email?: string,
+): Promise<{ ok: boolean; message: string; needsEmail?: boolean }> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { ok: false, message: "Your session ended. Sign in again." }
   if (!CONFIRMABLE.has(op)) return { ok: false, message: "That isn't something I can do from here." }
+
+  // Sends that go by email: make sure there's an address first, and take one
+  // right here on the card if there isn't.
+  const target = await emailTarget(supabase, op, args)
+  if (target) {
+    const given = (email ?? "").trim().toLowerCase()
+    if (given) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(given)) return { ok: false, needsEmail: true, message: "That email doesn't look right. Check it, then tap Save and send." }
+      const { error } = await supabase.from(target.table).update({ [target.column]: given }).eq("id", target.id)
+      if (error) return withTeamLine({ ok: false, message: "That email didn't save. Tap again in a moment.", detail: `${target.table}.${target.column} update: ${error.message}` }, isAdminEmail(user.email))
+    } else if (!target.current) {
+      return { ok: false, needsEmail: true, message: `${target.who} doesn't have an email yet. Add it here and I'll send it.` }
+    }
+  }
   try {
     const r = await runConfirmed(op, args)
     return withTeamLine(r, isAdminEmail(user.email))
@@ -299,4 +317,31 @@ export async function clearMemories(): Promise<{ ok: boolean }> {
 function withTeamLine(r: { ok: boolean; message: string; detail?: string }, team: boolean): { ok: boolean; message: string } {
   if (r.ok || !team || !r.detail) return { ok: r.ok, message: r.message }
   return { ok: false, message: `${r.message}\n\nFor the Marvberry team: ${r.detail}` }
+}
+
+// Where the email for a send lives: the client's, or the seller's agent's on the home.
+async function emailTarget(
+  db: Awaited<ReturnType<typeof createClient>>,
+  op: string,
+  args: Record<string, string>,
+): Promise<{ table: "clients" | "homes"; column: string; id: string; current: string; who: string } | null> {
+  if (op === "send_document" || op === "resend_document" || op === "send_suite_link" || op === "send_reminder") {
+    let clientId = args.clientId
+    if (op === "send_reminder") {
+      const { data: s } = await db.from("steps").select("client_id").eq("id", args.stepId ?? "").maybeSingle()
+      clientId = s?.client_id ?? ""
+    }
+    if (!clientId) return null
+    const { data: c } = await db.from("clients").select("id, first_name, email").eq("id", clientId).maybeSingle()
+    if (!c) return null
+    return { table: "clients", column: "email", id: c.id, current: c.email ?? "", who: c.first_name || "This client" }
+  }
+  if (op === "follow_up_offer") {
+    const { data: o } = await db.from("home_offers").select("home_id").eq("id", args.offerId ?? "").maybeSingle()
+    if (!o?.home_id) return null
+    const { data: h } = await db.from("homes").select("id, agent_name, agent_email").eq("id", o.home_id).maybeSingle()
+    if (!h) return null
+    return { table: "homes", column: "agent_email", id: h.id, current: h.agent_email ?? "", who: h.agent_name || "The seller's agent" }
+  }
+  return null
 }

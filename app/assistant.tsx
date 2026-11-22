@@ -266,6 +266,8 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
   const [edit, setEdit] = useState(false)
   const [body, setBody] = useState(card.type === "message" ? card.body : "")
   const [note, setNote] = useState("")
+  const [needsEmail, setNeedsEmail] = useState(false)
+  const [email, setEmail] = useState("")
   const go = (href: string) => {
     close()
     router.push(href)
@@ -283,25 +285,31 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
         {state === "done" ? (
           <p className="ok">Sent to {card.name.split(" ")[0]}’s page.</p>
         ) : (
+          <>
+          {needsEmail && (
+            <input className="ce" type="email" inputMode="email" autoComplete="off" placeholder={`${card.name.split(" ")[0]}’s email`} value={email} onChange={(e) => setEmail(e.target.value)} />
+          )}
           <div className="btns">
             <button
               type="button"
               className="a"
-              disabled={state === "busy"}
+              disabled={state === "busy" || (needsEmail && !email.trim())}
               onClick={async () => {
                 setState("busy")
                 const fallback = { ok: false, message: "That didn’t send. Check your connection, then tap again." }
-                const r: { ok: boolean; message?: string } = card.stepId
-                  ? await confirmOp("send_reminder", { stepId: card.stepId, body }).catch(() => fallback)
+                const r: { ok: boolean; message?: string; needsEmail?: boolean } = card.stepId
+                  ? await confirmOp("send_reminder", { stepId: card.stepId, body }, needsEmail ? email : undefined).catch(() => fallback)
                   : await sendFromChat(card.clientId, body).catch(() => fallback)
+                if (r.needsEmail) setNeedsEmail(true)
                 setNote(r.message ?? "")
                 setState(r.ok ? "done" : "error")
               }}
             >
-              {state === "busy" ? "Sending…" : "Send"}
+              {state === "busy" ? "Sending…" : needsEmail ? "Save and send" : "Send"}
             </button>
             <button type="button" className="e" onClick={() => setEdit((v) => !v)}>{edit ? "Done editing" : "Edit"}</button>
           </div>
+          </>
         )}
         {state === "error" && <p className="err">{note || "That didn’t send. Tap again in a moment."}</p>}
       </div>
@@ -739,6 +747,8 @@ function ConfirmCard({ card }: { card: ConfirmData }) {
   const router = useRouter()
   const [state, setState] = useState<"idle" | "busy" | "done" | "no" | "error">("idle")
   const [note, setNote] = useState("")
+  const [needsEmail, setNeedsEmail] = useState(false)
+  const [email, setEmail] = useState("")
   if (state === "no") return <div className="card"><p className="cs">Left as it is.</p></div>
   return (
     <div className="card">
@@ -747,23 +757,40 @@ function ConfirmCard({ card }: { card: ConfirmData }) {
       {state === "done" ? (
         <p className="ok">{note}</p>
       ) : (
+        <>
+        {needsEmail && (
+          <input
+            className="ce"
+            type="email"
+            inputMode="email"
+            autoComplete="off"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        )}
         <div className="btns">
           <button
             type="button"
             className="a"
-            disabled={state === "busy"}
+            disabled={state === "busy" || (needsEmail && !email.trim())}
             onClick={async () => {
               setState("busy")
-              const r = await confirmOp(card.op, card.args).catch(() => ({ ok: false, message: "That didn’t go through. Check your connection, then try again." }))
+              const r: { ok: boolean; message: string; needsEmail?: boolean } = await confirmOp(card.op, card.args, needsEmail ? email : undefined).catch(() => ({
+                ok: false,
+                message: "That didn’t go through. Check your connection, then try again.",
+              }))
+              if (r.needsEmail) setNeedsEmail(true)
               setNote(r.message)
               setState(r.ok ? "done" : "error")
               if (r.ok) router.refresh()
             }}
           >
-            {state === "busy" ? "Working…" : card.button}
+            {state === "busy" ? "Working…" : needsEmail ? "Save and send" : card.button}
           </button>
           <button type="button" className="e" onClick={() => setState("no")}>Not now</button>
         </div>
+        </>
       )}
       {state === "error" && <p className="err">{note}</p>}
     </div>
