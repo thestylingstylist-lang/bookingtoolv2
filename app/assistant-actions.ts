@@ -142,7 +142,8 @@ export async function sendMeetingFromChat(o: {
   kind: string
   place: string
   message: string
-}): Promise<{ ok: boolean; message: string }> {
+  email?: string
+}): Promise<{ ok: boolean; message: string; needsEmail?: boolean }> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -150,8 +151,23 @@ export async function sendMeetingFromChat(o: {
   if (!user) return { ok: false, message: "Your session ended. Sign in again." }
   const kind = toMeetKind(o.kind)
   if (!kind || !o.message.trim()) return { ok: false, message: "Add a short message, then send." }
-  const r = await sendInvite(createAdminClient(), user.id, { ...o, kind })
-  if (!r.ok) return r
+  const team = isAdminEmail(user.email)
+  const admin = createAdminClient()
+  const email = (o.email ?? "").trim().toLowerCase()
+  if (email) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, needsEmail: true, message: "That email doesn't look right. Check it and try again." }
+    const { error } = await admin.from("clients").update({ email }).eq("id", o.clientId).eq("agent_id", user.id)
+    if (error) return { ok: false, needsEmail: true, message: "That email didn't save. Try again in a moment." }
+  }
+  let r: Awaited<ReturnType<typeof sendInvite>>
+  try {
+    r = await sendInvite(admin, user.id, { ...o, kind })
+  } catch (e) {
+    console.error("[meetings] send failed", e)
+    const why = (e as Error)?.message ?? String(e)
+    return { ok: false, message: `That didn’t send. Try again in a moment.${team ? `\n\nFor the Marvberry team: ${why}` : ""}` }
+  }
+  if (!r.ok) return { ok: false, needsEmail: r.needsEmail, message: `${r.message}${team && r.detail ? `\n\nFor the Marvberry team: ${r.detail}` : ""}` }
   revalidatePath(`/clients/${o.clientId}`)
   return { ok: true, message: `Sent. I’m holding those times until ${r.holdUntil}, and I’ll let you know when ${r.first} picks.` }
 }

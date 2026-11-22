@@ -326,7 +326,7 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
         <p className="ck">{card.name}</p>
         <p className="cs">{card.sub}</p>
         <div className="btns">
-          <button type="button" className="a" onClick={() => go(`/clients/${card.clientId}`)}>Open {card.name.split(" ")[0]}</button>
+          <button type="button" className="q" onClick={() => go(`/clients/${card.clientId}`)}>Open {card.name.split(" ")[0]}</button>
         </div>
       </div>
     )
@@ -433,6 +433,7 @@ const CSS = `
 .mba .btns .a{background:#16151a;color:#fff}
 .mba .btns .a:disabled{opacity:.6}
 .mba .btns .e{background:#EEEEF1;color:#16151a}
+.mba .btns .q{flex:none;font-weight:400;background:none;padding:0;border:0;border-bottom:1px solid #C2A46B;border-radius:0;color:#1F1E1C;font-size:13px}
 .mba .ok{margin:2px 0 0;font-size:12.5px;color:#1f8a4c;font-weight:500}
 .mba .err{margin:0;font-size:12.5px;color:#b3261e}
 .mba .doc{margin:0;background:#F8F8F8;border-radius:12px;padding:10px 11px;font-size:12.5px;line-height:1.55;color:#3a3940;white-space:pre-wrap;max-height:120px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 60%,transparent)}
@@ -530,6 +531,8 @@ function TimesCard({ card }: { card: TimesCardData }) {
   const [edit, setEdit] = useState(false)
   const [body, setBody] = useState(card.message)
   const [note, setNote] = useState("")
+  const [needsEmail, setNeedsEmail] = useState(false)
+  const [email, setEmail] = useState("")
   const first = card.name.split(" ")[0]
   const chosen = card.options.filter((o) => picked.includes(o.startISO))
 
@@ -577,11 +580,22 @@ function TimesCard({ card }: { card: TimesCardData }) {
       ) : (
         <>
           <p className="cs">Nothing goes out until you send it.</p>
+          {needsEmail && (
+            <input
+              className="ce"
+              type="email"
+              inputMode="email"
+              autoComplete="off"
+              placeholder={`${first}’s email`}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          )}
           <div className="btns">
             <button
               type="button"
               className="a"
-              disabled={step === "sending" || !body.trim()}
+              disabled={step === "sending" || !body.trim() || (needsEmail && !email.trim())}
               onClick={async () => {
                 setStep("sending")
                 const r = await sendMeetingFromChat({
@@ -591,12 +605,14 @@ function TimesCard({ card }: { card: TimesCardData }) {
                   kind: card.kind,
                   place: card.place,
                   message: body,
-                }).catch(() => ({ ok: false, message: "That didn’t send. Try again in a moment." }))
+                  email: needsEmail ? email : undefined,
+                }).catch(() => ({ ok: false, message: "That didn’t send. Check your connection, then try again.", needsEmail: false }))
                 setNote(r.message)
+                if ("needsEmail" in r && r.needsEmail) setNeedsEmail(true)
                 setStep(r.ok ? "sent" : "review")
               }}
             >
-              {step === "sending" ? "Sending…" : `Send to ${first}`}
+              {step === "sending" ? "Sending…" : needsEmail ? "Save and send" : `Send to ${first}`}
             </button>
             <button type="button" className="e" onClick={() => setEdit((v) => !v)}>
               {edit ? "Done editing" : "Edit"}
@@ -605,7 +621,7 @@ function TimesCard({ card }: { card: TimesCardData }) {
               Change times
             </button>
           </div>
-          {note && <p className="err">{note}</p>}
+          {note && <p className="err" style={{ whiteSpace: "pre-wrap" }}>{note}</p>}
         </>
       )}
     </div>

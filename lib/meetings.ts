@@ -230,11 +230,13 @@ export async function sendInvite(
   db: Db,
   agentId: string,
   o: { clientId: string; startISOs: string[]; minutes: number; kind: MeetKind; place: string; message: string },
-): Promise<{ ok: true; holdUntil: string; first: string } | { ok: false; message: string }> {
+): Promise<{ ok: true; holdUntil: string; first: string } | { ok: false; message: string; needsEmail?: boolean; detail?: string }> {
   const a = await loadMeetAgent(db, agentId)
   if (!a) return { ok: false, message: "Your session ended. Sign in again." }
   const { data: client } = await db.from("clients").select("id, first_name, last_name, email").eq("id", o.clientId).eq("agent_id", agentId).maybeSingle()
   if (!client) return { ok: false, message: "That client isn't in your list." }
+  if (!client.email)
+    return { ok: false, needsEmail: true, message: `${client.first_name || "This client"} doesn't have an email yet. Add it here and I'll send it.` }
   const minutes = Math.min(Math.max(Math.round(o.minutes) || 30, 10), 240)
   const times = [...new Set(o.startISOs)].filter((s) => !isNaN(Date.parse(s))).sort().slice(0, 4)
   if (!times.length) return { ok: false, message: "Pick at least one time." }
@@ -267,16 +269,42 @@ export async function sendInvite(
     })
     .select("id")
     .single()
-  if (error || !invite) return { ok: false, message: "Meetings aren't switched on for your account yet. Message us from Support, and we'll turn them on." }
+  if (error || !invite) {
+    console.error("[meetings] invite insert", error)
+    return {
+      ok: false,
+      message: "Meetings aren't switched on for your account yet. Message us from Support, and we'll turn them on.",
+      detail: `Saving the invitation failed: ${error?.message ?? "no row returned"}. Run the first part of supabase/meetings.sql.`,
+    }
+  }
   const { data: options, error: optErr } = await db
     .from("meeting_options")
     .insert(times.map((t) => ({ invite_id: invite.id, agent_id: agentId, starts_at: t, ends_at: new Date(Date.parse(t) + minutes * 60000).toISOString() })))
     .select("id, starts_at")
   if (optErr || !options) {
+    console.error("[meetings] options insert", optErr)
     await db.from("meeting_invites").delete().eq("id", invite.id)
-    return { ok: false, message: "That didn't send. Try again in a moment." }
+    const missing = /does not exist|schema cache|relation/i.test(optErr?.message ?? "")
+    return {
+      ok: false,
+      message: missing
+        ? "Meetings aren't fully switched on for your account yet. Message us from Support, and we'll turn them on."
+        : "The times didn't save, so nothing was sent. Try again in a moment.",
+      detail: `Saving the offered times failed: ${optErr?.message ?? "no rows returned"}.${missing ? " Run the second part of supabase/meetings.sql (meeting_options and messages.invite_id)." : ""}`,
+    }
   }
-  await db.from("messages").insert({ agent_id: agentId, client_id: client.id, sender: "agent", body: o.message.trim().slice(0, 2000), invite_id: invite.id })
+  const { error: msgErr } = await db
+    .from("messages")
+    .insert({ agent_id: agentId, client_id: client.id, sender: "agent", body: o.message.trim().slice(0, 2000), invite_id: invite.id })
+  if (msgErr) {
+    console.error("[meetings] suite message", msgErr)
+    await db.from("meeting_invites").delete().eq("id", invite.id)
+    return {
+      ok: false,
+      message: "Meetings aren't fully switched on for your account yet. Message us from Support, and we'll turn them on.",
+      detail: `Posting to the suite failed: ${msgErr.message}. Run the second part of supabase/meetings.sql (messages.invite_id).`,
+    }
+  }
 
   if (client.email) {
     const agentName = a.full_name || a.business_name || "Your agent"

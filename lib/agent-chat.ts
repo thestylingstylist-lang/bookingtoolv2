@@ -164,6 +164,15 @@ const TOOLS: AgentTool[] = [
     },
   },
   {
+    name: "save_client_email",
+    description: "Save an email address on a client the agent already has. Use when the agent gives you a client's email.",
+    input_schema: {
+      type: "object",
+      properties: { client_id: { type: "string" }, email: { type: "string" } },
+      required: ["client_id", "email"],
+    },
+  },
+  {
     name: "check_calendar",
     description:
       "The agent's own calendar: working hours, what's booked (showings, closings, open houses, consultations, meetings, personal time, times held for clients) and what's free, day by day. Use for questions about availability or the agent's schedule.",
@@ -284,7 +293,7 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
 
   async function run(name: string, input: Record<string, unknown>): Promise<string> {
     const clientId = str(input.client_id, 60)
-    if (["client_file", "prepare_agreement", "draft_message", "schedule_showing", "prepare_offer", "suggest_meeting_times"].includes(name) && !clients.some((c) => c.id === clientId))
+    if (["client_file", "prepare_agreement", "draft_message", "schedule_showing", "prepare_offer", "suggest_meeting_times", "save_client_email"].includes(name) && !clients.some((c) => c.id === clientId))
       return "No client with that id. Use find_client first."
 
     switch (name) {
@@ -374,6 +383,13 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
         return `Ready. The agent sees the full agreement to review and send.${r.email ? "" : " The client has no email on file, so it will land on their page only. Mention it."}`
       }
 
+      case "save_client_email": {
+        const email = str(input.email, 200).toLowerCase()
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "That email doesn't look right. Ask the agent to check it."
+        const { error } = await db.from("clients").update({ email }).eq("id", clientId).eq("agent_id", agentId)
+        return error ? "It didn't save. Say so plainly and suggest adding it on the client's page." : "Saved."
+      }
+
       case "check_calendar": {
         const a = await loadMeetAgent(db, agentId)
         if (!a) return "The calendar isn't available right now."
@@ -385,6 +401,9 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
       case "suggest_meeting_times": {
         const a = await loadMeetAgent(db, agentId)
         if (!a) return "The calendar isn't available right now."
+        const { data: who } = await db.from("clients").select("first_name, email").eq("id", clientId).maybeSingle()
+        if (!who?.email)
+          return `${who?.first_name || "This client"} has no email yet, and the invitation goes by email as well as their suite. Ask for their email as one natural question, save it with save_client_email, then suggest times.`
         const kind = toMeetKind(input.kind)
         if (!kind) return "Ask whether they'd like to meet in person or over the phone."
         const place = str(input.place, 200)
