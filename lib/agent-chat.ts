@@ -1,6 +1,5 @@
 import "server-only"
 import { assistantDisplayName } from "@/lib/assistant-name"
-import { isGreeting, greetingReply } from "@/lib/greeting"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { formatInTimeZone } from "date-fns-tz"
@@ -170,21 +169,6 @@ export async function handleRequest(
       .eq("agent_id", agentId)
       .gte("created_at", new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString()),
   ])
-  // A plain hello gets a plain hello back. No files, no lists, no AI.
-  {
-    const hello = isGreeting(last.text, assistantDisplayName(agent?.assistant_name))
-    if (hello.greeting) {
-      const earlier = turns.slice(0, -1).filter((t) => t.me && isGreeting(t.text, assistantDisplayName(agent?.assistant_name)).greeting).length
-      return {
-        reply: greetingReply({
-          firstName: (((agent?.full_name as string) || "").trim().split(/\s+/)[0] || ""),
-          tz: (agent?.timezone as string) || "America/New_York",
-          count: earlier,
-          asksHow: hello.asksHow,
-        }),
-      }
-    }
-  }
   if ((used ?? 0) >= MONTHLY_TASKS) return { reply: "You’ve used this month’s requests. They reset on the 1st." }
 
   const tz = (agent?.timezone as string) || "America/New_York"
