@@ -1,5 +1,6 @@
 import "server-only"
 import { assistantDisplayName } from "@/lib/assistant-name"
+import { loadMeetAgent, availability, openTimes, toMeetKind } from "@/lib/meetings"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { formatInTimeZone } from "date-fns-tz"
@@ -22,6 +23,16 @@ export type ChatCard =
   | { type: "client"; clientId: string; name: string; sub: string }
   | { type: "offer"; clientId: string; name: string; offer: OfferDraft; rows: { k: string; v: string }[]; attach: string[] }
   | { type: "list"; items: { label: string; sub: string; href: string }[] }
+  | {
+      type: "times"
+      clientId: string
+      name: string
+      kind: "phone" | "in_person" | "video"
+      place: string
+      minutes: number
+      message: string
+      options: { startISO: string; label: string }[]
+    }
 
 export type OfferDraft = {
   homeId: string | null
@@ -152,6 +163,40 @@ const TOOLS: AgentTool[] = [
       required: ["client_id", "address", "amount"],
     },
   },
+  {
+    name: "check_calendar",
+    description:
+      "The agent's own calendar: working hours, what's booked (showings, closings, open houses, consultations, meetings, personal time, times held for clients) and what's free, day by day. Use for questions about availability or the agent's schedule.",
+    input_schema: {
+      type: "object",
+      properties: {
+        from_date: { type: "string", description: "YYYY-MM-DD. Defaults to today." },
+        to_date: { type: "string", description: "YYYY-MM-DD. Defaults to a week from the start." },
+      },
+    },
+  },
+  {
+    name: "suggest_meeting_times",
+    description:
+      "Find open times on the agent's calendar for a meeting with a client, and show them to the agent as a card to pick from. Only once you know how they'll meet (and where, if in person). The agent picks the times, sees your message with the times as buttons, and sends it to the client's suite and email. Nothing goes out without the agent.",
+    input_schema: {
+      type: "object",
+      properties: {
+        client_id: { type: "string" },
+        kind: { type: "string", enum: ["phone", "in_person", "video"] },
+        place: { type: "string", description: "Where, for in person. Only what the agent said." },
+        minutes: { type: "number", description: "How long the meeting is." },
+        from_date: { type: "string", description: "YYYY-MM-DD, if the agent named a day or week." },
+        to_date: { type: "string", description: "YYYY-MM-DD" },
+        message: {
+          type: "string",
+          description:
+            "A short invitation to the client, in the agent's voice and signed with the agent's first name. Don't list the times; they appear as buttons under it.",
+        },
+      },
+      required: ["client_id", "kind", "minutes", "message"],
+    },
+  },
 ]
 
 export async function handleRequest(
@@ -186,6 +231,10 @@ export async function handleRequest(
     return c ? full(c) : ""
   }
 
+  // The agent's usual meeting lengths, for Diana's suggestions.
+  const meetAgent = await loadMeetAgent(db, agentId).catch(() => null)
+  const meetLen = { call: meetAgent?.call_minutes ?? 30, inperson: meetAgent?.inperson_minutes ?? 60 }
+
   const system = `You are ${me}, the real estate assistant for ${agentName || "this agent"}${agent?.business_name ? ` at ${agent.business_name}` : ""}. You work inside Marvberry.
 
 You know how a deal runs from first booking to closing: consult, buyer agreement, pre-approval, showings, offer, inspection, appraisal, mortgage commitment, final walk-through, closing. You know the paperwork and the timing, and you keep the deal moving.
@@ -211,6 +260,14 @@ How you work, when the agent asks for something:
 
 How you talk: warm, plain, short. Spoken words, like a great assistant leaning into the office. No lists unless there are several items. Say "real estate agent", never "realtor". Never use the word "need" when writing to clients. Say "attorney", never "lawyer", and "seller's agent", never "listing agent".
 
+Arranging meetings. Principles, not scripts; any example is about tone, never a line to repeat.
+- You can see the agent's whole Marvberry calendar with check_calendar. When asked about availability, answer briefly from it, in plain sentences.
+- To arrange a meeting, only ask for what you don't already know, one simple question at a time. If they haven't said how, first ask whether they'd like to meet in person or over the phone. Only if it's in person, ask where: at the property or somewhere else. Never suggest a place yourself. If they already said "phone", go straight to times.
+- Video calls only come up if the agent asks for one. They use the meeting link saved in Settings; if there isn't one, ask for it.
+- Suggest a sensible length and invite a change in the same breath, rather than asking a separate question. Usually ${meetLen.call} minutes for a call and ${meetLen.inperson} for in person, unless the agent said otherwise. If they change it, use the new length for that meeting.
+- Then use suggest_meeting_times. Write the invitation in the agent's voice. The agent picks the times and approves the message; nothing goes out without them.
+- Offered times are held on the calendar while the client chooses. If the client doesn't answer in 48 hours, or every time passes, the holds are released and the agent hears from you.
+
 Write plain text only. No markdown: no asterisks, no pound signs, no bullet symbols. If there are several items, put each on its own line.
 
 Never mention a client, document or event that isn't in the agent's real files. Use only what you find there.
@@ -219,7 +276,7 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
 
   async function run(name: string, input: Record<string, unknown>): Promise<string> {
     const clientId = str(input.client_id, 60)
-    if (["client_file", "prepare_agreement", "draft_message", "schedule_showing", "prepare_offer"].includes(name) && !clients.some((c) => c.id === clientId))
+    if (["client_file", "prepare_agreement", "draft_message", "schedule_showing", "prepare_offer", "suggest_meeting_times"].includes(name) && !clients.some((c) => c.id === clientId))
       return "No client with that id. Use find_client first."
 
     switch (name) {
@@ -307,6 +364,40 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
         if (r.state === "missing") return `The template "${r.title}" has blanks only the agent knows: ${r.missing.map((m) => `"${m}"`).join(", ")}. Ask the agent for them, then call again with blanks keyed by those exact labels. The client's name, address, email and phone come from the file automatically; never ask for them.`
         cards.push({ type: "agreement", clientId, name: nameOf(clientId), title: r.title, body: r.body, email: r.email })
         return `Ready. The agent sees the full agreement to review and send.${r.email ? "" : " The client has no email on file, so it will land on their page only. Mention it."}`
+      }
+
+      case "check_calendar": {
+        const a = await loadMeetAgent(db, agentId)
+        if (!a) return "The calendar isn't available right now."
+        const from = /^\d{4}-\d{2}-\d{2}$/.test(str(input.from_date, 10)) ? str(input.from_date, 10) : undefined
+        const to = /^\d{4}-\d{2}-\d{2}$/.test(str(input.to_date, 10)) ? str(input.to_date, 10) : undefined
+        return JSON.stringify({ days: await availability(db, a, from, to), note: "Answer in a few plain sentences. No lists unless asked." })
+      }
+
+      case "suggest_meeting_times": {
+        const a = await loadMeetAgent(db, agentId)
+        if (!a) return "The calendar isn't available right now."
+        const kind = toMeetKind(input.kind)
+        if (!kind) return "Ask whether they'd like to meet in person or over the phone."
+        const place = str(input.place, 200)
+        if (kind === "in_person" && !place) return "Ask where they'd like to meet: at the property or somewhere else."
+        if (kind === "video" && !a.meeting_link) return "There's no video meeting link in Settings. Ask the agent for one, or to add it in Settings."
+        const minutes = Math.min(Math.max(Math.round(Number(input.minutes)) || (kind === "in_person" ? a.inperson_minutes : a.call_minutes), 10), 240)
+        const from = /^\d{4}-\d{2}-\d{2}$/.test(str(input.from_date, 10)) ? str(input.from_date, 10) : undefined
+        const to = /^\d{4}-\d{2}-\d{2}$/.test(str(input.to_date, 10)) ? str(input.to_date, 10) : undefined
+        const found = await openTimes(db, a, minutes, from, to)
+        if (!found.length) return "No open times of that length in that window. Say so and offer to look at another week or a shorter meeting."
+        // Three good options, on different days where possible.
+        const byDay = new Map<string, typeof found>()
+        for (const o of found) byDay.set(o.startISO.slice(0, 10), [...(byDay.get(o.startISO.slice(0, 10)) ?? []), o])
+        const picks = [...byDay.values()].map((v) => v[0]).slice(0, 3)
+        for (const o of found) if (picks.length < 3 && !picks.includes(o)) picks.push(o)
+        picks.sort((p, q) => p.startISO.localeCompare(q.startISO))
+        cards.push({ type: "times", clientId, name: nameOf(clientId), kind, place, minutes, message: str(input.message, 1500), options: picks })
+        return JSON.stringify({
+          shown_to_agent: picks.map((p) => p.label),
+          note: "The agent sees these times as a card to tick, then your message to approve. Don't list the times again. One short line is enough, and mention the length so they can change it.",
+        })
       }
 
       case "draft_message": {

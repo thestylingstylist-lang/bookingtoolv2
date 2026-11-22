@@ -1,12 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { releaseHeld } from "@/lib/notify"
+import { closeExpired } from "@/lib/meetings"
 import { sendEmail } from "@/lib/email"
 import { teamNote, para, button, esc } from "@/lib/letter"
 
 // Runs every hour (a scheduled job in the GitHub repo calls it).
 // 1. Sends each agent's morning note once her day has started.
 // 2. Safety net: a client message still unread after a day gets one email.
+// 3. Meeting invitations: passed times are released; after 48 hours, or once
+//    every time has passed, all holds are released and the agent hears.
 
 export const dynamic = "force-dynamic"
 
@@ -26,6 +29,13 @@ export async function GET(request: NextRequest) {
     console.error("[notify cron] morning note", e)
   }
 
+  let meetings = 0
+  try {
+    meetings = await closeExpired(admin)
+  } catch (e) {
+    console.error("[notify cron] meetings", e)
+  }
+
   let emailed = 0
   try {
     emailed = await unreadSafetyNet(admin)
@@ -33,7 +43,7 @@ export async function GET(request: NextRequest) {
     console.error("[notify cron] safety net", e)
   }
 
-  return NextResponse.json({ ok: true, morning, emailed })
+  return NextResponse.json({ ok: true, morning, emailed, meetings })
 }
 
 type Msg = { id: string; agent_id: string; client_id: string; body: string | null; created_at: string; document_id: string | null }

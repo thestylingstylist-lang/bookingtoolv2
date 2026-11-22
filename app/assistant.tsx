@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname, useRouter } from "next/navigation"
-import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat } from "./assistant-actions"
+import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat, sendMeetingFromChat } from "./assistant-actions"
 import type { ChatAnswer, ChatCard } from "@/lib/agent-chat"
 
 export const ASK_EVENT = "mb-ask"
@@ -20,6 +20,7 @@ const cardNote = (c: ChatCard) =>
   : c.type === "offer" ? `[Prepared an offer for ${c.name}: ${c.rows.map((r) => `${r.k} ${r.v}`).join("; ")}]`
   : c.type === "showing" ? `[Prepared a showing for ${c.name}: ${c.label} ${c.place}]`
   : c.type === "client" ? `[Added ${c.name}, client id ${c.clientId}]`
+  : c.type === "times" ? `[Suggested ${c.minutes}-minute times for ${c.name}: ${c.options.map((o) => o.label).join("; ")}. The agent picks and approves the invitation on the card.]`
   : ""
 
 export default function Assistant({ onOpenChange }: { onOpenChange?: (open: boolean) => void }) {
@@ -330,6 +331,8 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
       </div>
     )
 
+  if (card.type === "times") return <TimesCard card={card} />
+
   return (
     <div className="card list">
       {card.items.map((it) => (
@@ -415,7 +418,7 @@ const CSS = `
 .mba-line,.mba-hello{display:flex;flex-direction:column;gap:8px}
 .mba .b{margin:0;max-width:88%;padding:10px 13px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;animation:mbaIn .35s cubic-bezier(.2,.9,.3,1) both}
 .mba .bot{align-self:flex-start;background:#fff;border:1px solid rgba(31,30,28,.09);border-radius:14px;color:#1F1E1C}
-.mba .me{align-self:flex-end;background:#EFEDE9;color:#1F1E1C;border-radius:14px}
+.mba .me{align-self:flex-end;background:#EFEDE9;color:#1F1E1C;border-radius:14px}.mba .picks{display:flex;flex-direction:column;gap:6px;margin:6px 0 2px}.mba .pick{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid rgba(31,30,28,.12);border-radius:10px;font-size:13.5px;cursor:pointer}.mba .pick.on{border-color:#1F1E1C}.mba .pick input{accent-color:#1F1E1C;width:15px;height:15px;margin:0}.mba .opts{display:flex;flex-direction:column;gap:4px;margin:8px 0 2px;font-size:12.5px;color:#67635C}.mba .opts span:before{content:'\\25CB';margin-right:6px;color:#C2A46B}
 .mba .chips{display:flex;flex-wrap:wrap;gap:6px}
 .mba .chip{font:inherit;font-size:13px;padding:7px 12px;border-radius:999px;border:1px solid #efc9df;background:#fff;color:#93407A;cursor:pointer;text-align:left}
 .mba .chip:hover{background:#FBEDF5}
@@ -515,5 +518,96 @@ function Plain({ text }: { text: string }) {
         ),
       )}
     </>
+  )
+}
+
+type TimesCardData = Extract<ChatCard, { type: "times" }>
+
+// Pick the times to offer, then review the invitation. Nothing goes out until Send.
+function TimesCard({ card }: { card: TimesCardData }) {
+  const [picked, setPicked] = useState<string[]>(card.options.map((o) => o.startISO))
+  const [step, setStep] = useState<"pick" | "review" | "sending" | "sent">("pick")
+  const [edit, setEdit] = useState(false)
+  const [body, setBody] = useState(card.message)
+  const [note, setNote] = useState("")
+  const first = card.name.split(" ")[0]
+  const chosen = card.options.filter((o) => picked.includes(o.startISO))
+
+  if (step === "pick")
+    return (
+      <div className="card">
+        <p className="ck">
+          {card.minutes} minutes &middot; {card.kind === "phone" ? "phone call" : card.kind === "video" ? "video call" : card.place || "in person"}
+        </p>
+        <div className="picks">
+          {card.options.map((o) => {
+            const on = picked.includes(o.startISO)
+            return (
+              <label key={o.startISO} className={`pick${on ? " on" : ""}`}>
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() => setPicked((p) => (on ? p.filter((x) => x !== o.startISO) : [...p, o.startISO]))}
+                />
+                <span>{o.label}</span>
+              </label>
+            )
+          })}
+        </div>
+        <div className="btns">
+          <button type="button" className="a" disabled={!chosen.length} onClick={() => setStep("review")}>
+            Offer {chosen.length === 1 ? "this time" : "these times"}
+          </button>
+        </div>
+      </div>
+    )
+
+  return (
+    <div className="card">
+      <p className="ck">To {first} &middot; in {first}&rsquo;s suite and by email</p>
+      {edit ? <textarea className="ce" value={body} rows={6} onChange={(e) => setBody(e.target.value)} /> : <p className="cv">{body}</p>}
+      <div className="opts">
+        {chosen.map((o) => (
+          <span key={o.startISO}>{o.label}</span>
+        ))}
+        <span>None of these work</span>
+      </div>
+      {step === "sent" ? (
+        <p className="ok">{note}</p>
+      ) : (
+        <>
+          <p className="cs">Nothing goes out until you send it.</p>
+          <div className="btns">
+            <button
+              type="button"
+              className="a"
+              disabled={step === "sending" || !body.trim()}
+              onClick={async () => {
+                setStep("sending")
+                const r = await sendMeetingFromChat({
+                  clientId: card.clientId,
+                  startISOs: chosen.map((o) => o.startISO),
+                  minutes: card.minutes,
+                  kind: card.kind,
+                  place: card.place,
+                  message: body,
+                }).catch(() => ({ ok: false, message: "That didn’t send. Try again in a moment." }))
+                setNote(r.message)
+                setStep(r.ok ? "sent" : "review")
+              }}
+            >
+              {step === "sending" ? "Sending…" : `Send to ${first}`}
+            </button>
+            <button type="button" className="e" onClick={() => setEdit((v) => !v)}>
+              {edit ? "Done editing" : "Edit"}
+            </button>
+            <button type="button" className="e" onClick={() => setStep("pick")}>
+              Change times
+            </button>
+          </div>
+          {note && <p className="err">{note}</p>}
+        </>
+      )}
+    </div>
   )
 }

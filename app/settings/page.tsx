@@ -6,6 +6,7 @@ import AccountForm from "./account-form"
 import AgreementForm from "./agreement-form"
 import AssistantForm from "./assistant-form"
 import NotifyForm from "./notify-form"
+import MeetingForm from "./meeting-form"
 import { loadAssistantName } from "@/lib/assistant-name"
 import { assistantFor } from "@/lib/assistant"
 import { aiPrefsFor } from "@/lib/ai-prefs"
@@ -70,6 +71,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     hoursOnly: n.notify_hours_only ?? false,
   }
   const hoursLabel = hoursSaid(agent.weekdays, agent.day_start, agent.day_end)
+
+  const { data: lenRow } = await supabase.from("agents").select("meeting_call_minutes, meeting_inperson_minutes").eq("id", user.id).maybeSingle()
+  const meetLens = { call: lenRow?.meeting_call_minutes ?? 30, inPerson: lenRow?.meeting_inperson_minutes ?? 60 }
 
   const assistant = await assistantFor(supabase, user.id)
   const aiPrefs = await aiPrefsFor(supabase, user.id)
@@ -149,6 +153,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <p className="mt-1 text-sm text-lxink/60">Turn on what you&rsquo;d like {assistantName} to help with. Anything she writes goes out in your name.</p>
               <div className="mt-6">
                 <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} prefs={aiPrefs} />
+                <MeetingForm call={meetLens.call} inPerson={meetLens.inPerson} name={assistantName} />
               </div>
             </section>
           </div>

@@ -1,6 +1,7 @@
 import "../../suite-fonts"
 import { notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { loadInvite } from "@/lib/meetings"
 import {
   BUY_PHASES,
   SELL_PHASES,
@@ -138,7 +139,21 @@ export default async function Portal({
   const toSign = (docData ?? []).filter((d) => d.status !== "signed")
   const collected = colData ?? []
   const missing = collected.filter((d) => !d.received)
-  const messages = msgData ?? []
+  const messages = (msgData ?? []) as { id: string; created_at: string; sender: string; body: string; invite_id?: string | null }[]
+
+  // Meeting invitations in the chat, with their times as buttons.
+  // Read apart, so the suite still opens before meetings.sql has run.
+  const { data: inviteLinks } = await admin.from("messages").select("id, invite_id").eq("client_id", client.id).not("invite_id", "is", null)
+  const inviteIds = [...new Set(((inviteLinks ?? []) as { invite_id: string }[]).map((m) => m.invite_id))]
+  const invites = new Map<string, NonNullable<Awaited<ReturnType<typeof loadInvite>>>>()
+  if (inviteIds.length) {
+    const { data: tokens } = await admin.from("meeting_invites").select("id, token").in("id", inviteIds)
+    for (const row of (tokens ?? []) as { id: string; token: string }[]) {
+      const v = await loadInvite(admin, row.token)
+      if (v) invites.set(row.id, v)
+    }
+  }
+  const inviteOf = new Map(((inviteLinks ?? []) as { id: string; invite_id: string }[]).map((m) => [m.id, invites.get(m.invite_id)]))
 
   // ---- Homes their agent is showing them (buying) ----
   let homes: PortalHome[] = []
@@ -513,6 +528,44 @@ export default async function Portal({
                 }`}
               >
                 {m.body}
+                {(() => {
+                  const v = inviteOf.get(m.id)
+                  if (!v) return null
+                  const chosen = v.options.find((o) => o.chosen)
+                  if (v.status === "booked" && chosen)
+                    return <p className="m-0 mt-3 text-[13px] text-lxsoft">Booked: {chosen.label}</p>
+                  if (v.status !== "waiting")
+                    return (
+                      <p className="m-0 mt-3 text-[13px] text-lxsoft">
+                        These times have passed.{" "}
+                        {v.slug && (
+                          <a href={`/book/${v.slug}`} className="border-b border-lxgold text-lxink no-underline">
+                            Choose another time
+                          </a>
+                        )}
+                      </p>
+                    )
+                  return (
+                    <span className="mt-2 flex flex-col">
+                      {v.options
+                        .filter((o) => o.open)
+                        .map((o) => (
+                          <a
+                            key={o.id}
+                            href={`/meet/${v.token}?o=${o.id}`}
+                            className="mt-2 block rounded-[2px] border border-lxink px-3.5 py-3 text-[14px] text-lxink no-underline"
+                          >
+                            {o.label}
+                          </a>
+                        ))}
+                      {v.slug && (
+                        <a href={`/book/${v.slug}`} className="mt-3 self-start border-b border-lxgold text-[13px] text-lxink no-underline">
+                          None of these work
+                        </a>
+                      )}
+                    </span>
+                  )
+                })()}
               </div>
               <span className="text-[10.5px] text-lxsoft">{fmt.format(new Date(m.created_at))}</span>
             </div>

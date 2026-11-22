@@ -9,6 +9,8 @@ import { createClient } from "@/lib/supabase/server"
 import { handleRequest, type ChatAnswer, type ChatTurn, type OfferDraft } from "@/lib/agent-chat"
 import { deliverAgreement } from "@/lib/agreement-fill"
 import { sendOffer } from "./clients/[id]/homes-actions"
+import { createAdminClient } from "@/lib/supabase/admin"
+import { sendInvite, toMeetKind } from "@/lib/meetings"
 
 // The assistant chat, from any app page. ctxClientId is set when the agent is in a client's file.
 export async function askMarvberry(history: ChatTurn[], ctxClientId: string | null): Promise<ChatAnswer> {
@@ -129,4 +131,27 @@ export async function addShowingFromChat(clientId: string, place: string, date: 
   revalidatePath("/calendar")
   revalidatePath(`/clients/${clientId}`)
   return { ok: true }
+}
+
+// The agent approved a meeting invitation: hold the times, then send it to the
+// client's suite and email.
+export async function sendMeetingFromChat(o: {
+  clientId: string
+  startISOs: string[]
+  minutes: number
+  kind: string
+  place: string
+  message: string
+}): Promise<{ ok: boolean; message: string }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, message: "Your session ended. Sign in again." }
+  const kind = toMeetKind(o.kind)
+  if (!kind || !o.message.trim()) return { ok: false, message: "Add a short message, then send." }
+  const r = await sendInvite(createAdminClient(), user.id, { ...o, kind })
+  if (!r.ok) return r
+  revalidatePath(`/clients/${o.clientId}`)
+  return { ok: true, message: `Sent. I’m holding those times until ${r.holdUntil}, and I’ll let you know when ${r.first} picks.` }
 }

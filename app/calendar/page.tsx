@@ -12,7 +12,7 @@ import AddEvent from "./add-event"
 import WeekView, { addDays, type WeekItem, type WeekDue } from "./week-view"
 import { deleteEvent, holdTime } from "./actions"
 import RowMenu from "@/app/row-menu"
-import { CONSULT_COLOR, kindMeta, lengthLabel } from "@/lib/events"
+import { CONSULT_COLOR, HELD_COLOR, kindMeta, lengthLabel } from "@/lib/events"
 
 export const dynamic = "force-dynamic"
 
@@ -139,6 +139,14 @@ export default async function CalendarPage({
   const clientOf = new Map(clientList.filter((c) => c.booking_id).map((c) => [c.booking_id as string, c.id]))
   const nameOf = new Map(clientList.map((c) => [c.id, `${c.first_name ?? ""} ${c.last_name ?? ""}`.trim() || "Client"]))
   const events = (eventData ?? []) as EventRow[]
+  // Times offered in a meeting invitation, held while the client chooses.
+  const { data: heldRows } = await supabase
+    .from("meeting_options")
+    .select("id, starts_at, ends_at, meeting_invites!inner(status, clients(first_name))")
+    .is("released_at", null)
+    .eq("meeting_invites.status", "waiting")
+    .gte("ends_at", rangeStart.toISOString())
+  const held = (heldRows ?? []) as unknown as { id: string; starts_at: string; ends_at: string; meeting_invites: { clients: { first_name: string } | null } | null }[]
   const allDue = (dueData ?? []) as unknown as Due[]
   const due = allDue.filter((d) => daysUntil(d.due_on, tz) <= 0)
 
@@ -180,6 +188,20 @@ export default async function CalendarPage({
             : [e.place ? `${k.label} at ${e.place}` : k.label, who ? `with ${who}` : ""].filter(Boolean).join(", "),
         tag: [k.label, who?.split(" ")[0]].filter(Boolean).join(", "),
         event: e,
+      }
+    }),
+    ...held.map((h): Item => {
+      const who = h.meeting_invites?.clients?.first_name ?? "a client"
+      return {
+        id: `held-${h.id}`,
+        start: new Date(h.starts_at),
+        end: new Date(h.ends_at),
+        color: HELD_COLOR,
+        meta: "Held",
+        title: `Held for ${who}`,
+        sub: "Waiting for their choice",
+        line: `Held for ${who}, waiting for their choice`,
+        tag: `Held, ${who}`,
       }
     }),
   ].sort((a, b) => a.start.getTime() - b.start.getTime())
@@ -242,7 +264,7 @@ export default async function CalendarPage({
       label: `${d.clients?.first_name?.trim() || "Client"}: ${d.title}`,
     }))
   // Personal time isn't a "thing on your calendar"; it's time kept for herself.
-  const weekCount = weekItems.filter((it) => it.event?.kind !== "hold").length
+  const weekCount = weekItems.filter((it) => it.event?.kind !== "hold" && !it.id.startsWith("held-")).length
   const openDays = weekDays.filter(
     (d, i) => d >= todayKey && agent.weekdays.includes(i + 1) && !weekItems.some((it) => dayKey(it.start) === d)
   )
@@ -263,7 +285,7 @@ export default async function CalendarPage({
       : `${mName(monday)} ${Number(monday.slice(8))} to ${mName(sunday)} ${Number(sunday.slice(8))}.`
   const weekHeadline = `${WORDS[weekCount] ?? `${weekCount} things`} ${monday === thisMonday ? "this week" : "that week"}.`
 
-  const count = today.filter((it) => it.event?.kind !== "hold").length
+  const count = today.filter((it) => it.event?.kind !== "hold" && !it.id.startsWith("held-")).length
   const headline = `${WORDS[count] ?? `${count} things`} on your calendar today.`
   const tail = !working
     ? " It's your day off."
@@ -429,7 +451,7 @@ export default async function CalendarPage({
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
-                        {it.event?.place && it.event.kind !== "hold" && (
+                        {it.event?.place && it.event.kind !== "hold" && !/^(Phone|Video) call$/.test(it.event.place) && (
                           <a
                             href={`https://maps.apple.com/?q=${encodeURIComponent(it.event.place)}`}
                             target="_blank"
