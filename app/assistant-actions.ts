@@ -26,7 +26,7 @@ export async function askMarvberry(history: ChatTurn[], ctxClientId: string | nu
   } catch (e) {
     console.error("[diana] request failed", e)
     const why = (e as Error)?.message ?? String(e)
-    return { reply: `I couldn’t work on that just now. Try again in a moment.${team ? `\n\nFor the Marvberry team: ${why}` : ""}` }
+    return { reply: `I couldn’t work on that just now. Try again in a moment. If this keeps happening, message us from Support.${team ? `\n\nFor the Marvberry team: ${why}` : ""}` }
   }
 }
 
