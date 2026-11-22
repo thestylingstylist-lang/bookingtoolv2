@@ -74,7 +74,7 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
     }))
     setLines((x) => [...x, { id: Date.now(), me: true, text: t }])
     setThinking(true)
-    const res: ChatAnswer = await askMarvberry(history, ctxClientId).catch(() => ({ reply: "I couldn’t work on that just now. Try again in a moment." }))
+    const res: ChatAnswer = await askMarvberry(history, ctxClientId).catch(() => ({ reply: "I couldn’t connect just now. Check your connection, then try again." }))
     setThinking(false)
     setLines((x) => [...x, { id: Date.now() + 1, me: false, text: res.reply, cards: res.cards, chips: res.chips }])
   }
@@ -112,7 +112,7 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
           <span className="mba-d sm">{name.charAt(0).toUpperCase()}</span>
           <div>
             <p className="nm">{name}</p>
-            <p className="st">{thinking ? "Working on it…" : "Here to help"}</p>
+            <p className="st">{thinking ? "Working on it…" : "Your assistant"}</p>
           </div>
           <button type="button" className="x" onClick={() => show(false)} aria-label="Close">
             <svg viewBox="0 0 24 24" aria-hidden><path d="M6 6l12 12M18 6 6 18" /></svg>
@@ -414,8 +414,8 @@ const CSS = `
 .mba-feed{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:12px}
 .mba-line,.mba-hello{display:flex;flex-direction:column;gap:8px}
 .mba .b{margin:0;max-width:88%;padding:10px 13px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;animation:mbaIn .35s cubic-bezier(.2,.9,.3,1) both}
-.mba .bot{align-self:flex-start;background:#EEEEF1;border-bottom-left-radius:5px}
-.mba .me{align-self:flex-end;background:#FBEDF5;color:#7a2f63;border-bottom-right-radius:5px}
+.mba .bot{align-self:flex-start;background:#fff;border:1px solid rgba(31,30,28,.09);border-radius:14px;color:#1F1E1C}
+.mba .me{align-self:flex-end;background:#EFEDE9;color:#1F1E1C;border-radius:14px}
 .mba .chips{display:flex;flex-wrap:wrap;gap:6px}
 .mba .chip{font:inherit;font-size:13px;padding:7px 12px;border-radius:999px;border:1px solid #efc9df;background:#fff;color:#93407A;cursor:pointer;text-align:left}
 .mba .chip:hover{background:#FBEDF5}

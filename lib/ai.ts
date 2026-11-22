@@ -62,9 +62,15 @@ export async function runAgent(opts: {
   tools: AgentTool[]
   run: (name: string, input: Record<string, unknown>) => Promise<string>
   maxSteps?: number
+  // Filled with the real reason when Claude can't be reached, in plain words.
+  diag?: { reason?: string }
 }): Promise<string | null> {
   const key = process.env.ANTHROPIC_API_KEY
-  if (!key) return null
+  if (!key) {
+    if (opts.diag) opts.diag.reason = "The Anthropic API key (ANTHROPIC_API_KEY) isn't set in Vercel."
+    console.error("[diana] ANTHROPIC_API_KEY is not set")
+    return null
+  }
   const models = [process.env.ANTHROPIC_AGENT_MODEL, process.env.ANTHROPIC_MODEL, "claude-sonnet-5-5", "claude-haiku-4-5-20251001"].filter(
     (m, i, all): m is string => !!m && all.indexOf(m) === i,
   )
@@ -73,14 +79,17 @@ export async function runAgent(opts: {
   for (let step = 0; step < (opts.maxSteps ?? 8); step++) {
     let data: { content?: Block[]; stop_reason?: string } | null = null
     for (const m of models.slice(models.indexOf(model))) {
-      const res = await call(key, m, opts.system, messages, opts.tools)
+      const res = await call(key, m, opts.system, messages, opts.tools, opts.diag)
       if (res === undefined) continue
       if (res === null) return null
       model = m
       data = res
       break
     }
-    if (!data) return null
+    if (!data) {
+      if (opts.diag && !opts.diag.reason) opts.diag.reason = `Anthropic didn't accept any of these model names: ${models.join(", ")}.`
+      return null
+    }
     const blocks = data.content ?? []
     const text = blocks.filter((b) => b.type === "text").map((b) => b.text ?? "").join("").trim()
     const uses = blocks.filter((b) => b.type === "tool_use")
@@ -107,7 +116,25 @@ async function call(
   system: string,
   messages: unknown[],
   tools: AgentTool[],
+  diag?: { reason?: string },
 ): Promise<{ content?: Block[]; stop_reason?: string } | null | undefined> {
+  const fail = (status: number, body: string) => {
+    console.error(`[diana] Anthropic ${status} on ${model}: ${body.slice(0, 500)}`)
+    if (!diag) return
+    const said = body.slice(0, 240)
+    diag.reason =
+      status === 401
+        ? "Anthropic says the API key is wrong or was revoked. Make a new key in the Anthropic Console and update ANTHROPIC_API_KEY in Vercel."
+        : status === 403
+          ? `Anthropic says this key isn't allowed to do that. ${said}`
+          : /credit balance/i.test(body)
+            ? "The Anthropic account is out of credit. Add credit in the Anthropic Console under Billing."
+            : status === 429
+              ? "Anthropic is limiting how many requests this key can make. Try again in a minute, or raise the limit in the Anthropic Console."
+              : status >= 500
+                ? `Anthropic is having trouble right now (${status}). Try again shortly.`
+                : `Anthropic refused the request (${status}): ${said}`
+  }
   try {
     const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com"}/v1/messages`, {
       method: "POST",
@@ -115,14 +142,27 @@ async function call(
       body: JSON.stringify({ model, max_tokens: 1500, system, tools, messages }),
       cache: "no-store",
     })
-    if (res.status === 404) return undefined
+    if (res.status === 404) {
+      console.error(`[diana] model not found: ${model}`)
+      return undefined
+    }
     if (res.status === 400) {
       const err = await res.text()
-      return /model/i.test(err) ? undefined : null
+      if (/model/i.test(err) && !/credit/i.test(err)) {
+        console.error(`[diana] model refused: ${model}: ${err.slice(0, 300)}`)
+        return undefined
+      }
+      fail(400, err)
+      return null
     }
-    if (!res.ok) return null
+    if (!res.ok) {
+      fail(res.status, await res.text().catch(() => ""))
+      return null
+    }
     return await res.json()
-  } catch {
+  } catch (e) {
+    console.error("[diana] couldn't reach Anthropic", e)
+    if (diag) diag.reason = `Marvberry couldn't reach Anthropic: ${(e as Error)?.message ?? "network error"}.`
     return null
   }
 }

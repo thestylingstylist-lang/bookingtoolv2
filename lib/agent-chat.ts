@@ -43,7 +43,7 @@ export type OfferDraft = {
   formBlanks: Record<string, string>
 }
 
-export type ChatAnswer = { reply: string; cards?: ChatCard[]; chips?: string[] }
+export type ChatAnswer = { reply: string; cards?: ChatCard[]; chips?: string[]; reason?: string }
 export type ChatTurn = { me: boolean; text: string }
 
 const HELP_CHIPS = ["What’s waiting on me?", "Prepare an agreement", "Prepare an offer", "Send a client an update"]
@@ -313,8 +313,9 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
 
   const h: AgentTurn[] = turns.map((t) => ({ role: t.me ? "user" : "assistant", content: t.text.slice(0, 2000) }))
   while (h.length && h[0].role === "assistant") h.shift()
-  const reply = await runAgent({ system, history: h, tools: TOOLS, run, maxSteps: 10 })
-  if (reply === null) return { reply: "I couldn’t work on that just now. Try again in a moment.", chips: HELP_CHIPS }
+  const diag: { reason?: string } = {}
+  const reply = await runAgent({ system, history: h, tools: TOOLS, run, maxSteps: 10, diag })
+  if (reply === null) return { reply: "I couldn’t work on that just now. Try again in a moment.", chips: HELP_CHIPS, reason: diag.reason }
   await db.from("ai_drafts").insert({ agent_id: agentId, kind: "agent" })
   return { reply, cards }
 }

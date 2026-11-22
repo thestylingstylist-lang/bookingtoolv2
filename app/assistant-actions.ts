@@ -1,5 +1,6 @@
 "use server"
 import { assistantDisplayName } from "@/lib/assistant-name"
+import { isAdminEmail } from "@/lib/admin"
 
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
@@ -16,10 +17,16 @@ export async function askMarvberry(history: ChatTurn[], ctxClientId: string | nu
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { reply: "Your session ended. Sign in again." }
+  // The Marvberry team sees the real reason behind a failure; agents see the calm line.
+  const team = isAdminEmail(user.email)
   try {
-    return await handleRequest(supabase, user.id, history.slice(-14), ctxClientId)
-  } catch {
-    return { reply: "I couldn’t work on that just now. Try again in a moment." }
+    const { reason, ...answer } = await handleRequest(supabase, user.id, history.slice(-14), ctxClientId)
+    if (reason && team) return { ...answer, reply: `${answer.reply}\n\nFor the Marvberry team: ${reason}` }
+    return answer
+  } catch (e) {
+    console.error("[diana] request failed", e)
+    const why = (e as Error)?.message ?? String(e)
+    return { reply: `I couldn’t work on that just now. Try again in a moment.${team ? `\n\nFor the Marvberry team: ${why}` : ""}` }
   }
 }
 
