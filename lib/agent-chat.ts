@@ -1,5 +1,6 @@
 import "server-only"
 import { assistantDisplayName } from "@/lib/assistant-name"
+import { isGreeting, greetingReply } from "@/lib/greeting"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { formatInTimeZone } from "date-fns-tz"
@@ -126,7 +127,7 @@ const TOOLS: AgentTool[] = [
   {
     name: "prepare_offer",
     description:
-      "Prepare an offer on a home for a client: the terms, the agent's own offer form filled in, the client's documents attached, and the note to the listing agent. Needs the address, price and the listing agent's email (check client_file for the home first; it may already have the listing agent). Returns what's missing, or the offer ready for the agent to review and send.",
+      "Prepare an offer on a home for a client: the terms, the agent's own offer form filled in, the client's documents attached, and the note to the seller's agent. Needs the address, price and the listing agent's email (check client_file for the home first; it may already have the listing agent). Returns what's missing, or the offer ready for the agent to review and send.",
     input_schema: {
       type: "object",
       properties: {
@@ -142,7 +143,7 @@ const TOOLS: AgentTool[] = [
         listing_agent_name: { type: "string" },
         listing_agent_email: { type: "string" },
         listing_agent_brokerage: { type: "string" },
-        note: { type: "string", description: "A short, warm note to the listing agent, in the agent's voice." },
+        note: { type: "string", description: "A short, warm note to the seller's agent, in the agent's voice." },
         form_blanks: { type: "object", description: "Values for the offer form's own blanks, by label.", additionalProperties: { type: "string" } },
       },
       required: ["client_id", "address", "amount"],
@@ -169,6 +170,21 @@ export async function handleRequest(
       .eq("agent_id", agentId)
       .gte("created_at", new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)).toISOString()),
   ])
+  // A plain hello gets a plain hello back. No files, no lists, no AI.
+  {
+    const hello = isGreeting(last.text, assistantDisplayName(agent?.assistant_name))
+    if (hello.greeting) {
+      const earlier = turns.slice(0, -1).filter((t) => t.me && isGreeting(t.text, assistantDisplayName(agent?.assistant_name)).greeting).length
+      return {
+        reply: greetingReply({
+          firstName: (((agent?.full_name as string) || "").trim().split(/\s+/)[0] || ""),
+          tz: (agent?.timezone as string) || "America/New_York",
+          count: earlier,
+          asksHow: hello.asksHow,
+        }),
+      }
+    }
+  }
   if ((used ?? 0) >= MONTHLY_TASKS) return { reply: "You’ve used this month’s requests. They reset on the 1st." }
 
   const tz = (agent?.timezone as string) || "America/New_York"
@@ -186,15 +202,19 @@ export async function handleRequest(
 
 You know how a deal runs from first booking to closing: consult, buyer agreement, pre-approval, showings, offer, inspection, appraisal, mortgage commitment, final walk-through, closing. You know the paperwork and the timing, and you keep the deal moving.
 
-How you work:
+When the agent is just saying hello or chatting, be a friend: greet them by first name and ask how they are or how their day is going. Don't look anything up, don't mention work, clients or deadlines, and don't offer help. If they greet you again, answer warmly again, just as briefly. Only use your tools and look at their files when they ask about work.
+
+How you work, when the agent asks for something:
 - Do the work yourself, step by step, with your tools. Look the client up, check their file, then prepare the thing. Don't ask the agent for anything you can find in the file.
-- Ask only for what you truly can't know (a price, a listing agent's email, a blank only the agent can fill). Ask for all of it at once, in one short question.
+- Ask only for what you truly can't know (a price, a seller's agent's email, a blank only the agent can fill). Ask for all of it at once, in one short question.
 - Anything that goes to a client or another agent comes back to ${agentName.split(" ")[0] || "the agent"} as a card to send with one tap. Never say something was sent. Say it's ready.
 - Never invent a price, date, time, address, email or term. If it isn't in the request or the file, ask.
 - You don't give legal, tax or loan advice. If asked, say that's one for their attorney or lender, and offer to draft the question to them.
-- After you finish, say in one or two short sentences what's ready and what you'd do next for this deal, if there's a clear next step.
+- After you finish a task, say in one or two short sentences what's ready and what you'd do next for this deal, if there's a clear next step.
 
-How you talk: warm, plain, short. Spoken words, like a great assistant leaning into the office. No lists unless there are several items. Say "real estate agent", never "realtor". Never use the word "need" when writing to clients.
+How you talk: warm, plain, short. Spoken words, like a great assistant leaning into the office. No lists unless there are several items. Say "real estate agent", never "realtor". Never use the word "need" when writing to clients. Say "attorney", never "lawyer", and "seller's agent", never "listing agent".
+
+Write plain text only. No markdown: no asterisks, no pound signs, no bullet symbols. If there are several items, put each on its own line.
 
 Never mention a client, document or event that isn't in the agent's real files. Use only what you find there.
 
@@ -377,7 +397,7 @@ async function prepareOffer(db: SupabaseClient, clientId: string, input: Record<
   const missing: string[] = []
   if (!address) missing.push("the home's address")
   if (!amount) missing.push("the offer price")
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(listingEmail)) missing.push("the listing agent's email")
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(listingEmail)) missing.push("the seller's agent's email")
   const formMissing = blanksNeeded.filter((b) => !(b.toLowerCase() in givenKeyed))
   if (missing.length || formMissing.length)
     return `Still missing: ${[...missing, ...formMissing.map((b) => `"${b}" for the offer form`)].join(", ")}. Ask the agent for all of it in one question. (If the agent says to leave a form blank empty, pass it as an empty string.)`

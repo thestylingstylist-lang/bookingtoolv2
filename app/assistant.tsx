@@ -132,7 +132,7 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
           )}
           {lines.map((l) => (
             <div key={l.id} className="mba-line">
-              <p className={`b ${l.me ? "me" : "bot"}`}>{l.text}</p>
+              <p className={`b ${l.me ? "me" : "bot"}`}>{l.me ? l.text : <Plain text={l.text} />}</p>
               {l.cards?.map((c, i) => <Card key={i} card={c} close={() => show(false)} />)}
               {l.chips && (
                 <div className="chips">
@@ -494,3 +494,26 @@ body[data-dock-ready] .mba-fab .mba-d{font-size:22px}
 }
 @media (prefers-reduced-motion:reduce){.mba,.mba *{animation:none!important;transition:none!important}}
 `
+
+// Diana writes plain text. If a ** or # slips through, show bold as bold and
+// drop the symbols, so the agent never sees raw markdown.
+function Plain({ text }: { text: string }) {
+  const clean = text
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*•]\s+/gm, "")
+    .replace(/__(.+?)__/g, "**$1**")
+  const parts = clean.split(/(\*\*[^*]+\*\*)/g)
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.startsWith("**") && p.endsWith("**") && p.length > 4 ? (
+          <strong key={i} style={{ fontWeight: 600 }}>
+            {p.slice(2, -2)}
+          </strong>
+        ) : (
+          <span key={i}>{p.replace(/\*\*/g, "")}</span>
+        ),
+      )}
+    </>
+  )
+}
