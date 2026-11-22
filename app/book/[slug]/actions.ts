@@ -9,6 +9,8 @@ import { isValidOpenSlot, formatSlot } from "@/lib/slots"
 import { busyRanges } from "@/lib/events"
 import { isAdminEmail } from "@/lib/admin"
 import { checkEmail } from "@/lib/email-check"
+import { notifyAgent } from "@/lib/notify"
+import { formatInTimeZone } from "date-fns-tz"
 import {
   sendEmail,
   clientConfirmationEmail,
@@ -145,7 +147,13 @@ export async function createBooking(
 
     // Booking alerts go to the realtor's account (sign-in) email.
     const { data: authUser } = await admin.auth.admin.getUserById(agent.id)
-    const alertEmail = authUser?.user?.email || agent.public_email
+    const whenSaid = formatInTimeZone(new Date(slotStart), agent.timezone, "EEEE, MMM d 'at' h:mm a")
+    const notified = await notifyAgent(admin, agent.id, "bookings", {
+      line: `${clientName || "someone new"} booked ${whenSaid}`,
+      body: `New booking. ${clientName || "Someone new"}, ${whenSaid}.`,
+      url: "/bookings",
+    })
+    const alertEmail = notified ? null : authUser?.user?.email || agent.public_email
     if (alertEmail) {
       const note = agentNotificationEmail({
         agentName,

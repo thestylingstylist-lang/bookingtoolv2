@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
 import { teamSender } from "@/lib/team-sender"
+import { notifyAgent } from "@/lib/notify"
 import { sendEmail } from "@/lib/email"
 import { teamNote, para, button, small, esc } from "@/lib/letter"
 
@@ -87,7 +88,12 @@ export async function sendTeamReply(
   const { data: u } = await admin.auth.admin.getUserById(agentId)
   const to = u?.user?.email
   let emailed = false
-  if (to) {
+  const notified = await notifyAgent(admin, agentId, "support", {
+    line: "our team replied in Support",
+    body: "Our team replied to your message in Support.",
+    url: "/support",
+  })
+  if (to && !notified) {
     const paras = body
       .split(/\n{2,}/)
       .map((p) => para(esc(p).replace(/\n/g, "<br>")))
@@ -109,6 +115,10 @@ export async function sendTeamReply(
   const at = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).format(new Date())
   return {
     ok: true,
-    message: emailed ? `Sent and emailed to ${to} at ${at}.` : "Saved in their Marvberry, but the email didn't go out. Try again.",
+    message: notified
+      ? `Sent at ${at}. They'll get a notification.`
+      : emailed
+        ? `Sent and emailed to ${to} at ${at}.`
+        : "Saved in their Marvberry, but the email didn't go out. Try again.",
   }
 }

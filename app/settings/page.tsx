@@ -5,6 +5,7 @@ import SettingsForm from "./settings-form"
 import AccountForm from "./account-form"
 import AgreementForm from "./agreement-form"
 import AssistantForm from "./assistant-form"
+import NotifyForm from "./notify-form"
 import { loadAssistantName } from "@/lib/assistant-name"
 import { assistantFor } from "@/lib/assistant"
 import { aiPrefsFor } from "@/lib/ai-prefs"
@@ -54,6 +55,22 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const { data: sigRow } = await supabase.from("agents").select("signature_photo").eq("id", user.id).maybeSingle()
   const signaturePhoto = !!(sigRow as { signature_photo?: boolean } | null)?.signature_photo
 
+  // Notification switches: on by default until her own choices are saved.
+  const { data: nRow } = await supabase
+    .from("agents")
+    .select("notify_messages, notify_signed, notify_bookings, notify_support, notify_hours_only")
+    .eq("id", user.id)
+    .maybeSingle()
+  const n = (nRow ?? {}) as Record<string, boolean | undefined>
+  const notifyPrefs = {
+    messages: n.notify_messages ?? true,
+    signed: n.notify_signed ?? true,
+    bookings: n.notify_bookings ?? true,
+    support: n.notify_support ?? true,
+    hoursOnly: n.notify_hours_only ?? false,
+  }
+  const hoursLabel = hoursSaid(agent.weekdays, agent.day_start, agent.day_end)
+
   const assistant = await assistantFor(supabase, user.id)
   const aiPrefs = await aiPrefsFor(supabase, user.id)
 
@@ -89,6 +106,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <p className="mt-1 text-sm text-lxink/60">Your name, login email and password. Only you and the Marvberry team see this.</p>
               <div className="mt-6">
                 <AccountForm firstName={firstName} lastName={lastName} email={user.email ?? ""} />
+              </div>
+            </section>
+<section id="notifications" className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6">
+              <h2 className="font-serif font-semibold tracking-tight text-xl">Notifications</h2>
+              <p className="mt-1 text-sm text-lxink/60">A quiet heads-up on this device. Anything you leave off still comes by email.</p>
+              <div className="mt-4">
+                <NotifyForm prefs={notifyPrefs} hoursLabel={hoursLabel} />
               </div>
             </section>
 <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
@@ -157,4 +181,23 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       </main>
     </AppShell>
   )
+}
+
+const DAY = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+function clock(h: number) {
+  const hr = Math.floor(h)
+  const min = Math.round((h - hr) * 60)
+  const ampm = hr >= 12 && hr < 24 ? "PM" : "AM"
+  const twelve = hr % 12 === 0 ? 12 : hr % 12
+  return `${twelve}:${String(min).padStart(2, "0")} ${ampm}`
+}
+
+// "Monday to Friday, 9:00 AM to 5:00 PM"
+function hoursSaid(weekdays: number[] | null | undefined, start: number | null | undefined, end: number | null | undefined) {
+  const days = [...(weekdays?.length ? weekdays : [1, 2, 3, 4, 5])].sort((a, b) => a - b)
+  const run = days.every((d, i) => i === 0 || d === days[i - 1] + 1)
+  const dayText =
+    days.length === 7 ? "Every day" : run && days.length > 2 ? `${DAY[days[0]]} to ${DAY[days[days.length - 1]]}` : days.map((d) => DAY[d]).join(", ")
+  return `${dayText}, ${clock(start ?? 9)} to ${clock(end ?? 17)}`
 }

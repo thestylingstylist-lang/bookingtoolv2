@@ -5,6 +5,7 @@ import { headers } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
 import { signedNoticeEmail } from "@/lib/sign-email"
+import { notifyAgent } from "@/lib/notify"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -52,7 +53,14 @@ export async function signDocument(formData: FormData): Promise<void> {
       admin.from("agents").select("timezone").eq("id", doc.agent_id).maybeSingle(),
       admin.auth.admin.getUserById(doc.agent_id),
     ])
-    const to = authUser?.user?.email
+    const first = ((client?.first_name as string | null) || name.split(/\s+/)[0] || "Your client").trim()
+    const what = `${first} signed the ${doc.title}`
+    const notified = await notifyAgent(admin, doc.agent_id as string, "signed", {
+      line: what,
+      body: `${what}.`,
+      url: `/clients/${doc.client_id}`,
+    })
+    const to = notified ? null : authUser?.user?.email
     if (to) {
       const host = h.get("x-forwarded-host") ?? h.get("host")
       const proto = h.get("x-forwarded-proto") ?? "https"

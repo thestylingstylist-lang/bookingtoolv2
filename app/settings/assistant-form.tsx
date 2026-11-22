@@ -6,7 +6,7 @@ import { saveAssistant } from "./assistant-actions"
 import type { AiPrefs } from "@/lib/ai-prefs"
 
 // One switch per thing Marvberry AI does, with one plain line under it.
-function Switch({
+export function Switch({
   name,
   title,
   line,

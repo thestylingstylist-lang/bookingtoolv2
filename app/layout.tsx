@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
   },
   alternates: { canonical: "/" },
+  appleWebApp: { capable: true, title: "Marvberry", statusBarStyle: "default" },
 }
 
 export default function RootLayout({

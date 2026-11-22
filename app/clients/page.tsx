@@ -5,6 +5,7 @@ import AppShell from "@/app/app-shell"
 import { addClient } from "./actions"
 import ClientRow from "./client-row"
 import { loadAssistantName } from "@/lib/assistant-name"
+import NotifyBand from "./notify-band"
 
 export const dynamic = "force-dynamic"
 
@@ -45,6 +46,11 @@ export default async function ClientsPage({
     .order("created_at", { ascending: false })
   const clients = (data ?? []) as Client[]
 
+  // Notifications are offered once, after the first client. Hidden until the
+  // database knows about them, so "Not now" always sticks.
+  const { data: asked, error: askedErr } = await supabase.from("agents").select("notify_prompt").eq("id", user.id).maybeSingle()
+  const offerNotify = clients.length > 0 && !askedErr && !asked?.notify_prompt
+
   const inputClass =
     "w-full rounded-lg border border-lxink/15 bg-white px-3 py-2 text-sm outline-none focus:border-lxgold"
 
@@ -59,6 +65,7 @@ export default async function ClientsPage({
             Client added. Open them to send their suite link.
           </p>
         )}
+        {offerNotify && <NotifyBand letter={assistantName} />}
         {params.updated && (
           <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
             Client updated.
