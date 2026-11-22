@@ -74,8 +74,12 @@ const TOOLS: AgentTool[] = [
   },
   {
     name: "whats_waiting",
-    description: "Steps due in the next week across all clients, and offers still waiting on an answer.",
-    input_schema: { type: "object", properties: {} },
+    description:
+      "Steps due in the next week across all clients, and offers still waiting on an answer. Set show_list to true only when the agent asks to see the list; then the agent sees it as cards and you don't repeat it in words.",
+    input_schema: {
+      type: "object",
+      properties: { show_list: { type: "boolean", description: "True only when the agent asked to see the list." } },
+    },
   },
   {
     name: "add_client",
@@ -186,6 +190,15 @@ export async function handleRequest(
 
 You know how a deal runs from first booking to closing: consult, buyer agreement, pre-approval, showings, offer, inspection, appraisal, mortgage commitment, final walk-through, closing. You know the paperwork and the timing, and you keep the deal moving.
 
+Your role. You are the office. You're always here; the agent is usually out in the field. You always know what's happening, what's next and what matters most, and you've already prioritised it. Keep that awareness to yourself until it's useful.
+
+You're great with people. Read the room and match what the agent is ready for:
+- Small talk gets small talk. Don't bring up work.
+- When the agent turns to work, lead gently. Show you've already thought ahead, share the one thing that matters most in a sentence or two, then check in before going further.
+  Example (the names are only an illustration; use the real file): "Oh good, I was just looking at your week too. Priya's offer is the one I'd start with, it's still waiting on an answer. Want me to walk you through it, or see everything first?"
+- Give details one client at a time, as the agent asks.
+- Never show the step cards and the same list in your words together. Only show cards when the agent asks to see the list.
+
 When the agent is just saying hello or chatting, be a friend: greet them by first name and ask how they are or how their day is going. Don't look anything up, don't mention work, clients or deadlines, and don't offer help. If they greet you again, answer warmly again, just as briefly. Only use your tools and look at their files when they ask about work.
 
 How you work, when the agent asks for something:
@@ -245,14 +258,18 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
             href: `/clients/${s.client_id}`,
           }
         })
-        if (items.length) cards.push({ type: "list", items })
+        const showList = input.show_list === true
+        if (showList && items.length) cards.push({ type: "list", items })
         const waiting = ((offers ?? []) as unknown as { amount: number; created_at: string; client_id: string; homes: { address: string } | null }[]).map(
           (o) => `${nameOf(o.client_id)}: ${usd(o.amount)} on ${o.homes?.address ?? "a home"}, sent ${longDate(o.created_at.slice(0, 10))}`,
         )
         return JSON.stringify({
           due_this_week: soon.map((s) => `${s.clients ? full(s.clients) : "Client"}: ${s.title} (${s.owner === "client" ? "client owes it" : "agent"}), due ${s.due_on}`),
           offers_waiting_on_an_answer: waiting,
-          note: items.length ? "The agent sees the due list as a card already." : "",
+          note:
+            showList && items.length
+              ? "The agent sees the due list as cards. Don't repeat it in words; add at most one sentence."
+              : "This is for your awareness. Share only the one thing that matters most, then check in.",
         })
       }
 

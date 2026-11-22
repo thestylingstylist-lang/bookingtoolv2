@@ -16,7 +16,9 @@ export function clientWording(title: string, agentFirst: string) {
     "Collect the client's documents": "Send your documents",
     "Put together the offer packet": `${agentFirst} puts your offer together`,
     "Send the offer to the selling agent": "Offer sent to the seller's agent",
+    "Send the offer to the seller's agent": "Offer sent to the seller's agent",
     "Hear back from the selling agent": "Awaiting the seller's answer",
+    "Hear back from the seller's agent": "Awaiting the seller's answer",
     "Client connects with a lawyer": "Connect with your lawyer",
     "Client applies for the loan": "Loan with your lender",
   }

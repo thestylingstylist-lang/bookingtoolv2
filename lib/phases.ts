@@ -60,8 +60,8 @@ export const BUY_PHASES: { key: BuyPhase; label: string; steps: StepDef[] }[] = 
     steps: [
       { title: "Collect the client's documents", owner: "client" },
       { title: "Put together the offer packet", owner: "agent" },
-      { title: "Send the offer to the selling agent", owner: "agent" },
-      { title: "Hear back from the selling agent", owner: "selling_agent" },
+      { title: "Send the offer to the seller's agent", owner: "agent" },
+      { title: "Hear back from the seller's agent", owner: "selling_agent" },
     ],
   },
   {
