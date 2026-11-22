@@ -268,7 +268,17 @@ export default async function ClientJacket({
   const [{ data: ohRows }, { data: soRows }] = isSeller
     ? await Promise.all([
         supabase.from("open_houses").select("id, starts_at, ends_at, kind, feedback").eq("client_id", client.id).order("starts_at", { ascending: true }),
-        supabase.from("sale_offers").select("id, amount, terms, status, note, received_on").eq("client_id", client.id).order("created_at", { ascending: false }),
+        supabase
+          .from("sale_offers")
+          .select("id, amount, terms, status, note, received_on, buyer_agent_name, buyer_agent_email")
+          .eq("client_id", client.id)
+          .order("created_at", { ascending: false })
+          .then((r) =>
+            // Before the buyer's agent columns exist, read the offers without them.
+            r.error
+              ? supabase.from("sale_offers").select("id, amount, terms, status, note, received_on").eq("client_id", client.id).order("created_at", { ascending: false })
+              : r,
+          ),
       ])
     : [{ data: [] }, { data: [] }]
   const collected = (colData ?? []) as Collected[]

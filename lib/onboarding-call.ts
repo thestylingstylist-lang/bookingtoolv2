@@ -59,7 +59,10 @@ function letter(kind: "booked" | "day" | "hour" | "cancelled", c: CallRow, who: 
   }
 }
 
-const from = (c: CallRow) => ({ fromName: `${c.owner} at Marvberry`, replyTo: CHAT_HOST.email })
+const from = (c: CallRow) => ({
+  fromName: c.owner && c.owner !== "The Marvberry team" ? `${c.owner} at Marvberry` : "Marvberry",
+  replyTo: CHAT_HOST.email,
+})
 
 export async function sendCallEmail(kind: "booked" | "day" | "cancelled", c: CallRow, who: CallFor) {
   const m = letter(kind, c, who)

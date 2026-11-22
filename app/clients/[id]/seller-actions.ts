@@ -105,14 +105,21 @@ export async function addSaleOffer(formData: FormData): Promise<void> {
   const clientId = str(formData.get("clientId"))
   const amount = money(formData.get("amount"))
   if (!clientId || !amount) back(clientId, "saleoffer")
-  const { error } = await supabase.from("sale_offers").insert({
+  const row = {
     agent_id: userId,
     client_id: clientId,
     amount,
     terms: str(formData.get("terms"), 300) || null,
     note: str(formData.get("note")) || null,
     received_on: day(formData.get("receivedOn")) ?? new Date().toISOString().slice(0, 10),
-  })
+  }
+  const agent = {
+    buyer_agent_name: str(formData.get("buyerAgentName"), 120) || null,
+    buyer_agent_email: str(formData.get("buyerAgentEmail"), 200) || null,
+  }
+  let { error } = await supabase.from("sale_offers").insert({ ...row, ...agent })
+  // Before the buyer's agent columns exist, still save the offer.
+  if (error) ({ error } = await supabase.from("sale_offers").insert(row))
   back(clientId, error ? "saleoffer" : undefined)
 }
 

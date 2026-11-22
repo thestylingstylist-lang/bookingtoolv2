@@ -75,7 +75,7 @@ export async function bookChat(formData: FormData): Promise<BookingResult> {
       meetingType,
       zoom: CHAT_ZOOM,
     })
-    await sendEmail({ to: email, subject: c.subject, html: c.html, text: c.text, fromName: "Alecia at Marvberry", replyTo: CHAT_HOST.email })
+    await sendEmail({ to: email, subject: c.subject, html: c.html, text: c.text, fromName: `${CHAT_HOST.first} at Marvberry`, replyTo: CHAT_HOST.email })
 
     const n = agentNotificationEmail({
       agentName: CHAT_HOST.first,

@@ -10,7 +10,7 @@ import {
 } from "./seller-actions"
 
 export type OpenHouse = { id: string; starts_at: string; ends_at: string | null; kind: string; feedback: string | null }
-export type SaleOffer = { id: string; amount: number; terms: string | null; status: string; note: string | null; received_on: string | null }
+export type SaleOffer = { id: string; amount: number; terms: string | null; status: string; note: string | null; received_on: string | null; buyer_agent_name?: string | null; buyer_agent_email?: string | null }
 export type SaleHome = { address: string | null; price: number | null; listedOn: string | null; url: string | null }
 
 const input =
@@ -179,6 +179,11 @@ export default function SellerTools({
                   {[o.terms, o.received_on ? `Received ${o.received_on}` : ""].filter(Boolean).join(" · ")}
                 </p>
               )}
+              {(o.buyer_agent_name || o.buyer_agent_email) && (
+                <p className="text-xs text-lxsoft">
+                  Buyer&rsquo;s agent: {[o.buyer_agent_name, o.buyer_agent_email].filter(Boolean).join(" · ")}
+                </p>
+              )}
               <form action={updateSaleOffer} className="mt-2 space-y-2">
                 {hidden}
                 <input type="hidden" name="id" value={o.id} />
@@ -202,6 +207,14 @@ export default function SellerTools({
           <label>
             <span className={small}>Received</span>
             <input name="receivedOn" type="date" className={input} />
+          </label>
+          <label>
+            <span className={small}>Buyer&rsquo;s agent name</span>
+            <input name="buyerAgentName" placeholder="Their name" className={input} />
+          </label>
+          <label>
+            <span className={small}>Buyer&rsquo;s agent email</span>
+            <input name="buyerAgentEmail" type="email" placeholder="name@brokerage.com" className={input} />
           </label>
           <label className="sm:col-span-2">
             <span className={small}>Terms</span>

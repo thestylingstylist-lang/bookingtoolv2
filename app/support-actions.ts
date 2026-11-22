@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
+import { teamSender } from "@/lib/team-sender"
 import { sendEmail } from "@/lib/email"
 import { teamNote, para, button, small, esc } from "@/lib/letter"
 
@@ -98,7 +99,7 @@ export async function sendTeamReply(
         small("Or just reply to this email. It comes straight to us."),
     )
     const text = `${body}\n\nReply in Marvberry: https://www.marvberry.com/support\nOr just reply to this email.`
-    emailed = await sendEmail({ to, subject: "A message from the Marvberry team", html, text, fromName: "Alecia at Marvberry", replyTo: "team@marvberry.com" })
+    emailed = await sendEmail({ to, subject: "A message from the Marvberry team", html, text, fromName: (await teamSender()).from, replyTo: "team@marvberry.com" })
   }
 
   revalidatePath("/admin/messages")

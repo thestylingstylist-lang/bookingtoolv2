@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { isAdminEmail } from "@/lib/admin"
+import { teamSender } from "@/lib/team-sender"
 import { sendEmail } from "@/lib/email"
 import { teamNote, para, button, small, esc } from "@/lib/letter"
 import { redirect } from "next/navigation"
@@ -79,7 +80,8 @@ export async function requestDocs(formData: FormData) {
   ])
   const to = au?.user?.email
   if (to) {
-    const owner = (ob?.owner as string) || "Alecia"
+    const sender = await teamSender()
+    const owner = sender.name
     const first = ((ag?.full_name as string) || "").trim().split(/\s+/)[0]
     const list = titles.map((t) => `• ${esc(t)}`).join("<br>")
     const html = teamNote(
@@ -90,7 +92,7 @@ export async function requestDocs(formData: FormData) {
         small(`Questions? Message me right there in your Marvberry. ${esc(owner)}`),
     )
     const text = `Hi${first ? ` ${first}` : ""}, I'm setting up your account. Please send me these so I can turn them into ready-to-use templates for you:\n\n${titles.map((t) => `- ${t}`).join("\n")}\n\nUpload in Marvberry: https://www.marvberry.com/dashboard\n\n${owner}`
-    await sendEmail({ to, subject: "Your Marvberry setup: a few documents", html, text, fromName: `${owner} at Marvberry`, replyTo: "team@marvberry.com" })
+    await sendEmail({ to, subject: "Your Marvberry setup: a few documents", html, text, fromName: sender.from, replyTo: "team@marvberry.com" })
   }
   refresh()
 }
@@ -151,8 +153,8 @@ export async function scheduleCall(formData: FormData) {
   if (call_at.getTime() < Date.now()) redirect(`/admin/onboarding?a=${agent_id}&call=past`)
   const how = formData.get("how") === "phone" ? "phone" : "video"
   const note = String(formData.get("note") ?? "").trim().slice(0, 300)
-  const { data: ob } = await admin.from("onboarding").select("owner").eq("agent_id", agent_id).maybeSingle()
-  const owner = (ob?.owner as string) || "Alecia"
+  // The call is from whoever booked it; its reminders carry the same name.
+  const owner = (await teamSender()).name
 
   const { data: row, error } = await admin
     .from("onboarding_calls")
@@ -191,7 +193,7 @@ export async function cancelCall(formData: FormData) {
   await admin.from("onboarding_calls").update({ cancelled_at: new Date().toISOString() }).eq("id", id)
   if (row.hour_email_id) await cancelScheduledEmail(row.hour_email_id as string)
   const who = await callPerson(admin, row.agent_id as string)
-  if (who) await sendCallEmail("cancelled", row as unknown as CallRow, who)
+  if (who) await sendCallEmail("cancelled", { ...(row as unknown as CallRow), owner: (await teamSender()).name }, who)
   refresh()
   revalidatePath("/admin")
 }
