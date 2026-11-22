@@ -2,6 +2,7 @@ import "server-only"
 import { assistantDisplayName } from "@/lib/assistant-name"
 import { loadMeetAgent, availability, openTimes, toMeetKind } from "@/lib/meetings"
 import { OPS_TOOLS, OPS_NAMES, runOp, clientDetails } from "@/lib/diana-ops"
+import { memories as loadMemories, remember, forget } from "@/lib/diana-memory"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { formatInTimeZone } from "date-fns-tz"
@@ -200,6 +201,21 @@ const TOOLS: AgentTool[] = [
     },
   },
   ...OPS_TOOLS.filter((x) => x.name !== "client_details"),
+  {
+    name: "remember",
+    description:
+      "Keep a short note for future conversations: something about the agent (a preference or habit) or about one of their clients that the agent told you. Only what's worth keeping, in a few words, not every detail.",
+    input_schema: {
+      type: "object",
+      properties: { note: { type: "string" }, client_id: { type: "string", description: "Only if the note is about one client." } },
+      required: ["note"],
+    },
+  },
+  {
+    name: "forget",
+    description: "Remove a note you keep, by its id from the notes in your instructions. Use when the agent says to forget something.",
+    input_schema: { type: "object", properties: { memory_id: { type: "string" } }, required: ["memory_id"] },
+  },
 ]
 
 export async function handleRequest(
@@ -239,6 +255,12 @@ export async function handleRequest(
   const meetAgent = await loadMeetAgent(db, agentId).catch(() => null)
   const meetLen = { call: meetAgent?.call_minutes ?? 30, inperson: meetAgent?.inperson_minutes ?? 60 }
 
+  // What Diana keeps between conversations, private to this agent.
+  const kept = await loadMemories(db, agentId).catch(() => [])
+  const keptText = kept.length
+    ? kept.map((m) => `- [${m.id}] ${m.client_name ? `About ${m.client_name}: ` : ""}${m.body}`).join("\n")
+    : "Nothing yet."
+
   const system = `You are ${me}, the real estate assistant for ${agentName || "this agent"}${agent?.business_name ? ` at ${agent.business_name}` : ""}. You work inside Marvberry.
 
 You know how a deal runs from first booking to closing: consult, buyer agreement, pre-approval, showings, offer, inspection, appraisal, mortgage commitment, final walk-through, closing. You know the paperwork and the timing, and you keep the deal moving.
@@ -271,6 +293,12 @@ How you carry yourself. These are principles, not scripts.
 - One question at a time, and never re-ask something that's still waiting on an answer.
 - When there's an obvious next step, propose it confidently as a single, simple yes-or-no question that keeps things moving forward. Never sound tentative: no "whenever you like", "if you'd like" or "I can... if you want". You propose, and the agent decides.
 - When the agent shares news without asking for anything, first respond to it the way a caring person would, then ask one gentle, serving question about how you can help. Don't assume the next step or offer a plan unprompted. Your questions should feel like natural conversation that leads somewhere, not a checklist.
+
+What you remember. These notes are yours from earlier conversations, private to this agent. Use them quietly where they help; don't recite them.
+${keptText}
+- Keep what matters across conversations with remember: the agent's preferences and habits, and notes about clients the agent tells you. Short notes, not every word. Don't keep what's already in the client's file.
+- When the agent says to forget something, remove it with forget and confirm in one line.
+- When something is worth keeping, you can say so naturally, like a person would. Not every time.
 
 What you can do, and when you ask. These are principles, not scripts.
 - You can do everything the agent can do in Marvberry: clients and their details, steps and stages, documents and signatures, templates, homes and offers, seller tools, the calendar, bookings, meetings, messages, reminders, the suite link, settings and the card.
@@ -465,6 +493,16 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
 
       case "prepare_offer":
         return prepareOffer(db, clientId, input, cards, nameOf(clientId))
+    }
+    if (name === "remember") {
+      const cid = str(input.client_id, 60)
+      if (cid && !clients.some((c) => c.id === cid)) return "That client isn't in the agent's list, so nothing was kept."
+      const res = await remember(db, agentId, str(input.note, 300), cid || null)
+      return res.ok ? "Kept. Mention it only if it matters, naturally." : "It didn't save. Carry on without mentioning it."
+    }
+    if (name === "forget") {
+      const ok = await forget(db, agentId, str(input.memory_id, 60))
+      return ok ? "Forgotten. Confirm in one short line." : "Couldn't find that note. Ask which one."
     }
     if (OPS_NAMES.has(name)) return runOp(opsCtx, name, input)
     return "Unknown tool."

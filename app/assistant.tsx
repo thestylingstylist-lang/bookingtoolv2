@@ -5,7 +5,7 @@
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { usePathname, useRouter } from "next/navigation"
-import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat, sendMeetingFromChat, confirmOp } from "./assistant-actions"
+import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat, sendMeetingFromChat, confirmOp, loadConversation, endChat, chatHistory, chatFromHistory } from "./assistant-actions"
 import type { ChatAnswer, ChatCard } from "@/lib/agent-chat"
 
 export const ASK_EVENT = "mb-ask"
@@ -30,6 +30,12 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
   const [draft, setDraft] = useState("")
   const [thinking, setThinking] = useState(false)
   const [name, setName] = useState("Diana")
+  const [keep, setKeep] = useState(true)
+  const [loaded, setLoaded] = useState(false)
+  const [ending, setEnding] = useState(false)
+  const [view, setView] = useState<"chat" | "history" | "read">("chat")
+  const [past, setPast] = useState<{ id: string; title: string; when: string }[]>([])
+  const [reading, setReading] = useState<{ title: string; lines: { me: boolean; text: string }[] } | null>(null)
   const linesRef = useRef<Line[]>([])
   linesRef.current = lines
   const feed = useRef<HTMLDivElement>(null)
@@ -61,6 +67,30 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
   useEffect(() => {
     if (open) setTimeout(() => input.current?.focus(), 250)
   }, [open])
+
+  // Pick up the conversation in progress (it survives a refresh).
+  useEffect(() => {
+    if (!open || loaded) return
+    setLoaded(true)
+    loadConversation()
+      .then((c) => {
+        setKeep(c.keep)
+        if (c.lines.length && !linesRef.current.length) setLines(c.lines.map((l, i) => ({ id: i + 1, me: l.me, text: l.text })))
+      })
+      .catch(() => {})
+  }, [open, loaded])
+
+  async function end(keepIt: boolean) {
+    setEnding(false)
+    setLines([])
+    setView("chat")
+    await endChat(keepIt).catch(() => {})
+  }
+
+  async function openHistory() {
+    setView("history")
+    setPast(await chatHistory().catch(() => []))
+  }
 
   useEffect(() => {
     assistantName().then(setName).catch(() => {})
@@ -116,12 +146,64 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
             <p className="nm">{name}</p>
             <p className="st">{thinking ? "Working on it…" : "Your assistant"}</p>
           </div>
+          <div className="mba-links">
+            {view === "chat" ? (
+              <>
+                {keep && <button type="button" onClick={openHistory}>History</button>}
+                {lines.length > 0 && <button type="button" onClick={() => setEnding(true)}>End conversation</button>}
+              </>
+            ) : (
+              <button type="button" onClick={() => (view === "read" ? setView("history") : setView("chat"))}>{view === "read" ? "← History" : "← Back to chat"}</button>
+            )}
+          </div>
           <button type="button" className="x" onClick={() => show(false)} aria-label="Close">
             <svg viewBox="0 0 24 24" aria-hidden><path d="M6 6l12 12M18 6 6 18" /></svg>
           </button>
         </div>
 
-        <div className="mba-feed" ref={feed} aria-live="polite">
+        {view === "history" && (
+          <div className="mba-hist">
+            <p className="h">History</p>
+            {past.length === 0 && <p className="e">Nothing here yet. Conversations you keep show here for 90 days.</p>}
+            {past.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className="row"
+                onClick={async () => {
+                  const got = await chatFromHistory(c.id).catch(() => null)
+                  if (got) {
+                    setReading(got)
+                    setView("read")
+                  }
+                }}
+              >
+                <span className="t">{c.title}</span>
+                <span className="w">{c.when}</span>
+              </button>
+            ))}
+            {past.length > 0 && <p className="e">To pick up where you left off, just ask {name}.</p>}
+          </div>
+        )}
+        {view === "read" && reading && (
+          <div className="mba-feed">
+            <p className="mba-read">{reading.title}</p>
+            {reading.lines.map((l, i) => (
+              <p key={i} className={`b ${l.me ? "me" : "bot"}`}>{l.me ? l.text : <Plain text={l.text} />}</p>
+            ))}
+          </div>
+        )}
+        {ending && (
+          <div className="mba-sheet" role="dialog" aria-label="End this conversation?">
+            <p className="h">End this conversation?</p>
+            <p className="s">Anything {name} already did stays: drafts, reminders and steps. What she&rsquo;s noted about you stays too.</p>
+            <button type="button" className="k" onClick={() => end(true)}>End and keep</button>
+            <button type="button" className="c" onClick={() => end(false)}>End and clear</button>
+            <button type="button" className="n" onClick={() => setEnding(false)}>Not yet</button>
+            <p className="f">Keep puts it in History. Clear removes it for good.</p>
+          </div>
+        )}
+        <div className="mba-feed" ref={feed} aria-live="polite" style={view === "chat" ? undefined : { display: "none" }}>
           {!lines.length && (
             <div className="mba-hello">
               <p className="b bot">What can I take off your plate today?</p>
@@ -149,6 +231,7 @@ export default function Assistant({ onOpenChange }: { onOpenChange?: (open: bool
         </div>
 
         <form
+          style={view === "chat" ? undefined : { display: "none" }}
           className="mba-input"
           onSubmit={(e) => {
             e.preventDefault()
@@ -412,6 +495,21 @@ const CSS = `
 .mba{position:fixed;top:0;right:0;bottom:0;z-index:60;width:380px;max-width:100vw;display:flex;flex-direction:column;background:#fff;border-left:1px solid rgba(22,21,26,.07);box-shadow:-20px 0 50px -40px rgba(22,21,26,.35);transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);font-family:var(--font-geist-sans),-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#16151a}
 .mba.on{transform:none}
 .mba-head{display:flex;align-items:center;gap:10px;padding:14px 14px 12px 16px;border-bottom:1px solid rgba(22,21,26,.06)}
+.mba-links{margin-left:auto;display:flex;gap:14px;align-items:center}
+.mba-links button{background:none;border:0;border-bottom:1px solid #C2A46B;padding:0;font:inherit;font-size:12.5px;color:#1F1E1C;cursor:pointer}
+.mba-hist{flex:1;overflow-y:auto;padding:6px 0}
+.mba-hist .h,.mba-read{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;margin:12px 16px 6px;color:#1F1E1C}
+.mba-hist .row{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid rgba(31,30,28,.09);padding:13px 16px;cursor:pointer}
+.mba-hist .row .t{display:block;font-size:14px;color:#1F1E1C}
+.mba-hist .row .w{display:block;margin-top:3px;font-size:12px;color:#67635C}
+.mba-hist .e{margin:14px 16px;font-size:12.5px;color:#67635C}
+.mba-sheet{position:absolute;left:0;right:0;bottom:0;z-index:5;background:#fff;border-top:1px solid rgba(194,164,107,.55);padding:22px 20px 22px;box-shadow:0 -20px 40px -30px rgba(31,30,28,.4);display:flex;flex-direction:column;gap:10px}
+.mba-sheet .h{margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;color:#1F1E1C}
+.mba-sheet .s{margin:0 0 6px;font-size:13px;line-height:1.55;color:#67635C}
+.mba-sheet .k{border:1px solid #1F1E1C;background:none;border-radius:2px;padding:10px;font:inherit;font-size:13px;color:#1F1E1C;cursor:pointer}
+.mba-sheet .c{background:none;border:0;padding:6px 0;font:inherit;font-size:13px;color:#1F1E1C;cursor:pointer;text-decoration:underline;text-decoration-color:#C2A46B;text-underline-offset:4px}
+.mba-sheet .n{background:none;border:0;font:inherit;font-size:13px;color:#67635C;cursor:pointer}
+.mba-sheet .f{margin:4px 0 0;text-align:center;font-size:12px;color:#67635C}
 .mba-head img{width:36px;height:36px;object-fit:contain}
 .mba-head .nm{margin:0;font-weight:600;font-size:15px}
 .mba-head .st{margin:1px 0 0;font-size:12px;color:#8d8b92}

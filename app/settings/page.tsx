@@ -7,6 +7,8 @@ import AgreementForm from "./agreement-form"
 import AssistantForm from "./assistant-form"
 import NotifyForm from "./notify-form"
 import MeetingForm from "./meeting-form"
+import DianaMemoryForm from "./diana-memory-form"
+import { memories as loadMemories } from "@/lib/diana-memory"
 import { loadAssistantName } from "@/lib/assistant-name"
 import { assistantFor } from "@/lib/assistant"
 import { aiPrefsFor } from "@/lib/ai-prefs"
@@ -73,6 +75,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const hoursLabel = hoursSaid(agent.weekdays, agent.day_start, agent.day_end)
 
   const { data: lenRow } = await supabase.from("agents").select("meeting_call_minutes, meeting_inperson_minutes").eq("id", user.id).maybeSingle()
+  const { data: keepRow } = await supabase.from("agents").select("assistant_keep").eq("id", user.id).maybeSingle()
+  const keepChats = (keepRow?.assistant_keep as boolean | undefined) ?? true
+  const dianaNotes = await loadMemories(supabase, user.id).catch(() => [])
   const meetLens = { call: lenRow?.meeting_call_minutes ?? 30, inPerson: lenRow?.meeting_inperson_minutes ?? 60 }
 
   const assistant = await assistantFor(supabase, user.id)
@@ -154,6 +159,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <div className="mt-6">
                 <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} prefs={aiPrefs} />
                 <MeetingForm call={meetLens.call} inPerson={meetLens.inPerson} name={assistantName} />
+                <DianaMemoryForm name={assistantName} keep={keepChats} notes={dianaNotes.map((m) => ({ id: m.id, body: m.body, client_name: m.client_name }))} />
               </div>
             </section>
           </div>

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { releaseHeld } from "@/lib/notify"
 import { closeExpired } from "@/lib/meetings"
+import { tidyConversations } from "@/lib/diana-memory"
 import { sendEmail } from "@/lib/email"
 import { teamNote, para, button, esc } from "@/lib/letter"
 
@@ -34,6 +35,12 @@ export async function GET(request: NextRequest) {
     meetings = await closeExpired(admin)
   } catch (e) {
     console.error("[notify cron] meetings", e)
+  }
+
+  try {
+    await tidyConversations(admin)
+  } catch (e) {
+    console.error("[notify cron] conversations", e)
   }
 
   let emailed = 0

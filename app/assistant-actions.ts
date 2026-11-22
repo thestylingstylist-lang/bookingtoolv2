@@ -12,6 +12,7 @@ import { sendOffer } from "./clients/[id]/homes-actions"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendInvite, toMeetKind } from "@/lib/meetings"
 import { runConfirmed } from "@/lib/diana-ops"
+import { openConversation, saveConversation, endConversation, history, keptConversation, forget, forgetAll, type SavedLine } from "@/lib/diana-memory"
 
 // The assistant chat, from any app page. ctxClientId is set when the agent is in a client's file.
 export async function askMarvberry(history: ChatTurn[], ctxClientId: string | null): Promise<ChatAnswer> {
@@ -24,6 +25,11 @@ export async function askMarvberry(history: ChatTurn[], ctxClientId: string | nu
   const team = isAdminEmail(user.email)
   try {
     const { reason, ...answer } = await handleRequest(supabase, user.id, history.slice(-14), ctxClientId)
+    // Keep the conversation, so it survives a refresh and can go to History.
+    await saveConversation(supabase, user.id, [
+      ...history.map((h) => ({ me: h.me, text: h.text })),
+      { me: false, text: answer.reply },
+    ]).catch(() => {})
     if (reason && team) return { ...answer, reply: `${answer.reply}\n\nFor the Marvberry team: ${reason}` }
     return answer
   } catch (e) {
@@ -201,4 +207,77 @@ export async function confirmOp(op: string, args: Record<string, string>): Promi
   if (!user) return { ok: false, message: "Your session ended. Sign in again." }
   if (!CONFIRMABLE.has(op)) return { ok: false, message: "That isn't something I can do from here." }
   return runConfirmed(op, args)
+}
+
+// ---------------------------------------------------------------- conversations
+
+async function me() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  return { supabase, user }
+}
+
+export async function loadConversation(): Promise<{ lines: SavedLine[]; keep: boolean }> {
+  const { supabase, user } = await me()
+  if (!user) return { lines: [], keep: true }
+  const cur = await openConversation(supabase, user.id).catch(() => null)
+  const { data } = await supabase.from("agents").select("assistant_keep").eq("id", user.id).maybeSingle()
+  return { lines: cur?.lines ?? [], keep: (data?.assistant_keep as boolean | undefined) ?? true }
+}
+
+export async function endChat(keep: boolean): Promise<{ ok: boolean }> {
+  const { supabase, user } = await me()
+  if (!user) return { ok: false }
+  await endConversation(supabase, user.id, keep).catch(() => {})
+  return { ok: true }
+}
+
+export async function chatHistory(): Promise<{ id: string; title: string; when: string }[]> {
+  const { supabase, user } = await me()
+  if (!user) return []
+  const { data: a } = await supabase.from("agents").select("timezone").eq("id", user.id).maybeSingle()
+  const tz = (a?.timezone as string) || "America/New_York"
+  const { formatInTimeZone } = await import("date-fns-tz")
+  const today = formatInTimeZone(new Date(), tz, "yyyy-MM-dd")
+  return (await history(supabase, user.id).catch(() => [])).map((c) => {
+    const d = new Date(c.last_at)
+    const day = formatInTimeZone(d, tz, "yyyy-MM-dd")
+    const when = day === today ? `Today, ${formatInTimeZone(d, tz, "h:mm a")}` : Date.now() - d.getTime() < 6 * 86400000 ? formatInTimeZone(d, tz, "EEEE") : formatInTimeZone(d, tz, "MMM d")
+    return { id: c.id, title: c.title || "Conversation", when }
+  })
+}
+
+export async function chatFromHistory(id: string): Promise<{ title: string; lines: SavedLine[] } | null> {
+  const { supabase, user } = await me()
+  if (!user) return null
+  const c = await keptConversation(supabase, user.id, id).catch(() => null)
+  return c ? { title: c.title, lines: Array.isArray(c.lines) ? c.lines : [] } : null
+}
+
+// ---------------------------------------------------------------- settings
+
+export async function saveKeepSetting(keep: boolean): Promise<{ ok: boolean; message: string }> {
+  const { supabase, user } = await me()
+  if (!user) return { ok: false, message: "Your session ended. Sign in again." }
+  const { error } = await supabase.from("agents").update({ assistant_keep: keep }).eq("id", user.id)
+  revalidatePath("/settings")
+  return error ? { ok: false, message: "That didn't save. Message us from Support, and we'll switch it on." } : { ok: true, message: "Saved." }
+}
+
+export async function deleteMemory(id: string): Promise<{ ok: boolean }> {
+  const { supabase, user } = await me()
+  if (!user) return { ok: false }
+  const ok = await forget(supabase, user.id, id)
+  revalidatePath("/settings")
+  return { ok }
+}
+
+export async function clearMemories(): Promise<{ ok: boolean }> {
+  const { supabase, user } = await me()
+  if (!user) return { ok: false }
+  const ok = await forgetAll(supabase, user.id)
+  revalidatePath("/settings")
+  return { ok }
 }
