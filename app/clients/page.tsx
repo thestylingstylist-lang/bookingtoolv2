@@ -4,6 +4,7 @@ import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import { addClient } from "./actions"
 import ClientRow from "./client-row"
+import { loadAssistantName } from "@/lib/assistant-name"
 
 export const dynamic = "force-dynamic"
 
@@ -36,6 +37,7 @@ export default async function ClientsPage({
     .maybeSingle()
   const agent = agentData as AgentRow | null
   if (!agent) redirect("/login")
+  const assistantName = await loadAssistantName(supabase, user.id)
 
   const { data } = await supabase
     .from("clients")
@@ -54,7 +56,7 @@ export default async function ClientsPage({
 
         {params.added && (
           <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
-            Client added.
+            Client added. Open them to send their suite link.
           </p>
         )}
         {params.updated && (
@@ -64,22 +66,22 @@ export default async function ClientsPage({
         )}
         {params.deleted && (
           <p className="mt-6 rounded-lg bg-lxgold/10 px-4 py-3 text-sm text-lxgold">
-            Client deleted.
+            Client deleted, with their steps, documents and messages.
           </p>
         )}
         {params.error === "delete" && (
           <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-            Couldn&rsquo;t delete that client. Please try again.
+            That client didn&rsquo;t delete. Refresh the page and try again.
           </p>
         )}
         {params.error === "name" && (
           <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-            Please enter at least a first or last name.
+            Add a first or last name, then save.
           </p>
         )}
         {params.error === "save" && (
           <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
-            Couldn&rsquo;t save that client. Please try again.
+            That client didn&rsquo;t save. Check the details and try again.
           </p>
         )}
 
@@ -124,7 +126,7 @@ export default async function ClientsPage({
           <div className="mt-8 rounded-2xl border border-lxink/10 bg-card p-10 text-center">
             <h2 className="font-serif font-semibold tracking-tight text-xl">No clients yet.</h2>
             <p className="mt-2 text-lxink/60">
-              Add your first client above, and they&rsquo;ll appear here.
+              Add your first one above, and {assistantName} will take it from there.
             </p>
           </div>
         ) : (

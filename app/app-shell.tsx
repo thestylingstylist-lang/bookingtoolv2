@@ -222,14 +222,15 @@ function TrialBanner({ endsAt, status }: { endsAt: string | null; status: string
     days <= 0
       ? "Your free trial has ended."
       : days === 1
-        ? "Last day of your free trial."
+        ? "Your free trial ends today."
         : `${days} days left in your free trial.`
   return (
     <div className="border-b border-lxhair bg-lxbg px-6 py-2.5 text-center text-sm text-lxink">
       {text}{" "}
       <a href="/billing" className="border-b border-lxgold text-lxink no-underline">
-        Pick your plan
+        Choose your plan
       </a>
+      {days <= 0 ? " to keep everything running." : ""}
     </div>
   )
 }

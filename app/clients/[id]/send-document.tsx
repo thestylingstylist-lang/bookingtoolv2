@@ -78,9 +78,9 @@ export default function SendDocument({
   if (templates.length === 0) {
     return (
       <div className="w-full rounded-xl border border-lxink/10 bg-white p-4 text-sm">
-        <p className="text-lxink/70">You don&rsquo;t have a template yet.</p>
+        <p className="text-lxink/70">No templates yet. Set up your agreement once, and send it to any client.</p>
         <Link href="/templates/new" className="mt-2 inline-block text-lxgold underline">
-          Create your agreement template
+          Set up your agreement
         </Link>
       </div>
     )

@@ -40,7 +40,7 @@ function nextMove(h: HomeView, first: string): { line: string; action: string; d
   if (o?.status === "accepted") return { line: `Offer of ${o.amount} accepted.`, action: "Open", dot: false, view: "home" }
   if (o?.status === "declined") return { line: `Your ${o.amount} offer was declined.`, action: "Make a new offer", dot: false, view: "offer" }
   if (h.clientAsked)
-    return { line: `${first || "Your client"} wants to make an offer. Asked ${h.clientAsked}.`, action: "Make an offer", dot: true, view: "offer" }
+    return { line: `${first || "Your client"} asked to make an offer on ${h.clientAsked}.`, action: "Make an offer", dot: true, view: "offer" }
   if (!h.showLabel) return { line: "No showing set yet.", action: "Set the showing", dot: false, view: "home" }
   if (!h.shown) return { line: `Showing ${h.showLabel}.`, action: "Open", dot: false, view: "home" }
   if (!h.notes) return { line: `Seen ${h.showLabel.replace(/ at .*/, "")}. How did it go?`, action: first ? `Add ${first}'s notes` : "Add notes", dot: true, view: "home" }
@@ -57,6 +57,7 @@ export default function Homes({
   homes,
   docs,
   forms = [],
+  assistantName = "Diana",
 }: {
   clientId: string
   clientFirst: string
@@ -64,6 +65,7 @@ export default function Homes({
   homes: HomeView[]
   docs: DocView[]
   forms?: FormView[]
+  assistantName?: string
 }) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [startView, setStartView] = useState<View>("home")
@@ -146,7 +148,7 @@ export default function Homes({
         </div>
       )}
 
-      {open && createPortal(<HomePanel key={open.id} home={open} clientFirst={clientFirst} clientFull={clientFull} docs={docs} forms={forms} startView={startView} onClose={() => setOpenId(null)} />, document.body)}
+      {open && createPortal(<HomePanel key={open.id} home={open} clientFirst={clientFirst} clientFull={clientFull} docs={docs} forms={forms} assistantName={assistantName} startView={startView} onClose={() => setOpenId(null)} />, document.body)}
     </section>
   )
 }
@@ -157,6 +159,7 @@ function HomePanel({
   clientFull,
   docs,
   forms,
+  assistantName,
   startView,
   onClose,
 }: {
@@ -165,6 +168,7 @@ function HomePanel({
   clientFull: string
   docs: DocView[]
   forms: FormView[]
+  assistantName: string
   startView: View
   onClose: () => void
 }) {
@@ -203,7 +207,7 @@ function HomePanel({
         </button>
 
         {view === "offer" ? (
-          <OfferForm home={home} clientFull={clientFull} docs={docs} forms={forms} onBack={() => setView("home")} onDone={onClose} />
+          <OfferForm home={home} clientFull={clientFull} docs={docs} forms={forms} assistantName={assistantName} onBack={() => setView("home")} onDone={onClose} />
         ) : view === "follow" && home.offer ? (
           <FollowUpForm
             offer={home.offer}

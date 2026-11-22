@@ -65,7 +65,7 @@ export default async function BillingPage() {
               </p>
               <ul className="mt-4 space-y-1.5 text-sm leading-relaxed">
                 <li>Booking and scheduling, with reminders</li>
-                <li>A page for every buyer, no login, with their offer and updates</li>
+                <li>A private suite for every client, with no login</li>
                 <li>Signature requests and document requests</li>
                 <li>Your own email signature</li>
                 <li>Offers built and sent to the listing agent</li>

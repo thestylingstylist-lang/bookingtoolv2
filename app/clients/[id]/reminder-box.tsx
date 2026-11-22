@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react"
 import { sendNudge } from "@/app/dashboard/nudge-actions"
 import { draftReminder } from "./draft-actions"
 
-// Opens with the plain draft. With Marvberry Assistant on her plan, the
+// Opens with the plain draft. With the assistant on her plan, the
 // assistant rewrites it in her voice. She reads it, edits anything, and sends.
 // Nothing goes out without her tap.
 export default function ReminderBox({
@@ -14,6 +14,7 @@ export default function ReminderBox({
   fallback,
   open,
   assistant = false,
+  assistantName = "Diana",
 }: {
   stepId: string
   who: string
@@ -21,6 +22,7 @@ export default function ReminderBox({
   fallback: string
   open?: boolean
   assistant?: boolean
+  assistantName?: string
 }) {
   const [text, setText] = useState(fallback)
   const [writing, start] = useTransition()
@@ -46,7 +48,7 @@ export default function ReminderBox({
       <summary className="block cursor-pointer list-none rounded-lg border border-lxhair bg-lxfill px-3 py-2.5 [&::-webkit-details-marker]:hidden">
         <span className="block text-xs font-semibold text-lxink">Ready to send</span>
         <span className="mt-0.5 block font-semibold tracking-tight text-xs text-lxsoft">
-          {assistant ? "Your client reminder, written in your voice by Marvberry Assistant." : "Your client reminder."}
+          {assistant ? `Your reminder, written in your voice by ${assistantName}.` : "Your reminder."}
         </span>
         <span className="mt-2 inline-block rounded-[2px] border border-lxink px-2.5 py-1.5 text-xs text-lxink group-open/rb:hidden">
           Read, edit, send.
@@ -55,7 +57,7 @@ export default function ReminderBox({
       <form action={sendNudge} className="mt-2 space-y-2">
         <input type="hidden" name="stepId" value={stepId} />
         <input type="hidden" name="from" value="client" />
-        {writing && <p className="text-xs text-lxsoft">Writing this in your voice…</p>}
+        {writing && <p className="text-xs text-lxsoft">{assistantName} is writing this in your voice…</p>}
         <textarea
           name="body"
           rows={8}

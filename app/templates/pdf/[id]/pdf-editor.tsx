@@ -12,7 +12,7 @@ type PdfJs = typeof import("pdfjs-dist")
 const VIEW_W = 720
 const uid = () => Math.random().toString(36).slice(2, 10)
 
-export default function PdfEditor({ id, title, url, initial }: { id: string; title: string; url: string; initial: PdfField[] }) {
+export default function PdfEditor({ id, title, url, initial, assistantName = "Diana" }: { id: string; title: string; url: string; initial: PdfField[]; assistantName?: string }) {
   const router = useRouter()
   const [pages, setPages] = useState<PageInfo[]>([])
   const [fields, setFields] = useState<PdfField[]>(initial)
@@ -153,7 +153,7 @@ export default function PdfEditor({ id, title, url, initial }: { id: string; tit
       <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-semibold tracking-tight text-3xl">{title}</h1>
-          <p className="mt-1 text-sm text-lxink/55">Place the blanks where Marvberry should write. Your form keeps its logo and layout.</p>
+          <p className="mt-1 text-sm text-lxink/55">Place the blanks where {assistantName} should write. Your form keeps its logo and layout.</p>
         </div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={findBlanks} disabled={state !== "ready"} className="rounded-lg border border-lxink/15 bg-white px-4 py-2.5 text-sm font-medium hover:bg-lxink/5 disabled:opacity-50">

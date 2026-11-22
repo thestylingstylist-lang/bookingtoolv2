@@ -392,7 +392,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
       await sleep(400)
       // 1. Meet your assistant
       await say(
-        `Hi${first ? ` ${first}` : ""}! I’m Diana, your new real estate assistant. I’m here to help you spend less time on busywork and more time with your clients.`,
+        `Hi${first ? ` ${first}` : ""}. I’m Diana, your new real estate assistant. I’ll take the busywork, so you have more time with your clients.`,
       )
       await say("First, what would you like to call me? You can always change this later.")
       const picked = await wait({ kind: "chips", options: NAMES, own: true })
@@ -447,7 +447,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
         }
 
         // 4. Turn the first win into a habit
-        await say(done.size === 1 ? "Your first task is complete! What else can I take off your plate?" : "Done. What else can I take off your plate?")
+        await say(done.size === 1 ? "Your first task is done. What else can I take off your plate?" : "Done. What else can I take off your plate?")
         next = []
         if (!done.has(T_AGREEMENT)) next.push(client ? `Prepare ${client.first}’s agreement` : T_AGREEMENT)
         if (!done.has(T_CLIENT)) next.push(T_CLIENT)
@@ -464,7 +464,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
         const full = await wait({ kind: "input", placeholder: "Sandra Lewis", value: "", button: "Next" })
         add({ from: "me", text: full })
         const f = full.split(" ")[0]
-        await say(`What’s the best email for ${f}? I’ll use it to share their page with them.`)
+        await say(`What’s the best email for ${f}? I’ll use it to send their suite.`)
         const em = await wait({ kind: "input", placeholder: "sandra@email.com", value: "", button: "Next", skip: true, type: "email" })
         add({ from: "me", text: em === SKIP ? "I’ll add it later" : em })
         await say(`And a phone number for ${f}?`)

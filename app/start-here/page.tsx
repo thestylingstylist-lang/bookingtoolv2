@@ -39,7 +39,7 @@ export default async function StartHerePage() {
       </h1>
       <p className="mt-2 text-lxink/60">
         {complete
-          ? "Your page is ready to share. You can always fine-tune things in Settings."
+          ? "Your booking page is ready to share. You can change anything later in Settings."
           : "A few quick steps to get your booking page ready for clients."}
       </p>
 

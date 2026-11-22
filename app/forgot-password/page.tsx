@@ -17,7 +17,7 @@ export default async function ForgotPasswordPage({
         <p className="text-sm font-medium tracking-wide text-lxgold">Agent access</p>
         <h1 className="mt-2 font-serif font-semibold tracking-tight text-3xl">Reset your password</h1>
         <p className="mt-2 text-sm text-lxink/60">
-          Enter the email you signed up with and we&rsquo;ll send you a link.
+          Enter the email you signed up with, and we&rsquo;ll send you a link.
         </p>
       </header>
       {error === "link" && (

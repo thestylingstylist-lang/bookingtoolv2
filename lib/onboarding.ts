@@ -37,7 +37,7 @@ export const SETUP_STEPS: SetupStep[] = [
   {
     key: "brand",
     title: "Add your logo and photo",
-    detail: "Put your face and mark on your booking page so it looks like you, not a form.",
+    detail: "Add your photo and logo, so your booking page looks like you.",
     cta: "Add branding",
     href: "/settings?tab=company",
     done: (s) => !!(s.agent.logo_url || s.agent.headshot_url),
@@ -61,7 +61,7 @@ export const SETUP_STEPS: SetupStep[] = [
   {
     key: "share",
     title: "Share your booking link",
-    detail: "Send your link to a client or add it to your bio. Your first booking marks this done.",
+    detail: "Send your link to a client or add it to your bio. This ticks itself off with your first booking.",
     cta: "View your link",
     href: "/dashboard",
     done: (s) => s.bookingCount > 0,

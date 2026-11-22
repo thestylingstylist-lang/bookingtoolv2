@@ -50,7 +50,7 @@ export default function SupportThread({
       <div ref={boxRef} className={(compact ? "h-[300px]" : "max-h-[55vh]") + " space-y-3 overflow-y-auto p-5"}>
         {messages.length === 0 && (
           <p className="py-6 text-center text-sm text-lxink/50">
-            {compact ? `Questions about your setup? Ask ${teamName} here.` : "No messages yet. Ask us anything — setup, a client, a bug, an idea."}
+            {compact ? "Questions about your setup? Ask us here." : "No messages yet. Ask us anything: your setup, a client, an idea."}
           </p>
         )}
         {messages.map((m) => (

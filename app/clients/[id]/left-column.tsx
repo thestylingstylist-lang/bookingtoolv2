@@ -51,6 +51,7 @@ export default function LeftColumn({
   missingDocs,
   collected = [],
   assistant = false,
+  assistantName = "Diana",
   privateShowings = false,
   suite,
   heading,
@@ -68,6 +69,7 @@ export default function LeftColumn({
   missingDocs?: number
   collected?: Collected[]
   assistant?: boolean
+  assistantName?: string
   privateShowings?: boolean
   suite?: string
   heading?: string
@@ -103,7 +105,7 @@ export default function LeftColumn({
               type="submit"
               className="w-full rounded-lg border border-dashed border-lxhair bg-white px-3 py-2.5 text-sm text-lxsoft hover:border-lxink hover:text-lxink"
             >
-              Add the standard {current.label.toLowerCase()} steps
+              Add the usual {current.label} steps
             </button>
           </form>
         )}
@@ -149,7 +151,7 @@ export default function LeftColumn({
                   <p className="text-xs text-lxgold">Reminder sent to {who}.</p>
                 )}
                 {focus === t.id && nudge === "fail" && (
-                  <p className="text-xs text-lxink">The reminder didn&apos;t go out. Try again.</p>
+                  <p className="text-xs text-lxink">That reminder didn&apos;t go out. Try again in a moment.</p>
                 )}
                 {!t.done && t.due_on && toOwner(t.owner) === "client" && canNudge(t.due_on, t.nudged_at, tz) && (
                   canEmail ? (
@@ -158,6 +160,7 @@ export default function LeftColumn({
                       who={who}
                       agentFirst={agentFirst}
                       assistant={assistant}
+                      assistantName={assistantName}
                       open={focus === t.id && nudge !== "sent"}
                       fallback={nudgeDraft({
                         clientFirst: firstName,

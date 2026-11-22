@@ -15,15 +15,15 @@ export async function sendSupportMessage(
   formData: FormData
 ): Promise<SupportResult> {
   const body = String(formData.get("body") ?? "").trim()
-  if (!body) return { ok: false, message: "Please write something first." }
+  if (!body) return { ok: false, message: "Write your message first, then send." }
   if (body.length > 4000)
-    return { ok: false, message: "That's a bit long — please keep it under 4000 characters." }
+    return { ok: false, message: "That's a bit long. Keep it under 4,000 characters, then send." }
 
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: "Please sign in again." }
+  if (!user) return { ok: false, message: "Your session ended. Sign in again." }
 
   let agentName: string | null = null
   const { data } = await supabase
@@ -43,11 +43,11 @@ export async function sendSupportMessage(
     read_by_team: false,
     read_by_agent: true,
   })
-  if (error) return { ok: false, message: "Something went wrong — please try again." }
+  if (error) return { ok: false, message: "That didn't send. Try again in a moment." }
 
   revalidatePath("/support")
   revalidatePath("/dashboard")
-  return { ok: true, message: "Got it — we'll get back to you soon." }
+  return { ok: true, message: "Message sent. We'll reply right here." }
 }
 
 // The team replies to an agent's thread.
@@ -73,7 +73,7 @@ export async function sendTeamReply(
     read_by_team: true,
     read_by_agent: false,
   })
-  if (error) return { ok: false, message: "Couldn't send — try again." }
+  if (error) return { ok: false, message: "That didn't send. Try again in a moment." }
 
   // Mark the agent's messages in this thread as read by the team.
   await admin

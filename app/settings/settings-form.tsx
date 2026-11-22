@@ -49,7 +49,7 @@ export default function SettingsForm({
 
       {/* ---- Your brand ---- */}
       <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 space-y-6">
-        <Head title="Your brand" sub="Your logo and photo, on your booking page, your client pages and your emails." />
+        <Head title="Your brand" sub="Your logo and photo, on your booking page, your clients’ suites and your emails." />
         <div className="grid gap-6 sm:grid-cols-2">
           <ImageField kind="logo" label="Logo" hint="Wide or square. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.logo_url} />
           <ImageField kind="headshot" label="Headshot" hint="A friendly photo of you. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.headshot_url} round />

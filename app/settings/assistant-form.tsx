@@ -151,7 +151,7 @@ export default function AssistantForm({
         <Switch
           name="offerNudges"
           title="Offer follow-ups"
-          line="Flags an offer with a pink dot when it's within a day of running out, with the follow-up already written."
+          line="Marks an offer with a small dot when it's a day from running out, with the follow-up already written."
           checked={v.offerNudges}
           onChange={set("offerNudges")}
         />

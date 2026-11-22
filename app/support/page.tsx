@@ -42,7 +42,7 @@ export default async function SupportPage() {
     <AppShell agent={agent}>
       <main className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
         <h1 className="font-serif text-3xl font-semibold tracking-tight sm:text-4xl">Support</h1>
-        <p className="mt-3 text-base font-medium text-lxink">We’re obsessed with customer service.</p>
+        <p className="mt-3 text-base font-medium text-lxink">Write to us anytime. A real person replies.</p>
         <p className="mt-1 text-sm leading-relaxed text-lxink/60">
           We answer Monday through Friday, so if you message us on a weekend or public holiday,
           we’ll get right back to you the next business day.

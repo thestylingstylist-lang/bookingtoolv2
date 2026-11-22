@@ -10,7 +10,7 @@ export async function sendFeedback(
   formData: FormData
 ): Promise<FeedbackResult> {
   const message = String(formData.get("message") ?? "").trim()
-  if (!message) return { ok: false, message: "Please write something first." }
+  if (!message) return { ok: false, message: "Write your message first, then send." }
   if (message.length > 4000)
     return { ok: false, message: "That's a bit long — please keep it under 4000 characters." }
 
@@ -36,7 +36,7 @@ export async function sendFeedback(
     agent_name: agentName,
     message,
   })
-  if (error) return { ok: false, message: "Something went wrong — please try again." }
+  if (error) return { ok: false, message: "That didn't send. Try again in a moment." }
 
-  return { ok: true, message: "Thank you — this really helps. We read every note." }
+  return { ok: true, message: "Thank you. We read every note." }
 }

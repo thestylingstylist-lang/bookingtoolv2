@@ -24,7 +24,7 @@ export async function startPdfTemplate(
   type: string,
 ): Promise<{ ok: true; id: string; path: string; token: string } | { ok: false; error: string }> {
   const { supabase, userId } = await me()
-  if (!userId) return { ok: false, error: "Please sign in again." }
+  if (!userId) return { ok: false, error: "Your session ended. Sign in again." }
   if (type !== "application/pdf" && !/\.pdf$/i.test(fileName)) return { ok: false, error: "Pick a PDF file." }
   if (size > MAX_BYTES) return { ok: false, error: "That PDF is over 15 MB. Try a smaller one." }
   const id = crypto.randomUUID()

@@ -44,7 +44,7 @@ export default function ClientRow({ client }: { client: Client }) {
           action={deleteClient}
           id={client.id}
           label={name}
-          confirmText={`Delete ${name}? This removes their checklist, documents, messages and uploads. It can't be undone.`}
+          confirmText={`Delete ${name}? Their steps, documents, messages and uploads go too. This can't be undone.`}
         />
         </div>
       </td>

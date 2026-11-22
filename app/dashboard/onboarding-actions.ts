@@ -43,7 +43,7 @@ export async function startSetupUpload(
   if (size > MAX_BYTES) return { ok: false, error: "That file is too big. The limit is 20 MB." }
   if (!ALLOWED.includes(type)) return { ok: false, error: "Please upload a PDF, a Word file or a photo." }
   const found = await findDoc(docId)
-  if (!found) return { ok: false, error: "Something went wrong. Please refresh and try again." }
+  if (!found) return { ok: false, error: "That didn't save. Refresh the page and try again." }
   const safe = fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80) || "file"
   const path = `${found.user.id}/${docId}-${Date.now()}-${safe}`
   const { data, error } = await found.admin.storage.from(BUCKET).createSignedUploadUrl(path)

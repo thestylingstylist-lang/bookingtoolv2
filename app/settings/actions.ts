@@ -16,7 +16,7 @@ export async function saveSettings(
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: "Please sign in again." }
+  if (!user) return { ok: false, message: "Your session ended. Sign in again, then save." }
 
   const businessName = String(formData.get("businessName") ?? "").trim()
   const timezone = String(formData.get("timezone") ?? "").trim()
@@ -37,21 +37,21 @@ export async function saveSettings(
   const publicPhone = String(formData.get("publicPhone") ?? "").trim().slice(0, 40)
   const publicEmail = String(formData.get("publicEmail") ?? "").trim().slice(0, 120)
 
-  if (!businessName) return { ok: false, message: "Business name can't be empty." }
+  if (!businessName) return { ok: false, message: "Add your business name, then save." }
   if (!(TIMEZONES as readonly string[]).includes(timezone))
     return { ok: false, message: "Pick a timezone from the list." }
   if (weekdays.length === 0)
     return { ok: false, message: "Choose at least one working day." }
   if (!(dayEnd > dayStart))
-    return { ok: false, message: "End time must be after start time." }
+    return { ok: false, message: "Set your day to end after it starts." }
   if (![15, 30, 45, 60].includes(slotMinutes))
-    return { ok: false, message: "Pick a valid slot length." }
+    return { ok: false, message: "Choose a call length from the list." }
   if (daysAhead < 1 || daysAhead > 60)
-    return { ok: false, message: "Booking window must be between 1 and 60 days." }
+    return { ok: false, message: "Choose a booking window from 1 to 60 days." }
   if (!Number.isFinite(minNoticeHours) || minNoticeHours < 0 || minNoticeHours > 168)
-    return { ok: false, message: "Minimum notice must be between 0 and 168 hours." }
+    return { ok: false, message: "Choose a notice time of 168 hours or less." }
   if (publicEmail && !publicEmail.includes("@"))
-    return { ok: false, message: "That public email doesn't look right." }
+    return { ok: false, message: "That email doesn't look right. Check it and save again." }
 
   // Image uploads (optional). A bad file returns a friendly message.
   let logoUrl: string | null = null
@@ -83,7 +83,7 @@ export async function saveSettings(
   if (headshotUrl) update.headshot_url = headshotUrl
 
   const { error } = await supabase.from("agents").update(update).eq("id", user.id)
-  if (error) return { ok: false, message: "Couldn't save. Please try again." }
+  if (error) return { ok: false, message: "That didn't save. Try again in a moment." }
 
   // The license number is optional and lives in its own column, saved on its own
   // so everything else still saves if that column isn't there yet.
@@ -104,8 +104,8 @@ export async function saveSettings(
   revalidatePath("/settings")
   revalidatePath("/dashboard")
   revalidatePath(`/book`, "layout")
-  if (linkError && meetingLink) return { ok: true, message: "Saved, except your meeting link. That one didn't save yet." }
-  if (licenseError && licenseNumber) return { ok: true, message: "Saved, except your license number. That one didn't save yet." }
+  if (linkError && meetingLink) return { ok: true, message: "Saved, except your meeting link. Try saving it again." }
+  if (licenseError && licenseNumber) return { ok: true, message: "Saved, except your license number. Try saving it again." }
   return { ok: true, message: "Saved." }
 }
 
@@ -115,7 +115,7 @@ export async function removeImage(kind: "logo" | "headshot"): Promise<SettingsRe
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: "Please sign in again." }
+  if (!user) return { ok: false, message: "Your session ended. Sign in again, then save." }
 
   const column = kind === "logo" ? "logo_url" : "headshot_url"
   const { error } = await supabase
@@ -140,19 +140,19 @@ export async function saveAccount(
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: "Please sign in again." }
+  if (!user) return { ok: false, message: "Your session ended. Sign in again, then save." }
 
   const firstName = String(formData.get("firstName") ?? "").trim().slice(0, 60)
   const lastName = String(formData.get("lastName") ?? "").trim().slice(0, 60)
   const fullName = [firstName, lastName].filter(Boolean).join(" ")
 
-  if (!fullName) return { ok: false, message: "Please enter your name." }
+  if (!fullName) return { ok: false, message: "Add your name, then save." }
 
   const { error } = await supabase
     .from("agents")
     .update({ full_name: fullName })
     .eq("id", user.id)
-  if (error) return { ok: false, message: "Couldn't save. Please try again." }
+  if (error) return { ok: false, message: "That didn't save. Try again in a moment." }
 
   revalidatePath("/settings")
   revalidatePath("/dashboard")
@@ -168,7 +168,7 @@ export async function saveAgreement(
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: "Please sign in again." }
+  if (!user) return { ok: false, message: "Your session ended. Sign in again, then save." }
 
   const days = Number(formData.get("days"))
   const exclusive = formData.get("exclusive") === "yes"
@@ -188,6 +188,6 @@ export async function saveAgreement(
 
   revalidatePath("/settings")
   revalidatePath("/clients", "layout")
-  if (commissionError && commission) return { ok: true, message: "Saved, except your commission. That one didn't save yet." }
+  if (commissionError && commission) return { ok: true, message: "Saved, except your commission. Try saving it again." }
   return { ok: true, message: "Saved." }
 }

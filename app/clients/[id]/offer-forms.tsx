@@ -32,6 +32,7 @@ export function OfferForm({
   clientFull,
   docs,
   forms = [],
+  assistantName = "Diana",
   onBack,
   onDone,
 }: {
@@ -39,6 +40,7 @@ export function OfferForm({
   clientFull: string
   docs: DocView[]
   forms?: FormView[]
+  assistantName?: string
   onBack: () => void
   onDone: () => void
 }) {
@@ -160,7 +162,7 @@ export function OfferForm({
             {form && <p className="mt-2 text-[12.5px] text-[#8f8b84]">Filled in with this offer and attached as a PDF, in your brokerage&rsquo;s own layout.</p>}
           </div>
         ) : (
-          <p className="mt-3 text-[12.5px] text-[#8f8b84]">Want your brokerage&rsquo;s own offer form attached? Upload it under Templates, and Marvberry fills it in for every offer.</p>
+          <p className="mt-3 text-[12.5px] text-[#8f8b84]">Want your brokerage&rsquo;s own offer form attached? Upload it under Templates, and {assistantName} fills it in for every offer.</p>
         )}
       </div>
 

@@ -11,7 +11,7 @@ export async function setNewPassword(
   const confirm = String(formData.get("confirm") ?? "")
 
   if (password.length < 8) return { error: "Use a password of at least 8 characters." }
-  if (password !== confirm) return { error: "Those passwords don't match." }
+  if (password !== confirm) return { error: "Those passwords don't match. Type the same one twice." }
 
   const supabase = await createClient()
   const {

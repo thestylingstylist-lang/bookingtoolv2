@@ -5,6 +5,7 @@ import SettingsForm from "./settings-form"
 import AccountForm from "./account-form"
 import AgreementForm from "./agreement-form"
 import AssistantForm from "./assistant-form"
+import { loadAssistantName } from "@/lib/assistant-name"
 import { assistantFor } from "@/lib/assistant"
 import { aiPrefsFor } from "@/lib/ai-prefs"
 import { toAgreementSettings } from "@/lib/agreement"
@@ -32,6 +33,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
   const agent = data as AgentRow | null
   if (!agent) redirect("/login")
+  const assistantName = await loadAssistantName(supabase, user.id)
 
   // Agreement defaults live in their own columns; if they're not there yet,
   // the defaults (90 days, exclusive) show instead of breaking the page.
@@ -92,7 +94,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
               <div>
                 <h2 className="font-serif font-semibold tracking-tight text-xl">Billing</h2>
-                <p className="mt-1 text-sm text-lxink/60">Your plan, your payment card, and canceling.</p>
+                <p className="mt-1 text-sm text-lxink/60">Your plan, your card, and how to cancel.</p>
               </div>
               <a href="/billing" className="rounded-full border border-lxink/15 px-5 py-2.5 text-sm font-medium hover:bg-lxink/[0.03]">Open billing</a>
             </section>
@@ -103,7 +105,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <nav className="flex gap-2 lg:flex-col lg:gap-1">
               {[
                 ["brand", "Company brand"],
-                ["ai", "Marvberry AI"],
+                ["ai", assistantName],
               ].map(([k, l]) => (
                 <a
                   key={k}
@@ -119,8 +121,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             {section === "ai" ? (
           <div className="space-y-6">
             <section id="assistant" className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6">
-              <h2 className="font-serif font-semibold tracking-tight text-xl">Marvberry AI</h2>
-              <p className="mt-1 text-sm text-lxink/60">Turn on what you want help with. Anything it writes goes out in your name.</p>
+              <h2 className="font-serif font-semibold tracking-tight text-xl">{assistantName}</h2>
+              <p className="mt-1 text-sm text-lxink/60">Turn on what you&rsquo;d like {assistantName} to help with. Anything she writes goes out in your name.</p>
               <div className="mt-6">
                 <AssistantForm unlocked={assistant.unlocked} auto={assistant.auto} voice={assistant.voice} prefs={aiPrefs} />
               </div>

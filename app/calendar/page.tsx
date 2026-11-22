@@ -74,12 +74,12 @@ function hoursRows(weekdays: number[], start: number, end: number) {
 const NOTES: Record<string, { ok: boolean; text: string }> = {
   added: { ok: true, text: "It's on your calendar." },
   removed: { ok: true, text: "Removed from your calendar." },
-  times: { ok: false, text: "The end time comes after the start time. Give it another go." },
+  times: { ok: false, text: "Set the end time after the start time, then add it again." },
   details: { ok: false, text: "Pick a day, a start and an end, and I'll add it." },
-  save: { ok: false, text: "That didn't save. Try again." },
+  save: { ok: false, text: "That didn't save. Try again in a moment." },
   held: { ok: true, text: "That time is yours. Clients can't book it." },
-  holdsetup: { ok: false, text: "Holding time switches on with one quick step in Supabase. Once that's done, try again." },
-  setup: { ok: false, text: "Showings, closings and open houses switch on with one quick step in Supabase. Once that's done, add it again." },
+  holdsetup: { ok: false, text: "Holding time isn't switched on for your account yet. Message us from Support, and we'll turn it on." },
+  setup: { ok: false, text: "Showings, closings and open houses aren't switched on for your account yet. Message us from Support, and we'll turn them on." },
 }
 
 export default async function CalendarPage({
@@ -472,7 +472,7 @@ export default async function CalendarPage({
                   </Link>
                 </div>
                 {later.length === 0 ? (
-                  <p className="mt-3 text-[14.5px] text-lxsoft">Nothing after today yet.</p>
+                  <p className="mt-3 text-[14.5px] text-lxsoft">Nothing coming up yet. Share your booking link to fill your week.</p>
                 ) : (
                   <div className="mt-3 divide-y divide-lxhair text-[14.5px]">
                     {later.map((it) => (

@@ -22,6 +22,7 @@ import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
 import { phasesFor, stageLabel, phaseIndex, toBuyPhase, toSellPhase, toOwner, OWNER_LABEL, type Phase } from "@/lib/phases"
 import { journeysFor, suiteName } from "@/lib/suite"
+import { assistantDisplayName } from "@/lib/assistant-name"
 import { toggleTask } from "./checklist-actions"
 import SellerTools, { type OpenHouse, type SaleOffer } from "./seller-tools"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
@@ -59,35 +60,38 @@ type Doc = {
   signed_at: string | null
 }
 
-const BANNERS: Record<string, { text: string; ok: boolean }> = {
-  sent: { text: "Sent. The client got a private signing link by email.", ok: true },
+function banners(first: string, suite: string): Record<string, { text: string; ok: boolean }> {
+  const who = first || "Your client"
+  return {
+  sent: { text: `Sent for signature. ${who} has a private signing link by email.`, ok: true },
   resent: { text: "Signing link sent again.", ok: true },
   noemail: {
-    text: "The document is in the thread, but this client has no email. Add one in Details, then hit Resend.",
+    text: "The document is in your messages, but this client has no email. Add one under Contact, then resend.",
     ok: false,
   },
   mailfail: {
-    text: "The document is in the thread, but the email didn't go out. Try Resend.",
+    text: "The document is in your messages, but the email didn't go out. Resend it from there.",
     ok: false,
   },
-  portalsent: { text: "Suite link sent. Your client can open their suite from the email.", ok: true },
-  portalnoemail: { text: "This client has no email. Add one in Details, then send the suite link.", ok: false },
-  portalfail: { text: "The suite link email didn't go out. Please try again.", ok: false },
+  portalsent: { text: `Suite link sent. ${who} can open the ${suite} from the email.`, ok: true },
+  portalnoemail: { text: first ? `Add ${first}'s email under Contact, then send the suite link.` : "Add their email under Contact, then send the suite link.", ok: false },
+  portalfail: { text: "The suite link didn't go out. Wait a moment, then send it again.", ok: false },
+  }
 }
 
 const ERRORS: Record<string, string> = {
-  doc: "Couldn't create the document. Please try again.",
+  doc: "That document didn't save. Check every blank is filled in, then try again.",
   blanks: "Fill in every blank before sending.",
-  msg: "Couldn't send that message. Please try again.",
-  task: "Couldn't update that task. Please try again.",
-  collected: "Couldn't update that document. Please try again.",
-  deal: "Couldn't save the buying range. Please try again.",
-  offer: "Couldn't save that offer. Add a property address and try again.",
-  note: "Couldn't save that note. Please try again.",
-  phase: "Couldn't change the phase. Please try again.",
-  seller: "Couldn't save that. If this keeps happening, the seller tools may still be switching on.",
-  openhouse: "Couldn't save that open house. Add a date and a start time and try again.",
-  saleoffer: "Couldn't save that offer. Add an amount and try again.",
+  msg: "That message didn't send. Try again in a moment.",
+  task: "That step didn't update. Refresh the page and try again.",
+  collected: "That document didn't update. Refresh the page and try again.",
+  deal: "The buying range didn't save. Check both numbers, then try again.",
+  offer: "That offer didn't save. Add the property address, then try again.",
+  note: "That note didn't save. Try again in a moment.",
+  phase: "The stage didn't change. Refresh the page and try again.",
+  seller: "That didn't save. Try again, and if it keeps happening, message us from Support.",
+  openhouse: "That open house didn't save. Add a date and a start time, then try again.",
+  saleoffer: "That offer didn't save. Add the amount, then try again.",
 }
 
 function initials(first: string, last: string) {
@@ -117,6 +121,8 @@ export default async function ClientJacket({
     .maybeSingle()
   const agent = agentData as AgentRow | null
   if (!agent) redirect("/login")
+  const { data: named } = await supabase.from("agents").select("assistant_name").eq("id", user.id).maybeSingle()
+  const assistantName = assistantDisplayName(named?.assistant_name)
 
   const { data } = await supabase
     .from("clients")
@@ -290,7 +296,7 @@ export default async function ClientJacket({
     day: "numeric",
   })
 
-  const banner = sp.doc ? BANNERS[sp.doc] : undefined
+  const banner = sp.doc ? banners((client.first_name || "").trim(), suiteName(client.client_type))[sp.doc] : undefined
   const error = sp.error ? ERRORS[sp.error] : undefined
 
   const { data: agreementRow } = await supabase
@@ -440,7 +446,7 @@ export default async function ClientJacket({
                   </div>
                   {rows.length === 0 ? (
                     <p className="mt-2 text-sm text-lxsoft">
-                      No steps here yet. Add them in <Link href={`/clients/${client.id}?tab=tasks`} className="text-lxink no-underline [border-bottom:1px_solid_#C2A46B]">all steps</Link>.
+                      No steps here yet. Add the usual ones in <Link href={`/clients/${client.id}?tab=tasks`} className="text-lxink no-underline [border-bottom:1px_solid_#C2A46B]">All steps and documents</Link>.
                     </p>
                   ) : (
                     <ul className="mt-2 grid gap-x-8 sm:grid-cols-2">
@@ -483,6 +489,7 @@ export default async function ClientJacket({
           const homesEl = (
             <Homes
               clientId={client.id}
+              assistantName={assistantName}
               clientFirst={client.first_name || ""}
               clientFull={`${client.first_name || ""} ${client.last_name || ""}`.trim()}
               homes={homes}
@@ -523,6 +530,7 @@ export default async function ClientJacket({
               <div key={j} className={j === journeys[0] ? "" : "mt-6"}>
                 <LeftColumn
                   clientId={client.id}
+                  assistantName={assistantName}
                   firstName={client.first_name}
                   tz={agent.timezone || "America/New_York"}
                   focus={sp.step}
@@ -655,6 +663,7 @@ export default async function ClientJacket({
               <Composer
                 clientId={client.id}
                 clientFirst={client.first_name ?? ""}
+                assistantName={assistantName}
                 canDraft={assistant.unlocked && ai.replies && messages.length > 0 && messages[messages.length - 1].sender === "client"}
               />
               <p className="mt-2 text-[11px] text-[#8f8b84]">

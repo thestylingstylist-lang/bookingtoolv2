@@ -5,6 +5,7 @@ import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import type { PdfField } from "@/lib/pdf-fields"
 import PdfEditor from "./pdf-editor"
+import { loadAssistantName } from "@/lib/assistant-name"
 
 export const dynamic = "force-dynamic"
 
@@ -26,7 +27,7 @@ export default async function PdfTemplatePage({ params }: { params: Promise<{ id
 
   return (
     <AppShell agent={agent}>
-      <PdfEditor id={t.id as string} title={t.title as string} url={signed?.signedUrl ?? ""} initial={(t.fields as PdfField[]) ?? []} />
+      <PdfEditor id={t.id as string} title={t.title as string} url={signed?.signedUrl ?? ""} initial={(t.fields as PdfField[]) ?? []} assistantName={await loadAssistantName(supabase, user.id)} />
     </AppShell>
   )
 }

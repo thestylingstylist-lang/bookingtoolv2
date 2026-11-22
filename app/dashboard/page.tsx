@@ -33,7 +33,7 @@ function theirThing(title: string, first: string) {
   }
   const thing = map[t] ?? title.trim().replace(/^(send|upload|sign|get|collect|provide|share|submit|bring|email)\s+/i, "").replace(/^(the|their|your)\s+/i, "").toLowerCase()
   const plural = /s$/.test(thing) && !/ss$/.test(thing)
-  return `${first}'s ${thing} ${plural ? "are" : "is"} outstanding.`
+  return `Still waiting on ${first}'s ${thing}.`
 }
 
 type Priority = { key: string; line: string; sub: string; href: string; open: string; action?: string; urgent?: boolean }
@@ -147,7 +147,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     return {
       key: d.id,
       line: mine ? `Next for ${first}: ${d.title.charAt(0).toLowerCase()}${d.title.slice(1)}.` : theirThing(d.title, first),
-      sub: act ? `I've drafted a message for ${first}. Give it a read, approve it, and hit send.` : when,
+      sub: act ? `I've drafted a reminder for ${first}. Read it, then send it when you're ready.` : when,
       href,
       open: act ? when : `Open ${first}`,
       action: act ? "Read and send" : undefined,
@@ -372,7 +372,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {/* Setup, in one quiet line. Gone once setup is done. */}
       {setupLine && (
         <p className="mt-6 flex flex-wrap items-baseline gap-x-5 gap-y-1 border-y border-[rgba(194,164,107,.45)] py-3 text-sm text-lxink/70">
-          <span>{complete ? "Your page is set up." : `Finish setting up: ${done} of ${total} done.`}</span>
+          <span>{complete ? "Your booking page is set up." : `Finish setting up: ${done} of ${total} done.`}</span>
           {!complete && (
             <Link href="/start-here" className="border-b border-lxgold text-lxink no-underline">Continue setup</Link>
           )}
@@ -403,17 +403,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {sp.nudge && (
         <p className="mt-6 border-l-2 border-lxgold pl-3 text-sm text-lxink">
           {sp.nudge === "sent"
-            ? "Sent. It's in their inbox and their thread."
+            ? "Reminder sent. It's in their inbox and in your messages with them."
             : sp.nudge === "noemail"
-              ? "That client has no email on file yet."
-              : "That one didn't go through. Try again in a moment."}
+              ? "That client has no email yet. Add one on their page, then send again."
+              : "That reminder didn't go out. Wait a moment, then try again."}
         </p>
       )}
 
       <section className="mt-10">
         <h2 className="font-serif font-semibold tracking-tight text-xl">Needs you today</h2>
         {shownNeeds.length === 0 ? (
-          <p className="mt-3 text-sm text-lxink/60">You&rsquo;re all caught up.</p>
+          <p className="mt-3 text-sm text-lxink/60">You&rsquo;re all caught up. {assistantName} will let you know when something comes in.</p>
         ) : (
           <ul className="mt-2 divide-y divide-lxink/[0.07] border-y border-lxink/[0.07]">
             {shownNeeds.map((n, i) => (
@@ -443,7 +443,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <Link href="/calendar" className="text-sm text-lxink/60 no-underline hover:text-lxink">Calendar &rarr;</Link>
         </div>
         {upcomingRows.length === 0 ? (
-          <p className="mt-3 text-sm text-lxink/60">Nothing scheduled yet. Share your link and bookings will show up here.</p>
+          <p className="mt-3 text-sm text-lxink/60">Nothing on your calendar yet. Share your booking link, and new consultations will land here.</p>
         ) : (
           <ul className="mt-2 divide-y divide-lxink/[0.07] border-y border-lxink/[0.07]">
             {upcomingRows.map((r) => (
@@ -470,8 +470,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </div>
             <p className="mt-1 text-sm text-lxink/60">
               {setupDocs.length
-                ? `Upload these and ${onboarding.owner} turns them into ready-to-use templates for you.`
-                : `${onboarding.owner} is setting up your account. Anything we need from you shows up here.`}
+                ? "Upload these, and our team will turn them into templates you can send."
+                : "Our team is setting up your account. Anything we need from you shows up here."}
             </p>
             {setupDocs.length > 0 && (
               <ul className="mt-3 divide-y divide-lxink/[0.07] border-y border-lxink/[0.07]">
@@ -497,8 +497,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             )}
           </div>
           <div>
-            <p className="mb-2 text-sm text-lxink/60">{onboarding.owner}, your onboarding owner</p>
-            <SupportThread messages={setupThread} teamName={onboarding.owner} compact />
+            <p className="mb-2 text-sm text-lxink/60">Our team, here for your setup</p>
+            <SupportThread messages={setupThread} teamName="Our team" compact />
           </div>
         </section>
       )}

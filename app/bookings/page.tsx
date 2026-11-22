@@ -87,8 +87,8 @@ export default async function BookingsPage({
       {(error || params.error === "add") && (
         <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">
           {params.error === "add"
-            ? "Couldn\u2019t add that client. Please try again."
-            : "Couldn\u2019t load bookings. Refresh to try again."}
+            ? "That client didn\u2019t save. Try Add as client again."
+            : "Your bookings didn\u2019t load. Refresh the page to try again."}
         </p>
       )}
 
@@ -96,7 +96,7 @@ export default async function BookingsPage({
         <div className="mt-8 rounded-2xl border border-lxink/10 bg-card p-10 text-center">
           <h2 className="font-serif font-semibold tracking-tight text-xl">No bookings yet.</h2>
           <p className="mt-2 text-lxink/60">
-            Share your booking link and new consultations will appear here.
+            Share your booking link, and new consultations will land here.
           </p>
         </div>
       ) : (
@@ -172,7 +172,7 @@ export default async function BookingsPage({
                         label={`${b.first_name} ${b.last_name}`.trim() || "booking"}
                         confirmText={
                           isClient
-                            ? "Delete this booking? Their client record stays. This can't be undone."
+                            ? "Delete this booking? Their client file stays. This can't be undone."
                             : "Delete this booking? This can't be undone."
                         }
                       />

@@ -114,7 +114,7 @@ export default function DealPanel({
       {clientType !== "seller" && (
       <section>
         <h2 className="text-[13px] font-semibold">Offers</h2>
-        {offers.length === 0 && <p className="mt-2 text-sm text-lxsoft">No offers yet.</p>}
+        {offers.length === 0 && <p className="mt-2 text-sm text-lxsoft">No offers yet. Add one when your client is ready.</p>}
         <ul className="mt-3 space-y-3">
           {offers.map((o) => (
             <li key={o.id} className="group flex items-start gap-2 border-b border-lxhair pb-3">
@@ -123,7 +123,7 @@ export default function DealPanel({
                 {o.amount != null && <p className="mt-0.5">{usd.format(o.amount)}</p>}
                 {(o.other_agent_name || o.other_agent_email) && (
                   <p className="mt-1 text-xs text-lxsoft">
-                    Buyer/Selling Agent: {[o.other_agent_name, o.other_agent_email].filter(Boolean).join(" · ")}
+                    Listing agent: {[o.other_agent_name, o.other_agent_email].filter(Boolean).join(" · ")}
                   </p>
                 )}
               </div>
@@ -137,8 +137,8 @@ export default function DealPanel({
             <input type="hidden" name="clientId" value={clientId} />
             <input name="address" required placeholder="Property address" className={inputClass} />
             <input name="amount" inputMode="numeric" placeholder="Offer amount" className={inputClass} />
-            <input name="agentName" placeholder="Buyer/Selling Agent name" className={inputClass} />
-            <input name="agentEmail" type="email" placeholder="Buyer/Selling Agent email" className={inputClass} />
+            <input name="agentName" placeholder="Listing agent’s name" className={inputClass} />
+            <input name="agentEmail" type="email" placeholder="Listing agent’s email" className={inputClass} />
             <button type="submit" className="rounded-lg border border-lxhair bg-white px-3 py-1.5 text-sm hover:bg-lxfill">
               Save offer
             </button>

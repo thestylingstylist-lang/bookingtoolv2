@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import PdfUpload from "./pdf-upload"
+import { loadAssistantName } from "@/lib/assistant-name"
 
 export const dynamic = "force-dynamic"
 
@@ -32,6 +33,7 @@ export default async function TemplatesPage({
     .maybeSingle()
   const agent = agentData as AgentRow | null
   if (!agent) redirect("/login")
+  const assistantName = await loadAssistantName(supabase, user.id)
 
   const { data } = await supabase
     .from("document_templates")
@@ -75,8 +77,8 @@ export default async function TemplatesPage({
           <div className="mt-8 rounded-2xl border border-lxink/10 bg-card p-10 text-center">
             <h2 className="font-serif font-semibold tracking-tight text-xl">No templates yet.</h2>
             <p className="mt-2 text-lxink/60">
-              Set up a document once with your own wording, then send it to any
-              client in seconds.
+              Set up your agreement once in your own words, then send it to any
+              client.
             </p>
           </div>
         ) : (
@@ -97,7 +99,7 @@ export default async function TemplatesPage({
         {pdfs.length > 0 && (
           <section className="mt-10">
             <h2 className="font-semibold tracking-tight text-lg">Your PDF forms</h2>
-            <p className="mt-1 text-sm text-lxink/55">Your own forms, with your logo and layout. Marvberry fills in the blanks.</p>
+            <p className="mt-1 text-sm text-lxink/55">Your own forms, with your logo and layout. {assistantName} fills in the blanks.</p>
             <div className="mt-4 divide-y divide-lxink/5 overflow-hidden rounded-2xl border border-lxink/10 bg-card">
               {pdfs.map((t) => (
                 <Link key={t.id} href={`/templates/pdf/${t.id}`} className="flex items-center justify-between px-5 py-4 hover:bg-lxink/5">

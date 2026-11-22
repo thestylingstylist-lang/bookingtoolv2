@@ -15,7 +15,7 @@ export async function askMarvberry(history: ChatTurn[], ctxClientId: string | nu
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { reply: "Please sign in again." }
+  if (!user) return { reply: "Your session ended. Sign in again." }
   try {
     return await handleRequest(supabase, user.id, history.slice(-14), ctxClientId)
   } catch {
@@ -40,7 +40,7 @@ export async function sendAgreementFromChat(clientId: string, title: string, bod
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user || !clientId || !body.trim()) return { ok: false, message: "Please sign in again." }
+  if (!user || !clientId || !body.trim()) return { ok: false, message: "Your session ended. Sign in again." }
   const h = await headers()
   const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`
   const r = await deliverAgreement(supabase, user.id, user.email ?? undefined, origin, clientId, title, body.slice(0, 60000))
@@ -57,7 +57,7 @@ export async function sendOfferFromChat(clientId: string, o: OfferDraft): Promis
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: "Please sign in again." }
+  if (!user) return { ok: false, message: "Your session ended. Sign in again." }
   let homeId = o.homeId
   if (!homeId) {
     const { data } = await supabase.from("homes").insert({ agent_id: user.id, client_id: clientId, address: o.address.slice(0, 200) }).select("id").single()

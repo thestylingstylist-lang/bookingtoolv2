@@ -4,17 +4,19 @@ import { useState, useTransition } from "react"
 import { sendMessage } from "./actions"
 import { draftReply } from "./draft-actions"
 
-// The message box. With Marvberry Assistant on and the client waiting on a
+// The message box. With the assistant on and the client waiting on a
 // reply, she can ask for a draft in her voice. It lands in the box; she reads,
 // edits, and sends. Nothing goes out without her tap.
 export default function Composer({
   clientId,
   clientFirst,
   canDraft,
+  assistantName = "Diana",
 }: {
   clientId: string
   clientFirst: string
   canDraft: boolean
+  assistantName?: string
 }) {
   const [text, setText] = useState("")
   const [writing, start] = useTransition()
@@ -34,12 +36,12 @@ export default function Composer({
         <div className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-lxhair bg-lxfill px-3 py-2">
           <p className="text-xs text-lxsoft">
             {writing ? (
-              "Writing your reply in your voice…"
+              `${assistantName} is writing your reply in your voice…`
             ) : missed ? (
-              "The assistant couldn’t write this one. Type your reply below."
+              `${assistantName} couldn’t write this one. Type your reply below.`
             ) : (
               <>
-                <span className="font-semibold text-lxink">Marvberry Assistant</span> &middot; {clientFirst || "Your client"} is
+                <span className="font-semibold text-lxink">{assistantName}</span> &middot; {clientFirst || "Your client"} is
                 waiting on a reply.
               </>
             )}
@@ -62,7 +64,7 @@ export default function Composer({
           required
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message…"
+          placeholder={clientFirst ? `Write to ${clientFirst}…` : "Write a message…"}
           className={`flex-1 resize-y rounded-xl border border-lxhair bg-lxfill px-4 py-2.5 text-sm leading-relaxed outline-none placeholder:text-lxsoft focus:border-lxgold focus:bg-white ${
             writing ? "opacity-50" : ""
           }`}
