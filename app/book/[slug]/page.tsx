@@ -72,6 +72,9 @@ export default async function BookPage({
   }
 
   const slots = generateSlots(cfg, takenISO, await busyRanges(createAdminClient(), agent.id))
+  // "Show my brokerage under my name", read apart so the page works before the update runs.
+  const { data: sbRow } = await createAdminClient().from("agents").select("show_brokerage").eq("id", agent.id).maybeSingle()
+  const showBrokerage = (sbRow?.show_brokerage as boolean | undefined) ?? true
   const name = agent.full_name || agent.business_name || ""
   const initials = name
     .split(/\s+/)
@@ -92,7 +95,7 @@ export default async function BookPage({
       slug={agent.slug}
       name={name}
       initials={initials}
-      title={["Real estate agent", agent.business_name && agent.business_name !== name ? agent.business_name : ""].filter(Boolean).join(" · ")}
+      title={["Real estate agent", showBrokerage && agent.business_name && agent.business_name !== name ? agent.business_name : ""].filter(Boolean).join(" · ")}
       tagline={agent.tagline}
       photo={agent.headshot_url}
       logo={agent.logo_url}

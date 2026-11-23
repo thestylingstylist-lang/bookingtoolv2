@@ -15,7 +15,9 @@ export default function SettingsForm({
   meetingLink = "",
   signaturePhoto = false,
   bookingLink,
+  showBrokerage = true,
 }: {
+  showBrokerage?: boolean
   bookingLink?: React.ReactNode
   agent: AgentRow
   license?: string
@@ -26,6 +28,7 @@ export default function SettingsForm({
     saveSettings,
     null
   )
+  const [showBroker, setShowBroker] = useState(showBrokerage)
 
   return (
     <form action={formAction} className="space-y-6">
@@ -57,9 +60,22 @@ export default function SettingsForm({
             hint="Wide or square. PNG, JPEG, WEBP or GIF, up to 5 MB. Any empty space around it is trimmed."
             current={agent.logo_url}
             name={agent.full_name || agent.business_name}
-            brokerage={agent.business_name}
+            brokerage={showBroker ? agent.business_name : ""}
           />
           <ImageField kind="headshot" label="Headshot" hint="A friendly photo of you. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.headshot_url} round />
+          <label className="flex cursor-pointer items-start gap-3 sm:col-span-2">
+            <input
+              type="checkbox"
+              name="showBrokerage"
+              checked={showBroker}
+              onChange={(e) => setShowBroker(e.target.checked)}
+              className="mt-1 h-4 w-4 accent-lxink"
+            />
+            <span>
+              <span className="block text-[14px] text-lxink">Show my brokerage under my name</span>
+              <span className="block text-xs text-lxink/50">Turn it off if your logo already includes your brokerage. Your clients&rsquo; suites and your booking page follow your choice.</span>
+            </span>
+          </label>
         </div>
       </section>
 
@@ -220,6 +236,7 @@ function ImageField({
   brokerage?: string
 }) {
   const [preview, setPreview] = useState<string>(current)
+  const [fileName, setFileName] = useState("")
   const [removed, setRemoved] = useState<boolean>(false)
   const [pending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
@@ -230,6 +247,7 @@ function ImageField({
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) {
+      setFileName(file.name)
       const url = URL.createObjectURL(file)
       setPreview(url)
       setRemoved(false)
@@ -243,6 +261,7 @@ function ImageField({
       await removeImage(kind)
       setRemoved(true)
       setPreview("")
+      setFileName("")
       if (inputRef.current) inputRef.current.value = ""
     })
   }
@@ -267,18 +286,23 @@ function ImageField({
         <div className="space-y-2">
           <input
             ref={inputRef}
+            id={`upload-${kind}`}
             type="file"
             name={kind}
             accept="image/png,image/jpeg,image/webp,image/gif"
             onChange={onPick}
-            className="block w-full text-sm text-lxink/60 file:mr-3 file:rounded-[2px] file:border file:border-solid file:border-lxink file:bg-transparent file:px-3 file:py-1.5 file:text-sm file:text-lxink hover:file:opacity-90"
+            className="sr-only"
           />
+          <label htmlFor={`upload-${kind}`} className="block w-fit cursor-pointer border-b border-lxgold pb-px text-[14px] text-lxink">
+            {kind === "logo" ? (shown ? "Upload a new logo" : "Upload logo") : shown ? "Upload a new photo" : "Upload photo"}
+          </label>
+          {fileName && <p className="m-0 break-all text-xs text-lxink/60">{fileName}</p>}
           {shown && (
             <button
               type="button"
               onClick={onRemove}
               disabled={pending}
-              className="text-xs text-red-700 underline underline-offset-2 hover:text-red-900 disabled:opacity-50"
+              className="block text-xs text-red-700 underline underline-offset-2 hover:text-red-900 disabled:opacity-50"
             >
               {pending ? "Removing\u2026" : "Remove"}
             </button>

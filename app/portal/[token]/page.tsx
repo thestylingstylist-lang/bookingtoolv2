@@ -139,6 +139,10 @@ export default async function Portal({
   const toSign = (docData ?? []).filter((d) => d.status !== "signed")
   const collected = colData ?? []
   const missing = collected.filter((d) => !d.received)
+  // "Show my brokerage under my name", read apart so the suite opens before the update runs.
+  const { data: sbRow } = await admin.from("agents").select("show_brokerage").eq("id", client.agent_id).maybeSingle()
+  const showBrokerage = (sbRow?.show_brokerage as boolean | undefined) ?? true
+
   const messages = (msgData ?? []) as { id: string; created_at: string; sender: string; body: string; invite_id?: string | null }[]
 
   // Meeting invitations in the chat, with their times as buttons.
@@ -599,7 +603,7 @@ export default async function Portal({
         <div className="bg-lxbg md:sticky md:top-0 md:z-30 md:-mt-6 md:pt-6">
           <AgentHeader
             name={agentName}
-            brokerage={agent?.business_name}
+            brokerage={showBrokerage ? agent?.business_name : null}
             logo={(agent as { logo_url?: string | null } | null)?.logo_url}
             action={
               <a href="#messages" className="hidden items-center gap-2 font-luxsans text-[13px] text-lxink no-underline md:inline-flex">

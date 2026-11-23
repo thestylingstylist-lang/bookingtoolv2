@@ -75,6 +75,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const hoursLabel = hoursSaid(agent.weekdays, agent.day_start, agent.day_end)
 
   const { data: lenRow } = await supabase.from("agents").select("meeting_call_minutes, meeting_inperson_minutes").eq("id", user.id).maybeSingle()
+  const { data: sbRow } = await supabase.from("agents").select("show_brokerage").eq("id", user.id).maybeSingle()
+  const showBrokerage = (sbRow?.show_brokerage as boolean | undefined) ?? true
   const { data: keepRow } = await supabase.from("agents").select("assistant_keep").eq("id", user.id).maybeSingle()
   const keepChats = (keepRow?.assistant_keep as boolean | undefined) ?? true
   const dianaNotes = await loadMemories(supabase, user.id).catch(() => [])
@@ -167,6 +169,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div className="space-y-6">
             <SettingsForm
               agent={agent}
+              showBrokerage={showBrokerage}
               license={license}
               meetingLink={meetingLink}
               signaturePhoto={signaturePhoto}

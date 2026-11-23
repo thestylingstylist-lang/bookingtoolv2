@@ -85,6 +85,9 @@ export async function saveSettings(
   const { error } = await supabase.from("agents").update(update).eq("id", user.id)
   if (error) return { ok: false, message: "That didn't save. Try again in a moment." }
 
+  // Show the brokerage under the agent's name: its own column, saved on its own.
+  await supabase.from("agents").update({ show_brokerage: formData.get("showBrokerage") === "on" }).eq("id", user.id)
+
   // The license number is optional and lives in its own column, saved on its own
   // so everything else still saves if that column isn't there yet.
   const licenseNumber = String(formData.get("licenseNumber") ?? "").trim().slice(0, 40)
