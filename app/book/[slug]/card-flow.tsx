@@ -14,6 +14,7 @@ type Props = {
   slug: string
   name: string
   initials: string
+  logo?: string | null
   title: string
   tagline: string
   photo: string
@@ -168,6 +169,9 @@ export default function CardFlow(p: Props) {
         {p.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={p.photo} alt="" />
+        ) : p.logo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <div className="ini logo"><img src={p.logo} alt="" /></div>
         ) : (
           <div className="ini s">{p.initials}</div>
         )}
@@ -180,12 +184,19 @@ export default function CardFlow(p: Props) {
               {p.photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={p.photo} alt={p.name} />
+              ) : p.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <div className="ini logo" aria-hidden><img src={p.logo} alt="" /></div>
               ) : (
                 <div className="ini s" aria-hidden>{p.initials}</div>
               )}
               <div className="fade" />
             </div>
             <div className="in c body">
+              {p.photo && p.logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="brandlogo" src={p.logo} alt="" />
+              )}
               <h1 className="s u nm">{p.name}</h1>
               {p.title && <p className="u ttl">{p.title}</p>}
               {tagA ? (
@@ -428,6 +439,8 @@ const CSS = `
 .mbf .hero{position:relative;height:40dvh;min-height:190px;background:#e7e3dd;overflow:hidden;flex:none}
 .mbf .hero img{width:100%;height:100%;object-fit:cover;object-position:top}
 .mbf .ini{height:100%;display:grid;place-items:center;font-size:84px;color:#9a9188}
+.mbf .ini.logo img{width:auto;height:auto;max-width:62%;max-height:42%;object-fit:contain;position:static}
+.mbf .brandlogo{display:block;height:24px;width:auto;max-width:160px;object-fit:contain;margin:0 auto 20px;position:relative}
 .mbf .fade{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 58%,#FAFAFA 99%)}
 .mbf .in{padding:0 28px;display:flex;flex-direction:column;align-items:stretch}
 .mbf .nm{margin:-6px 0 0;position:relative;font-size:clamp(26px,3.4vh,34px);font-weight:400;letter-spacing:.06em;line-height:1.05}

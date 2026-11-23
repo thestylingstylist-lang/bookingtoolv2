@@ -75,7 +75,7 @@ export default async function Portal({
 
   const [{ data: agent }, { data: stepData }, { data: docData }, { data: colData }, { data: msgData }, { data: sellRow }] =
     await Promise.all([
-      admin.from("agents").select("full_name, business_name, timezone").eq("id", client.agent_id).maybeSingle(),
+      admin.from("agents").select("full_name, business_name, timezone, logo_url").eq("id", client.agent_id).maybeSingle(),
       admin
         .from("steps")
         .select("id, title, done, phase, owner, due_on")
@@ -600,6 +600,7 @@ export default async function Portal({
           <AgentHeader
             name={agentName}
             brokerage={agent?.business_name}
+            logo={(agent as { logo_url?: string | null } | null)?.logo_url}
             action={
               <a href="#messages" className="hidden items-center gap-2 font-luxsans text-[13px] text-lxink no-underline md:inline-flex">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round" aria-hidden>

@@ -55,17 +55,25 @@ export function AgentHeader({
   brokerage,
   prefix = "",
   action,
+  logo,
 }: {
   name: string
   brokerage?: string | null
   prefix?: string
   action?: React.ReactNode
+  logo?: string | null
 }) {
   return (
     <header className={`flex items-center gap-3.5 border-b ${LINE} pb-[18px]`}>
-      <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-lxgold font-lux text-[14px] tracking-[1px] text-lxink md:h-11 md:w-11 md:text-[16px]">
-        {initialsOf(name)}
-      </div>
+      {logo ? (
+        // The agent's own logo, when she's uploaded one.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt="" className="h-[38px] w-auto max-w-[120px] shrink-0 object-contain md:h-11 md:max-w-[150px]" />
+      ) : (
+        <div className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full border border-lxgold font-lux text-[14px] tracking-[1px] text-lxink md:h-11 md:w-11 md:text-[16px]">
+          {initialsOf(name)}
+        </div>
+      )}
       <div className="min-w-0">
         <p className="m-0 font-lux text-[18px] font-medium tracking-[.3px] text-lxink md:text-[20px]">
           {prefix}

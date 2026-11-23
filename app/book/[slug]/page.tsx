@@ -95,6 +95,7 @@ export default async function BookPage({
       title={["Real estate agent", agent.business_name && agent.business_name !== name ? agent.business_name : ""].filter(Boolean).join(" · ")}
       tagline={agent.tagline}
       photo={agent.headshot_url}
+      logo={agent.logo_url}
       phone={agent.show_contact ? agent.public_phone : ""}
       email={agent.show_contact ? agent.public_email : ""}
       address={x.address}
