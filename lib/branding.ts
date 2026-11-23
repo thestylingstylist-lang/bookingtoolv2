@@ -22,7 +22,8 @@ export async function uploadImage(
     : file.type === "image/gif" ? "gif"
     : "jpg"
   const path = `${userId}/${kind}.${ext}`
-  const bytes = new Uint8Array(await file.arrayBuffer())
+  let bytes: Uint8Array = new Uint8Array(await file.arrayBuffer())
+  if (kind === "logo" && ext !== "gif") bytes = await trimEdges(bytes)
 
   const admin = createAdminClient()
   const { error } = await admin.storage
@@ -33,4 +34,28 @@ export async function uploadImage(
   const { data } = admin.storage.from("branding").getPublicUrl(path)
   // Cache-bust so a re-uploaded image at the same path shows immediately.
   return `${data.publicUrl}?v=${Date.now()}`
+}
+
+// Logos often arrive with empty or transparent space around them, which makes
+// them display small. Trim it, keeping a hair of breathing room. If anything
+// goes wrong, the original is kept.
+async function trimEdges(bytes: Uint8Array): Promise<Uint8Array> {
+  try {
+    const sharp = (await import("sharp")).default
+    const img = sharp(Buffer.from(bytes), { failOn: "none" })
+    const meta = await img.metadata()
+    const { data, info } = await img.clone().trim({ threshold: 12 }).toBuffer({ resolveWithObject: true })
+    // Nothing worth trimming, or the trim ate the whole image.
+    if (!info.width || !info.height || (info.width === meta.width && info.height === meta.height)) return bytes
+    if (info.width < 8 || info.height < 8) return bytes
+    const pad = Math.max(2, Math.round(Math.min(info.width, info.height) * 0.02))
+    const out = await sharp(data)
+      .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .toFormat(meta.format === "jpeg" ? "jpeg" : meta.format === "webp" ? "webp" : "png")
+      .toBuffer()
+    return new Uint8Array(out)
+  } catch (e) {
+    console.error("[branding] trim skipped", e)
+    return bytes
+  }
 }

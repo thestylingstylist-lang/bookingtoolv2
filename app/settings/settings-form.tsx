@@ -51,7 +51,14 @@ export default function SettingsForm({
       <section className="rounded-2xl border border-lxink/10 bg-card p-5 sm:p-6 space-y-6">
         <Head title="Your brand" sub="Your logo and photo, on your booking page, your clients’ suites and your emails." />
         <div className="grid gap-6 sm:grid-cols-2">
-          <ImageField kind="logo" label="Logo" hint="Wide or square. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.logo_url} />
+          <ImageField
+            kind="logo"
+            label="Logo"
+            hint="Wide or square. PNG, JPEG, WEBP or GIF, up to 5 MB. Any empty space around it is trimmed."
+            current={agent.logo_url}
+            name={agent.full_name || agent.business_name}
+            brokerage={agent.business_name}
+          />
           <ImageField kind="headshot" label="Headshot" hint="A friendly photo of you. PNG, JPEG, WEBP or GIF, up to 5 MB." current={agent.headshot_url} round />
         </div>
       </section>
@@ -201,12 +208,16 @@ function ImageField({
   hint,
   current,
   round,
+  name = "",
+  brokerage = "",
 }: {
   kind: "logo" | "headshot"
   label: string
   hint: string
   current: string
   round?: boolean
+  name?: string
+  brokerage?: string
 }) {
   const [preview, setPreview] = useState<string>(current)
   const [removed, setRemoved] = useState<boolean>(false)
@@ -219,8 +230,11 @@ function ImageField({
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) {
-      setPreview(URL.createObjectURL(file))
+      const url = URL.createObjectURL(file)
+      setPreview(url)
       setRemoved(false)
+      // Show the logo the way it'll be saved: empty edges trimmed.
+      if (kind === "logo") trimmedPreview(url).then((u) => u && setPreview(u))
     }
   }
 
@@ -245,7 +259,7 @@ function ImageField({
         >
           {shown ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={shown} alt="" className="h-full w-full object-cover" />
+            <img src={shown} alt="" className={kind === "logo" ? "h-full w-full object-contain p-2" : "h-full w-full object-cover"} />
           ) : (
             <span className="text-xs text-lxink/30">None</span>
           )}
@@ -272,6 +286,7 @@ function ImageField({
         </div>
       </div>
       <p className="mt-1.5 text-xs text-lxink/50">{hint}</p>
+      {kind === "logo" && shown && <LogoPreview src={shown} name={name} brokerage={brokerage} />}
     </div>
   )
 }
@@ -381,4 +396,74 @@ function Head({ title, sub }: { title: string; sub: string }) {
       <p className="mt-1 text-sm text-lxink/60">{sub}</p>
     </div>
   )
+}
+
+// How the logo looks where clients see it: the suite header and the booking page.
+function LogoPreview({ src, name, brokerage }: { src: string; name: string; brokerage: string }) {
+  return (
+    <div className="mt-5 grid gap-4">
+      <div>
+        <p className="mb-2 text-[12px] text-lxsoft">In your clients&rsquo; suites</p>
+        <div className="flex items-center gap-3 border-b border-lxgold/50 bg-lxbg px-4 pb-3 pt-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="" className="h-[34px] w-auto max-w-[110px] shrink-0 object-contain" />
+          <div className="min-w-0">
+            <p className="m-0 truncate font-lux text-[16px] text-lxink">{name}</p>
+            {brokerage && brokerage !== name && <p className="m-0 truncate text-[11px] text-lxsoft">{brokerage}</p>}
+          </div>
+        </div>
+      </div>
+      <div>
+        <p className="mb-2 text-[12px] text-lxsoft">On your booking page</p>
+        <div className="flex flex-col items-center bg-lxbg px-4 py-4 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="" className="mb-3 h-[22px] w-auto max-w-[150px] object-contain" />
+          <p className="m-0 font-lux text-[18px] uppercase tracking-[.06em] text-lxink">{name}</p>
+          <p className="m-0 mt-1 text-[10px] uppercase tracking-[.14em] text-lxsoft">Real estate agent{brokerage && brokerage !== name ? ` · ${brokerage}` : ""}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Trims empty or transparent edges in the browser, to match what's saved.
+async function trimmedPreview(url: string): Promise<string | null> {
+  try {
+    const img = await new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image()
+      i.onload = () => res(i)
+      i.onerror = rej
+      i.src = url
+    })
+    const w = img.naturalWidth
+    const h = img.naturalHeight
+    if (!w || !h) return null
+    const c = document.createElement("canvas")
+    c.width = w
+    c.height = h
+    const ctx = c.getContext("2d")
+    if (!ctx) return null
+    ctx.drawImage(img, 0, 0)
+    const d = ctx.getImageData(0, 0, w, h).data
+    const bg = [d[0], d[1], d[2], d[3]]
+    const same = (k: number) =>
+      (d[k + 3] < 12 && bg[3] < 12) || (Math.abs(d[k] - bg[0]) < 12 && Math.abs(d[k + 1] - bg[1]) < 12 && Math.abs(d[k + 2] - bg[2]) < 12 && Math.abs(d[k + 3] - bg[3]) < 12)
+    let top = h, left = w, right = -1, bottom = -1
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++)
+        if (!same((y * w + x) * 4)) {
+          if (y < top) top = y
+          if (y > bottom) bottom = y
+          if (x < left) left = x
+          if (x > right) right = x
+        }
+    if (right < 0 || (left === 0 && top === 0 && right === w - 1 && bottom === h - 1)) return null
+    const out = document.createElement("canvas")
+    out.width = right - left + 1
+    out.height = bottom - top + 1
+    out.getContext("2d")?.drawImage(c, left, top, out.width, out.height, 0, 0, out.width, out.height)
+    return out.toDataURL("image/png")
+  } catch {
+    return null
+  }
 }
