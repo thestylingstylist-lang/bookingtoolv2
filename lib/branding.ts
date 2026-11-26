@@ -59,3 +59,28 @@ async function trimEdges(bytes: Uint8Array): Promise<Uint8Array> {
     return bytes
   }
 }
+
+// A home's photo for the client's card: straightened, sized for the card, saved in the
+// public "branding" bucket under the agent's folder. Returns its public URL.
+export async function uploadHomePhoto(userId: string, homeId: string, file: File | null): Promise<string> {
+  if (!file || file.size === 0) throw new Error("Choose a photo first.")
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Choose a JPG, PNG or WEBP photo.")
+  if (file.size > 4 * 1024 * 1024) throw new Error("That photo is too large. Try another.")
+  let bytes: Uint8Array = new Uint8Array(await file.arrayBuffer())
+  try {
+    const sharp = (await import("sharp")).default
+    const out = await sharp(Buffer.from(bytes), { failOn: "none" })
+      .rotate()
+      .resize({ width: 1800, height: 1800, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 84, mozjpeg: true })
+      .toBuffer()
+    bytes = new Uint8Array(out)
+  } catch (e) {
+    console.error("[branding] home photo resize skipped", e)
+  }
+  const path = `${userId}/homes/${homeId}-${Date.now()}.jpg`
+  const admin = createAdminClient()
+  const { error } = await admin.storage.from("branding").upload(path, bytes, { contentType: "image/jpeg", upsert: true })
+  if (error) throw new Error("Couldn't upload the photo. Please try again.")
+  return admin.storage.from("branding").getPublicUrl(path).data.publicUrl
+}

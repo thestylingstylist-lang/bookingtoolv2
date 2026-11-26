@@ -12,6 +12,7 @@ import { offerEmail, type OfferTerms } from "@/lib/offer-email"
 import { fillPdf } from "@/lib/pdf-fill"
 import { isCustom, type PdfField } from "@/lib/pdf-fields"
 import { readListing } from "@/lib/listing-preview"
+import { uploadHomePhoto as storeHomePhoto } from "@/lib/branding"
 import { tickStep } from "@/lib/auto-steps"
 
 export type HomeResult = { ok: boolean; message?: string }
@@ -406,4 +407,22 @@ export async function setOfferStatus(offerId: string, status: "sent" | "countere
   if (!userId) return
   const { data } = await supabase.from("home_offers").update({ status }).eq("id", offerId).select("client_id").maybeSingle()
   if (data) revalidatePath(`/clients/${data.client_id}`)
+}
+
+// The agent chose a photo from their computer or phone: store it and put it on the card.
+export async function uploadHomePhoto(formData: FormData): Promise<{ ok: boolean; message: string; url?: string }> {
+  const { supabase, userId } = await me()
+  if (!userId) return { ok: false, message: "Please sign in again." }
+  const homeId = String(formData.get("homeId") ?? "")
+  const { data: home } = await supabase.from("homes").select("id, client_id").eq("id", homeId).maybeSingle()
+  if (!home) return { ok: false, message: "That home is gone. Refresh the page." }
+  try {
+    const url = await storeHomePhoto(userId, homeId, formData.get("photo") as File | null)
+    const { error } = await supabase.from("homes").update({ photo_url: url }).eq("id", homeId)
+    if (error) return { ok: false, message: "The photo uploaded, but didn't save to the home. Run supabase/suite-homes.sql, then try again." }
+    revalidatePath(`/clients/${home.client_id}`)
+    return { ok: true, message: "Photo added.", url }
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : "Couldn't upload the photo. Please try again." }
+  }
 }

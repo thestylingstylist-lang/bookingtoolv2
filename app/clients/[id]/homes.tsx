@@ -2,8 +2,31 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { createPortal } from "react-dom"
-import { addHome, saveHome, setHomeStatus, removeHome, setOfferStatus, type HomeResult } from "./homes-actions"
+import { addHome, saveHome, uploadHomePhoto, setHomeStatus, removeHome, setOfferStatus, type HomeResult } from "./homes-actions"
 import { OfferForm, FollowUpForm, type OfferView, type DocView, type FormView } from "./offer-forms"
+
+// Shrink a chosen photo in the browser to a sharp JPEG, so phone photos upload quickly
+// and fit the upload limit. Also turns iPhone photos into a format every browser shows.
+async function shrinkPhoto(file: File): Promise<Blob | null> {
+  try {
+    const url = URL.createObjectURL(file)
+    const img = await new Promise<HTMLImageElement>((res, rej) => {
+      const i = new Image()
+      i.onload = () => res(i)
+      i.onerror = rej
+      i.src = url
+    })
+    const scale = Math.min(1, 1800 / Math.max(img.naturalWidth, img.naturalHeight))
+    const c = document.createElement("canvas")
+    c.width = Math.round(img.naturalWidth * scale)
+    c.height = Math.round(img.naturalHeight * scale)
+    c.getContext("2d")?.drawImage(img, 0, 0, c.width, c.height)
+    URL.revokeObjectURL(url)
+    return await new Promise<Blob | null>((res) => c.toBlob(res, "image/jpeg", 0.86))
+  } catch {
+    return null
+  }
+}
 
 export type HomeView = {
   id: string
@@ -182,6 +205,8 @@ function HomePanel({
   const [state, save, saving] = useActionState<HomeResult | null, FormData>(saveHome, null)
   const [pending, start] = useTransition()
   const m = nextMove(home, clientFirst)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoMsg, setPhotoMsg] = useState("")
   const [v, setV] = useState({
     address: home.address,
     clientAddress: home.clientAddress,
@@ -340,7 +365,42 @@ function HomePanel({
               <input name="beds" inputMode="decimal" value={v.beds} onChange={(e) => set("beds", e.target.value)} placeholder="Beds" className={input} aria-label="Beds" />
               <input name="baths" inputMode="decimal" value={v.baths} onChange={(e) => set("baths", e.target.value)} placeholder="Baths" className={input} aria-label="Baths" />
             </div>
-            <input name="photoUrl" value={v.photoUrl} onChange={(e) => set("photoUrl", e.target.value)} placeholder="Photo link" className={`${input} mt-3`} aria-label="Photo link" />
+            <div className="mt-3 flex items-center gap-3">
+              {v.photoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={v.photoUrl} alt="" referrerPolicy="no-referrer" className="h-12 w-16 shrink-0 rounded-md border border-lxhair object-cover" />
+              )}
+              <input name="photoUrl" value={v.photoUrl} onChange={(e) => set("photoUrl", e.target.value)} placeholder="Photo link" className={`${input} flex-1`} aria-label="Photo link" />
+              <label className={`shrink-0 cursor-pointer text-sm text-lxink [border-bottom:1px_solid_#C2A46B] ${photoBusy ? "pointer-events-none opacity-50" : ""}`}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0]
+                    e.target.value = ""
+                    if (!f) return
+                    setPhotoBusy(true)
+                    setPhotoMsg("")
+                    const blob = await shrinkPhoto(f)
+                    if (!blob) {
+                      setPhotoBusy(false)
+                      setPhotoMsg("That photo couldn't be opened here. Try a JPG or PNG.")
+                      return
+                    }
+                    const fd = new FormData()
+                    fd.set("homeId", home.id)
+                    fd.set("photo", new File([blob], "photo.jpg", { type: "image/jpeg" }))
+                    const r = await uploadHomePhoto(fd).catch(() => ({ ok: false, message: "Couldn't upload the photo. Please try again.", url: undefined }))
+                    setPhotoBusy(false)
+                    if (r.ok && r.url) set("photoUrl", r.url)
+                    setPhotoMsg(r.ok ? "" : r.message)
+                  }}
+                />
+                {photoBusy ? "Uploading\u2026" : "Upload photo"}
+              </label>
+            </div>
+            {photoMsg && <p className="mt-1.5 text-xs text-[#b42318]">{photoMsg}</p>}
             <textarea name="clientNote" rows={2} value={v.clientNote} onChange={(e) => set("clientNote", e.target.value)} placeholder={clientFirst ? `Your note to ${clientFirst}` : "Your note to your client"} className={`${input} mt-3`} aria-label="Your note to your client" />
             <p className="mt-1.5 text-xs text-[#8f8b84]">These fill in from the listing link when the site allows. {clientFirst || "Your client"} sees them on the home&rsquo;s card.</p>
           </div>
