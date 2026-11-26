@@ -189,8 +189,17 @@ export async function saveAgreement(
   const commission = String(formData.get("commission") ?? "").trim().slice(0, 40)
   const { error: commissionError } = await supabase.from("agents").update({ default_commission: commission }).eq("id", user.id)
 
+  // The broker who co-signs after the agent. Both or neither.
+  const brokerName = String(formData.get("brokerName") ?? "").trim().slice(0, 120)
+  const brokerEmail = String(formData.get("brokerEmail") ?? "").trim().toLowerCase().slice(0, 200)
+  if (brokerName && !brokerEmail) return { ok: false, message: "Add your broker's email so they can co-sign." }
+  if (brokerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(brokerEmail)) return { ok: false, message: "That broker email doesn't look right. Check it and save again." }
+  if (brokerEmail && !brokerName) return { ok: false, message: "Add your broker's name, as it should appear on the signature line." }
+  const { error: brokerError } = await supabase.from("agents").update({ broker_name: brokerName, broker_email: brokerEmail }).eq("id", user.id)
+
   revalidatePath("/settings")
   revalidatePath("/clients", "layout")
+  if (brokerError && (brokerName || brokerEmail)) return { ok: true, message: "Saved, except your broker. Try saving it again." }
   if (commissionError && commission) return { ok: true, message: "Saved, except your commission. Try saving it again." }
   return { ok: true, message: "Saved." }
 }

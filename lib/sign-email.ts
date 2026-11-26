@@ -44,3 +44,37 @@ export function signedNoticeEmail(opts: {
   const text = `${opts.clientName} signed the ${opts.title} ${opts.signedLabel}.\n\nOpen client: ${opts.link}`
   return { subject: `${opts.clientName} signed the ${opts.title}`, html, text }
 }
+
+// To the broker: the agent has signed, and the agreement waits on the broker's signature
+// before it goes to the client.
+export function brokerRequestEmail(opts: {
+  brokerName: string
+  agentName: string
+  clientName: string
+  title: string
+  link: string
+}) {
+  const first = opts.brokerName.trim().split(/\s+/)[0]
+  const hello = first ? `Hello ${esc(first)}.` : "Hello."
+  const html = teamNote(
+    "An agreement for your signature",
+    para(`${hello} ${esc(opts.agentName)} has signed the <strong>${esc(opts.title)}</strong> for ${esc(opts.clientName)}. It goes to ${esc(opts.clientName)} as soon as you sign.`) +
+      button(opts.link, "Review and sign"),
+  )
+  const text = `${first ? `Hello ${first}.` : "Hello."} ${opts.agentName} has signed the ${opts.title} for ${opts.clientName}. It goes to ${opts.clientName} as soon as you sign.\n\nReview and sign: ${opts.link}`
+  return { subject: `For your signature: ${opts.title} for ${opts.clientName}`, html, text }
+}
+
+// To the client and the agent: the signed copy, attached.
+export function signedCopyEmail(opts: { firstName: string; title: string; link: string; fromAgent: string; toClient: boolean }) {
+  const hello = opts.firstName ? `Hello ${esc(opts.firstName)}.` : "Hello."
+  const line = opts.toClient
+    ? `Your <strong style="font-weight:500;">${esc(opts.title)}</strong> is signed by everyone. Your copy is attached, and you can open it any time from the link below.`
+    : `The <strong>${esc(opts.title)}</strong> is signed by everyone. The signed copy is attached and filed on your client&rsquo;s page.`
+  const html = opts.toClient
+    ? suiteLetter({ agentName: opts.fromAgent, heading: "Your signed copy", body: sPara(`${hello} ${line}`) + sButton(opts.link, "Open your signed copy"), signoff: "Thank you,", signature: opts.fromAgent.trim().split(/\s+/)[0] })
+    : teamNote("Signed by everyone", para(`${hello} ${line}`) + button(opts.link, "Open client"))
+  const plain = line.replace(/<[^>]+>/g, "").replace(/&rsquo;/g, "\u2019")
+  const text = `${opts.firstName ? `Hello ${opts.firstName}.` : "Hello."} ${plain}\n\n${opts.link}`
+  return { subject: `Signed: ${opts.title}`, html, text }
+}

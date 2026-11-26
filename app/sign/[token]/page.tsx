@@ -4,6 +4,9 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { suiteName } from "@/lib/suite"
 import { BTN, LINE, SuiteFooter, initialsOf } from "../../suite-ui"
 import SignBlock from "./sign-block"
+import SignatureLines, { whenLabel } from "../signature-lines"
+import { cleanDoc } from "@/lib/doc-text"
+import { clientRoleOf, signersOf } from "@/lib/signing"
 
 export const dynamic = "force-dynamic"
 export const metadata = { robots: { index: false, follow: false } }
@@ -24,7 +27,7 @@ export default async function SignPage({
   const admin = createAdminClient()
   const { data: doc } = await admin
     .from("documents")
-    .select("id, agent_id, client_id, title, body, status, signer_name, signed_at")
+    .select("id, agent_id, client_id, title, body, status, signer_name, signed_at, signed_ip, agent_signed_name, agent_signed_at, broker_name, broker_signed_name, broker_signed_at, broker_signed_ip")
     .eq("sign_token", token)
     .maybeSingle()
   if (!doc) notFound()
@@ -41,11 +44,13 @@ export default async function SignPage({
   // Once it's signed, point them to their page for what comes next.
   let portalHref = ""
   let suite = "private suite"
-  if (signed && doc.client_id) {
-    const { data: client } = await admin.from("clients").select("portal_token, client_type").eq("id", doc.client_id).maybeSingle()
-    if (client?.portal_token) portalHref = `/portal/${client.portal_token}`
-    suite = suiteName(client?.client_type)
-  }
+  const { data: client } = doc.client_id ? await admin.from("clients").select("portal_token, client_type").eq("id", doc.client_id).maybeSingle() : { data: null }
+  if (signed && client?.portal_token) portalHref = `/portal/${client.portal_token}`
+  if (signed) suite = suiteName(client?.client_type)
+  const tz = agent?.timezone || "America/New_York"
+  const role = clientRoleOf(client?.client_type as string | null)
+  // Every signature on it so far, in order: agent, broker, then the client.
+  const lines = signersOf(doc, role).map((x) => ({ role: x.role, name: x.name, when: whenLabel(x.at, tz) }))
   const agentFirst = (agent?.full_name || "").trim().split(/\s+/)[0] || from
   const signedLabel =
     signed && doc.signed_at
@@ -60,22 +65,7 @@ export default async function SignPage({
     timeZone: agent?.timezone || "America/New_York",
     dateStyle: "long",
   }).format(new Date())
-  const signedDate =
-    signed && doc.signed_at
-      ? new Intl.DateTimeFormat("en-US", {
-          timeZone: agent?.timezone || "America/New_York",
-          dateStyle: "long",
-        }).format(new Date(doc.signed_at))
-      : ""
-
   const brokerage = agent?.business_name && agent.full_name ? agent.business_name : ""
-  const line = (label: string, content: React.ReactNode) => (
-    <div>
-      <p className="m-0 text-[12px] text-lxsoft">{label}</p>
-      <div className="flex h-[50px] items-end border-b border-lxink pb-1.5">{content}</div>
-    </div>
-  )
-
   return (
     <main className="min-h-screen bg-lxbg px-[26px] pb-8 pt-10 font-luxsans text-lxink antialiased md:pt-16">
       <div className="mx-auto max-w-[680px]">
@@ -114,18 +104,30 @@ export default async function SignPage({
           </div>
         )}
 
-        <article className="whitespace-pre-wrap font-lux text-[18px] leading-[1.6] text-lxink">{doc.body}</article>
-
-        {signed ? (
-          <div className={`mt-8 border-t ${LINE} pt-[22px]`}>
-            <div className="grid grid-cols-[minmax(0,1fr)_120px] gap-[18px] sm:grid-cols-[minmax(0,1fr)_170px]">
-              {line("Buyer\u2019s signature", <span className="font-lux text-[30px] italic leading-none">{doc.signer_name}</span>)}
-              {line("Date", <span className="text-[13px]">{signedDate}</span>)}
-            </div>
-            <p className="m-0 mt-3.5 text-[11.5px] text-lxsoft">Signed electronically on {signedLabel}.</p>
-          </div>
+        {doc.status === "draft" ? (
+          <p className="m-0 py-10 text-center text-[15px] leading-relaxed text-lxsoft">
+            This agreement isn&rsquo;t ready for your signature yet. {agentFirst} will send it as soon as it is.
+          </p>
         ) : (
-          <SignBlock token={token} today={today} error={sp.error} />
+          <>
+            <article className="whitespace-pre-wrap font-lux text-[18px] leading-[1.6] text-lxink">{cleanDoc(doc.body ?? "")}</article>
+
+            <div className={`mt-8 border-t ${LINE} pt-[22px]`}>
+              <SignatureLines lines={lines} />
+              {signed ? (
+                <>
+                  <p className="m-0 mt-4 text-[11.5px] text-lxsoft">Signed electronically on {signedLabel}.</p>
+                  <a href={`/sign/${token}/pdf`} className="mt-5 inline-block border-b border-lxgold pb-0.5 text-[14px] text-lxink">
+                    Download your signed copy (PDF)
+                  </a>
+                </>
+              ) : (
+                <div className={lines.length ? "mt-[22px]" : ""}>
+                  <SignBlock token={token} today={today} error={sp.error} role={role} bordered={false} />
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         <SuiteFooter />

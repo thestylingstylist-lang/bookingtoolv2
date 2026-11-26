@@ -8,6 +8,7 @@ import { fromZonedTime } from "date-fns-tz"
 import { createClient } from "@/lib/supabase/server"
 import { handleRequest, type ChatAnswer, type ChatTurn, type OfferDraft } from "@/lib/agent-chat"
 import { deliverAgreement } from "@/lib/agreement-fill"
+import { listLabels } from "@/lib/doc-text"
 import { sendOffer } from "./clients/[id]/homes-actions"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendInvite, toMeetKind } from "@/lib/meetings"
@@ -50,21 +51,29 @@ export async function assistantName(): Promise<string> {
   return assistantDisplayName(data?.assistant_name)
 }
 
-// The agent reviewed the agreement in the chat and tapped Send.
-export async function sendAgreementFromChat(clientId: string, title: string, body: string): Promise<{ ok: boolean; message: string }> {
+// The agent reviewed the agreement in the chat, signed it, and tapped Sign and send.
+export async function sendAgreementFromChat(clientId: string, title: string, body: string, agentSigned = false): Promise<{ ok: boolean; message: string }> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
   if (!user || !clientId || !body.trim()) return { ok: false, message: "Your session ended. Sign in again." }
+  if (!agentSigned) return { ok: false, message: "Sign it first: tick the box to add your signature and today’s date." }
   const h = await headers()
   const origin = `${h.get("x-forwarded-proto") ?? "https"}://${h.get("x-forwarded-host") ?? h.get("host")}`
   const r = await deliverAgreement(supabase, user.id, user.email ?? undefined, origin, clientId, title, body.slice(0, 60000))
+  if (r.state === "blanks") return { ok: false, message: `Fill in ${listLabels(r.blanks)} before sending.` }
   revalidatePath(`/clients/${clientId}`)
-  if (r === "sent") return { ok: true, message: "Sent for signature." }
-  if (r !== "noemail" && r !== "mailfail" && isAdminEmail(user.email)) return { ok: false, message: `That didn’t send. Tap again in a moment.\n\nFor the Marvberry team: deliverAgreement returned "${r}".` }
-  if (r === "noemail") return { ok: true, message: "It’s on their page. Add their email so they get the link." }
-  if (r === "mailfail") return { ok: true, message: "Saved to their page, but the email didn’t go out. Resend it from their file." }
+  if (r.state === "broker")
+    return r.mailed
+      ? { ok: true, message: `Signed. It’s with ${r.brokerName} to co-sign, and goes to your client as soon as they do.` }
+      : { ok: true, message: `Signed and saved, but the email to ${r.brokerName} didn’t go out. Resend it from your client’s file.` }
+  if (r.state === "client") {
+    if (r.result === "sent") return { ok: true, message: "Signed and sent for signature." }
+    if (r.result === "noemail") return { ok: true, message: "Signed. It’s on their page. Add their email so they get the link." }
+    return { ok: true, message: "Signed and saved to their page, but the email didn’t go out. Resend it from their file." }
+  }
+  if (isAdminEmail(user.email)) return { ok: false, message: `That didn’t send. Tap again in a moment.\n\nFor the Marvberry team: startSigning returned "error". Check that supabase/signing-order.sql has been run.` }
   return { ok: false, message: "That didn’t send. Try again." }
 }
 

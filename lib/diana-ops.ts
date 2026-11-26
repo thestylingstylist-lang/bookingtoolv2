@@ -10,12 +10,14 @@ import type { AgentTool } from "@/lib/ai"
 // like the agent's own clicks.
 import { addTask, setDueDate, toggleTask, deleteTask, movePhase, addStandardSteps, addCollected, toggleCollected, deleteCollected } from "@/app/clients/[id]/checklist-actions"
 import { saveDeal, addNote, deleteNote } from "@/app/clients/[id]/panel-actions"
-import { addHome, saveHome, setHomeStatus, removeHome, followUpOffer, setOfferStatus } from "@/app/clients/[id]/homes-actions"
+import { addHome, saveHome, setHomeStatus, removeHome, followUpOffer, setOfferStatus, updateHomeAddress } from "@/app/clients/[id]/homes-actions"
 import { saveSaleHome, setPrivateShowings, addOpenHouse, saveFeedback, deleteOpenHouse, addSaleOffer, updateSaleOffer, deleteSaleOffer } from "@/app/clients/[id]/seller-actions"
 import { updateClient, deleteClient, addClientFromBooking, deleteBooking } from "@/app/clients/actions"
 import { addEvent, holdTime, deleteEvent } from "@/app/calendar/actions"
 import { createTemplate, updateTemplate, deleteTemplate } from "@/app/templates/actions"
 import { sendDocument, resendDocument } from "@/app/clients/[id]/actions"
+import { prepareAgreement } from "@/lib/agreement-fill"
+import { createClient as createServerClient } from "@/lib/supabase/server"
 import { sendPortalLink } from "@/app/clients/[id]/portal-actions"
 import { saveAccount } from "@/app/settings/actions"
 import { saveMeetingLengths } from "@/app/settings/meeting-actions"
@@ -175,7 +177,7 @@ export const OPS_TOOLS: AgentTool[] = [
   },
   {
     name: "update_home",
-    description: "Update a home: notes, listing link, the seller's agent's details, a showing date and time, or set it active or passed.",
+    description: "Update a home: notes, listing link, the seller's agent's details, a showing date and time, or set it active or passed. To change its address (any part, including the zip), use propose with action edit_home_address, never remove and re-add.",
     input_schema: obj(
       {
         client_id: id(),
@@ -269,7 +271,7 @@ export const OPS_TOOLS: AgentTool[] = [
   {
     name: "propose",
     description:
-      "Anything that sends, notifies a client or deletes waits for the agent's yes. This shows the agent a card to approve. Actions: send_document (template_id), resend_document (document_id), send_suite_link, follow_up_offer (offer_id, message), support_message (message), delete_client, delete_booking (booking_id), delete_note (note_id), delete_step (step_id), delete_collected (doc_id), delete_template (template_id), remove_home (home_id), delete_open_house (open_house_id), delete_sale_offer (sale_offer_id), delete_event (event_id).",
+      "Anything that sends, notifies a client, deletes or changes a home's address waits for the agent's yes. This shows the agent a card to approve. Actions: send_document (template_id), resend_document (document_id), send_suite_link, follow_up_offer (offer_id, message), support_message (message), delete_client, delete_booking (booking_id), delete_note (note_id), delete_step (step_id), delete_collected (doc_id), delete_template (template_id), remove_home (home_id), edit_home_address (home_id with address, or zip when only the zip changes; client_view_only true when the agent says to change only what the client sees), delete_open_house (open_house_id), delete_sale_offer (sale_offer_id), delete_event (event_id).",
     input_schema: obj(
       {
         action: {
@@ -287,6 +289,7 @@ export const OPS_TOOLS: AgentTool[] = [
             "delete_collected",
             "delete_template",
             "remove_home",
+            "edit_home_address",
             "delete_open_house",
             "delete_sale_offer",
             "delete_event",
@@ -301,6 +304,9 @@ export const OPS_TOOLS: AgentTool[] = [
         step_id: id(),
         doc_id: id(),
         home_id: id(),
+        address: id("edit_home_address: the full new address, street, town, state and zip"),
+        zip: id("edit_home_address: just the new zip, when only the zip changes"),
+        client_view_only: { type: "boolean", description: "edit_home_address: true when the agent says to change only what the client sees" },
         open_house_id: id(),
         sale_offer_id: id(),
         event_id: id(),
@@ -381,6 +387,9 @@ export async function clientDetails(ctx: Ctx, clientId: string): Promise<string>
     db.from("events").select("id, kind, place, starts_at").eq("client_id", clientId).gte("ends_at", new Date().toISOString()).order("starts_at").limit(10),
   ])
   if (!c) return "That client isn't in your list."
+  // What the client sees for each home, when the agent set it to differ (read apart: a later update).
+  const { data: shownRows } = await db.from("homes").select("id, client_address").eq("client_id", clientId).limit(20)
+  const shownAs = new Map(((shownRows ?? []) as { id: string; client_address: string | null }[]).map((r) => [r.id, (r.client_address || "").trim()]))
   // Seller fields arrive with a later update; read apart.
   const { data: sell } = await db.from("clients").select("sell_phase, sale_address, sale_price, sale_listed_on, sale_url, private_showings").eq("id", clientId).maybeSingle()
   const { data: openHouses } = await db.from("open_houses").select("id, kind, starts_at, feedback").eq("client_id", clientId).order("starts_at").limit(15)
@@ -416,7 +425,7 @@ export async function clientDetails(ctx: Ctx, clientId: string): Promise<string>
     other_open_steps: (steps ?? []).filter((s) => !s.done).map((s) => ({ id: s.id, title: s.title, stage: s.phase, due: s.due_on ?? "" })),
     documents: (docs ?? []).map((d) => ({ id: d.id, title: d.title, status: d.status, signed: d.signed_at ? String(d.signed_at).slice(0, 10) : "" })),
     to_collect: (collected ?? []).map((d) => ({ id: d.id, title: d.title, received: d.received })),
-    homes: (homes ?? []).map((h) => ({ id: h.id, address: h.address, status: h.status, sellers_agent: [h.agent_name, h.agent_email].filter(Boolean).join(", "), showing: h.showing_at ? when(h.showing_at) : "", notes: h.notes })),
+    homes: (homes ?? []).map((h) => ({ id: h.id, address: h.address, ...(shownAs.get(h.id) ? { client_sees: shownAs.get(h.id) } : {}), status: h.status, sellers_agent: [h.agent_name, h.agent_email].filter(Boolean).join(", "), showing: h.showing_at ? when(h.showing_at) : "", notes: h.notes })),
     offers_made: (offers ?? []).map((o) => ({ id: o.id, amount: o.amount, status: o.status, home: (homes ?? []).find((h) => h.id === o.home_id)?.address ?? "" })),
     listing: sell ? { address: sell.sale_address, price: sell.sale_price, listed_on: sell.sale_listed_on, url: sell.sale_url, private_showings: !!sell.private_showings } : null,
     open_houses: (openHouses ?? []).map((o) => ({ id: o.id, kind: o.kind, when: when(o.starts_at), feedback: o.feedback ?? "" })),
@@ -885,7 +894,34 @@ async function propose(ctx: Ctx, input: Record<string, unknown>): Promise<string
       if (!t) return "That template isn't there. Use list_templates."
       const { data: c } = await db.from("clients").select("email").eq("id", cid).maybeSingle()
       if (!c?.email) return `${first} has no email yet. Ask for it as one natural question, save it with update_client, then propose again.`
-      plan = { title: `Send ${t.title} to ${first}`, detail: `${first} gets a private signing link by email.`, button: "Send for signature", args: { clientId: cid, templateId: t.id, kind: "agreement" } }
+      // Every blank must have a value before anything goes for signature.
+      const check = await prepareAgreement(db, agentId, cid, {}, { templateId: t.id, ignoreExisting: true })
+      if (check.state === "missing") return `"${t.title}" has blanks with no value in the client file or Settings: ${check.missing.map((m) => `"${m}"`).join(", ")}. Ask the agent for them one at a time, then call prepare_agreement with client_id, template_id "${t.id}" and the blanks, so the agent reviews the filled document before it goes. Don't propose send_document for it.`
+      const { data: ag } = await db.from("agents").select("broker_name, broker_email").eq("id", agentId).maybeSingle()
+      const viaBroker = ag?.broker_name && ag?.broker_email ? `${ag.broker_name} co-signs next, then ` : ""
+      plan = { title: `Sign and send ${t.title} to ${first}`, detail: `Your signature and today’s date go on it now. ${viaBroker ? viaBroker + first : first} gets a private signing link by email.`, button: "Sign and send", args: { clientId: cid, templateId: t.id, kind: "agreement" } }
+      break
+    }
+    case "edit_home_address": {
+      const miss = needClient()
+      if (miss) return miss
+      const hid = S(input.home_id, 60)
+      const { data: h } = await db.from("homes").select("id, address").eq("id", hid).eq("client_id", cid).maybeSingle()
+      if (!h) return "That home isn't on this client's list. Use client_file for its id."
+      const clientOnly = input.client_view_only === true
+      const { data: shownRow } = await db.from("homes").select("client_address").eq("id", hid).maybeSingle()
+      const current = ((clientOnly ? (shownRow?.client_address as string) : "") || (h.address as string) || "").trim()
+      let next = S(input.address, 200).replace(/\s+/g, " ")
+      const zip = S(input.zip, 10)
+      if (!next && zip) {
+        if (!/^\d{5}(-\d{4})?$/.test(zip)) return "That zip doesn't look right. Ask for the five digits."
+        next = /\b\d{5}(-\d{4})?\s*$/.test(current) ? current.replace(/\b\d{5}(-\d{4})?\s*$/, zip) : `${current} ${zip}`
+      }
+      if (next.length < 5) return "Ask for the new address, or just the part that changes."
+      if (next === current) return "That's already the address. Say so in one line."
+      plan = clientOnly
+        ? { title: `Show ${next} on ${first}'s page`, detail: `Only what ${first} sees changes. Your records keep ${h.address}.`, button: "Update", args: { homeId: hid, address: next, clientOnly: "1" } }
+        : { title: `Change ${h.address} to ${next}`, detail: `The address updates on your records, the showing and ${first}'s page.`, button: "Update", args: { homeId: hid, address: next, clientOnly: "" } }
       break
     }
     case "resend_document": {
@@ -895,7 +931,9 @@ async function propose(ctx: Ctx, input: Record<string, unknown>): Promise<string
       const { data: d } = await db.from("documents").select("id, title, status").eq("id", did).eq("client_id", cid).maybeSingle()
       if (!d) return "That document isn't on this client."
       if (d.status === "signed") return "It's already signed. Say so in one line."
-      plan = { title: `Resend ${d.title} to ${first}`, detail: `A fresh signing link goes to ${first} by email.`, button: "Resend", args: { clientId: cid, documentId: d.id } }
+      plan = d.status === "draft"
+        ? { title: `Remind your broker about ${d.title}`, detail: `Your broker gets the co-signing link again. ${first} gets it to sign once it's co-signed.`, button: "Remind", args: { clientId: cid, documentId: d.id } }
+        : { title: `Resend ${d.title} to ${first}`, detail: `A fresh signing link goes to ${first} by email.`, button: "Resend", args: { clientId: cid, documentId: d.id } }
       break
     }
     case "send_suite_link": {
@@ -972,8 +1010,14 @@ export async function runConfirmed(op: string, args: Record<string, string>): Pr
   let ok = "Done."
   switch (op) {
     case "send_document":
-      r = await act(sendDocument, { clientId: a("clientId"), templateId: a("templateId"), kind: a("kind") })
-      ok = "Sent for signature."
+      // Tapping the card is the agent's signature: they sign first, then the broker, then the client.
+      r = await act(sendDocument, { clientId: a("clientId"), templateId: a("templateId"), kind: a("kind"), agentSign: "on" })
+      {
+        const sb = await createServerClient()
+        const { data: au } = await sb.auth.getUser()
+        const { data: ag } = au.user ? await sb.from("agents").select("broker_name, broker_email").eq("id", au.user.id).maybeSingle() : { data: null }
+        ok = ag?.broker_name && ag?.broker_email ? `Signed. It’s with ${ag.broker_name} to co-sign, and goes to your client as soon as they do.` : "Signed and sent for signature."
+      }
       break
     case "resend_document":
       r = await act(resendDocument, { clientId: a("clientId"), documentId: a("documentId") })
@@ -1011,6 +1055,10 @@ export async function runConfirmed(op: string, args: Record<string, string>): Pr
       break
     case "remove_home":
       r = await returns(removeHome(a("homeId")))
+      break
+    case "edit_home_address":
+      r = await returns(updateHomeAddress(a("homeId"), a("address"), a("clientOnly") === "1"))
+      ok = a("clientOnly") === "1" ? "Updated what your client sees." : "Address updated."
       break
     case "delete_open_house":
       r = await act(deleteOpenHouse, { clientId: a("clientId"), id: a("id") })

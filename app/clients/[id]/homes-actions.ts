@@ -100,6 +100,34 @@ export async function saveHome(_prev: HomeResult | null, formData: FormData): Pr
     })
     .eq("id", id)
   if (error) return { ok: false, message: "Couldn't save. Try again." }
+  // What the client sees, when it should read differently. Saved on its own, so the rest
+  // still saves before signing-order.sql adds the column.
+  if (formData.has("clientAddress")) {
+    const clientAddress = s(formData.get("clientAddress"), 200)
+    await supabase.from("homes").update({ client_address: clientAddress === address ? "" : clientAddress }).eq("id", id)
+  }
+  revalidatePath(`/clients/${home.client_id}`)
+  revalidatePath("/calendar")
+  return { ok: true, message: "Saved." }
+}
+
+// Change a home's address. "clientOnly" changes just what the client sees on their page;
+// otherwise the address itself changes everywhere (and on its showing).
+export async function updateHomeAddress(homeId: string, address: string, clientOnly: boolean): Promise<HomeResult> {
+  const { supabase, userId } = await me()
+  if (!userId) return { ok: false, message: "Please sign in again." }
+  const next = address.trim().replace(/\s+/g, " ").slice(0, 200)
+  if (next.length < 5) return { ok: false, message: "That address looks too short. Add the street, town and zip." }
+  const { data: home } = await supabase.from("homes").select("id, client_id, event_id, address").eq("id", homeId).maybeSingle()
+  if (!home) return { ok: false, message: "That home is gone. Refresh the page." }
+  if (clientOnly) {
+    const { error } = await supabase.from("homes").update({ client_address: next === home.address ? "" : next }).eq("id", homeId)
+    if (error) return { ok: false, message: "Couldn't save what the client sees. Run supabase/signing-order.sql, then try again." }
+  } else {
+    const { error } = await supabase.from("homes").update({ address: next }).eq("id", homeId)
+    if (error) return { ok: false, message: "Couldn't save the address. Try again." }
+    if (home.event_id) await supabase.from("events").update({ place: next }).eq("id", home.event_id)
+  }
   revalidatePath(`/clients/${home.client_id}`)
   revalidatePath("/calendar")
   return { ok: true, message: "Saved." }

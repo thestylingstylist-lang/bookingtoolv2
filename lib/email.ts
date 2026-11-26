@@ -24,8 +24,8 @@ type SendArgs = {
   fromName?: string
   // The realtor's signature, for letters that go to their client.
   card?: AgentCard | null
-  // Files to attach, by private link (Resend fetches them).
-  attachments?: { filename: string; path: string }[]
+  // Files to attach: by private link (Resend fetches them), or the file itself as base64.
+  attachments?: { filename: string; path?: string; content?: string }[]
 }
 
 export async function sendEmail(args: SendArgs): Promise<boolean> {

@@ -7,6 +7,7 @@ import { createPortal } from "react-dom"
 import { usePathname, useRouter } from "next/navigation"
 import { askMarvberry, sendFromChat, addShowingFromChat, assistantName, sendAgreementFromChat, sendOfferFromChat, sendMeetingFromChat, confirmOp, loadConversation, endChat, chatHistory, chatFromHistory } from "./assistant-actions"
 import type { ChatAnswer, ChatCard } from "@/lib/agent-chat"
+import { cleanDoc, leftoverBlanks, listLabels } from "@/lib/doc-text"
 
 export const ASK_EVENT = "mb-ask"
 const START_CHIPS = ["What’s waiting on me?", "Prepare an agreement", "Prepare an offer", "Send a client an update"]
@@ -331,7 +332,7 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
       <div className="card">
         <p className="ck">{card.title} · {card.name}</p>
         <p className="cs">{card.email ? `Goes to ${card.email} to sign` : "No email on file. It goes on their page."}</p>
-        <div className="doc">{card.body}</div>
+        <div className="doc">{cleanDoc(card.body)}</div>
         {state === "done" ? (
           <p className="ok">{note}</p>
         ) : (
@@ -444,8 +445,12 @@ function Card({ card, close }: { card: ChatCard; close: () => void }) {
 
 // The full-size review: the whole agreement, readable, editable, and sent from here.
 function AgreementReview({ card, close, sent }: { card: Extract<ChatCard, { type: "agreement" }>; close: () => void; sent: (msg: string) => void }) {
-  const [body, setBody] = useState(card.body)
+  const [body, setBody] = useState(cleanDoc(card.body))
   const [editing, setEditing] = useState(false)
+  // Nothing goes for signature while a blank is still in the text.
+  const blanks = leftoverBlanks(body)
+  // The agent signs first. The box always starts unticked.
+  const [signed, setSigned] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState("")
   useEffect(() => {
@@ -477,22 +482,29 @@ function AgreementReview({ card, close, sent }: { card: Extract<ChatCard, { type
           )}
         </div>
         <div className="mbr-foot">
-          {err && <p className="err">{err}</p>}
+          {err ? <p className="err">{err}</p> : blanks.length > 0 && <p className="err">Fill in {listLabels(blanks)} before sending.</p>}
+          {!blanks.length && (
+            <label className="sg">
+              <input type="checkbox" checked={signed} onChange={(e) => setSigned(e.target.checked)} autoComplete="off" />
+              <span>Add my signature and today&rsquo;s date</span>
+            </label>
+          )}
           <button type="button" className="e" onClick={() => setEditing((v) => !v)}>{editing ? "Done editing" : "Edit"}</button>
           <button
             type="button"
             className="a"
-            disabled={busy || !body.trim()}
+            disabled={busy || !body.trim() || blanks.length > 0 || !signed}
             onClick={async () => {
+              if (leftoverBlanks(body).length || !signed) return
               setBusy(true)
               setErr("")
-              const r = await sendAgreementFromChat(card.clientId, card.title, body).catch(() => ({ ok: false, message: "That didn’t send. Try again." }))
+              const r = await sendAgreementFromChat(card.clientId, card.title, cleanDoc(body), signed).catch(() => ({ ok: false, message: "That didn’t send. Try again." }))
               setBusy(false)
               if (r.ok) sent(r.message)
               else setErr(r.message)
             }}
           >
-            {busy ? "Sending…" : "Send for signature"}
+            {busy ? "Sending…" : "Sign and send"}
           </button>
         </div>
       </div>
@@ -563,6 +575,9 @@ const CSS = `
 .mbr-foot{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:14px 22px;border-top:1px solid rgba(22,21,26,.07)}
 .mbr-foot button{font:inherit;font-size:14px;font-weight:600;border:0;border-radius:999px;padding:11px 20px;cursor:pointer}
 .mbr-foot .a{background:#16151a;color:#fff}
+.mbr-foot .a:disabled{opacity:.4;cursor:default}
+.mbr-foot .sg{margin-right:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:#16151a;cursor:pointer}
+.mbr-foot .sg input{width:16px;height:16px;accent-color:#16151a}
 .mbr-foot .a:disabled{opacity:.6}
 .mbr-foot .e{background:#EEEEF1;color:#16151a}
 .mbr-foot .err{margin:0 auto 0 0;font-size:13px;color:#b3261e}

@@ -3,9 +3,8 @@
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { sendEmail } from "@/lib/email"
-import { signedNoticeEmail } from "@/lib/sign-email"
 import { notifyAgent } from "@/lib/notify"
+import { finishSigning } from "@/lib/signing"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -24,7 +23,8 @@ export async function signDocument(formData: FormData): Promise<void> {
     .eq("sign_token", token)
     .maybeSingle()
   if (!doc) redirect("/")
-  if (doc.status === "signed") redirect(`/sign/${token}`)
+  // The client signs last: only once the agent (and broker) have signed and released it.
+  if (doc.status !== "sent") redirect(`/sign/${token}`)
 
   const h = await headers()
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || h.get("x-real-ip") || null
@@ -34,7 +34,7 @@ export async function signDocument(formData: FormData): Promise<void> {
     .from("documents")
     .update({ status: "signed", signer_name: name, signed_at: signedAt, signed_ip: ip })
     .eq("id", doc.id)
-    .neq("status", "signed")
+    .eq("status", "sent")
     .select("id")
   if (error) redirect(`/sign/${token}?error=save`)
   if (!updated || updated.length === 0) redirect(`/sign/${token}`)
@@ -46,38 +46,21 @@ export async function signDocument(formData: FormData): Promise<void> {
     body: `Signed the ${doc.title}.`,
   })
 
-  // Let the realtor know. A failed email must not undo the signature.
+  const host = h.get("x-forwarded-host") ?? h.get("host")
+  const proto = h.get("x-forwarded-proto") ?? "https"
+  // Everyone has signed: keep the final PDF in the client's file and send both sides a copy.
   try {
-    const [{ data: client }, { data: agent }, { data: authUser }] = await Promise.all([
-      admin.from("clients").select("first_name, last_name").eq("id", doc.client_id).maybeSingle(),
-      admin.from("agents").select("timezone").eq("id", doc.agent_id).maybeSingle(),
-      admin.auth.admin.getUserById(doc.agent_id),
-    ])
+    await finishSigning(doc.id as string, `${proto}://${host}`)
+  } catch (err) {
+    console.error("[sign] signed copy failed:", err)
+  }
+
+  // Let the realtor know on their phone or browser. Their emailed signed copy covers the rest.
+  try {
+    const { data: client } = await admin.from("clients").select("first_name").eq("id", doc.client_id).maybeSingle()
     const first = ((client?.first_name as string | null) || name.split(/\s+/)[0] || "Your client").trim()
     const what = `${first} signed the ${doc.title}`
-    const notified = await notifyAgent(admin, doc.agent_id as string, "signed", {
-      line: what,
-      body: `${what}.`,
-      url: `/clients/${doc.client_id}`,
-    })
-    const to = notified ? null : authUser?.user?.email
-    if (to) {
-      const host = h.get("x-forwarded-host") ?? h.get("host")
-      const proto = h.get("x-forwarded-proto") ?? "https"
-      const signedLabel = new Intl.DateTimeFormat("en-US", {
-        timeZone: agent?.timezone || "America/New_York",
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(new Date(signedAt))
-      const clientName = client ? `${client.first_name} ${client.last_name}`.trim() : name
-      const mail = signedNoticeEmail({
-        clientName: clientName || name,
-        title: doc.title,
-        signedLabel,
-        link: `${proto}://${host}/clients/${doc.client_id}`,
-      })
-      await sendEmail({ to, ...mail, fromName: "Marvberry" })
-    }
+    await notifyAgent(admin, doc.agent_id as string, "signed", { line: what, body: `${what}.`, url: `/clients/${doc.client_id}` })
   } catch (err) {
     console.error("[sign] notify failed:", err)
   }

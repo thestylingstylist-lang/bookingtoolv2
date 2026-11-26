@@ -8,7 +8,15 @@ const pill = (on: boolean) =>
   "cursor-pointer rounded-full border px-4 py-2 text-sm transition-colors " +
   (on ? "border-lxink bg-lxink text-lxbg" : "border-lxink/15 bg-white/70 text-lxink/70 hover:border-lxink/40")
 
-export default function AgreementForm({ initial, commission = "" }: { initial: AgreementSettings; commission?: string }) {
+export default function AgreementForm({
+  initial,
+  commission = "",
+  broker = { name: "", email: "" },
+}: {
+  initial: AgreementSettings
+  commission?: string
+  broker?: { name: string; email: string }
+}) {
   const [state, formAction, pending] = useActionState<SettingsResult | null, FormData>(
     saveAgreement,
     null
@@ -75,6 +83,32 @@ export default function AgreementForm({ initial, commission = "" }: { initial: A
           It fills in on every agreement you send. You can still change it for any client.
         </span>
       </label>
+
+      <div>
+        <span className="mb-1.5 block text-sm text-lxink/70">Your broker</span>
+        <div className="grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-2">
+          <input
+            name="brokerName"
+            defaultValue={broker.name}
+            placeholder="Broker's name"
+            maxLength={120}
+            autoComplete="off"
+            className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/20"
+          />
+          <input
+            name="brokerEmail"
+            type="email"
+            defaultValue={broker.email}
+            placeholder="Broker's email"
+            maxLength={200}
+            autoComplete="off"
+            className="w-full rounded-xl border border-lxink/15 bg-white/70 px-4 py-3 outline-none focus:border-lxink focus:ring-2 focus:ring-lxink/20"
+          />
+        </div>
+        <span className="mt-1.5 block text-xs text-lxink/50">
+          Your broker co-signs after you, and your client gets the agreement once both signatures are on it. Leave blank if no one co-signs.
+        </span>
+      </div>
 
       {state && (
         <p

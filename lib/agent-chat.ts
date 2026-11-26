@@ -113,11 +113,12 @@ const TOOLS: AgentTool[] = [
   {
     name: "prepare_agreement",
     description:
-      "Prepare the client's buyer agreement from the agent's own template. Checks first whether one is already signed or sent. If the template has blanks only the agent knows, it returns them: ask the agent, then call again with blanks filled. When ready, the agent gets it to review and send.",
+      "Prepare the client's buyer agreement from the agent's own template. Checks first whether one is already signed or sent. Every blank (date, names, addresses, commission) is filled from the client file and Settings. Any blank still without a value comes back: ask the agent, then call again with blanks filled. When ready, the agent gets it to review and send.",
     input_schema: {
       type: "object",
       properties: {
         client_id: { type: "string" },
+        template_id: { type: "string", description: "Optional. A specific template from list_templates; the buyer agreement if left out." },
         blanks: { type: "object", description: "Blank label to value, for blanks the agent gave you.", additionalProperties: { type: "string" } },
       },
       required: ["client_id"],
@@ -419,14 +420,15 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
 
       case "prepare_agreement": {
         const blanks = (input.blanks && typeof input.blanks === "object" ? input.blanks : {}) as Record<string, string>
-        const r = await prepareAgreement(db, agentId, clientId, blanks)
+        const tid = str(input.template_id, 60)
+        const r = await prepareAgreement(db, agentId, clientId, blanks, tid ? { templateId: tid, ignoreExisting: true } : {})
         if (r.state === "no_template") {
           cards.push({ type: "agreement_setup" })
           return "The agent hasn't uploaded their buyer agreement yet. Agreements are built from their own wording. Tell them to upload it (card shown), and the team sets it up within one business day."
         }
         if (r.state === "signed") return `Already signed: "${r.title}", signed ${longDate(r.signedAt.slice(0, 10))}. Nothing to send.`
         if (r.state === "sent") return `Already sent on ${longDate(r.sentAt.slice(0, 10))} and waiting for the client's signature. Offer to draft a friendly reminder instead.`
-        if (r.state === "missing") return `The template "${r.title}" has blanks only the agent knows: ${r.missing.map((m) => `"${m}"`).join(", ")}. Ask the agent for them, then call again with blanks keyed by those exact labels. The client's name, address, email and phone come from the file automatically; never ask for them.`
+        if (r.state === "missing") return `"${r.title}" can't go out yet. These blanks have no value in the client file or Settings: ${r.missing.map((m) => `"${m}"`).join(", ")}. Ask the agent for them one at a time, in plain words, then call again with blanks keyed by those exact labels. Never send or show an agreement with a blank left in it.`
         cards.push({ type: "agreement", clientId, name: nameOf(clientId), title: r.title, body: r.body, email: r.email })
         return `Ready. The agent sees the full agreement to review and send.${r.email ? "" : " The client has no email on file, so it will land on their page only. Mention it."}`
       }
@@ -540,7 +542,7 @@ async function clientFile(db: SupabaseClient, clientId: string, tz: string): Pro
     budget: [c.budget_min, c.budget_max].filter(Boolean).map((n) => usd(n as number)).join(" to "),
     stage: c.phase ?? "",
     client_since: (c.created_at as string)?.slice(0, 10),
-    agreements_and_documents: (docs ?? []).map((d) => `${d.title} (${d.kind}): ${d.status}${d.signed_at ? `, signed ${String(d.signed_at).slice(0, 10)}` : ""}`),
+    agreements_and_documents: (docs ?? []).map((d) => `${d.title} (${d.kind}): ${d.status === "draft" ? "agent signed, waiting on the broker's signature before it goes to the client" : d.status === "sent" ? "with the client to sign" : d.status}${d.signed_at ? `, signed by everyone ${String(d.signed_at).slice(0, 10)}, signed PDF in the client's file` : ""}`),
     homes: (homes ?? []).map((x) => ({
       address: x.address,
       status: x.status,

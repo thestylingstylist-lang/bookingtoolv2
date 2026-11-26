@@ -58,12 +58,14 @@ type Doc = {
   status: string
   signer_name: string | null
   signed_at: string | null
+  broker_name: string | null
 }
 
 function banners(first: string, suite: string): Record<string, { text: string; ok: boolean }> {
   const who = first || "Your client"
   return {
-  sent: { text: `Sent for signature. ${who} has a private signing link by email.`, ok: true },
+  sent: { text: `Signed and sent. ${who} has a private signing link by email.`, ok: true },
+  broker: { text: `Signed. It’s with your broker to co-sign, and goes to ${who === "Your client" ? "your client" : who} as soon as they do.`, ok: true },
   resent: { text: "Signing link sent again.", ok: true },
   noemail: {
     text: "The document is in your messages, but this client has no email. Add one under Contact, then resend.",
@@ -82,6 +84,7 @@ function banners(first: string, suite: string): Record<string, { text: string; o
 const ERRORS: Record<string, string> = {
   doc: "That document didn't save. Check every blank is filled in, then try again.",
   blanks: "Fill in every blank before sending.",
+  sign: "Tick the box to add your signature and today’s date, then send.",
   msg: "That message didn't send. Try again in a moment.",
   task: "That step didn't update. Refresh the page and try again.",
   collected: "That document didn't update. Refresh the page and try again.",
@@ -166,9 +169,13 @@ export default async function ClientJacket({
   const theirs = new Map(
     (theirErr ? [] : ((theirRows ?? []) as { id: string; client_notes: string | null; client_offer_at: string | null }[])).map((r) => [r.id, r]),
   )
+  // What the client sees for each home (blank until signing-order.sql is run).
+  const { data: shownRows, error: shownErr } = await supabase.from("homes").select("id, client_address").eq("client_id", id)
+  const shown = new Map((shownErr ? [] : ((shownRows ?? []) as { id: string; client_address: string | null }[])).map((r) => [r.id, (r.client_address || "").trim()]))
   const homes: HomeView[] = ((homeData ?? []) as Record<string, string | null>[]).map((h) => ({
     id: h.id as string,
     address: (h.address as string) || "",
+    clientAddress: shown.get(h.id as string) || "",
     listingUrl: h.listing_url || "",
     agentName: h.agent_name || "",
     agentBrokerage: h.agent_brokerage || "",
@@ -205,7 +212,7 @@ export default async function ClientJacket({
       .order("created_at", { ascending: true }),
     supabase
       .from("documents")
-      .select("id, title, status, signer_name, signed_at")
+      .select("id, title, status, signer_name, signed_at, broker_name")
       .eq("client_id", id),
     supabase
       .from("document_templates")
@@ -589,6 +596,21 @@ export default async function ClientJacket({
               </div>
             )}
 
+            {[...docs.values()].filter((d) => d.status === "draft").map((d) => (
+              <div key={d.id} className="mx-6 mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-lxhair bg-white px-4 py-3 text-sm">
+                <span className="font-medium">{d.title}</span>
+                <span className="rounded-full bg-lxfill px-2.5 py-0.5 text-[11px] text-lxink">
+                  You signed &middot; waiting on {d.broker_name || "your broker"}
+                </span>
+                <form action={resendDocument}>
+                  <input type="hidden" name="documentId" value={d.id} />
+                  <input type="hidden" name="clientId" value={client.id} />
+                  <button className="text-xs text-lxsoft underline hover:text-lxink">Remind {d.broker_name ? d.broker_name.split(/\s+/)[0] : "your broker"}</button>
+                </form>
+                <span className="w-full text-xs text-lxsoft">{(client.first_name || "Your client").trim()} gets it to sign once it&rsquo;s co-signed.</span>
+              </div>
+            ))}
+
             {/* Newest at the bottom; column-reverse keeps the view pinned there */}
             <div className="flex flex-1 flex-col-reverse overflow-y-auto">
               <div className="flex flex-col gap-1 px-6 py-6">
@@ -610,10 +632,15 @@ export default async function ClientJacket({
                           <p className="mt-1 font-serif font-semibold tracking-tight text-xl">{doc.title}</p>
                           <div className="mt-3 flex items-center gap-3">
                             {doc.status === "signed" ? (
+                              <>
                               <span className="rounded-full bg-lxlav/50 px-2.5 py-0.5 text-[11px] text-lxgold">
                                 Signed{doc.signed_at ? ` \u00b7 ${fmtDay.format(new Date(doc.signed_at))}` : ""}
                                 {doc.signer_name ? ` by ${doc.signer_name}` : ""}
                               </span>
+                              <a href={`/documents/${doc.id}/pdf`} target="_blank" rel="noopener" className="text-xs text-lxsoft underline hover:text-lxink">
+                                Signed copy (PDF)
+                              </a>
+                              </>
                             ) : (
                               <>
                                 <span className="rounded-full bg-lxfill px-2.5 py-0.5 text-[11px] text-lxink">

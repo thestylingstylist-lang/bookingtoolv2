@@ -49,6 +49,12 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const agreement = toAgreementSettings(agreementRow)
   const { data: commissionRow } = await supabase.from("agents").select("default_commission").eq("id", user.id).maybeSingle()
   const commission = (commissionRow as { default_commission?: string } | null)?.default_commission ?? ""
+  // Read on its own, so Settings still opens before the broker columns exist.
+  const { data: brokerRow } = await supabase.from("agents").select("broker_name, broker_email").eq("id", user.id).maybeSingle()
+  const broker = {
+    name: ((brokerRow as { broker_name?: string } | null)?.broker_name ?? "").trim(),
+    email: ((brokerRow as { broker_email?: string } | null)?.broker_email ?? "").trim(),
+  }
 
   // Same idea for the license number: blank until its column exists.
   const { data: licenseRow } = await supabase.from("agents").select("license_number").eq("id", user.id).maybeSingle()
@@ -184,7 +190,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               <h2 className="font-serif font-semibold tracking-tight text-xl">Deals</h2>
               <p className="mt-1 text-sm text-lxink/60">Set this once. Every agreement you send fills it in, so the only thing left is the commission.</p>
               <div className="mt-6">
-                <AgreementForm initial={agreement} commission={commission} />
+                <AgreementForm initial={agreement} commission={commission} broker={broker} />
               </div>
             </section>
 

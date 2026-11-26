@@ -171,6 +171,9 @@ export default async function Portal({
     const theirs = new Map(
       (mineErr ? [] : ((mineRows ?? []) as { id: string; client_notes: string | null; client_offer_at: string | null }[])).map((r) => [r.id, r]),
     )
+    // The address the agent wants the client to see, when it differs.
+    const { data: shownRows, error: shownErr } = await admin.from("homes").select("id, client_address").eq("client_id", client.id)
+    const shownAs = new Map((shownErr ? [] : ((shownRows ?? []) as { id: string; client_address: string | null }[])).map((r) => [r.id, (r.client_address || "").trim()]))
     const { data: offerRows } = await admin
       .from("home_offers")
       .select("home_id, amount, status, created_at")
@@ -189,7 +192,7 @@ export default async function Portal({
     homes = ((homeRows ?? []) as { id: string; address: string; listing_url: string | null; showing_at: string | null; status: string }[])
       .filter((h) => h.status !== "passed")
       .map((h) => {
-        const [street, ...rest] = (h.address || "").split(",")
+        const [street, ...rest] = (shownAs.get(h.id) || h.address || "").split(",")
         const t = theirs.get(h.id)
         return {
           id: h.id,

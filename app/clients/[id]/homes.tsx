@@ -8,6 +8,7 @@ import { OfferForm, FollowUpForm, type OfferView, type DocView, type FormView } 
 export type HomeView = {
   id: string
   address: string
+  clientAddress: string // what the client sees, when it differs; "" when it's the same
   listingUrl: string
   agentName: string
   agentBrokerage: string
@@ -177,6 +178,8 @@ function HomePanel({
   const [pending, start] = useTransition()
   const m = nextMove(home, clientFirst)
   const [v, setV] = useState({
+    address: home.address,
+    clientAddress: home.clientAddress,
     showDate: home.showDate,
     showTime: home.showTime,
     agentName: home.agentName,
@@ -277,7 +280,13 @@ function HomePanel({
 
         <form action={save} className="mt-6 space-y-6">
           <input type="hidden" name="homeId" value={home.id} />
-          <input type="hidden" name="address" value={home.address} />
+
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">Address</p>
+            <input name="address" value={v.address} onChange={(e) => set("address", e.target.value)} placeholder="Street, town, state and zip" className={input} aria-label="Address" required minLength={5} />
+            <input name="clientAddress" value={v.clientAddress} onChange={(e) => set("clientAddress", e.target.value)} placeholder="Same as above" className={`${input} mt-3`} aria-label="Address your client sees" />
+            <p className="mt-1.5 text-xs text-[#8f8b84]">The second line is what your client sees on their page. Leave it blank to show the address above.</p>
+          </div>
 
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">Showing</p>

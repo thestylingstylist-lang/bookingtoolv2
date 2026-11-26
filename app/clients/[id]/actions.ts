@@ -5,9 +5,11 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { AUTO_FILL } from "@/lib/placeholders"
+import { cleanDoc, leftoverBlanks, normalizeBlanks } from "@/lib/doc-text"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
 import { sendEmail } from "@/lib/email"
-import { signRequestEmail } from "@/lib/sign-email"
+import { signRequestEmail, brokerRequestEmail } from "@/lib/sign-email"
+import { startSigning } from "@/lib/signing"
 import { agentCard } from "@/lib/agent-card"
 
 type ClientRow = {
@@ -35,22 +37,24 @@ function todayLabel(timezone: string) {
   }).format(new Date())
 }
 
-// Replace every [[blank]] with its value. Auto blanks come from records;
-// deal blanks come from the form. Returns null if a deal blank is empty.
+// Replace every blank with its value. Blanks may be written [[Label]], [Label] or {{Label}}.
+// Auto blanks come from records; when a record is empty, or for deal blanks, the value comes
+// from the form. Returns null while any blank would be left empty. The result is plain text.
 function fillBody(
   body: string,
   auto: Record<string, string>,
   deal: Record<string, string>
 ): string | null {
   let missing = false
-  const out = body.replace(/\[\[([^\]]+)\]\]/g, (_m, inner: string) => {
+  const out = normalizeBlanks(body).replace(/\[\[([^\]]+)\]\]/g, (_m, inner: string) => {
     const key = inner.trim().toLowerCase()
-    if (AUTO_FILL[key] !== undefined) return auto[key] ?? ""
-    const v = (deal[key] ?? "").trim()
+    const v = ((AUTO_FILL[key] !== undefined ? auto[key] : "") || deal[key] || "").trim()
     if (!v) missing = true
     return v
   })
-  return missing ? null : out
+  if (missing) return null
+  const clean = cleanDoc(out)
+  return leftoverBlanks(clean).length ? null : clean
 }
 
 // Post a text message into the client's thread.
@@ -135,47 +139,23 @@ export async function sendDocument(formData: FormData): Promise<void> {
 
   const body = fillBody(String(template.body ?? ""), auto, deal)
   if (body === null) redirect(`/clients/${clientId}?error=blanks`)
+  // The agent signs first; the box on the form always starts unticked.
+  if (formData.get("agentSign") !== "on") redirect(`/clients/${clientId}?error=sign`)
 
-  const { data: doc, error } = await supabase
-    .from("documents")
-    .insert({
-      agent_id: user.id,
-      client_id: clientId,
-      kind,
-      title: template.title,
-      body,
-      status: "sent",
-    })
-    .select("id, sign_token")
-    .single()
-  if (error || !doc) redirect(`/clients/${clientId}?error=doc`)
-
-  await supabase.from("messages").insert({
-    agent_id: user.id,
-    client_id: clientId,
-    sender: "agent",
-    document_id: doc.id,
-  })
-
-  revalidatePath(`/clients/${clientId}`)
-
-  if (!client.email) redirect(`/clients/${clientId}?doc=noemail`)
-
-  const link = `${await originUrl()}/sign/${doc.sign_token}`
-  const mail = signRequestEmail({
-    clientFirstName: client.first_name ?? "",
-    agentName: agent.full_name || agent.business_name || "Your agent",
+  const r = await startSigning(supabase, {
+    agentId: user.id,
+    clientId,
+    kind,
     title: template.title,
-    link,
-  })
-  const ok = await sendEmail({
-    to: client.email,
-    ...mail,
-    fromName: agent.full_name || agent.business_name,
-    card: await agentCard(user.id),
+    body,
+    origin: await originUrl(),
     replyTo: user.email ?? undefined,
   })
-  redirect(`/clients/${clientId}?doc=${ok ? "sent" : "mailfail"}`)
+  revalidatePath(`/clients/${clientId}`)
+  if (r.state === "blanks") redirect(`/clients/${clientId}?error=blanks`)
+  if (r.state === "error") redirect(`/clients/${clientId}?error=doc`)
+  if (r.state === "broker") redirect(`/clients/${clientId}?doc=${r.mailed ? "broker" : "mailfail"}`)
+  redirect(`/clients/${clientId}?doc=${r.result === "sent" ? "sent" : r.result}`)
 }
 
 // Email the signing link again.
@@ -199,6 +179,20 @@ export async function resendDocument(formData: FormData): Promise<void> {
     supabase.from("agents").select("full_name, business_name").eq("id", user.id).maybeSingle(),
   ])
   if (!doc || !client || !agent || doc.status === "signed") redirect(`/clients/${clientId}`)
+  if (doc.status === "draft") {
+    // Still waiting on the broker: remind the broker, not the client.
+    const { data: d } = await supabase.from("documents").select("broker_name, broker_email, broker_token, broker_signed_at").eq("id", docId).maybeSingle()
+    if (!d?.broker_email || d.broker_signed_at) redirect(`/clients/${clientId}`)
+    const mail = brokerRequestEmail({
+      brokerName: (d.broker_name as string) || "",
+      agentName: agent.full_name || agent.business_name || "Your agent",
+      clientName: client.first_name || "your client",
+      title: doc.title,
+      link: `${await originUrl()}/cosign/${d.broker_token}`,
+    })
+    const sent = await sendEmail({ to: d.broker_email as string, ...mail, fromName: agent.full_name || agent.business_name, replyTo: user.email ?? undefined })
+    redirect(`/clients/${clientId}?doc=${sent ? "broker" : "mailfail"}`)
+  }
   if (!client.email) redirect(`/clients/${clientId}?doc=noemail`)
 
   const link = `${await originUrl()}/sign/${doc.sign_token}`

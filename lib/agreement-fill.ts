@@ -3,9 +3,8 @@ import "server-only"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { AUTO_FILL, parsePlaceholders } from "@/lib/placeholders"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
-import { sendEmail } from "@/lib/email"
-import { signRequestEmail } from "@/lib/sign-email"
-import { agentCard } from "@/lib/agent-card"
+import { startSigning, type StartResult } from "@/lib/signing"
+import { cleanDoc, leftoverBlanks, normalizeBlanks } from "@/lib/doc-text"
 
 // The buyer agreement, filled from the agent's own template, the same way the
 // client page does it. Used by the chat so Marvberry can prepare it and the
@@ -47,6 +46,19 @@ const ALIASES: Record<string, string> = {
   buyersagent: "agent name",
   firm: "brokerage",
   brokeragename: "brokerage",
+  commission: "commission",
+  commissionrate: "commission",
+  commissionpercent: "commission",
+  compensation: "commission",
+  buyeragentcompensation: "commission",
+  brokercompensation: "commission",
+  brokeragefee: "commission",
+  propertyaddress: "property address",
+  listingaddress: "property address",
+  subjectproperty: "property address",
+  subjectpropertyaddress: "property address",
+  addressofproperty: "property address",
+  homeaddress: "property address",
 }
 
 export type AgreementStatus =
@@ -61,20 +73,21 @@ export async function prepareAgreement(
   agentId: string,
   clientId: string,
   deal: Record<string, string>,
+  opts: { templateId?: string; ignoreExisting?: boolean } = {},
 ): Promise<AgreementStatus> {
   const [{ data: client }, { data: agent }, { data: tpls }, { data: docs }] = await Promise.all([
-    db.from("clients").select("id, first_name, last_name, email, phone, address").eq("id", clientId).maybeSingle(),
-    db.from("agents").select("full_name, business_name, timezone, agreement_days, agreement_exclusive").eq("id", agentId).maybeSingle(),
+    db.from("clients").select("id, first_name, last_name, email, phone, address, sale_address").eq("id", clientId).maybeSingle(),
+    db.from("agents").select("full_name, business_name, timezone, agreement_days, agreement_exclusive, default_commission").eq("id", agentId).maybeSingle(),
     db.from("document_templates").select("id, title, body").eq("agent_id", agentId).order("created_at"),
     db.from("documents").select("title, status, created_at, signed_at").eq("client_id", clientId).eq("kind", "agreement").order("created_at", { ascending: false }),
   ])
-  const signed = (docs ?? []).find((d) => d.status === "signed")
+  const signed = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "signed")
   if (signed) return { state: "signed", title: signed.title as string, signedAt: (signed.signed_at as string) || (signed.created_at as string) }
-  const sent = (docs ?? []).find((d) => d.status === "sent")
+  const sent = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "sent")
   if (sent) return { state: "sent", title: sent.title as string, sentAt: sent.created_at as string }
 
   const list = (tpls ?? []) as { id: string; title: string; body: string }[]
-  const tpl = list.find((t) => /agreement/i.test(t.title)) ?? list[0]
+  const tpl = (opts.templateId ? list.find((t) => t.id === opts.templateId) : undefined) ?? list.find((t) => /agreement/i.test(t.title)) ?? list[0]
   if (!tpl || !client || !agent) return { state: "no_template" }
 
   const tz = (agent.timezone as string) || "America/New_York"
@@ -90,11 +103,13 @@ export async function prepareAgreement(
     "business name": (agent.business_name as string) ?? "",
     date: todayLabel(tz),
     "today's date": todayLabel(tz),
+    commission: ((agent.default_commission as string) ?? "").trim(),
+    "property address": ((client.sale_address as string) ?? "").trim(),
     ...agreementAuto(toAgreementSettings(agent), tz),
   }
   // Match blanks loosely: "Client's Name", "Client’s name", "Buyer Name" and
   // "[[ client name ]]" are all the same blank. Anything that means the client's
-  // name, address, email or phone is filled from the file, never asked for.
+  // name, address, email or phone is filled from the file, and only asked for when it's empty.
   const fromFile = (key: string): string | undefined => {
     const n = norm(key)
     for (const [k, v] of Object.entries(auto)) if (norm(k) === n) return v
@@ -104,20 +119,21 @@ export async function prepareAgreement(
   const given: Record<string, string> = {}
   for (const [k, v] of Object.entries(deal)) given[norm(k)] = String(v ?? "").trim()
 
-  const missing = parsePlaceholders(tpl.body)
-    .filter((p) => p.kind === "deal" && fromFile(p.key) === undefined && !given[norm(p.key)])
-    .map((p) => p.label)
+  // Every blank gets a value: what the agent said for this client wins, then the file and
+  // Settings (names, addresses, dates, the usual commission). A blank the file should fill but
+  // can't, like an address not on file yet, is asked for like any other.
+  const source = normalizeBlanks(String(tpl.body ?? ""))
+  const valueFor = (key: string): string => given[norm(key)] || (fromFile(key) ?? "").trim() || ""
+  const missing = parsePlaceholders(source).filter((p) => !valueFor(p.key)).map((p) => p.label)
   if (missing.length) return { state: "missing", title: tpl.title, templateId: tpl.id, missing }
 
-  const body = tpl.body.replace(/\[\[([^\]]+)\]\]/g, (_m, inner: string) => {
-    const key = inner.trim().toLowerCase()
-    if (AUTO_FILL[key] !== undefined) return auto[key] ?? ""
-    return fromFile(key) ?? given[norm(key)] ?? ""
-  })
+  const body = cleanDoc(source.replace(/\[\[([^\]]+)\]\]/g, (_m, inner: string) => valueFor(inner.trim().toLowerCase()) || valueFor(inner)))
+  const left = leftoverBlanks(body)
+  if (left.length) return { state: "missing", title: tpl.title, templateId: tpl.id, missing: left }
   return { state: "ready", title: tpl.title, templateId: tpl.id, body, email: (client.email as string) || null }
 }
 
-// The agent approved it: save it, put it in the client's thread, email the signing link.
+// The agent signed and approved it: it starts the signing order (agent, broker, then client).
 export async function deliverAgreement(
   db: SupabaseClient,
   agentId: string,
@@ -126,32 +142,6 @@ export async function deliverAgreement(
   clientId: string,
   title: string,
   body: string,
-): Promise<"sent" | "noemail" | "mailfail" | "error"> {
-  const [{ data: client }, { data: agent }] = await Promise.all([
-    db.from("clients").select("first_name, email").eq("id", clientId).maybeSingle(),
-    db.from("agents").select("full_name, business_name").eq("id", agentId).maybeSingle(),
-  ])
-  if (!client || !agent) return "error"
-  const { data: doc, error } = await db
-    .from("documents")
-    .insert({ agent_id: agentId, client_id: clientId, kind: "agreement", title: title.slice(0, 200), body, status: "sent" })
-    .select("id, sign_token")
-    .single()
-  if (error || !doc) return "error"
-  await db.from("messages").insert({ agent_id: agentId, client_id: clientId, sender: "agent", document_id: doc.id })
-  if (!client.email) return "noemail"
-  const mail = signRequestEmail({
-    clientFirstName: (client.first_name as string) ?? "",
-    agentName: (agent.full_name as string) || (agent.business_name as string) || "Your agent",
-    title,
-    link: `${origin}/sign/${doc.sign_token}`,
-  })
-  const ok = await sendEmail({
-    to: client.email as string,
-    ...mail,
-    fromName: (agent.full_name as string) || (agent.business_name as string),
-    card: await agentCard(agentId),
-    replyTo,
-  })
-  return ok ? "sent" : "mailfail"
+): Promise<StartResult> {
+  return startSigning(db, { agentId, clientId, kind: "agreement", title, body, origin, replyTo })
 }

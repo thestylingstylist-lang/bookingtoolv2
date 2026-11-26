@@ -28,6 +28,7 @@ const config: Config = {
         serif: ['var(--font-geist-sans)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
         lux: ['"Cormorant Garamond"', 'Georgia', '"Times New Roman"', 'serif'],
         luxsans: ['Inter', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        sig: ['"Mrs Saint Delafield"', '"Brush Script MT"', 'cursive'],
         sans: ['var(--font-geist-sans)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
       },
     },

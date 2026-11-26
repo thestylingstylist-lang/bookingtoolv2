@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { AUTO_FILL, parsePlaceholders } from "@/lib/placeholders"
+import { cleanDoc, normalizeBlanks } from "@/lib/doc-text"
 import { sendDocument } from "./actions"
 
 type Template = { id: string; title: string; body: string }
@@ -20,12 +21,17 @@ export default function SendDocument({
 }) {
   const [open, setOpen] = useState(false)
   const [reviewing, setReviewing] = useState(false)
+  // The agent signs first. Always starts unticked.
+  const [agentSigned, setAgentSigned] = useState(false)
   const [values, setValues] = useState<Record<string, string>>({})
   const [templateId, setTemplateId] = useState(templates[0]?.id ?? "")
   const template = templates.find((t) => t.id === templateId)
+  // Blanks in any bracket style, markdown stripped: what the client will actually read.
+  const source = useMemo(() => cleanDoc(normalizeBlanks(template?.body ?? "")), [template])
+  // Ask for every blank the records can't fill, including a record that's empty (no address yet).
   const deals = useMemo(
-    () => parsePlaceholders(template?.body ?? "").filter((p) => p.kind === "deal"),
-    [template]
+    () => parsePlaceholders(source).filter((p) => p.kind === "deal" || !(auto[p.key] ?? "").trim()),
+    [source, auto]
   )
   // The usual commission from Settings starts in any commission blank; typing replaces it.
   const valueOf = (key: string) => values[key] ?? (key.startsWith("commission") ? defaultCommission : "")
@@ -34,7 +40,7 @@ export default function SendDocument({
   // The document exactly as the client will see it. Filled spots are tinted
   // so the realtor can check each one; anything missing shows in rose.
   const preview = useMemo(() => {
-    const body = template?.body ?? ""
+    const body = source
     const parts: ReactNode[] = []
     let last = 0
     let i = 0
@@ -42,7 +48,7 @@ export default function SendDocument({
       const at = m.index ?? 0
       parts.push(body.slice(last, at))
       const key = m[1].trim().toLowerCase()
-      const v = (AUTO_FILL[key] !== undefined ? auto[key] : valueOf(key))?.trim() ?? ""
+      const v = ((AUTO_FILL[key] !== undefined ? auto[key] : "")?.trim() || valueOf(key).trim())
       parts.push(
         v ? (
           <mark key={i++} className="rounded bg-white px-1 text-lxink">{v}</mark>
@@ -56,7 +62,7 @@ export default function SendDocument({
     }
     parts.push(body.slice(last))
     return parts
-  }, [template, auto, values, defaultCommission])
+  }, [source, auto, values, defaultCommission])
 
   const guessKind = /disclos/i.test(template?.title ?? "") ? "disclosure" : "agreement"
 
@@ -167,12 +173,24 @@ export default function SendDocument({
           <article className="mt-3 max-h-[60vh] overflow-y-auto whitespace-pre-wrap rounded-xl border border-lxhair bg-white p-6 font-[Georgia,serif] text-[15px] leading-relaxed text-lxsoft">
             {preview}
           </article>
+          <label className="mt-4 flex items-center gap-2.5 text-sm text-lxink">
+            <input
+              type="checkbox"
+              name="agentSign"
+              checked={agentSigned}
+              onChange={(e) => setAgentSigned(e.target.checked)}
+              autoComplete="off"
+              className="h-4 w-4 accent-[#1F1E1C]"
+            />
+            Add my signature and today&rsquo;s date
+          </label>
           <div className="mt-4 flex items-center gap-4">
             <button
               type="submit"
-              className="rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90"
+              disabled={!agentSigned}
+              className="rounded-lg bg-lxink px-5 py-2.5 text-sm font-medium text-lxbg transition-opacity hover:opacity-90 disabled:opacity-40"
             >
-              Send for signature
+              Sign and send
             </button>
             <button
               type="button"

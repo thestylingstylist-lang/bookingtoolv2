@@ -4,27 +4,35 @@ import { useState } from "react"
 import { signDocument } from "./actions"
 import { BTN, LINE } from "../../suite-ui"
 
-// The signature block at the foot of the document. As the client types,
-// their name appears on the line in handwriting, the way it will be signed.
+// The signature block at the foot of the document. As the signer types, their name
+// appears on the line in script, the way it will be signed. The consent box always
+// starts unticked.
 export default function SignBlock({
   token,
   today,
   error,
+  role = "Buyer’s signature",
+  action = signDocument,
+  bordered = true,
 }: {
   token: string
   today: string
   error?: string
+  role?: string
+  action?: (formData: FormData) => void | Promise<void>
+  bordered?: boolean
 }) {
   const [name, setName] = useState("")
+  const [agree, setAgree] = useState(false)
 
   const line = (label: string, content: React.ReactNode) => (
     <div>
       <p className="m-0 text-[12px] text-lxsoft">{label}</p>
-      <div className="relative flex h-[50px] items-end border-b border-lxink pb-1.5">{content}</div>
+      <div className="relative flex h-[54px] items-end border-b border-lxink pb-1">{content}</div>
     </div>
   )
   return (
-    <form action={signDocument} className={`mt-[30px] flex flex-col gap-[22px] border-t ${LINE} pt-[26px]`}>
+    <form action={action} autoComplete="off" className={`flex flex-col gap-[22px] ${bordered ? `mt-[30px] border-t ${LINE} pt-[26px]` : ""}`}>
       <input type="hidden" name="token" value={token} />
       {error && (
         <p className="m-0 border-l-2 border-lxblush pl-3 text-[13.5px] text-lxink">
@@ -32,18 +40,18 @@ export default function SignBlock({
         </p>
       )}
 
-      <div className="grid grid-cols-1 gap-[22px] sm:grid-cols-[1fr_170px]">
+      <div className="grid grid-cols-[minmax(0,1fr)_128px] gap-[18px] sm:grid-cols-[minmax(0,1fr)_190px]">
         {line(
-          "Buyer\u2019s signature",
+          role,
           name ? (
-            <span aria-hidden className="font-lux text-[30px] italic leading-none text-lxink">
+            <span aria-hidden className="truncate font-sig text-[34px] leading-none text-lxink">
               {name}
             </span>
           ) : (
-            <span className="font-lux text-[16px] italic text-lxsoft">Sign here</span>
+            <span className="pb-1 font-lux text-[16px] italic text-lxsoft">Sign here</span>
           ),
         )}
-        {line("Date", <span className="text-[14px] text-lxink">{today}</span>)}
+        {line("Date", <span className="pb-0.5 text-[13px] text-lxink">{today}</span>)}
       </div>
 
       <label htmlFor="fullName" className="block text-[12px] text-lxsoft">
@@ -61,7 +69,15 @@ export default function SignBlock({
       </label>
 
       <label className="flex items-start gap-3 text-[13.5px] leading-normal">
-        <input type="checkbox" name="agree" required className="mt-[3px] accent-[#1F1E1C]" />
+        <input
+          type="checkbox"
+          name="agree"
+          required
+          checked={agree}
+          onChange={(e) => setAgree(e.target.checked)}
+          autoComplete="off"
+          className="mt-[3px] accent-[#1F1E1C]"
+        />
         <span>I&rsquo;ve read this agreement, and typing my name is my electronic signature.</span>
       </label>
 
