@@ -10,6 +10,11 @@ export type HomeView = {
   address: string
   clientAddress: string // what the client sees, when it differs; "" when it's the same
   listingUrl: string
+  photoUrl: string // the card's photo, from the listing or typed in
+  price: string // "1285000", or ""
+  beds: string
+  baths: string
+  clientNote: string // the agent's note the client sees on the card
   agentName: string
   agentBrokerage: string
   agentEmail: string
@@ -180,6 +185,11 @@ function HomePanel({
   const [v, setV] = useState({
     address: home.address,
     clientAddress: home.clientAddress,
+    photoUrl: home.photoUrl,
+    price: home.price,
+    beds: home.beds,
+    baths: home.baths,
+    clientNote: home.clientNote,
     showDate: home.showDate,
     showTime: home.showTime,
     agentName: home.agentName,
@@ -321,6 +331,18 @@ function HomePanel({
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">Listing link</p>
             <input name="listingUrl" value={v.listingUrl} onChange={(e) => set("listingUrl", e.target.value)} placeholder="Zillow or listing link" className={input} />
+          </div>
+
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">{clientFirst ? `On ${clientFirst}'s card` : "On their card"}</p>
+            <div className="grid grid-cols-3 gap-3">
+              <input name="price" inputMode="numeric" value={v.price} onChange={(e) => set("price", e.target.value)} placeholder="Price" className={input} aria-label="Price" />
+              <input name="beds" inputMode="decimal" value={v.beds} onChange={(e) => set("beds", e.target.value)} placeholder="Beds" className={input} aria-label="Beds" />
+              <input name="baths" inputMode="decimal" value={v.baths} onChange={(e) => set("baths", e.target.value)} placeholder="Baths" className={input} aria-label="Baths" />
+            </div>
+            <input name="photoUrl" value={v.photoUrl} onChange={(e) => set("photoUrl", e.target.value)} placeholder="Photo link" className={`${input} mt-3`} aria-label="Photo link" />
+            <textarea name="clientNote" rows={2} value={v.clientNote} onChange={(e) => set("clientNote", e.target.value)} placeholder={clientFirst ? `Your note to ${clientFirst}` : "Your note to your client"} className={`${input} mt-3`} aria-label="Your note to your client" />
+            <p className="mt-1.5 text-xs text-[#8f8b84]">These fill in from the listing link when the site allows. {clientFirst || "Your client"} sees them on the home&rsquo;s card.</p>
           </div>
 
           <div className="flex items-center gap-3">

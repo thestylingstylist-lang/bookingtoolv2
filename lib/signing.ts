@@ -7,6 +7,7 @@ import { brokerRequestEmail, signRequestEmail, signedCopyEmail } from "@/lib/sig
 import { agentCard } from "@/lib/agent-card"
 import { buildSignedPdf, type Signer } from "@/lib/signed-pdf"
 import { cleanDoc, leftoverBlanks } from "@/lib/doc-text"
+import { tickStep } from "@/lib/auto-steps"
 
 // The signing order, in one place:
 //   1. The agent signs when they send it. The document is saved as a draft.
@@ -160,8 +161,10 @@ export async function finishSigning(docId: string, origin: string): Promise<void
   const admin = createAdminClient()
   const pdf = await signedPdf(docId)
   if (!pdf) return
-  const { data: doc } = await admin.from("documents").select("agent_id, client_id, title, sign_token").eq("id", docId).maybeSingle()
+  const { data: doc } = await admin.from("documents").select("agent_id, client_id, title, sign_token, kind").eq("id", docId).maybeSingle()
   if (!doc) return
+  // The agreement is signed: that step is done for both sides.
+  if (doc.kind === "agreement") await tickStep(admin, doc.client_id as string, "Agreement signed")
   const [{ data: client }, { data: agent }] = await Promise.all([
     admin.from("clients").select("first_name, email").eq("id", doc.client_id).maybeSingle(),
     admin.from("agents").select("full_name, business_name").eq("id", doc.agent_id).maybeSingle(),

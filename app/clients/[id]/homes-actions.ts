@@ -11,6 +11,8 @@ import { agentCard } from "@/lib/agent-card"
 import { offerEmail, type OfferTerms } from "@/lib/offer-email"
 import { fillPdf } from "@/lib/pdf-fill"
 import { isCustom, type PdfField } from "@/lib/pdf-fields"
+import { readListing } from "@/lib/listing-preview"
+import { tickStep } from "@/lib/auto-steps"
 
 export type HomeResult = { ok: boolean; message?: string }
 
@@ -35,13 +37,21 @@ export async function addHome(_prev: HomeResult | null, formData: FormData): Pro
   const address = isLink ? addressFromLink(input) : input
   if (!address) return { ok: false, message: "We couldn't read an address from that link. Type the address instead." }
 
-  const { error } = await supabase.from("homes").insert({
-    agent_id: userId,
-    client_id: clientId,
-    address: address.slice(0, 200),
-    listing_url: isLink ? input : "",
-  })
+  const { data: added, error } = await supabase
+    .from("homes")
+    .insert({
+      agent_id: userId,
+      client_id: clientId,
+      address: address.slice(0, 200),
+      listing_url: isLink ? input : "",
+    })
+    .select("id")
+    .single()
   if (error) return { ok: false, message: "Couldn't add that home. Try again." }
+  // The photo, price, beds and baths for the client's card, read from the listing.
+  if (isLink && added) await fillFromListing(supabase, added.id as string, input)
+  // A home on their list means the agent has sent homes to look at.
+  await tickStep(supabase, clientId, "Send curated homes")
   revalidatePath(`/clients/${clientId}`)
   return { ok: true }
 }
@@ -51,7 +61,7 @@ export async function saveHome(_prev: HomeResult | null, formData: FormData): Pr
   const { supabase, userId } = await me()
   if (!userId) return { ok: false, message: "Please sign in again." }
   const id = s(formData.get("homeId"), 60)
-  const { data: home } = await supabase.from("homes").select("id, client_id, event_id, address").eq("id", id).maybeSingle()
+  const { data: home } = await supabase.from("homes").select("id, client_id, event_id, address, listing_url").eq("id", id).maybeSingle()
   if (!home) return { ok: false, message: "That home is gone. Refresh the page." }
 
   const { data: agent } = await supabase.from("agents").select("timezone").eq("id", userId).maybeSingle()
@@ -106,9 +116,38 @@ export async function saveHome(_prev: HomeResult | null, formData: FormData): Pr
     const clientAddress = s(formData.get("clientAddress"), 200)
     await supabase.from("homes").update({ client_address: clientAddress === address ? "" : clientAddress }).eq("id", id)
   }
+  // The client's card: photo, price, beds, baths and the agent's note to the client.
+  if (formData.has("price")) {
+    const n = (k: string) => {
+      const v = parseFloat(s(formData.get(k), 20).replace(/[^0-9.]/g, ""))
+      return Number.isFinite(v) && v > 0 ? v : null
+    }
+    let photo = s(formData.get("photoUrl"), 1000)
+    if (photo && !/^https?:\/\//i.test(photo)) photo = ""
+    await supabase
+      .from("homes")
+      .update({ photo_url: photo, price: n("price"), beds: n("beds"), baths: n("baths"), client_note: s(formData.get("clientNote"), 1000) })
+      .eq("id", id)
+  }
+  // A new listing link: fill in whatever is still empty from it.
+  if (listingUrl && listingUrl !== (home as { listing_url?: string }).listing_url) await fillFromListing(supabase, id, listingUrl)
   revalidatePath(`/clients/${home.client_id}`)
   revalidatePath("/calendar")
   return { ok: true, message: "Saved." }
+}
+
+// Fill the card from the listing page, never over what the agent typed. Saved apart,
+// so homes still save before suite-homes.sql adds these columns.
+async function fillFromListing(supabase: Awaited<ReturnType<typeof createClient>>, homeId: string, url: string) {
+  const got = await readListing(url)
+  const { data: now } = await supabase.from("homes").select("photo_url, price, beds, baths").eq("id", homeId).maybeSingle()
+  if (!now) return
+  const patch: Record<string, string | number> = {}
+  if (got.photo && !now.photo_url) patch.photo_url = got.photo.slice(0, 1000)
+  if (got.price && !now.price) patch.price = got.price
+  if (got.beds && !now.beds) patch.beds = got.beds
+  if (got.baths && !now.baths) patch.baths = got.baths
+  if (Object.keys(patch).length) await supabase.from("homes").update(patch).eq("id", homeId)
 }
 
 // Change a home's address. "clientOnly" changes just what the client sees on their page;

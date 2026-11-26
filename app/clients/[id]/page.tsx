@@ -26,6 +26,7 @@ import { assistantDisplayName } from "@/lib/assistant-name"
 import { toggleTask } from "./checklist-actions"
 import SellerTools, { type OpenHouse, type SaleOffer } from "./seller-tools"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
+import { loadStepFacts, withFacts } from "@/lib/auto-steps"
 
 export const dynamic = "force-dynamic"
 
@@ -172,10 +173,19 @@ export default async function ClientJacket({
   // What the client sees for each home (blank until signing-order.sql is run).
   const { data: shownRows, error: shownErr } = await supabase.from("homes").select("id, client_address").eq("client_id", id)
   const shown = new Map((shownErr ? [] : ((shownRows ?? []) as { id: string; client_address: string | null }[])).map((r) => [r.id, (r.client_address || "").trim()]))
+  // The client's card for each home (blank until suite-homes.sql is run).
+  const { data: cardRows, error: cardErr } = await supabase.from("homes").select("id, photo_url, price, beds, baths, client_note").eq("client_id", id)
+  type CardRow = { id: string; photo_url: string | null; price: number | null; beds: number | null; baths: number | null; client_note: string | null }
+  const cards = new Map((cardErr ? [] : ((cardRows ?? []) as CardRow[])).map((r) => [r.id, r]))
   const homes: HomeView[] = ((homeData ?? []) as Record<string, string | null>[]).map((h) => ({
     id: h.id as string,
     address: (h.address as string) || "",
     clientAddress: shown.get(h.id as string) || "",
+    photoUrl: cards.get(h.id as string)?.photo_url || "",
+    price: cards.get(h.id as string)?.price ? String(Math.round(Number(cards.get(h.id as string)?.price))) : "",
+    beds: cards.get(h.id as string)?.beds ? String(cards.get(h.id as string)?.beds) : "",
+    baths: cards.get(h.id as string)?.baths ? String(cards.get(h.id as string)?.baths) : "",
+    clientNote: cards.get(h.id as string)?.client_note || "",
     listingUrl: h.listing_url || "",
     agentName: h.agent_name || "",
     agentBrokerage: h.agent_brokerage || "",
@@ -265,7 +275,9 @@ export default async function ClientJacket({
   const journeys = journeysFor(client.client_type)
   const buyPhase = toBuyPhase(client.phase)
   const sellPhase = toSellPhase(sell.sell_phase)
-  const allTasks = (taskData ?? []) as (Task & { phase: string | null })[]
+  // Steps done by what has happened (agreement signed, homes sent, times shared, documents in),
+  // read the same way as the client's suite, so both sides always match.
+  const allTasks = withFacts((taskData ?? []) as (Task & { phase: string | null })[], await loadStepFacts(supabase, id))
   const buyTasks = allTasks.filter((t) => (t.phase ?? "showing") === buyPhase)
   const sellTasks = allTasks.filter((t) => t.phase === sellPhase)
   const phase: Phase = journeys[0] === "sell" ? sellPhase : buyPhase

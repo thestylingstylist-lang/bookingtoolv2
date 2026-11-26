@@ -17,6 +17,7 @@ import { addEvent, holdTime, deleteEvent } from "@/app/calendar/actions"
 import { createTemplate, updateTemplate, deleteTemplate } from "@/app/templates/actions"
 import { sendDocument, resendDocument } from "@/app/clients/[id]/actions"
 import { prepareAgreement } from "@/lib/agreement-fill"
+import { loadStepFacts, withFacts } from "@/lib/auto-steps"
 import { createClient as createServerClient } from "@/lib/supabase/server"
 import { sendPortalLink } from "@/app/clients/[id]/portal-actions"
 import { saveAccount } from "@/app/settings/actions"
@@ -376,7 +377,7 @@ const NEEDS_CLIENT = new Set([
 
 export async function clientDetails(ctx: Ctx, clientId: string): Promise<string> {
   const { db, tz } = ctx
-  const [{ data: c }, { data: steps }, { data: docs }, { data: collected }, { data: homes }, { data: offers }, { data: notes }, { data: events }] = await Promise.all([
+  const [{ data: c }, { data: rawSteps }, { data: docs }, { data: collected }, { data: homes }, { data: offers }, { data: notes }, { data: events }] = await Promise.all([
     db.from("clients").select("first_name, last_name, email, phone, address, client_type, budget_min, budget_max, phase, portal_token").eq("id", clientId).maybeSingle(),
     db.from("steps").select("id, title, owner, due_on, done, phase").eq("client_id", clientId).order("position").limit(80),
     db.from("documents").select("id, title, kind, status, signed_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(12),
@@ -387,6 +388,8 @@ export async function clientDetails(ctx: Ctx, clientId: string): Promise<string>
     db.from("events").select("id, kind, place, starts_at").eq("client_id", clientId).gte("ends_at", new Date().toISOString()).order("starts_at").limit(10),
   ])
   if (!c) return "That client isn't in your list."
+  // Steps done by what has happened, read the same way as the client's suite and the agent's page.
+  const steps = withFacts((rawSteps ?? []) as { id: string; title: string; owner: string; due_on: string | null; done: boolean; phase: string }[], await loadStepFacts(db, clientId))
   // What the client sees for each home, when the agent set it to differ (read apart: a later update).
   const { data: shownRows } = await db.from("homes").select("id, client_address").eq("client_id", clientId).limit(20)
   const shownAs = new Map(((shownRows ?? []) as { id: string; client_address: string | null }[]).map((r) => [r.id, (r.client_address || "").trim()]))

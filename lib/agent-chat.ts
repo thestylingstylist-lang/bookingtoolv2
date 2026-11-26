@@ -11,6 +11,7 @@ import { draftAboutFor } from "@/lib/assistant"
 import { daysUntil, longDate } from "@/lib/due"
 import { prepareAgreement } from "@/lib/agreement-fill"
 import { customBlanks, type PdfField } from "@/lib/pdf-fields"
+import { loadStepFacts, doneByFacts } from "@/lib/auto-steps"
 
 // The assistant in the chat. Claude gets the tools below and works step by step
 // (look up the client, check the file, fill the paperwork, write the note) until
@@ -533,6 +534,8 @@ async function clientFile(db: SupabaseClient, clientId: string, tz: string): Pro
     db.from("messages").select("sender, body, created_at").eq("client_id", clientId).not("body", "is", null).order("created_at", { ascending: false }).limit(6),
   ])
   if (!c) return "Couldn't open that file."
+  // Open steps, minus any done by what has happened, read the same way as the client's suite.
+  const openByFacts = <T extends { title: string }>(list: T[], f: Awaited<ReturnType<typeof loadStepFacts>>) => list.filter((x) => !doneByFacts(x.title, f))
   return JSON.stringify({
     name: full(c as { first_name: string; last_name: string }),
     email: c.email ?? "",
@@ -552,7 +555,7 @@ async function clientFile(db: SupabaseClient, clientId: string, tz: string): Pro
     })),
     offers: (offers ?? []).map((o) => `${usd(o.amount as number)} on ${(homes ?? []).find((x) => x.id === o.home_id)?.address ?? "a home"}: ${o.status}, sent ${String(o.created_at).slice(0, 10)}`),
     documents_collected: (collected ?? []).map((d) => `${d.title}: ${d.received ? (d.file_path ? "received, file on hand" : "received") : "still waiting"}`),
-    open_steps: (steps ?? []).map((s) => `${s.title} (${s.owner === "client" ? "client owes it" : "agent"})${s.due_on ? `, due ${s.due_on}` : ""}`),
+    open_steps: openByFacts((steps ?? []) as { title: string; owner: string; due_on: string | null }[], await loadStepFacts(db, clientId)).map((s) => `${s.title} (${s.owner === "client" ? "client owes it" : "agent"})${s.due_on ? `, due ${s.due_on}` : ""}`),
     latest_messages: (msgs ?? []).reverse().map((m) => `${m.sender === "client" ? "Client" : "Agent"} (${String(m.created_at).slice(0, 10)}): ${String(m.body).slice(0, 300)}`),
   })
 }

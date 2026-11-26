@@ -21,6 +21,8 @@ import { clientSendMessage } from "./actions"
 import UploadButton from "./upload-button"
 import PortalTabs from "./portal-tabs"
 import PortalHomes, { type PortalHome } from "./portal-homes"
+import ShowingTimes from "./showing-times"
+import { loadStepFacts, stepForDoc, withFacts } from "@/lib/auto-steps"
 import { AgentHeader, SuiteFooter, Tracker, Tag, DotLabel, H2, BTN, OUTLINE, QUIET, HAIR, LINE, type TagColor } from "../../suite-ui"
 
 export const dynamic = "force-dynamic"
@@ -82,7 +84,7 @@ export default async function Portal({
         .eq("client_id", client.id)
         .order("position", { ascending: true })
         .order("created_at", { ascending: true }),
-      admin.from("documents").select("id, title, status, signed_at").eq("client_id", client.id).order("created_at", { ascending: true }),
+      admin.from("documents").select("id, title, status, signed_at, sign_token, kind").eq("client_id", client.id).order("created_at", { ascending: true }),
       admin.from("collected_docs").select("id, title, received, file_path").eq("client_id", client.id).order("created_at", { ascending: true }),
       admin
         .from("messages")
@@ -124,8 +126,15 @@ export default async function Portal({
   const fmtDay = new Intl.DateTimeFormat("en-US", { timeZone: tz, month: "short", day: "numeric" })
   const privateShowings = !!sell.private_showings
 
+  // ---- Steps that are done by what has happened, even if nobody ticked them ----
+  // The same facts the agent's client page and Diana use, so both sides always match.
+  const facts = await loadStepFacts(admin, client.id as string)
+  const requested = (colData ?? []) as { id: string; title: string; received: boolean; file_path: string | null }[]
+  const docsByStep = new Map<string, typeof requested>()
+  for (const d of requested) docsByStep.set(stepForDoc(d.title), [...(docsByStep.get(stepForDoc(d.title)) ?? []), d])
+
   // ---- Journeys: stages, the current one, and each stage's steps ----
-  const allSteps = (stepData ?? []) as Step[]
+  const allSteps = withFacts((stepData ?? []) as Step[], facts)
   const buyCur = toBuyPhase(client.phase)
   const sellCur = toSellPhase(sell.sell_phase)
   const current = (j: Journey): Phase => (j === "sell" ? sellCur : buyCur)
@@ -136,7 +145,8 @@ export default async function Portal({
   const nowSteps = journeys.flatMap((j) => stepsIn(current(j)).map((s) => ({ ...s, journey: j })))
 
   const signed = (docData ?? []).filter((d) => d.status === "signed")
-  const toSign = (docData ?? []).filter((d) => d.status !== "signed")
+  // Drafts still waiting on the agent's or broker's signature stay off the client's page.
+  const toSign = (docData ?? []).filter((d) => d.status === "sent")
   const collected = colData ?? []
   const missing = collected.filter((d) => !d.received)
   // "Show my brokerage under my name", read apart so the suite opens before the update runs.
@@ -171,6 +181,10 @@ export default async function Portal({
     const theirs = new Map(
       (mineErr ? [] : ((mineRows ?? []) as { id: string; client_notes: string | null; client_offer_at: string | null }[])).map((r) => [r.id, r]),
     )
+    // The card: photo, price, beds, baths and the agent's note (blank until suite-homes.sql is run).
+    const { data: cardRows, error: cardErr } = await admin.from("homes").select("id, photo_url, price, beds, baths, client_note").eq("client_id", client.id)
+    type CardRow = { id: string; photo_url: string | null; price: number | null; beds: number | null; baths: number | null; client_note: string | null }
+    const cardOf = new Map((cardErr ? [] : ((cardRows ?? []) as CardRow[])).map((r) => [r.id, r]))
     // The address the agent wants the client to see, when it differs.
     const { data: shownRows, error: shownErr } = await admin.from("homes").select("id, client_address").eq("client_id", client.id)
     const shownAs = new Map((shownErr ? [] : ((shownRows ?? []) as { id: string; client_address: string | null }[])).map((r) => [r.id, (r.client_address || "").trim()]))
@@ -204,8 +218,20 @@ export default async function Portal({
           notes: t?.client_notes || "",
           askedLabel: t?.client_offer_at ? new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long" }).format(new Date(t.client_offer_at)) : "",
           offer: latest.get(h.id) ?? null,
+          photo: cardOf.get(h.id)?.photo_url || "",
+          price: cardOf.get(h.id)?.price ? `$${Math.round(Number(cardOf.get(h.id)?.price)).toLocaleString("en-US")}` : "",
+          beds: cardOf.get(h.id)?.beds ? Number(cardOf.get(h.id)?.beds) : null,
+          baths: cardOf.get(h.id)?.baths ? Number(cardOf.get(h.id)?.baths) : null,
+          agentNote: (cardOf.get(h.id)?.client_note || "").trim(),
         }
       })
+  }
+
+  // What a step says to the client, done or not.
+  const label = (st: { title: string; done?: boolean }) => {
+    if (st.title === "Send curated homes") return st.done ? `${agentFirst} sent homes to look at` : `${agentFirst} is curating your homes`
+    if (st.title === "Agreement signed") return st.done ? "Agreement signed" : "Sign your agreement"
+    return clientWording(st.title, agentFirst)
   }
 
   // ---- The next step, and its one dark button ----
@@ -218,7 +244,7 @@ export default async function Portal({
   let nextSub = ""
   let action: { label: string; href: string } | null = null
   if (mine) {
-    nextTitle = clientWording(mine.title, agentFirst)
+    nextTitle = label(mine)
     nextSub = [forWhich(mine.journey), mine.due_on ? clientDueLabel(mine.due_on, tz) + "." : ""].filter(Boolean).join(" ")
     const docStep = /document|funds|pre-approval|statement|letter/i.test(mine.title)
     action = missing.length > 0 && docStep ? { label: "Upload documents", href: "#documents" } : { label: `Message ${agentFirst}`, href: "#messages" }
@@ -227,12 +253,21 @@ export default async function Portal({
     nextSub = `${agentFirst}’s notes are with each one.`
     action = { label: reviewing.length === 1 ? "Review the offer" : "Review offers", href: "#offers" }
   } else if (waiting) {
-    nextTitle = clientWording(waiting.title, agentFirst)
+    nextTitle = label(waiting)
     nextSub = [forWhich(waiting.journey), "Nothing is needed from you."].filter(Boolean).join(" ")
   } else {
     nextTitle = "You’re all caught up"
     nextSub = `${agentFirst} will be in touch about what comes next.`
   }
+  // Sharing times happens right here, with the picker in place of a button.
+  const pickTimes = mine?.title === "Get their availability"
+  if (pickTimes) action = null
+  const dayLabel = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long", month: "short", day: "numeric" })
+  const dayKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" })
+  const pickDays = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(Date.now() + (i + 1) * 86400000)
+    return { date: dayKey.format(d), label: dayLabel.format(d) }
+  })
   const messageIsAction = action?.href === "#messages"
 
   const firstName = client.first_name?.trim() || ""
@@ -258,14 +293,30 @@ export default async function Portal({
         <span className="h-[13px] w-[13px] shrink-0 rounded-full border border-[rgba(31,30,28,.28)]" />
       )}
       <span className={`flex-1 text-[14px] ${s.done ? "text-lxsoft" : ""}`}>
-        {clientWording(s.title, agentFirst)}
+        {label(s)}
         {!s.done && toOwner(s.owner) === "client" && s.due_on && (
           <span className="mt-0.5 block text-[12px] text-lxsoft">{clientDueLabel(s.due_on, tz)}</span>
         )}
       </span>
-      {!s.done && tagFor(s)}
+      {s.done ? <Tag color="sage">Done</Tag> : tagFor(s)}
     </div>
   )
+  // A step with documents to send shows each one under it, ready to upload.
+  const stepWithDocs = (s: Step) => {
+    const docs = docsByStep.get(s.title) ?? []
+    if (!docs.length) return stepRow(s)
+    return (
+      <div key={s.id}>
+        {stepRow(s)}
+        {docs.map((d) => (
+          <div key={d.id} className={`flex min-h-[44px] items-center justify-between gap-3 border-b ${HAIR} pl-[25px] text-[13.5px]`}>
+            <span className={d.received ? "text-lxsoft" : ""}>{d.title}</span>
+            {d.received ? <Tag color="sage">Done</Tag> : <UploadButton token={token} docId={d.id} />}
+          </div>
+        ))}
+      </div>
+    )
+  }
   const stageHead = (label: string, state: "now" | "later") => (
     <div className="mb-0.5 mt-[22px] flex items-baseline justify-between">
       <span className={`font-lux text-[19px] ${state === "now" ? "italic text-lxink" : "text-lxsoft"}`}>{label}</span>
@@ -301,7 +352,7 @@ export default async function Portal({
                     )}
                   </span>
                 </summary>
-                {rows.length > 0 && <div className="pb-2 pl-[25px]">{rows.map(stepRow)}</div>}
+                {rows.length > 0 && <div className="pb-2 pl-[25px]">{rows.map(stepWithDocs)}</div>}
               </details>
             )
           }
@@ -309,7 +360,7 @@ export default async function Portal({
             return (
               <div key={st.key}>
                 {stageHead(st.label, "now")}
-                {rows.map(stepRow)}
+                {rows.map(stepWithDocs)}
                 {rows.length === 0 && (
                   <p className={`m-0 border-b ${HAIR} py-[13px] text-[14px] text-lxsoft`}>
                     {st.key === "open_house"
@@ -328,7 +379,7 @@ export default async function Portal({
               {st.steps.map((d) => (
                 <div key={d.title} className={`flex items-center gap-3 border-b ${HAIR} py-[11px] text-[14px] text-lxsoft`}>
                   <span className="h-[13px] w-[13px] shrink-0 rounded-full border border-dashed border-[rgba(31,30,28,.25)]" />
-                  <span className="flex-1">{clientWording(d.title, agentFirst)}</span>
+                  <span className="flex-1">{label(d)}</span>
                 </div>
               ))}
             </div>
@@ -344,6 +395,7 @@ export default async function Portal({
       <p className="m-0 mt-2.5 font-lux text-[28px] font-light leading-[1.15] md:text-[32px]">{nextTitle}</p>
       {nextSub && <p className="m-0 mt-2 text-[13px]">{nextSub}</p>}
       <div className="mt-[18px] flex flex-wrap gap-3">
+        {pickTimes && <ShowingTimes token={token} days={pickDays} agentFirst={agentFirst} />}
         {action && (
           <a href={action.href} className={BTN}>
             {action.label}
@@ -508,13 +560,23 @@ export default async function Portal({
       {signed.map((d) => (
         <div key={d.id} className={`flex min-h-[48px] items-center justify-between gap-3 border-b ${HAIR} text-[14px]`}>
           <span>{d.title}</span>
-          <Tag color="sage">Signed{d.signed_at ? ` ${fmtDay.format(new Date(d.signed_at))}` : ""}</Tag>
+          <span className="flex items-center gap-3">
+            <Tag color="sage">Signed{d.signed_at ? ` ${fmtDay.format(new Date(d.signed_at))}` : ""}</Tag>
+            {d.sign_token && (
+              <a href={`/sign/${d.sign_token}/pdf`} download className="inline-flex items-center gap-1.5 text-[12.5px] text-lxink no-underline [border-bottom:1px_solid_#C2A46B]">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+                </svg>
+                Download
+              </a>
+            )}
+          </span>
         </div>
       ))}
       {collected.map((d) => (
         <div key={d.id} className={`flex min-h-[48px] items-center justify-between gap-3 border-b ${HAIR} text-[14px]`}>
           <span>{d.title}</span>
-          {d.received ? <Tag color="sage">{d.file_path ? "Sent" : "Received"}</Tag> : <UploadButton token={token} docId={d.id} />}
+          {d.received ? <Tag color="sage">Done</Tag> : <UploadButton token={token} docId={d.id} />}
         </div>
       ))}
     </section>
@@ -601,7 +663,7 @@ export default async function Portal({
 
   return (
     <main className="min-h-screen bg-lxbg font-luxsans text-lxink antialiased">
-      <div className="mx-auto max-w-[1280px] px-6 pt-[30px] md:px-[120px] md:pt-[52px]">
+      <div className="mx-auto max-w-[1440px] px-6 pt-[30px] md:px-12 md:pt-[52px] lg:px-16 xl:px-20">
         {/* On a computer the header stays put, with a quiet way to write to the agent. */}
         <div className="bg-lxbg md:sticky md:top-0 md:z-30 md:-mt-6 md:pt-6">
           <AgentHeader
@@ -645,7 +707,7 @@ export default async function Portal({
           next={next}
           progress={progress}
           yourHome={yourHome}
-          homes={buying && homes.length ? <PortalHomes token={token} homes={homes} agentFirst={agentFirst} /> : undefined}
+          homes={buying && homes.length ? <PortalHomes token={token} homes={homes} agentFirst={agentFirst} clientFirst={firstName} /> : undefined}
           documents={documents}
           messages={messagesPart}
           agentFirst={agentFirst}

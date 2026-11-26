@@ -197,7 +197,7 @@ export default function MessagesDock() {
 
   const iconBtn = "flex h-10 w-10 items-center justify-center text-lxsoft transition-colors hover:text-lxink"
   const collapse = (
-    <button type="button" onClick={() => setOpen(false)} aria-label="Fold into the Messages pill" className={`${iconBtn} -mr-2.5`}>
+    <button type="button" onClick={() => setOpen(false)} aria-label="Fold messages away" className={`${iconBtn} -mr-2.5`}>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" aria-hidden>
         <path d="M9 6l6 6-6 6" />
       </svg>
@@ -206,13 +206,14 @@ export default function MessagesDock() {
 
   return (
     <>
-      {/* The pill */}
+      {/* The pill: the initials bubbles as before, with a paper plane in place of the word */}
       {!open && (
         <button
           type="button"
           onClick={() => show(true)}
           aria-label={anyUnread ? "Messages, new messages waiting" : "Messages"}
-          className="fixed bottom-[22px] right-[22px] z-[56] flex h-[50px] items-center gap-3 rounded-full border border-[rgba(194,164,107,.6)] bg-lxbg pl-2.5 pr-5 font-luxsans text-[13px] tracking-[.3px] text-lxink shadow-[0_1px_2px_rgba(31,30,28,.06)] transition-colors hover:border-lxgold"
+          title="Messages"
+          className={`fixed bottom-[22px] right-[22px] z-[56] flex h-[50px] items-center gap-3 rounded-full border border-[rgba(194,164,107,.6)] bg-lxbg ${faces.length ? "pl-2.5 pr-4" : "px-[15px]"} font-luxsans text-[13px] tracking-[.3px] text-lxink shadow-[0_1px_2px_rgba(31,30,28,.06)] transition-colors hover:border-lxgold`}
         >
           {faces.length > 0 && (
             <span className="flex">
@@ -223,7 +224,10 @@ export default function MessagesDock() {
               ))}
             </span>
           )}
-          <span className={faces.length ? "" : "pl-2.5"}>Messages</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 3 3 10.5l7 2.6L21 3Z" />
+            <path d="M21 3 13.4 21l-3.4-7.9" />
+          </svg>
           {anyUnread && <Dot />}
         </button>
       )}

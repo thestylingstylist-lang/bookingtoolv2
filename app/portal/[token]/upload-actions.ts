@@ -1,5 +1,8 @@
 "use server"
 
+import { notifyAgent } from "@/lib/notify"
+import { stepForDoc, tickStep } from "@/lib/auto-steps"
+
 import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 
@@ -79,6 +82,23 @@ export async function finishUpload(
     sender: "client",
     body: `Uploaded: ${found.doc.title}`,
   })
+
+  // Every document for its step is in: the step is done.
+  const step = stepForDoc(found.doc.title as string)
+  const { data: rest } = await found.admin.from("collected_docs").select("title, received").eq("client_id", found.client.id)
+  if (((rest ?? []) as { title: string; received: boolean }[]).filter((d) => stepForDoc(d.title) === step).every((d) => d.received)) {
+    await tickStep(found.admin, found.client.id as string, step)
+  }
+
+  // Let the agent know on their phone or browser.
+  try {
+    const { data: c } = await found.admin.from("clients").select("first_name").eq("id", found.client.id).maybeSingle()
+    const first = ((c?.first_name as string | null) || "Your client").trim()
+    const line = `${first} uploaded ${found.doc.title}`
+    await notifyAgent(found.admin, found.client.agent_id as string, "messages", { line, body: `${line}.`, url: `/clients/${found.client.id}` })
+  } catch (err) {
+    console.error("[upload] notify failed:", err)
+  }
 
   revalidatePath(`/portal/${token}`)
   revalidatePath(`/clients/${found.client.id}`)
