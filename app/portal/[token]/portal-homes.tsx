@@ -125,8 +125,8 @@ function HomeRow({ token, home: h, agentFirst }: { token: string; home: PortalHo
         {h.showing ? (h.shown ? `You visited ${h.showing.replace(/ at .*/, "")}.` : `You\u2019ll see it ${h.showing}.`) : "I\u2019m arranging your showing."}
       </p>
 
-      {/* Where the offer stands */}
-      <div className="mt-[18px]">
+      {/* Where the offer stands: pinned to the foot of the card, so the buttons line up across a row */}
+      <div className="mt-auto pt-[18px]">
         {h.offer ? (
           <OfferLine offer={h.offer} agentFirst={agentFirst} />
         ) : asked ? (

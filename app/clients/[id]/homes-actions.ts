@@ -426,3 +426,15 @@ export async function uploadHomePhoto(formData: FormData): Promise<{ ok: boolean
     return { ok: false, message: e instanceof Error ? e.message : "Couldn't upload the photo. Please try again." }
   }
 }
+
+// Take the photo off the client's card.
+export async function removeHomePhoto(homeId: string): Promise<{ ok: boolean; message: string }> {
+  const { supabase, userId } = await me()
+  if (!userId) return { ok: false, message: "Please sign in again." }
+  const { data: home } = await supabase.from("homes").select("id, client_id").eq("id", homeId).maybeSingle()
+  if (!home) return { ok: false, message: "That home is gone. Refresh the page." }
+  const { error } = await supabase.from("homes").update({ photo_url: "" }).eq("id", homeId)
+  if (error) return { ok: false, message: "Couldn't remove the photo. Please try again." }
+  revalidatePath(`/clients/${home.client_id}`)
+  return { ok: true, message: "Removed." }
+}

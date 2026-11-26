@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react"
 import { createPortal } from "react-dom"
-import { addHome, saveHome, uploadHomePhoto, setHomeStatus, removeHome, setOfferStatus, type HomeResult } from "./homes-actions"
+import { addHome, saveHome, uploadHomePhoto, removeHomePhoto, setHomeStatus, removeHome, setOfferStatus, type HomeResult } from "./homes-actions"
 import { OfferForm, FollowUpForm, type OfferView, type DocView, type FormView } from "./offer-forms"
 
 // Shrink a chosen photo in the browser to a sharp JPEG, so phone photos upload quickly
@@ -207,6 +207,27 @@ function HomePanel({
   const m = nextMove(home, clientFirst)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoMsg, setPhotoMsg] = useState("")
+  // The agent chose a photo: shrink it here, upload it, and put it on the card.
+  const pickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    e.target.value = ""
+    if (!f) return
+    setPhotoBusy(true)
+    setPhotoMsg("")
+    const blob = await shrinkPhoto(f)
+    if (!blob) {
+      setPhotoBusy(false)
+      setPhotoMsg("That photo couldn't be opened here. Try a JPG or PNG.")
+      return
+    }
+    const fd = new FormData()
+    fd.set("homeId", home.id)
+    fd.set("photo", new File([blob], "photo.jpg", { type: "image/jpeg" }))
+    const r = await uploadHomePhoto(fd).catch(() => ({ ok: false, message: "Couldn't upload the photo. Please try again.", url: undefined }))
+    setPhotoBusy(false)
+    if (r.ok && r.url) set("photoUrl", r.url)
+    setPhotoMsg(r.ok ? "" : r.message)
+  }
   const [v, setV] = useState({
     address: home.address,
     clientAddress: home.clientAddress,
@@ -361,44 +382,56 @@ function HomePanel({
           <div>
             <p className="mb-2 text-xs font-medium uppercase tracking-[.14em] text-[#8f8b84]">{clientFirst ? `On ${clientFirst}'s card` : "On their card"}</p>
             <div className="grid grid-cols-3 gap-3">
-              <input name="price" inputMode="numeric" value={v.price} onChange={(e) => set("price", e.target.value)} placeholder="Price" className={input} aria-label="Price" />
-              <input name="beds" inputMode="decimal" value={v.beds} onChange={(e) => set("beds", e.target.value)} placeholder="Beds" className={input} aria-label="Beds" />
-              <input name="baths" inputMode="decimal" value={v.baths} onChange={(e) => set("baths", e.target.value)} placeholder="Baths" className={input} aria-label="Baths" />
+              {(
+                [
+                  ["price", "Price", "numeric", "1,285,000"],
+                  ["beds", "Beds", "decimal", "4"],
+                  ["baths", "Baths", "decimal", "3.5"],
+                ] as const
+              ).map(([key, label, mode, hint]) => (
+                <label key={key} className="block">
+                  <span className="mb-1 block text-xs text-[#8f8b84]">{label}</span>
+                  <input name={key} inputMode={mode} value={v[key]} onChange={(e) => set(key, e.target.value)} placeholder={hint} className={input} />
+                </label>
+              ))}
             </div>
-            <div className="mt-3 flex items-center gap-3">
-              {v.photoUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={v.photoUrl} alt="" referrerPolicy="no-referrer" className="h-12 w-16 shrink-0 rounded-md border border-lxhair object-cover" />
-              )}
-              <input name="photoUrl" value={v.photoUrl} onChange={(e) => set("photoUrl", e.target.value)} placeholder="Photo link" className={`${input} flex-1`} aria-label="Photo link" />
-              <label className={`shrink-0 cursor-pointer text-sm text-lxink [border-bottom:1px_solid_#C2A46B] ${photoBusy ? "pointer-events-none opacity-50" : ""}`}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={async (e) => {
-                    const f = e.target.files?.[0]
-                    e.target.value = ""
-                    if (!f) return
-                    setPhotoBusy(true)
-                    setPhotoMsg("")
-                    const blob = await shrinkPhoto(f)
-                    if (!blob) {
+            <div className="mt-4">
+              <span className="mb-1 block text-xs text-[#8f8b84]">Photo</span>
+              {v.photoUrl ? (
+                // A photo is set: show it, with Replace and Remove. The link stays out of sight.
+                <div className="flex items-center gap-4">
+                  <input type="hidden" name="photoUrl" value={v.photoUrl} />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={v.photoUrl} alt="" referrerPolicy="no-referrer" className="h-20 w-28 shrink-0 rounded-md border border-lxhair object-cover" />
+                  <label className={`cursor-pointer text-sm text-lxink [border-bottom:1px_solid_#C2A46B] ${photoBusy ? "pointer-events-none opacity-50" : ""}`}>
+                    <input type="file" accept="image/*" className="sr-only" onChange={pickPhoto} />
+                    {photoBusy ? "Uploading\u2026" : "Replace"}
+                  </label>
+                  <button
+                    type="button"
+                    disabled={photoBusy}
+                    onClick={async () => {
+                      setPhotoBusy(true)
+                      setPhotoMsg("")
+                      const r = await removeHomePhoto(home.id).catch(() => ({ ok: false, message: "Couldn't remove the photo. Please try again." }))
                       setPhotoBusy(false)
-                      setPhotoMsg("That photo couldn't be opened here. Try a JPG or PNG.")
-                      return
-                    }
-                    const fd = new FormData()
-                    fd.set("homeId", home.id)
-                    fd.set("photo", new File([blob], "photo.jpg", { type: "image/jpeg" }))
-                    const r = await uploadHomePhoto(fd).catch(() => ({ ok: false, message: "Couldn't upload the photo. Please try again.", url: undefined }))
-                    setPhotoBusy(false)
-                    if (r.ok && r.url) set("photoUrl", r.url)
-                    setPhotoMsg(r.ok ? "" : r.message)
-                  }}
-                />
-                {photoBusy ? "Uploading\u2026" : "Upload photo"}
-              </label>
+                      if (r.ok) set("photoUrl", "")
+                      else setPhotoMsg(r.message)
+                    }}
+                    className="text-sm text-[#8f8b84] underline-offset-4 hover:text-lxink hover:underline disabled:opacity-50"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <input name="photoUrl" value={v.photoUrl} onChange={(e) => set("photoUrl", e.target.value)} placeholder="Paste a photo link" className={`${input} flex-1`} aria-label="Photo link" />
+                  <label className={`shrink-0 cursor-pointer text-sm text-lxink [border-bottom:1px_solid_#C2A46B] ${photoBusy ? "pointer-events-none opacity-50" : ""}`}>
+                    <input type="file" accept="image/*" className="sr-only" onChange={pickPhoto} />
+                    {photoBusy ? "Uploading\u2026" : "Upload photo"}
+                  </label>
+                </div>
+              )}
             </div>
             {photoMsg && <p className="mt-1.5 text-xs text-[#b42318]">{photoMsg}</p>}
             <textarea name="clientNote" rows={2} value={v.clientNote} onChange={(e) => set("clientNote", e.target.value)} placeholder={clientFirst ? `Your note to ${clientFirst}` : "Your note to your client"} className={`${input} mt-3`} aria-label="Your note to your client" />
