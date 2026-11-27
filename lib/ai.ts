@@ -71,7 +71,8 @@ export async function runAgent(opts: {
     console.error("[diana] ANTHROPIC_API_KEY is not set")
     return null
   }
-  const models = [process.env.ANTHROPIC_AGENT_MODEL, process.env.ANTHROPIC_MODEL, "claude-sonnet-5-5", "claude-haiku-4-5-20251001"].filter(
+  // Diana thinks on the strongest model; the others are only a fallback if it can't be reached.
+  const models = [process.env.ANTHROPIC_AGENT_MODEL, "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-4-5-20251001"].filter(
     (m, i, all): m is string => !!m && all.indexOf(m) === i,
   )
   const messages: { role: "user" | "assistant"; content: string | unknown[] }[] = opts.history.map((t) => ({ role: t.role, content: t.content }))
@@ -139,7 +140,7 @@ async function call(
     const res = await fetch(`${process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com"}/v1/messages`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model, max_tokens: 1500, system, tools, messages }),
+      body: JSON.stringify({ model, max_tokens: 2000, system, tools, messages }),
       cache: "no-store",
     })
     if (res.status === 404) {

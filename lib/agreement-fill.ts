@@ -64,8 +64,9 @@ const ALIASES: Record<string, string> = {
 
 export type AgreementStatus =
   | { state: "no_template" }
-  | { state: "signed"; title: string; signedAt: string }
-  | { state: "sent"; title: string; sentAt: string }
+  | { state: "no_client" }
+  | { state: "signed"; title: string; signedAt: string; documentId: string }
+  | { state: "sent"; title: string; sentAt: string; documentId: string }
   | { state: "missing"; title: string; templateId: string; missing: string[] }
   | { state: "ready"; title: string; templateId: string; body: string; email: string | null }
 
@@ -76,24 +77,45 @@ export async function prepareAgreement(
   deal: Record<string, string>,
   opts: { templateId?: string; ignoreExisting?: boolean } = {},
 ): Promise<AgreementStatus> {
-  const [{ data: client }, { data: agent }, { data: tpls }, { data: docs }] = await Promise.all([
-    db.from("clients").select("id, first_name, last_name, email, phone, address, sale_address").eq("id", clientId).maybeSingle(),
-    db.from("agents").select("full_name, business_name, timezone, agreement_days, agreement_exclusive, default_commission").eq("id", agentId).maybeSingle(),
-    db.from("document_templates").select("id, title, body").eq("agent_id", agentId).order("created_at"),
-    db.from("documents").select("id, title, status, created_at, signed_at").eq("client_id", clientId).eq("kind", "agreement").order("created_at", { ascending: false }),
+  // Each read stands on its own: a setting that isn't in the database yet must never
+  // make the agent's template look missing.
+  const one = async <T,>(q: PromiseLike<{ data: T | null; error: unknown }>): Promise<T | null> => {
+    try {
+      const r = await q
+      return r.error ? null : r.data
+    } catch {
+      return null
+    }
+  }
+  const [client0, agentBase, agentTerms, agentCommission, tpls, docs] = await Promise.all([
+    one<Record<string, unknown>>(db.from("clients").select("id, first_name, last_name, email, phone, address, sale_address").eq("id", clientId).maybeSingle()),
+    one<Record<string, unknown>>(db.from("agents").select("full_name, business_name, timezone").eq("id", agentId).maybeSingle()),
+    one<Record<string, unknown>>(db.from("agents").select("agreement_days, agreement_exclusive").eq("id", agentId).maybeSingle()),
+    one<Record<string, unknown>>(db.from("agents").select("default_commission").eq("id", agentId).maybeSingle()),
+    one<{ id: string; title: string; body: string }[]>(db.from("document_templates").select("id, title, body").eq("agent_id", agentId).order("created_at")),
+    one<{ id: string; title: string; status: string; created_at: string; signed_at: string | null }[]>(
+      db.from("documents").select("id, title, status, created_at, signed_at").eq("client_id", clientId).eq("kind", "agreement").order("created_at", { ascending: false }),
+    ),
   ])
+  // A client saved before sale_address existed: read the basics instead.
+  const client =
+    client0 ?? (await one<Record<string, unknown>>(db.from("clients").select("id, first_name, last_name, email, phone, address").eq("id", clientId).maybeSingle()))
+  const agent = agentBase ? { ...agentBase, ...(agentTerms ?? {}), ...(agentCommission ?? {}) } : null
+  if (!client) return { state: "no_client" }
   // A signed agreement that's been redone (Replaced) doesn't count: a new one can be prepared.
   const replaced = await loadReplaced(db, clientId)
   const signed = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "signed" && !replaced.has(d.id as string))
-  if (signed) return { state: "signed", title: signed.title as string, signedAt: (signed.signed_at as string) || (signed.created_at as string) }
-  const sent = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "sent")
-  if (sent) return { state: "sent", title: sent.title as string, sentAt: sent.created_at as string }
+  if (signed) return { state: "signed", title: signed.title as string, signedAt: (signed.signed_at as string) || (signed.created_at as string), documentId: signed.id }
+  const sent = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "sent" || d.status === "draft")
+  if (sent) return { state: "sent", title: sent.title as string, sentAt: sent.created_at as string, documentId: sent.id }
 
   const list = (tpls ?? []) as { id: string; title: string; body: string }[]
+  // Always the agent's own agreement from their Templates.
   const tpl = (opts.templateId ? list.find((t) => t.id === opts.templateId) : undefined) ?? list.find((t) => /agreement/i.test(t.title)) ?? list[0]
-  if (!tpl || !client || !agent) return { state: "no_template" }
+  if (!tpl) return { state: "no_template" }
+  const agentRow = agent ?? { full_name: "", business_name: "", timezone: "America/New_York" }
 
-  const tz = (agent.timezone as string) || "America/New_York"
+  const tz = (agentRow.timezone as string) || "America/New_York"
   const auto: Record<string, string> = {
     "client name": `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
     "client first name": (client.first_name as string) ?? "",
@@ -101,12 +123,12 @@ export async function prepareAgreement(
     "client address": (client.address as string) ?? "",
     "client email": (client.email as string) ?? "",
     "client phone": (client.phone as string) ?? "",
-    "agent name": (agent.full_name as string) ?? "",
-    brokerage: (agent.business_name as string) ?? "",
-    "business name": (agent.business_name as string) ?? "",
+    "agent name": (agentRow.full_name as string) ?? "",
+    brokerage: (agentRow.business_name as string) ?? "",
+    "business name": (agentRow.business_name as string) ?? "",
     date: todayLabel(tz),
     "today's date": todayLabel(tz),
-    commission: ((agent.default_commission as string) ?? "").trim(),
+    commission: (((agentRow as Record<string, unknown>).default_commission as string) ?? "").trim(),
     "property address": ((client.sale_address as string) ?? "").trim(),
     ...agreementAuto(toAgreementSettings(agent), tz),
   }

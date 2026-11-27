@@ -44,11 +44,11 @@ export default function NewFrom({ clientId, first, items: given, followUp }: { c
   const who = first || "your client"
 
   return (
-    <section aria-label={`New from ${who}`} className="border-b border-lxhair bg-[#FBF8F2] px-5 py-5 sm:px-6">
+    <section aria-label={`New from ${who}`} className={`border-b border-lxhair px-5 py-5 sm:px-6 ${unseen || follow ? "bg-[#FBF8F2]" : "bg-white"}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <h2 className="flex items-center gap-2.5 text-[15px] font-semibold">
-          <span className="h-[8px] w-[8px] rounded-full bg-lxgold" aria-hidden="true" />
-          {unseen ? `New from ${who}` : `Following up with ${who}`}
+          {(unseen || follow) && <span className="h-[8px] w-[8px] rounded-full bg-lxgold" aria-hidden="true" />}
+          {unseen ? `New from ${who}` : follow ? `Following up with ${who}` : `Recent from ${who}`}
         </h2>
         <button
           type="button"

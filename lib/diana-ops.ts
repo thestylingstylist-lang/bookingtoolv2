@@ -391,6 +391,24 @@ export async function clientDetails(ctx: Ctx, clientId: string): Promise<string>
     db.from("events").select("id, kind, place, starts_at").eq("client_id", clientId).gte("ends_at", new Date().toISOString()).order("starts_at").limit(10),
   ])
   const replacedDocs = await loadReplaced(db as unknown as Parameters<typeof loadReplaced>[0], clientId)
+  // What the client did on their own page lately, in full (blank before client-activity.sql).
+  let fromClient: { what: string; detail: string; when: string; new: boolean }[] = []
+  try {
+    const { data: acts, error: actErr } = await db
+      .from("client_activity")
+      .select("line, detail, created_at, seen_at")
+      .eq("client_id", clientId)
+      .gte("created_at", new Date(Date.now() - 14 * 86400000).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(8)
+    if (!actErr)
+      fromClient = ((acts ?? []) as { line: string; detail: string | null; created_at: string; seen_at: string | null }[]).map((x) => ({
+        what: x.line,
+        detail: x.detail ?? "",
+        when: formatInTimeZone(new Date(x.created_at), tz, "EEE MMM d, h:mm a"),
+        new: !x.seen_at,
+      }))
+  } catch {}
   if (!c) return "That client isn't in your list."
   // Steps done by what has happened, read the same way as the client's suite and the agent's page.
   const steps = withFacts((rawSteps ?? []) as { id: string; title: string; owner: string; due_on: string | null; done: boolean; phase: string }[], await loadStepFacts(db, clientId))
@@ -430,6 +448,7 @@ export async function clientDetails(ctx: Ctx, clientId: string): Promise<string>
     suite_link_sent: !!c.portal_token,
     journeys: journeys.map(stageInfo),
     other_open_steps: (steps ?? []).filter((s) => !s.done).map((s) => ({ id: s.id, title: s.title, stage: s.phase, due: s.due_on ?? "" })),
+    from_client: fromClient,
     documents: (docs ?? []).map((d) => ({ id: d.id, title: d.title, status: replacedDocs.has(d.id as string) ? "replaced (kept in the file; a new one can be prepared)" : d.status, signed: d.signed_at ? String(d.signed_at).slice(0, 10) : "" })),
     to_collect: (collected ?? []).map((d) => ({ id: d.id, title: d.title, received: d.received })),
     homes: (homes ?? []).map((h) => ({ id: h.id, address: h.address, ...(shownAs.get(h.id) ? { client_sees: shownAs.get(h.id) } : {}), status: h.status, sellers_agent: [h.agent_name, h.agent_email].filter(Boolean).join(", "), showing: h.showing_at ? when(h.showing_at) : "", notes: h.notes })),
@@ -904,7 +923,12 @@ async function propose(ctx: Ctx, input: Record<string, unknown>): Promise<string
       if (miss) return miss
       const tid = S(input.template_id, 60)
       const { data: t } = await db.from("document_templates").select("id, title").eq("id", tid).eq("agent_id", agentId).maybeSingle()
-      if (!t) return "That template isn't there. Use list_templates."
+      if (!t) {
+        // An id from the client's documents, not a template: that's a resend.
+        const { data: doc } = await db.from("documents").select("id, title, status").eq("id", tid).eq("client_id", cid).maybeSingle()
+        if (doc) return doc.status === "signed" ? `"${doc.title}" is signed. For a new one, propose redo_document with document_id ${doc.id} first.` : `"${doc.title}" is already out. To resend it, propose resend_document with document_id ${doc.id}.`
+        return "That id isn't one of the agent's templates. Call list_templates for the right id and try again. Don't tell the agent anything is missing."
+      }
       const { data: c } = await db.from("clients").select("email").eq("id", cid).maybeSingle()
       if (!c?.email) return `${first} has no email yet. Ask for it as one natural question, save it with update_client, then propose again.`
       // Every blank must have a value before anything goes for signature.

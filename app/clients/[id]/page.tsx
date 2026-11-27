@@ -191,11 +191,12 @@ export default async function ClientJacket({
   const activity = (actErr ? [] : ((actRows ?? []) as Activity[]))
   const unseenActs = activity.filter((a) => !a.seen_at)
   // Following up: keep showing the latest from the last month.
-  const shownActs = unseenActs.length
-    ? unseenActs
-    : followUp
-      ? activity.filter((a) => Date.now() - Date.parse(a.created_at) < 30 * 86400000).slice(0, 6)
-      : []
+  // New first; once seen, the last three days stay on view (no gold); following up keeps the last month.
+  const recentDays = followUp ? 30 : 3
+  const shownActs = [
+    ...unseenActs,
+    ...activity.filter((a) => a.seen_at && Date.now() - Date.parse(a.created_at) < recentDays * 86400000),
+  ].slice(0, 8)
   const litHomes = new Set(unseenActs.map((a) => a.home_id).filter(Boolean) as string[])
   const homes: HomeView[] = ((homeData ?? []) as Record<string, string | null>[]).map((h) => ({
     id: h.id as string,
