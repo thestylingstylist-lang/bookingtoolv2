@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendEmail } from "@/lib/email"
 import { teamNote, esc } from "@/lib/letter"
+import { recordActivity, streetOf, quote } from "@/lib/client-activity"
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -34,8 +35,23 @@ export async function saveClientNotes(_: PortalHomeResult | null, formData: Form
   const found = await homeFor(token, String(formData.get("homeId") ?? ""))
   if (!found) return { ok: false, message: "That didn't save. Please try again." }
   const notes = String(formData.get("notes") ?? "").trim().slice(0, 2000)
+  const { data: before } = await found.admin.from("homes").select("client_notes").eq("id", found.home.id).maybeSingle()
   const { error } = await found.admin.from("homes").update({ client_notes: notes }).eq("id", found.home.id)
   if (error) return { ok: false, message: "That didn't save. Please try again." }
+  // A new or changed note is news for the agent. Clearing it isn't.
+  if (notes && notes !== ((before?.client_notes as string | null) ?? "").trim()) {
+    const first = ((found.client.first_name as string | null) || "Your client").trim()
+    const street = streetOf(found.home.address as string)
+    await recordActivity(found.admin, {
+      agentId: found.client.agent_id as string,
+      clientId: found.client.id as string,
+      homeId: found.home.id as string,
+      kind: "note",
+      line: `${first} left a note on ${street}`,
+      detail: notes,
+      push: `${first} left a note on ${street}: \u201c${quote(notes)}\u201d`,
+    })
+  }
   revalidatePath(`/portal/${token}`)
   revalidatePath(`/clients/${found.client.id}`)
   return { ok: true, message: "Saved." }
@@ -58,6 +74,16 @@ export async function askForOffer(_: PortalHomeResult | null, formData: FormData
     client_id: client.id,
     sender: "client",
     body: `I'd like to make an offer on ${street}.`,
+  })
+
+  await recordActivity(admin, {
+    agentId: client.agent_id as string,
+    clientId: client.id as string,
+    homeId: home.id as string,
+    kind: "offer",
+    line: `${((client.first_name as string | null) || "Your client").trim()} wants to make an offer on ${street}`,
+    detail: `Wants to make an offer on ${street}`,
+    push: `${((client.first_name as string | null) || "Your client").trim()} wants to make an offer on ${street}.`,
   })
 
   const { data: u } = await admin.auth.admin.getUserById(client.agent_id as string)

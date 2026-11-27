@@ -1,7 +1,5 @@
 import {
   addTask,
-  toggleTask,
-  deleteTask,
   movePhase,
   addStandardSteps,
   setDueDate,
@@ -9,10 +7,11 @@ import {
 import { phasesFor, journeyOf, stageLabel, phaseIndex, toOwner, type Phase } from "@/lib/phases"
 import { agentDueLabel, isClose, canNudge, nudgeDraft, missingThing, daysUntil } from "@/lib/due"
 import ReminderBox from "./reminder-box"
+import StepRow from "./step-row"
 import DuePicker from "./due-picker"
 
 export type Task = { id: string; title: string; done: boolean; owner?: string | null; due_on?: string | null; nudged_at?: string | null; phase?: string | null }
-export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
+export type Collected = { id: string; title: string; received: boolean; file_path?: string | null; stepId?: string | null }
 
 const inputClass =
   "min-w-0 flex-1 rounded-lg border border-lxhair bg-white px-3 py-1.5 text-sm outline-none placeholder:text-lxsoft focus:border-lxgold"
@@ -26,23 +25,12 @@ function Hidden({ clientId, id }: { clientId: string; id?: string }) {
   )
 }
 
-function RemoveButton({ label }: { label: string }) {
-  return (
-    <button
-      type="submit"
-      aria-label={`Remove ${label}`}
-      className="px-1 text-lxsoft opacity-0 transition-opacity hover:text-lxink group-hover:opacity-100"
-    >
-      &times;
-    </button>
-  )
-}
-
 export default function LeftColumn({
   clientId,
   firstName,
   phase,
   tasks,
+  allTasks,
   tz,
   focus,
   nudge,
@@ -61,6 +49,7 @@ export default function LeftColumn({
   firstName: string
   phase: Phase
   tasks: Task[]
+  allTasks?: Task[] // every stage's steps for this journey, so finished stages can be reopened
   tz: string
   focus?: string
   nudge?: string
@@ -110,29 +99,18 @@ export default function LeftColumn({
           </form>
         )}
         <ul className="mt-3">
-          {tasks.map((t) => (
-            <li
+          {tasks.map((t, n) => (
+            <StepRow
               key={t.id}
-              id={`step-${t.id}`}
-              className={`group flex scroll-mt-24 items-start gap-2.5 py-2 ${
-                focus === t.id ? "-mx-2 rounded-lg bg-white px-2 ring-1 ring-lxgold/60" : ""
-              }`}
+              clientId={clientId}
+              step={t}
+              who={who}
+              first={n === 0}
+              last={n === tasks.length - 1}
+              focus={focus === t.id}
+              docs={collected.filter((d) => d.stepId === t.id)}
+              assistantName={assistantName}
             >
-              <form action={toggleTask}>
-                <Hidden clientId={clientId} id={t.id} />
-                <input type="hidden" name="done" value={t.done ? "0" : "1"} />
-                <button
-                  type="submit"
-                  aria-label={t.done ? "Mark not done" : "Mark done"}
-                  className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded-[5px] border-[1.5px] text-[10px] leading-none ${
-                    t.done ? "border-lxgold bg-lxgold text-white" : "border-lxhair bg-white"
-                  }`}
-                >
-                  {t.done ? "\u2713" : ""}
-                </button>
-              </form>
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className={`text-sm ${t.done ? "text-lxsoft line-through" : ""}`}>{t.title}</span>
                 {!t.done && (
                   <form action={setDueDate} className="flex items-center gap-1.5">
                     <Hidden clientId={clientId} id={t.id} />
@@ -177,12 +155,7 @@ export default function LeftColumn({
                     <p className="text-xs text-lxsoft">Add an email for {who} to send a reminder.</p>
                   )
                 )}
-              </div>
-              <form action={deleteTask}>
-                <Hidden clientId={clientId} id={t.id} />
-                <RemoveButton label={t.title} />
-              </form>
-            </li>
+            </StepRow>
           ))}
         </ul>
         {children}
@@ -230,13 +203,45 @@ export default function LeftColumn({
         )}
       </section>
         ) : (
-          <div
-            key={p.key}
-            className="flex items-baseline justify-between px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-lxhair"
-          >
-            <span className="text-sm text-lxsoft">{p.label}</span>
-            <span className="font-semibold tracking-tight text-xs text-[#8f8b84]">{n < i ? "Done" : n === i + 1 ? "Up next" : "Later"}</span>
-          </div>
+          (() => {
+            const stageSteps = (allTasks ?? []).filter((t) => (t.phase ?? "showing") === p.key)
+            const status = n < i ? "Done" : n === i + 1 ? "Up next" : "Later"
+            if (!stageSteps.length)
+              return (
+                <div key={p.key} className="flex items-baseline justify-between px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-lxhair">
+                  <span className="text-sm text-lxsoft">{p.label}</span>
+                  <span className="font-semibold tracking-tight text-xs text-[#8f8b84]">{status}</span>
+                </div>
+              )
+            // A finished or later stage opens to show its steps, so any of them can be reopened or changed.
+            return (
+              <details key={p.key} open={stageSteps.some((t) => t.id === focus)} className="group/stage px-4 py-3 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-lxhair">
+                <summary className="flex cursor-pointer list-none items-baseline justify-between [&::-webkit-details-marker]:hidden">
+                  <span className="text-sm text-lxsoft">{p.label}</span>
+                  <span className="flex items-baseline gap-2 text-xs">
+                    <span className="font-semibold tracking-tight text-[#8f8b84]">{status}</span>
+                    <span className="text-lxsoft group-open/stage:hidden">Show</span>
+                    <span className="hidden text-lxsoft group-open/stage:inline">Hide</span>
+                  </span>
+                </summary>
+                <ul className="mt-2">
+                  {stageSteps.map((t, k) => (
+                    <StepRow
+                      key={t.id}
+                      clientId={clientId}
+                      step={t}
+                      who={who}
+                      first={k === 0}
+                      last={k === stageSteps.length - 1}
+                      focus={focus === t.id}
+                      docs={collected.filter((d) => d.stepId === t.id)}
+                      assistantName={assistantName}
+                    />
+                  ))}
+                </ul>
+              </details>
+            )
+          })()
         )
       )}
     </div>

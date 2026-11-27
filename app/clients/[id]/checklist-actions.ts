@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { OFFER_DOCS, BUY_PHASES, SELL_PHASES, journeyOf, toPhase } from "@/lib/phases"
+import { OFFER_DOCS, BUY_PHASES, SELL_PHASES, journeyOf, toPhase, phaseIndex, type Phase } from "@/lib/phases"
 import { toDue } from "@/lib/due"
 
 // Tasks (steps table) and documents collected (collected_docs table)
@@ -78,6 +78,109 @@ export async function deleteTask(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "")
   const { error } = await supabase.from("steps").delete().eq("id", id)
   back(clientId, error ? "task" : undefined)
+}
+
+// ---- Redo -------------------------------------------------------------------
+
+// The client's suite reads the same rows; refresh it too.
+async function refreshSuite(supabase: Awaited<ReturnType<typeof createClient>>, clientId: string) {
+  const { data } = await supabase.from("clients").select("portal_token").eq("id", clientId).maybeSingle()
+  if (data?.portal_token) revalidatePath(`/portal/${data.portal_token}`)
+}
+
+// Signed agreements for this client go to Replaced: kept in the file, no longer the live one.
+async function replaceAgreements(supabase: Awaited<ReturnType<typeof createClient>>, clientId: string, onlyId?: string) {
+  let q = supabase.from("documents").update({ replaced_at: new Date().toISOString() }).eq("client_id", clientId).eq("status", "signed").is("replaced_at", null)
+  q = onlyId ? q.eq("id", onlyId) : q.eq("kind", "agreement")
+  const { error } = await q
+  return error
+}
+
+// Open a finished step again. If it sits in an earlier stage, the client goes back to that stage.
+async function reopen(supabase: Awaited<ReturnType<typeof createClient>>, clientId: string, stepId: string) {
+  const { data: step } = await supabase.from("steps").select("id, title, phase").eq("id", stepId).eq("client_id", clientId).maybeSingle()
+  if (!step) return "task"
+  const now = new Date().toISOString()
+  const { error } = await supabase.from("steps").update({ done: false, done_at: null, reopened_at: now }).eq("id", stepId)
+  // Before step-redo.sql has run: still reopen it, it just can't be held open against old facts.
+  if (error) {
+    const { error: e2 } = await supabase.from("steps").update({ done: false, done_at: null }).eq("id", stepId)
+    if (e2) return "task"
+  }
+  const stepPhase = toPhase(step.phase ?? "showing") as Phase
+  const column = journeyOf(stepPhase) === "sell" ? "sell_phase" : "phase"
+  const { data: c } = await supabase.from("clients").select(column).eq("id", clientId).maybeSingle()
+  const cur = (c as Record<string, string | null> | null)?.[column]
+  if (cur && phaseIndex(toPhase(cur) as Phase) > phaseIndex(stepPhase)) await supabase.from("clients").update({ [column]: stepPhase }).eq("id", clientId)
+  return step.title === "Agreement signed" ? ((await replaceAgreements(supabase, clientId)) ? "redo" : null) : null
+}
+
+export async function reopenStep(formData: FormData): Promise<void> {
+  const { supabase } = await agentOrLogin()
+  const clientId = String(formData.get("clientId") ?? "")
+  const id = String(formData.get("id") ?? "")
+  if (!clientId) redirect("/clients")
+  const err = await reopen(supabase, clientId, id)
+  await refreshSuite(supabase, clientId)
+  revalidatePath(`/clients/${clientId}`)
+  redirect(`/clients/${clientId}?tab=tasks${err ? `&error=${err}` : `&step=${id}`}`)
+}
+
+// Redo a signed document: the old copy stays, marked Replaced. Redoing the agreement reopens its step.
+export async function redoDocument(formData: FormData): Promise<void> {
+  const { supabase } = await agentOrLogin()
+  const clientId = String(formData.get("clientId") ?? "")
+  const docId = String(formData.get("documentId") ?? "")
+  if (!clientId) redirect("/clients")
+  const { data: doc } = await supabase.from("documents").select("id, kind, status").eq("id", docId).eq("client_id", clientId).maybeSingle()
+  if (!doc || doc.status !== "signed") back(clientId, "redo")
+  const err = await replaceAgreements(supabase, clientId, docId)
+  if (err) back(clientId, "redo")
+  if ((doc.kind ?? "agreement") === "agreement") {
+    const { data: step } = await supabase.from("steps").select("id").eq("client_id", clientId).eq("title", "Agreement signed").maybeSingle()
+    if (step?.id) await reopen(supabase, clientId, step.id as string)
+  }
+  await refreshSuite(supabase, clientId)
+  revalidatePath(`/clients/${clientId}`)
+  redirect(`/clients/${clientId}?tab=tasks&redo=${docId}`)
+}
+
+export async function renameStep(formData: FormData): Promise<void> {
+  const { supabase } = await agentOrLogin()
+  const clientId = String(formData.get("clientId") ?? "")
+  const id = String(formData.get("id") ?? "")
+  const title = String(formData.get("title") ?? "").trim().slice(0, 160)
+  if (!clientId) redirect("/clients")
+  if (!title) back(clientId)
+  const { error } = await supabase.from("steps").update({ title }).eq("id", id).eq("client_id", clientId)
+  await refreshSuite(supabase, clientId)
+  revalidatePath(`/clients/${clientId}`)
+  redirect(`/clients/${clientId}?tab=tasks${error ? "&error=task" : ""}`)
+}
+
+// Up or down one place within its stage.
+export async function moveStep(formData: FormData): Promise<void> {
+  const { supabase } = await agentOrLogin()
+  const clientId = String(formData.get("clientId") ?? "")
+  const id = String(formData.get("id") ?? "")
+  const dir = formData.get("dir") === "up" ? -1 : 1
+  if (!clientId) redirect("/clients")
+  const { data: me } = await supabase.from("steps").select("phase").eq("id", id).eq("client_id", clientId).maybeSingle()
+  if (me) {
+    let q = supabase.from("steps").select("id").eq("client_id", clientId).order("position", { ascending: true }).order("created_at", { ascending: true })
+    q = me.phase ? q.eq("phase", me.phase) : q.is("phase", null)
+    const { data: rows } = await q
+    const ids = ((rows ?? []) as { id: string }[]).map((r) => r.id)
+    const i = ids.indexOf(id)
+    const j = i + dir
+    if (i >= 0 && j >= 0 && j < ids.length) {
+      ;[ids[i], ids[j]] = [ids[j], ids[i]]
+      await Promise.all(ids.map((sid, position) => supabase.from("steps").update({ position }).eq("id", sid)))
+    }
+  }
+  await refreshSuite(supabase, clientId)
+  revalidatePath(`/clients/${clientId}`)
+  redirect(`/clients/${clientId}?tab=tasks`)
 }
 
 // ---- Phases ---------------------------------------------------------------
@@ -169,9 +272,17 @@ export async function addCollected(formData: FormData): Promise<void> {
   if (!clientId) redirect("/clients")
   if (!title) back(clientId)
 
-  const { error } = await supabase
+  // Asked for at a particular step: it shows under that step in the client's suite.
+  const stepId = String(formData.get("stepId") ?? "")
+  let { error } = await supabase
     .from("collected_docs")
-    .insert({ agent_id: userId, client_id: clientId, title })
+    .insert({ agent_id: userId, client_id: clientId, title, ...(stepId ? { step_id: stepId } : {}) })
+  if (error && stepId) ({ error } = await supabase.from("collected_docs").insert({ agent_id: userId, client_id: clientId, title }))
+  await refreshSuite(supabase, clientId)
+  if (stepId) {
+    revalidatePath(`/clients/${clientId}`)
+    redirect(`/clients/${clientId}?tab=tasks${error ? "&error=collected" : ""}`)
+  }
   back(clientId, error ? "collected" : undefined)
 }
 

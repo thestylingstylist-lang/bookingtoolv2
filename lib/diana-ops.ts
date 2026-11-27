@@ -8,7 +8,8 @@ import type { AgentTool } from "@/lib/ai"
 // Everything an agent can do in Marvberry, for Diana. Wherever a button already
 // does the job, Diana calls that same action, so her changes behave exactly
 // like the agent's own clicks.
-import { addTask, setDueDate, toggleTask, deleteTask, movePhase, addStandardSteps, addCollected, toggleCollected, deleteCollected } from "@/app/clients/[id]/checklist-actions"
+import { loadReplaced } from "@/lib/auto-steps"
+import { addTask, setDueDate, toggleTask, deleteTask, movePhase, addStandardSteps, addCollected, toggleCollected, deleteCollected, reopenStep, redoDocument, renameStep } from "@/app/clients/[id]/checklist-actions"
 import { saveDeal, addNote, deleteNote } from "@/app/clients/[id]/panel-actions"
 import { addHome, saveHome, setHomeStatus, removeHome, followUpOffer, setOfferStatus, updateHomeAddress } from "@/app/clients/[id]/homes-actions"
 import { saveSaleHome, setPrivateShowings, addOpenHouse, saveFeedback, deleteOpenHouse, addSaleOffer, updateSaleOffer, deleteSaleOffer } from "@/app/clients/[id]/seller-actions"
@@ -152,8 +153,8 @@ export const OPS_TOOLS: AgentTool[] = [
   },
   {
     name: "update_step",
-    description: "Mark a step done or not done, or set its due date.",
-    input_schema: obj({ client_id: id(), step_id: id(), done: { type: "boolean" }, due: id("YYYY-MM-DD, or empty to clear") }, ["client_id", "step_id"]),
+    description: "Mark a step done, rename it, or set its due date. Reopening a finished step goes through propose (reopen_step).",
+    input_schema: obj({ client_id: id(), step_id: id(), done: { type: "boolean" }, title: id("A new name for the step"), due: id("YYYY-MM-DD, or empty to clear") }, ["client_id", "step_id"]),
   },
   {
     name: "add_usual_steps",
@@ -272,7 +273,7 @@ export const OPS_TOOLS: AgentTool[] = [
   {
     name: "propose",
     description:
-      "Anything that sends, notifies a client, deletes or changes a home's address waits for the agent's yes. This shows the agent a card to approve. Actions: send_document (template_id), resend_document (document_id), send_suite_link, follow_up_offer (offer_id, message), support_message (message), delete_client, delete_booking (booking_id), delete_note (note_id), delete_step (step_id), delete_collected (doc_id), delete_template (template_id), remove_home (home_id), edit_home_address (home_id with address, or zip when only the zip changes; client_view_only true when the agent says to change only what the client sees), delete_open_house (open_house_id), delete_sale_offer (sale_offer_id), delete_event (event_id).",
+      "Anything that sends, notifies a client, deletes or changes a home's address waits for the agent's yes. This shows the agent a card to approve. Actions: send_document (template_id), resend_document (document_id), send_suite_link, follow_up_offer (offer_id, message), support_message (message), delete_client, delete_booking (booking_id), delete_note (note_id), delete_step (step_id), reopen_step (step_id: a finished step goes back to open; reopening Agreement signed marks the signed agreement Replaced), redo_document (document_id: a signed document is kept, marked Replaced, and a new one can be prepared), delete_collected (doc_id), delete_template (template_id), remove_home (home_id), edit_home_address (home_id with address, or zip when only the zip changes; client_view_only true when the agent says to change only what the client sees), delete_open_house (open_house_id), delete_sale_offer (sale_offer_id), delete_event (event_id).",
     input_schema: obj(
       {
         action: {
@@ -287,6 +288,8 @@ export const OPS_TOOLS: AgentTool[] = [
             "delete_booking",
             "delete_note",
             "delete_step",
+            "reopen_step",
+            "redo_document",
             "delete_collected",
             "delete_template",
             "remove_home",
@@ -387,6 +390,7 @@ export async function clientDetails(ctx: Ctx, clientId: string): Promise<string>
     db.from("client_notes").select("id, body, created_at").eq("client_id", clientId).order("created_at", { ascending: false }).limit(10),
     db.from("events").select("id, kind, place, starts_at").eq("client_id", clientId).gte("ends_at", new Date().toISOString()).order("starts_at").limit(10),
   ])
+  const replacedDocs = await loadReplaced(db as unknown as Parameters<typeof loadReplaced>[0], clientId)
   if (!c) return "That client isn't in your list."
   // Steps done by what has happened, read the same way as the client's suite and the agent's page.
   const steps = withFacts((rawSteps ?? []) as { id: string; title: string; owner: string; due_on: string | null; done: boolean; phase: string }[], await loadStepFacts(db, clientId))
@@ -426,7 +430,7 @@ export async function clientDetails(ctx: Ctx, clientId: string): Promise<string>
     suite_link_sent: !!c.portal_token,
     journeys: journeys.map(stageInfo),
     other_open_steps: (steps ?? []).filter((s) => !s.done).map((s) => ({ id: s.id, title: s.title, stage: s.phase, due: s.due_on ?? "" })),
-    documents: (docs ?? []).map((d) => ({ id: d.id, title: d.title, status: d.status, signed: d.signed_at ? String(d.signed_at).slice(0, 10) : "" })),
+    documents: (docs ?? []).map((d) => ({ id: d.id, title: d.title, status: replacedDocs.has(d.id as string) ? "replaced (kept in the file; a new one can be prepared)" : d.status, signed: d.signed_at ? String(d.signed_at).slice(0, 10) : "" })),
     to_collect: (collected ?? []).map((d) => ({ id: d.id, title: d.title, received: d.received })),
     homes: (homes ?? []).map((h) => ({ id: h.id, address: h.address, ...(shownAs.get(h.id) ? { client_sees: shownAs.get(h.id) } : {}), status: h.status, sellers_agent: [h.agent_name, h.agent_email].filter(Boolean).join(", "), showing: h.showing_at ? when(h.showing_at) : "", notes: h.notes })),
     offers_made: (offers ?? []).map((o) => ({ id: o.id, amount: o.amount, status: o.status, home: (homes ?? []).find((h) => h.id === o.home_id)?.address ?? "" })),
@@ -522,6 +526,12 @@ export async function runOp(ctx: Ctx, name: string, input: Record<string, unknow
       const { data: step } = await db.from("steps").select("id, title").eq("id", stepId).eq("client_id", clientId).maybeSingle()
       if (!step) return "That step isn't on this client. Read client_details for the right id."
       const bits: string[] = []
+      if (input.done === false) return "Reopening a step waits for the agent's yes. Use propose with reopen_step."
+      if (typeof input.title === "string" && S(input.title, 160).trim()) {
+        const r = await act(renameStep, { clientId, id: stepId, title: S(input.title, 160).trim() })
+        if (!r.ok) return failed("Renaming the step", r)
+        bits.push(`renamed to "${S(input.title, 160).trim()}"`)
+      }
       if (typeof input.done === "boolean") {
         const r = await act(toggleTask, { clientId, id: stepId, done: input.done ? "1" : "0" })
         if (!r.ok) return failed("Updating the step", r)
@@ -960,6 +970,36 @@ async function propose(ctx: Ctx, input: Record<string, unknown>): Promise<string
       plan = { title: `Follow up on the offer for ${addr}`, detail: msg, button: "Send follow-up", args: { offerId: oid, message: msg } }
       break
     }
+    case "reopen_step": {
+      const miss = needClient()
+      if (miss) return miss
+      const sid = S(input.step_id, 60)
+      const { data: st } = await db.from("steps").select("id, title, done").eq("id", sid).eq("client_id", cid).maybeSingle()
+      if (!st) return "That step isn't on this client. Read client_details for the right id."
+      if (!st.done) return `"${st.title}" is already open. Say so in one line.`
+      plan = {
+        title: `Reopen \u201c${st.title}\u201d`,
+        detail: `It goes back to open, and ${first || "the client"}'s suite shows it open again.${st.title === "Agreement signed" ? " The signed agreement stays in the file, marked Replaced." : ""}`,
+        button: "Reopen",
+        args: { clientId: cid, id: sid },
+      }
+      break
+    }
+    case "redo_document": {
+      const miss = needClient()
+      if (miss) return miss
+      const did = S(input.document_id, 60)
+      const { data: d } = await db.from("documents").select("id, title, status").eq("id", did).eq("client_id", cid).maybeSingle()
+      if (!d) return "That document isn't on this client. Read client_details for the right id."
+      if (d.status !== "signed") return "Only a signed document can be redone. Say so in one line."
+      plan = {
+        title: `Redo the ${d.title}`,
+        detail: `This copy stays in the file, marked Replaced, and its step reopens in ${first || "the client"}'s suite until a new one is signed.`,
+        button: "Redo",
+        args: { clientId: cid, documentId: did },
+      }
+      break
+    }
     case "support_message": {
       const msg = S(input.message, 4000)
       if (!msg) return "Ask what to tell Support."
@@ -1049,6 +1089,14 @@ export async function runConfirmed(op: string, args: Record<string, string>): Pr
       break
     case "delete_step":
       r = await act(deleteTask, { clientId: a("clientId"), id: a("id") })
+      break
+    case "reopen_step":
+      r = await act(reopenStep, { clientId: a("clientId"), id: a("id") })
+      ok = "Reopened. Their suite shows it open again."
+      break
+    case "redo_document":
+      r = await act(redoDocument, { clientId: a("clientId"), documentId: a("documentId") })
+      ok = "Done. The old copy is marked Replaced, ready for a new one."
       break
     case "delete_collected":
       r = await act(deleteCollected, { clientId: a("clientId"), id: a("id") })

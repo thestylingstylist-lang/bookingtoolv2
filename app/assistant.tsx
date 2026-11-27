@@ -22,6 +22,7 @@ const cardNote = (c: ChatCard) =>
   : c.type === "showing" ? `[Prepared a showing for ${c.name}: ${c.label} ${c.place}]`
   : c.type === "client" ? `[Added ${c.name}, client id ${c.clientId}]`
   : c.type === "confirm" ? `[Asked the agent to approve: ${c.title}]`
+  : c.type === "list" ? `[Showed ${c.items.map((i) => i.label).join(", ")} as a card to tap]`
   : c.type === "times" ? `[Suggested ${c.minutes}-minute times for ${c.name}: ${c.options.map((o) => o.label).join("; ")}. The agent picks and approves the invitation on the card.]`
   : ""
 

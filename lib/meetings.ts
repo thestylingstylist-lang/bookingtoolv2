@@ -7,6 +7,7 @@ import { sendEmail } from "@/lib/email"
 import { agentCard } from "@/lib/agent-card"
 import { suiteLetter, sPara, sWhen, sLink, sLinkLine, sSmall, teamNote, para, esc } from "@/lib/letter"
 import { googleCalendarUrl, outlookCalendarUrl } from "@/lib/calendar"
+import { recordActivity } from "./client-activity"
 import { notifyAgent } from "@/lib/notify"
 
 // Diana arranges meetings: she reads the agent's calendar, offers open times,
@@ -478,6 +479,13 @@ export async function confirmChoice(db: Db, token: string, optionId: string): Pr
   const who = client?.first_name || "Your client"
   const said = `${who} confirmed ${shortWhen(opt.startISO, v.tz)}`
   const notified = await notifyAgent(db, v.agentId, "bookings", { line: said, body: `${said}.`, url: `/clients/${v.clientId}` })
+  await recordActivity(db, {
+    agentId: v.agentId,
+    clientId: v.clientId,
+    kind: "booking",
+    line: `${who} booked ${shortWhen(opt.startISO, v.tz)}`,
+    detail: `Booked ${opt.label}${place ? ` \u00b7 ${place}` : ""}`,
+  })
   if (!notified) await emailAgent(db, v.agentId, `${who} confirmed a time`, `${esc(said)}.`, `${SITE}/clients/${v.clientId}`, `Open ${who}`)
   return { ok: true }
 }

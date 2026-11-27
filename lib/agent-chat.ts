@@ -82,10 +82,32 @@ const TOOLS: AgentTool[] = [
     input_schema: { type: "object", properties: { name: { type: "string" } }, required: ["name"] },
   },
   {
+    name: "all_clients",
+    description:
+      "Every one of the agent's clients in one look, never a sample: stage, open steps and who owes them, documents out for signature, documents still to collect, homes and offers, new client activity, follow-ups. Use it for any question about which clients or which deals.",
+    input_schema: { type: "object", properties: {} },
+  },
+  {
     name: "client_file",
     description:
       "Everything on one client's file, with ids: details, journey stage and next stage, open steps, documents and signatures, documents to collect, homes and offers, listing, open houses, offers received, notes, upcoming events. Read this before acting for a client.",
     input_schema: { type: "object", properties: { client_id: { type: "string" } }, required: ["client_id"] },
+  },
+  {
+    name: "show",
+    description:
+      "Open something for the agent to see: a client's file or their steps and documents, the calendar, bookings, the client list, deals, follow-ups, what's new from clients, the card, templates or settings. A client's documents are in their steps and documents. Use it whenever the agent asks to see, open, show or pull up something. The agent gets it as a card to tap.",
+    input_schema: {
+      type: "object",
+      properties: {
+        page: {
+          type: "string",
+          enum: ["client", "client_steps", "calendar", "bookings", "clients", "deals", "follow_ups", "new_from_clients", "card", "templates", "settings", "home"],
+        },
+        client_id: { type: "string", description: "For client and client_steps." },
+      },
+      required: ["page"],
+    },
   },
   {
     name: "whats_waiting",
@@ -232,7 +254,7 @@ export async function handleRequest(
 
   const [{ data: agent }, { data: clientRows }, { count: used }] = await Promise.all([
     db.from("agents").select("full_name, business_name, timezone, assistant_name").eq("id", agentId).maybeSingle(),
-    db.from("clients").select("id, first_name, last_name, phase").eq("agent_id", agentId).order("created_at", { ascending: false }).limit(400),
+    db.from("clients").select("id, first_name, last_name, phase").eq("agent_id", agentId).order("created_at", { ascending: false }).limit(5000),
     db
       .from("ai_drafts")
       .select("id", { count: "exact", head: true })
@@ -271,11 +293,18 @@ Your role. You are the office. You're always here; the agent is usually out in t
 
 You're great with people. Read the room and match what the agent is ready for:
 - Small talk gets small talk. Don't bring up work.
-- When the agent turns to work, lead gently. Show you've already thought ahead, share the one thing that matters most in a sentence or two, then check in before going further.
+- Answer only what the agent asked, short. No status summary, no news about other clients or deadlines they didn't ask about.
+- "Can I see…", "show me…", "open…" or "pull up…": open it with show and reply with one short line. Nothing more.
 - Give details one client at a time, as the agent asks.
 - Never show the step cards and the same list in your words together. Only show cards when the agent asks to see the list.
 
 When the agent is just saying hello or chatting, be a friend: greet them by first name and ask how they are or how their day is going. Don't look anything up, don't mention work, clients or deadlines, and don't offer help. If they greet you again, answer warmly again, just as briefly. Only use your tools and look at their files when they ask about work.
+
+Facts come from the records, every time:
+- Before answering anything about clients, deals, homes, offers or documents, look it up with your tools, even if you think you know. Never answer from memory or a guess.
+- For any "which client" or "which deals" question, use all_clients. It covers every client, so answer for all of them. Never say you only checked some.
+- If the agent's message is unclear or a word seems missing (like "Why did ask"), ask one short question about what they mean. Don't guess.
+- Never talk about your process or your mistakes: no "I should have checked", "Let me look", "That was more than you asked". If you're correcting something, give the right answer in one line, as if it's the first time.
 
 How you work, when the agent asks for something:
 - Do the work yourself, step by step, with your tools. Look the client up, check their file, then prepare the thing. Don't ask the agent for anything you can find in the file.
@@ -283,7 +312,9 @@ How you work, when the agent asks for something:
 - Anything that goes to a client or another agent comes back to ${agentName.split(" ")[0] || "the agent"} as a card to send with one tap. Never say something was sent. Say it's ready.
 - Never invent a price, date, time, address, email or term. If it isn't in the request or the file, ask.
 - You don't give legal, tax or loan advice. If asked, say that's one for their attorney or lender, and offer to draft the question to them.
-- After you finish a task, say in one or two short sentences what's ready and what you'd do next for this deal, if there's a clear next step.
+- After you finish a task, say in one short sentence what's ready. Suggest a next step only when something is clearly waiting on the agent, in one short sentence.
+
+Never assume a client's gender. Refer to a client by their first name, not he, she, him or her, unless a pronoun is written on their file (in their details or notes). The same goes for anyone else in a deal: attorneys, lenders, other agents. If repeating the name sounds heavy, reword the sentence rather than guess.
 
 How you talk: warm, plain, short. Spoken words, like a great assistant leaning into the office. No lists unless there are several items. Say "real estate agent", never "realtor". Never use the word "need" when writing to clients. Say "attorney", never "lawyer", and "seller's agent", never "listing agent".
 
@@ -293,7 +324,7 @@ How you carry yourself. These are principles, not scripts.
 - Respond to the human moment first. When the agent shares news, like a new potential client, acknowledge it warmly before getting practical.
 - Frame anything missing as an offer, not a requirement. Avoid "I'd need to" and "I need".
 - One question at a time, and never re-ask something that's still waiting on an answer.
-- When there's an obvious next step, propose it confidently as a single, simple yes-or-no question that keeps things moving forward. Never sound tentative: no "whenever you like", "if you'd like" or "I can... if you want". You propose, and the agent decides.
+- Only when something is clearly waiting on the agent, propose the next step confidently as one short yes-or-no question. Otherwise don't suggest anything. Never sound tentative: no "whenever you like", "if you'd like" or "I can... if you want". You propose, and the agent decides.
 - You're there to handle things. Never make an issue feel shared or like a problem. Everything you say should feel like things are flowing easily, because you're taking care of it.
 - Before drafting anything that needs contact details (a seller's agent, a buyer's agent, a client, anyone), check they're there. If something's missing, ask for it graciously at that moment, save it, and send right away once approved.
 - Never hand the agent an error you could have prevented. If something still fails, explain it calmly and offer the fix in the same breath.
@@ -344,8 +375,90 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
         return JSON.stringify(hits.slice(0, 6).map((c) => ({ id: c.id, name: full(c), stage: c.phase ?? "" })))
       }
 
+      case "all_clients": {
+        const ids = clients.map((c) => c.id)
+        if (!ids.length) return "The agent has no clients yet."
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const safe = async <T,>(q: PromiseLike<any>): Promise<T[]> => {
+          try {
+            const r = (await q) as { data: T[] | null; error: unknown }
+            return r.error ? [] : (r.data ?? [])
+          } catch {
+            return []
+          }
+        }
+        const [meta, steps, docs, collect, homes, offers, acts] = await Promise.all([
+          safe<{ id: string; client_type: string | null; sell_phase: string | null; status: string | null; archived: boolean | null; follow_up_at?: string | null }>(
+            db.from("clients").select("id, client_type, sell_phase, status, archived, follow_up_at").eq("agent_id", agentId),
+          ),
+          safe<{ client_id: string; title: string; owner: string; due_on: string | null }>(db.from("steps").select("client_id, title, owner, due_on").eq("done", false).in("client_id", ids)),
+          safe<{ client_id: string; title: string; status: string }>(db.from("documents").select("client_id, title, status").in("client_id", ids)),
+          safe<{ client_id: string; title: string; received: boolean }>(db.from("collected_docs").select("client_id, title, received").in("client_id", ids)),
+          safe<{ client_id: string; address: string; status: string; client_offer_at: string | null }>(db.from("homes").select("client_id, address, status, client_offer_at").in("client_id", ids)),
+          safe<{ client_id: string; amount: number; status: string; homes: { address: string } | null }>(db.from("home_offers").select("client_id, amount, status, homes(address)").in("client_id", ids)),
+          safe<{ client_id: string; line: string }>(db.from("client_activity").select("client_id, line").is("seen_at", null).in("client_id", ids)),
+        ])
+        const m = new Map(meta.map((x) => [x.id, x]))
+        const by = <T extends { client_id: string }>(rows: T[], id: string) => rows.filter((r) => r.client_id === id)
+        const list = clients.map((c) => {
+          const x = m.get(c.id)
+          const st = by(steps, c.id)
+          return {
+            id: c.id,
+            name: full(c),
+            type: x?.client_type || "buyer",
+            stage: x?.client_type === "seller" ? x?.sell_phase || "" : c.phase || "",
+            archived: !!x?.archived || (!!x?.status && x.status !== "active"),
+            agent_owes: st.filter((t) => t.owner === "agent").map((t) => `${t.title}${t.due_on ? ` (due ${t.due_on})` : ""}`),
+            client_owes: st.filter((t) => t.owner === "client").map((t) => `${t.title}${t.due_on ? ` (due ${t.due_on})` : ""}`),
+            others_owe: st.filter((t) => t.owner !== "agent" && t.owner !== "client").map((t) => `${t.title} (${t.owner})`),
+            awaiting_signature: by(docs, c.id).filter((d) => d.status === "sent").map((d) => d.title),
+            signed: by(docs, c.id).filter((d) => d.status === "signed").map((d) => d.title),
+            to_collect: by(collect, c.id).filter((d) => !d.received).map((d) => d.title),
+            homes: by(homes, c.id).map((h) => `${h.address.split(",")[0]} (${h.status}${h.client_offer_at ? ", client asked to make an offer" : ""})`),
+            offers: by(offers, c.id).map((o) => `${usd(o.amount)} on ${o.homes?.address?.split(",")[0] ?? "a home"} (${o.status})`),
+            new_activity: by(acts, c.id).map((a) => a.line),
+            kept_for_follow_up: !!x?.follow_up_at,
+          }
+        })
+        return JSON.stringify({
+          total_clients: list.length,
+          note: "This is every client the agent has. Answer from it, naming each client that fits. Leave out empty fields in your answer.",
+          clients: list,
+        })
+      }
+
       case "client_file":
         return clientDetails(opsCtx, clientId)
+
+      case "show": {
+        const page = str(input.page, 40)
+        const cid = str(input.client_id, 60) || clientId
+        const who = cid ? clients.find((c) => c.id === cid) : undefined
+        const PAGES: Record<string, { label: string; sub: string; href: string }> = {
+          calendar: { label: "Calendar", sub: "Your week", href: "/calendar" },
+          bookings: { label: "Bookings", sub: "Everyone who booked you", href: "/bookings" },
+          clients: { label: "Clients", sub: "Everyone you work with", href: "/clients" },
+          deals: { label: "Deals", sub: "Active deals by stage", href: "/clients?stage=all" },
+          follow_ups: { label: "Follow-ups due", sub: "Kept for follow-up or waiting on you", href: "/clients?view=follow-up" },
+          new_from_clients: { label: "New from your clients", sub: "Notes, times, offer requests, uploads", href: "/dashboard#new-from-clients" },
+          card: { label: "Your card", sub: "Saves and messages", href: "/my-card" },
+          templates: { label: "Templates", sub: "Your agreements and forms", href: "/templates" },
+          settings: { label: "Settings", sub: "Account and company", href: "/settings" },
+          home: { label: "Home", sub: "Your dashboard", href: "/dashboard" },
+        }
+        let item = PAGES[page]
+        if (page === "client" || page === "client_steps") {
+          if (!who) return "Which client? Ask in one short line."
+          item =
+            page === "client"
+              ? { label: full(who), sub: "Their file", href: `/clients/${who.id}` }
+              : { label: `${full(who)}: steps and documents`, sub: "Their file", href: `/clients/${who.id}?tab=tasks` }
+        }
+        if (!item) return "That page isn't one you can open. Ask what they'd like to see."
+        cards.push({ type: "list", items: [item] })
+        return "It's on a card the agent can tap. Reply with one short line, like \"Here's Kelly's file.\" Nothing else: no status, no summary, no next step."
+      }
 
       case "whats_waiting": {
         const [{ data: steps }, { data: offers }] = await Promise.all([
@@ -380,7 +493,7 @@ Today is ${formatInTimeZone(new Date(), tz, "EEEE, MMMM d, yyyy (yyyy-MM-dd)")},
           note:
             showList && items.length
               ? "The agent sees the due list as cards. Don't repeat it in words; add at most one sentence."
-              : "This is for your awareness. Share only the one thing that matters most, then check in.",
+              : "For your awareness. Answer only what the agent asked, from this. Don't add anything they didn't ask about.",
         })
       }
 

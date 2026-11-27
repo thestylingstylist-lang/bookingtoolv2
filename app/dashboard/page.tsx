@@ -14,7 +14,8 @@ import { agentDueLabel, daysUntil, isClose, nudgeDraft, missingThing, canNudge, 
 import { toOwner } from "@/lib/phases"
 import { suiteName } from "@/lib/suite"
 import { assistantDisplayName } from "@/lib/assistant-name"
-import { formatInTimeZone } from "date-fns-tz"
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz"
+import { loadDeals, stageLine, loadFollowUps } from "@/lib/business-picture"
 import { cookies } from "next/headers"
 import { SEEN_COOKIE, sinceFrom } from "@/lib/whats-new-shared"
 import SeenMarker from "./seen-marker"
@@ -82,6 +83,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   // Bookings already turned into clients open that client; the rest open Bookings, where they become one.
   const { data: madeClients } = await supabase.from("clients").select("id, booking_id").not("booking_id", "is", null)
   const clientFor = new Map((madeClients ?? []).map((c) => [c.booking_id as string, c.id as string]))
+
+  // New from clients: what they did that she hasn't seen yet (blank until client-activity.sql is run).
+  const { data: actRows, error: actErr } = await supabase
+    .from("client_activity")
+    .select("client_id, kind, line, created_at")
+    .is("seen_at", null)
+    .order("created_at", { ascending: false })
+    .limit(200)
+  const unseenActs = (actErr ? [] : (actRows ?? [])) as { client_id: string; kind: string; line: string; created_at: string }[]
+  const newByClient = new Map<string, { line: string; count: number }>()
+  for (const r of unseenActs) {
+    const f = newByClient.get(r.client_id)
+    if (f) f.count++
+    else newByClient.set(r.client_id, { line: r.line, count: 1 })
+  }
 
   const { count: clientCount } = await supabase
     .from("clients")
@@ -304,11 +320,101 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     .slice(0, 5)
   const updatesThisWeek = updates.filter((u) => u.at >= weekAgo).length
   const showingsToday = showings.filter((e) => formatInTimeZone(new Date(e.starts_at), tz, "yyyy-MM-dd") === todayKey).length
-  const stats: { label: string; value: number; note: string; href: string; icon: React.ReactNode }[] = [
-    { label: "Upcoming showings", value: showings.length, note: showingsToday ? `${showingsToday} today` : "Next 7 days", href: "/calendar", icon: <><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M8 3v4M16 3v4M4 10h16" /></> },
-    { label: "Pending signatures", value: pendingSigs ?? 0, note: (pendingSigs ?? 0) ? "Waiting on clients" : "All signed", href: "/clients", icon: <><path d="M7 3h7l5 5v13H7z" /><path d="M10 16c1.5-2 2.5-2 3 0s1.5 1 2.5-.5" /></> },
-    { label: "Active deals", value: clientCount ?? 0, note: "In progress", href: "/clients", icon: <><path d="M4 11l8-7 8 7" /><path d="M6 10v10h12V10" /></> },
-    { label: "Client updates", value: updatesThisWeek, note: "This week", href: "/clients", icon: <path d="M4 5h16v11H9l-5 4V5z" /> },
+
+  // ── The picture of her business: six boxes under the greeting. ──
+  const dayStart = fromZonedTime(`${todayKey}T00:00:00`, tz).toISOString()
+  // Midnight to midnight in her time zone (30 hours past midnight is always tomorrow, even across a clock change).
+  const tomorrowKey = formatInTimeZone(new Date(Date.parse(dayStart) + 30 * 3600000), tz, "yyyy-MM-dd")
+  const dayEndISO = fromZonedTime(`${tomorrowKey}T00:00:00`, tz).toISOString()
+  const sinceISO = new Date(since).toISOString()
+  type Appt = { at: string; who: string; what: string }
+  const [{ data: bookToday }, { data: evToday }, { data: newBooks }, { data: allClients }, cardSaves, cardReqs, deals, follow] = await Promise.all([
+    supabase.from("bookings").select("first_name, slot_start").gte("slot_start", dayStart).lt("slot_start", dayEndISO),
+    supabase.from("events").select("kind, place, starts_at, clients(first_name)").gte("starts_at", dayStart).lt("starts_at", dayEndISO),
+    supabase.from("bookings").select("id, email, client_id, created_at").gte("created_at", sinceISO).limit(200),
+    supabase.from("clients").select("id, email, created_at"),
+    supabase.from("card_events").select("id", { count: "exact", head: true }).eq("kind", "save").gte("created_at", sinceISO).then((r: { count: number | null }) => r.count ?? 0, () => 0),
+    supabase.from("card_requests").select("id", { count: "exact", head: true }).gte("created_at", sinceISO).then((r: { count: number | null }) => r.count ?? 0, () => 0),
+    loadDeals(supabase),
+    loadFollowUps(supabase, tz),
+  ])
+  const appts: Appt[] = [
+    ...((bookToday ?? []) as { first_name: string; slot_start: string }[]).map((b) => ({ at: b.slot_start, who: (b.first_name || "").trim(), what: "consultation" })),
+    ...((evToday ?? []) as unknown as { kind: string; place: string | null; starts_at: string; clients: { first_name: string | null } | null }[]).map((e) => ({
+      at: e.starts_at,
+      who: (e.clients?.first_name || e.place || "").trim(),
+      what: (e.kind || "appointment").replace(/_/g, " "),
+    })),
+  ].sort((x, y) => x.at.localeCompare(y.at))
+  const nextAppt = appts.find((a) => a.at >= nowISO)
+  const hourLabel = (iso: string) => formatInTimeZone(new Date(iso), tz, "h:mm a").replace(":00 ", " ")
+  // A booking from someone already on her client list is a current client; anyone else is first-time.
+  const knownBefore = new Map(((allClients ?? []) as { id: string; email: string | null; created_at: string }[]).filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.created_at]))
+  const bookRows = (newBooks ?? []) as { id: string; email: string | null; client_id: string | null; created_at: string }[]
+  const currentBooks = bookRows.filter((b) => {
+    const k = knownBefore.get((b.email || "").toLowerCase())
+    return !!k && k < b.created_at
+  }).length
+  const firstBooks = bookRows.length - currentBooks
+  const kindCount = new Map<string, number>()
+  for (const a of unseenActs as { kind?: string }[]) kindCount.set(a.kind || "", (kindCount.get(a.kind || "") ?? 0) + 1)
+  const KIND_WORD: Record<string, [string, string]> = {
+    note: ["note", "notes"],
+    times: ["shared times", "shared times"],
+    offer: ["offer request", "offer requests"],
+    upload: ["upload", "uploads"],
+    booking: ["booked time", "booked times"],
+  }
+  const actLine = ["note", "times", "offer", "upload", "booking"]
+    .filter((k) => kindCount.get(k))
+    .map((k) => `${kindCount.get(k)} ${KIND_WORD[k][kindCount.get(k) === 1 ? 0 : 1]}`)
+    .join(", ")
+  const kept = [...follow.values()].filter((f) => f.kept).length
+  const waiting = [...follow.values()].filter((f) => f.waiting && !f.kept).length
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
+  const boxes: { label: string; value: number; line: string; href: string; needs: boolean }[] = [
+    {
+      label: "Today",
+      value: appts.length,
+      line: nextAppt ? `Next: ${[hourLabel(nextAppt.at), nextAppt.who, nextAppt.what].filter(Boolean).join(", ")}` : appts.length ? "Done for today" : "Nothing on the calendar",
+      href: "/calendar",
+      needs: false,
+    },
+    {
+      label: "New bookings",
+      value: bookRows.length,
+      line: bookRows.length ? [firstBooks ? `${firstBooks} first-time` : "", currentBooks ? plural(currentBooks, "current client", "current clients") : ""].filter(Boolean).join(", ") : "None since your last visit",
+      href: "/bookings",
+      needs: bookRows.length > 0,
+    },
+    {
+      label: "Card",
+      value: cardSaves + cardReqs,
+      line: cardSaves + cardReqs ? [cardSaves ? `${cardSaves} saved your contact` : "", cardReqs ? `${cardReqs} reached out` : ""].filter(Boolean).join(", ") : "No new saves or messages",
+      href: "/my-card",
+      needs: cardReqs > 0,
+    },
+    {
+      label: "New from clients",
+      value: unseenActs.length,
+      line: actLine || "Nothing new",
+      href: unseenActs.length ? "#new-from-clients" : "/clients",
+      needs: unseenActs.length > 0,
+    },
+    {
+      label: "Deals",
+      value: deals.size,
+      line: stageLine(deals) || "No active deals yet",
+      href: "/clients?stage=all",
+      needs: false,
+    },
+    {
+      label: "Follow-ups due",
+      value: follow.size,
+      line: follow.size ? [kept ? `${kept} kept for follow-up` : "", waiting ? `${waiting} waiting on you` : ""].filter(Boolean).join(", ") : "All caught up",
+      href: "/clients?view=follow-up",
+      needs: follow.size > 0,
+    },
   ]
 
   const signals = { agent, bookingCount: count ?? 0 }
@@ -365,6 +471,25 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         {greeting}{firstName ? `, ${firstName}` : ""}.
       </h1>
       <p className="mt-2 text-lxink/60">{honest}</p>
+
+      {/* The picture of her business. Gold only where something needs her. */}
+      <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {boxes.map((x) => (
+          <Link
+            key={x.label}
+            href={x.href}
+            className={`group relative flex min-h-[132px] flex-col rounded-[4px] border bg-white/60 px-4 pb-4 pt-3.5 no-underline transition-colors hover:bg-white sm:px-5 ${x.needs ? "border-[rgba(194,164,107,.7)]" : "border-lxink/[0.09]"}`}
+          >
+            <span className="flex items-center gap-2 text-[11px] uppercase tracking-[.12em] text-lxink/55">
+              {x.needs && <span className="h-[6px] w-[6px] rounded-full bg-lxgold" aria-label="Needs you" />}
+              {x.label}
+            </span>
+            <span className="mt-1.5 font-lux text-[44px] leading-none text-lxink">{x.value}</span>
+            <span className="mt-auto pt-2 text-[13px] leading-snug text-lxink/60">{x.line}</span>
+          </Link>
+        ))}
+      </div>
+
       <div className="mt-6">
         <AssistantBar name={assistantName} />
       </div>
@@ -408,6 +533,28 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               ? "That client has no email yet. Add one on their page, then send again."
               : "That reminder didn't go out. Wait a moment, then try again."}
         </p>
+      )}
+
+      {unseenActs.length > 0 && (
+        <section id="new-from-clients" className="mt-10 scroll-mt-6" aria-label="New from your clients">
+          <h2 className="flex items-center gap-2.5 font-serif font-semibold tracking-tight text-xl">
+            <span className="h-[9px] w-[9px] rounded-full bg-lxgold" aria-hidden="true" />
+            New from your clients
+            <span className="font-sans text-base font-normal text-lxink/55">{unseenActs.length}</span>
+          </h2>
+          <ul className="mt-2 divide-y divide-lxink/[0.07] border-y border-lxink/[0.07]">
+            {[...newByClient].slice(0, 8).map(([id, f]) => (
+              <li key={id}>
+                <Link href={`/clients/${id}`} className="flex items-center justify-between gap-5 py-4 no-underline hover:opacity-80">
+                  <span className="min-w-0 text-lxink">
+                    {f.line}.{f.count > 1 && <span className="text-lxink/55"> And {f.count - 1} more.</span>}
+                  </span>
+                  <span className="shrink-0 rounded-[2px] border border-lxink px-4 py-2 text-[13px] text-lxink">Open</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section className="mt-10">

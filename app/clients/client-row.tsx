@@ -13,17 +13,31 @@ type Client = {
   address: string | null
 }
 
-export default function ClientRow({ client }: { client: Client }) {
+// A priority jacket: new activity (gold dot) or kept for follow-up.
+export type Priority = { line: string; fresh: boolean; follow: boolean; at: string }
+
+export default function ClientRow({ client, priority }: { client: Client; priority?: Priority | null }) {
   const name = `${client.first_name} ${client.last_name}`.trim() || "Client"
   return (
-    <tr className="border-b border-lxink/5 last:border-0 hover:bg-white/40">
+    <tr className={`border-b border-lxink/5 last:border-0 ${priority ? "bg-[#FBF8F2] hover:bg-[#F7F1E6]" : "hover:bg-white/40"}`}>
       <td className="cell-lead px-5 py-4">
         <Link
           href={`/clients/${client.id}`}
-          className="font-medium underline-offset-2 hover:underline"
+          className="inline-flex items-center gap-2 font-medium underline-offset-2 hover:underline"
         >
+          {priority && (
+            <span
+              className={`h-[8px] w-[8px] shrink-0 rounded-full ${priority.fresh ? "bg-lxgold" : "border border-lxgold"}`}
+              aria-label={priority.fresh ? "New activity" : "Follow up"}
+            />
+          )}
           {name}
         </Link>
+        {priority && (
+          <Link href={`/clients/${client.id}`} className="mt-1 block max-w-[34ch] text-[13px] leading-snug text-lxink/70 no-underline">
+            {priority.line}.{priority.follow && !priority.fresh && !/follow-up/i.test(priority.line) ? " Kept for follow-up." : ""}
+          </Link>
+        )}
       </td>
       <td data-label="Contact" className="px-5 py-4">
         <div className="flex flex-col">

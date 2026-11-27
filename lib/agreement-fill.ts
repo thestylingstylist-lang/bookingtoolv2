@@ -1,3 +1,4 @@
+import { loadReplaced } from "./auto-steps"
 import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -79,9 +80,11 @@ export async function prepareAgreement(
     db.from("clients").select("id, first_name, last_name, email, phone, address, sale_address").eq("id", clientId).maybeSingle(),
     db.from("agents").select("full_name, business_name, timezone, agreement_days, agreement_exclusive, default_commission").eq("id", agentId).maybeSingle(),
     db.from("document_templates").select("id, title, body").eq("agent_id", agentId).order("created_at"),
-    db.from("documents").select("title, status, created_at, signed_at").eq("client_id", clientId).eq("kind", "agreement").order("created_at", { ascending: false }),
+    db.from("documents").select("id, title, status, created_at, signed_at").eq("client_id", clientId).eq("kind", "agreement").order("created_at", { ascending: false }),
   ])
-  const signed = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "signed")
+  // A signed agreement that's been redone (Replaced) doesn't count: a new one can be prepared.
+  const replaced = await loadReplaced(db, clientId)
+  const signed = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "signed" && !replaced.has(d.id as string))
   if (signed) return { state: "signed", title: signed.title as string, signedAt: (signed.signed_at as string) || (signed.created_at as string) }
   const sent = opts.ignoreExisting ? undefined : (docs ?? []).find((d) => d.status === "sent")
   if (sent) return { state: "sent", title: sent.title as string, sentAt: sent.created_at as string }

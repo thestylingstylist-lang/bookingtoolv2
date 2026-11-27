@@ -51,6 +51,7 @@ export type HomeView = {
   offer: OfferView | null // the latest offer on this home
   clientNotes: string // what the client wrote on their own page
   clientAsked: string // the day they tapped "I'd like to make an offer", or ""
+  lit?: boolean // the client did something on this home since the agent last looked
 }
 
 type View = "home" | "offer" | "follow"
@@ -109,6 +110,20 @@ export default function Homes({
   const passed = homes.filter((h) => h.status === "passed")
   const list = showPassed ? [...active, ...passed] : active
   const open = homes.find((h) => h.id === openId) ?? null
+  // Which homes lit up when she opened the jacket. Held for the visit, like "New from".
+  const [litIds] = useState(() => new Set(homes.filter((h) => h.lit).map((h) => h.id)))
+  // "New from Kelly" names a home: tapping it opens that home here.
+  useEffect(() => {
+    const on = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail
+      if (!homes.some((h) => h.id === id)) return
+      if (homes.find((h) => h.id === id)?.status === "passed") setShowPassed(true)
+      setStartView("home")
+      setOpenId(id)
+    }
+    window.addEventListener("mb-open-home", on)
+    return () => window.removeEventListener("mb-open-home", on)
+  }, [homes])
 
   return (
     <section className="border-b border-lxhair bg-white px-6 py-5">
@@ -148,17 +163,32 @@ export default function Homes({
           {list.map((h) => {
             const m = nextMove(h, clientFirst)
             const isPassed = h.status === "passed"
+            const lit = litIds.has(h.id)
             return (
               <div
                 key={h.id}
-                className={`flex w-[300px] shrink-0 flex-col justify-between rounded-2xl border border-lxhair bg-white p-4 ${isPassed ? "opacity-60" : ""}`}
+                className={`relative flex w-[300px] shrink-0 flex-col justify-between rounded-2xl border bg-white p-4 ${lit ? "border-lxgold shadow-[0_0_0_1px_#C2A46B]" : "border-lxhair"} ${isPassed ? "opacity-60" : ""}`}
               >
+                {lit && <span className="absolute right-4 top-4 h-[8px] w-[8px] rounded-full bg-lxgold" aria-label={`New from ${clientFirst || "your client"}`} />}
                 <button onClick={() => { setStartView("home"); setOpenId(h.id) }} className="text-left">
-                  <p className="truncate text-[15.5px] font-semibold">{h.address.split(",")[0]}</p>
+                  <p className="truncate pr-4 text-[15.5px] font-semibold">{h.address.split(",")[0]}</p>
                   <p className="mt-1 line-clamp-2 text-[13.5px] text-lxsoft">
                     {m.dot && !isPassed && <span className="mr-2 inline-block h-[7px] w-[7px] rounded-full bg-lxink align-[1px]" />}
                     {isPassed ? "Passed." : m.line}
                   </p>
+                  {/* What the client said, and what the agent told them, right on the card */}
+                  {h.clientNotes && (
+                    <div className={`mt-3 border-l-2 pl-2.5 ${lit ? "border-lxgold" : "border-lxhair"}`}>
+                      <p className="text-[11px] uppercase tracking-[.1em] text-lxsoft">{clientFirst ? `${clientFirst}\u2019s note` : "Their note"}</p>
+                      <p className="mt-0.5 line-clamp-3 text-[13.5px] text-lxink">{`\u201c${h.clientNotes}\u201d`}</p>
+                    </div>
+                  )}
+                  {h.clientNote && (
+                    <div className="mt-2.5 border-l-2 border-lxhair pl-2.5">
+                      <p className="text-[11px] uppercase tracking-[.1em] text-lxsoft">{clientFirst ? `Your note to ${clientFirst}` : "Your note"}</p>
+                      <p className="mt-0.5 line-clamp-2 text-[13.5px] text-lxsoft">{h.clientNote}</p>
+                    </div>
+                  )}
                 </button>
                 {!isPassed && (
                   <button

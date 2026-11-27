@@ -3,6 +3,7 @@ import {
   toggleCollected,
   deleteCollected,
 } from "./checklist-actions"
+import SignedDocs, { type SignedDoc } from "./signed-docs"
 
 export type Collected = { id: string; title: string; received: boolean; file_path?: string | null }
 
@@ -12,12 +13,23 @@ const inputClass =
 export default function DocumentsPanel({
   clientId,
   collected,
+  signed = [],
+  redoId,
+  first = "",
+  assistantName = "Diana",
+  tz = "America/New_York",
 }: {
   clientId: string
   collected: Collected[]
+  signed?: SignedDoc[]
+  redoId?: string
+  first?: string
+  assistantName?: string
+  tz?: string
 }) {
   return (
     <section>
+      <SignedDocs clientId={clientId} docs={signed} redoId={redoId} first={first} assistantName={assistantName} tz={tz} />
       <h2 className="text-xs uppercase tracking-[0.08em] text-lxsoft">Documents collected</h2>
       <ul className="mt-3">
         {collected.map((d) => (

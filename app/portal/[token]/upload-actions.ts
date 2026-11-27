@@ -1,7 +1,7 @@
 "use server"
 
-import { notifyAgent } from "@/lib/notify"
-import { stepForDoc, tickStep } from "@/lib/auto-steps"
+import { recordActivity } from "@/lib/client-activity"
+import { tickStep, loadDocSteps, docStepTitle } from "@/lib/auto-steps"
 
 import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -84,10 +84,16 @@ export async function finishUpload(
   })
 
   // Every document for its step is in: the step is done.
-  const step = stepForDoc(found.doc.title as string)
-  const { data: rest } = await found.admin.from("collected_docs").select("title, received").eq("client_id", found.client.id)
-  if (((rest ?? []) as { title: string; received: boolean }[]).filter((d) => stepForDoc(d.title) === step).every((d) => d.received)) {
-    await tickStep(found.admin, found.client.id as string, step)
+  const cid = found.client.id as string
+  const [{ data: rest }, { data: stepRows }, docSteps] = await Promise.all([
+    found.admin.from("collected_docs").select("id, title, received").eq("client_id", cid),
+    found.admin.from("steps").select("id, title").eq("client_id", cid),
+    loadDocSteps(found.admin, cid),
+  ])
+  const titles = new Map(((stepRows ?? []) as { id: string; title: string }[]).map((r) => [r.id, r.title]))
+  const step = docStepTitle({ id: docId, title: found.doc.title as string }, docSteps, titles)
+  if (((rest ?? []) as { id: string; title: string; received: boolean }[]).filter((d) => docStepTitle(d, docSteps, titles) === step).every((d) => d.received)) {
+    await tickStep(found.admin, cid, step)
   }
 
   // Let the agent know on their phone or browser.
@@ -95,7 +101,14 @@ export async function finishUpload(
     const { data: c } = await found.admin.from("clients").select("first_name").eq("id", found.client.id).maybeSingle()
     const first = ((c?.first_name as string | null) || "Your client").trim()
     const line = `${first} uploaded ${found.doc.title}`
-    await notifyAgent(found.admin, found.client.agent_id as string, "messages", { line, body: `${line}.`, url: `/clients/${found.client.id}` })
+    await recordActivity(found.admin, {
+      agentId: found.client.agent_id as string,
+      clientId: found.client.id as string,
+      kind: "upload",
+      line,
+      detail: `Uploaded ${found.doc.title}${fileName ? ` (${fileName.slice(0, 120)})` : ""}`,
+      push: `${line}.`,
+    })
   } catch (err) {
     console.error("[upload] notify failed:", err)
   }

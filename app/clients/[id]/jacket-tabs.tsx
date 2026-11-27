@@ -60,6 +60,9 @@ export default function JacketTabs({
   const [tab, setTab] = useState<Tab>(initial ?? "messages")
   // Desktop: steps and documents open as a pop-out, so the conversation has the room.
   const [steps, setSteps] = useState(initial === "tasks")
+  // The pop-out is drawn only in the browser, after the page has loaded, so server and browser agree.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   // Adding or checking off a step reloads the page; keep the panel open through it.
   const KEY = "marvberry-steps-open"
   useEffect(() => {
@@ -119,7 +122,7 @@ export default function JacketTabs({
         </aside>
       </div>
 
-      {steps && typeof document !== "undefined" && createPortal(
+      {steps && mounted && createPortal(
         <div className="fixed inset-0 z-[60] hidden lg:block">
           <div onClick={() => setSteps(false)} className="absolute inset-0 bg-lxink/30" />
           <aside className="absolute inset-y-0 left-0 block w-[480px] max-w-[90vw] overflow-y-auto overscroll-contain bg-lxfill px-6 py-6 shadow-2xl">

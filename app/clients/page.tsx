@@ -1,12 +1,14 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { AGENT_SELECT, type AgentRow } from "@/lib/agent"
 import AppShell from "@/app/app-shell"
 import { addClient } from "./actions"
-import ClientRow from "./client-row"
+import ClientRow, { type Priority } from "./client-row"
 import { loadAssistantName } from "@/lib/assistant-name"
 import NotifyBand from "./notify-band"
 
+import { STAGES, STAGE_LABEL, type Stage, loadDeals, loadFollowUps, followUpLine } from "@/lib/business-picture"
 export const dynamic = "force-dynamic"
 
 type Client = {
@@ -22,7 +24,7 @@ type Client = {
 export default async function ClientsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ added?: string; updated?: string; deleted?: string; error?: string }>
+  searchParams: Promise<{ added?: string; updated?: string; deleted?: string; error?: string; stage?: string; view?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -44,7 +46,53 @@ export default async function ClientsPage({
     .from("clients")
     .select("id, first_name, last_name, email, phone, address, created_at")
     .order("created_at", { ascending: false })
-  const clients = (data ?? []) as Client[]
+  const all = (data ?? []) as Client[]
+
+  // Priority jackets: anyone with new activity, then anyone she's following up with,
+  // newest first. Everyone else keeps their usual place.
+  const { data: actRows, error: actErr } = await supabase
+    .from("client_activity")
+    .select("client_id, line, created_at")
+    .is("seen_at", null)
+    .order("created_at", { ascending: false })
+    .limit(500)
+  const fresh = new Map<string, { line: string; at: string; count: number }>()
+  for (const r of (actErr ? [] : (actRows ?? [])) as { client_id: string; line: string; created_at: string }[]) {
+    const f = fresh.get(r.client_id)
+    if (f) f.count++
+    else fresh.set(r.client_id, { line: r.line, at: r.created_at, count: 1 })
+  }
+  const { data: fuRows, error: fuErr } = await supabase.from("clients").select("id, follow_up_at").not("follow_up_at", "is", null)
+  const following = new Map((fuErr ? [] : ((fuRows ?? []) as { id: string; follow_up_at: string }[])).map((r) => [r.id, r.follow_up_at]))
+  const { data: lastRows, error: lastErr } = following.size
+    ? await supabase.from("client_activity").select("client_id, line, created_at").in("client_id", [...following.keys()]).order("created_at", { ascending: false }).limit(200)
+    : { data: [], error: null }
+  const lastLine = new Map<string, string>()
+  for (const r of (lastErr ? [] : (lastRows ?? [])) as { client_id: string; line: string }[]) if (!lastLine.has(r.client_id)) lastLine.set(r.client_id, r.line)
+  const priorityOf = (c: Client): Priority | null => {
+    const f = fresh.get(c.id)
+    if (f) return { line: f.count > 1 ? `${f.line}, and ${f.count - 1} more` : f.line, fresh: true, follow: following.has(c.id), at: f.at }
+    if (following.has(c.id)) return { line: lastLine.get(c.id) || "Kept for follow-up", fresh: false, follow: true, at: following.get(c.id)! }
+    return null
+  }
+  const rows = all.map((c) => ({ c, p: priorityOf(c) }))
+  const top = rows.filter((r) => r.p).sort((a, b) => Number(b.p!.fresh) - Number(a.p!.fresh) || Date.parse(b.p!.at) - Date.parse(a.p!.at))
+  const ordered = [...top, ...rows.filter((r) => !r.p)]
+
+  // Opened from the dashboard boxes: deals by stage, or follow-ups due.
+  const stageParam = params.stage && (params.stage === "all" || (STAGES as readonly string[]).includes(params.stage)) ? params.stage : ""
+  const followView = params.view === "follow-up"
+  const deals = stageParam ? await loadDeals(supabase) : null
+  const follow = followView ? await loadFollowUps(supabase, agent.timezone || "America/New_York") : null
+  const stageCount = new Map<Stage, number>()
+  if (deals) for (const st of deals.values()) stageCount.set(st, (stageCount.get(st) ?? 0) + 1)
+  let shown = ordered
+  if (deals) shown = shown.filter((r) => deals.has(r.c.id) && (stageParam === "all" || deals.get(r.c.id) === stageParam))
+  if (follow)
+    shown = shown
+      .filter((r) => follow.has(r.c.id))
+      .map((r) => ({ c: r.c, p: { line: followUpLine(follow.get(r.c.id)!), fresh: !!r.p?.fresh, follow: follow.get(r.c.id)!.kept, at: r.p?.at || "" } as Priority }))
+  const clients = all
 
   // Notifications are offered once, after the first client. Hidden until the
   // database knows about them, so "Not now" always sticks.
@@ -129,6 +177,35 @@ export default async function ClientsPage({
         </form>
 
         {/* List */}
+        {(deals || follow) && (
+          <nav aria-label="Filter" className="mt-8 flex flex-wrap items-baseline gap-x-5 gap-y-2 text-sm">
+            {deals ? (
+              <>
+                <span className="text-[11px] uppercase tracking-[.12em] text-lxink/55">Deals</span>
+                <Link href="/clients?stage=all" className={`no-underline ${stageParam === "all" ? "border-b border-lxgold text-lxink" : "text-lxink/60 hover:text-lxink"}`}>
+                  All {deals.size}
+                </Link>
+                {STAGES.filter((st) => stageCount.get(st)).map((st) => (
+                  <Link key={st} href={`/clients?stage=${st}`} className={`no-underline ${stageParam === st ? "border-b border-lxgold text-lxink" : "text-lxink/60 hover:text-lxink"}`}>
+                    {STAGE_LABEL[st]} {stageCount.get(st)}
+                  </Link>
+                ))}
+              </>
+            ) : (
+              <span className="text-[11px] uppercase tracking-[.12em] text-lxink/55">Follow-ups due &middot; {shown.length}</span>
+            )}
+            <Link href="/clients" className="ml-auto text-lxink/60 no-underline hover:text-lxink">Show everyone</Link>
+          </nav>
+        )}
+        {!deals && !follow && top.some((r) => r.p!.fresh) && (
+          <p className="mt-8 flex items-center gap-2.5 text-sm text-lxink">
+            <span className="h-[8px] w-[8px] rounded-full bg-lxgold" aria-hidden="true" />
+            {(() => {
+              const n = top.filter((r) => r.p!.fresh).length
+              return n === 1 ? "One client did something new. They're at the top." : `${n} clients did something new. They're at the top.`
+            })()}
+          </p>
+        )}
         {clients.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-lxink/10 bg-card p-10 text-center">
             <h2 className="font-serif font-semibold tracking-tight text-xl">No clients yet.</h2>
@@ -148,8 +225,13 @@ export default async function ClientsPage({
                 </tr>
               </thead>
               <tbody>
-                {clients.map((c) => (
-                  <ClientRow key={c.id} client={c} />
+                {shown.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="px-5 py-8 text-center text-lxink/60">{follow ? "No follow-ups due. You're caught up." : "No one at this stage right now."}</td>
+                  </tr>
+                )}
+                {shown.map(({ c, p }) => (
+                  <ClientRow key={c.id} client={c} priority={p} />
                 ))}
               </tbody>
             </table>

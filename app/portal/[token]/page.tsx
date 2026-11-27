@@ -22,7 +22,7 @@ import UploadButton from "./upload-button"
 import PortalTabs from "./portal-tabs"
 import PortalHomes, { type PortalHome } from "./portal-homes"
 import ShowingTimes from "./showing-times"
-import { loadStepFacts, stepForDoc, withFacts } from "@/lib/auto-steps"
+import { loadStepFacts, withFacts, loadDocSteps, loadReplaced, docStepTitle } from "@/lib/auto-steps"
 import { AgentHeader, SuiteFooter, Tracker, Tag, DotLabel, H2, BTN, OUTLINE, QUIET, HAIR, LINE, type TagColor } from "../../suite-ui"
 
 export const dynamic = "force-dynamic"
@@ -130,8 +130,14 @@ export default async function Portal({
   // The same facts the agent's client page and Diana use, so both sides always match.
   const facts = await loadStepFacts(admin, client.id as string)
   const requested = (colData ?? []) as { id: string; title: string; received: boolean; file_path: string | null }[]
+  // Each requested document sits under its step: the one the agent asked at, or the usual one.
+  const [docSteps, replaced] = await Promise.all([loadDocSteps(admin, client.id as string), loadReplaced(admin, client.id as string)])
+  const stepTitleById = new Map(((stepData ?? []) as { id: string; title: string }[]).map((r) => [r.id, r.title]))
   const docsByStep = new Map<string, typeof requested>()
-  for (const d of requested) docsByStep.set(stepForDoc(d.title), [...(docsByStep.get(stepForDoc(d.title)) ?? []), d])
+  for (const d of requested) {
+    const k = docStepTitle(d, docSteps, stepTitleById)
+    docsByStep.set(k, [...(docsByStep.get(k) ?? []), d])
+  }
 
   // ---- Journeys: stages, the current one, and each stage's steps ----
   const allSteps = withFacts((stepData ?? []) as Step[], facts)
@@ -262,12 +268,6 @@ export default async function Portal({
   // Sharing times happens right here, with the picker in place of a button.
   const pickTimes = mine?.title === "Get their availability"
   if (pickTimes) action = null
-  const dayLabel = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "long", month: "short", day: "numeric" })
-  const dayKey = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" })
-  const pickDays = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date(Date.now() + (i + 1) * 86400000)
-    return { date: dayKey.format(d), label: dayLabel.format(d) }
-  })
   const messageIsAction = action?.href === "#messages"
 
   const firstName = client.first_name?.trim() || ""
@@ -395,7 +395,7 @@ export default async function Portal({
       <p className="m-0 mt-2.5 font-lux text-[28px] font-light leading-[1.15] md:text-[32px]">{nextTitle}</p>
       {nextSub && <p className="m-0 mt-2 text-[13px]">{nextSub}</p>}
       <div className="mt-[18px] flex flex-wrap gap-3">
-        {pickTimes && <ShowingTimes token={token} days={pickDays} agentFirst={agentFirst} />}
+        {pickTimes && <ShowingTimes token={token} agentFirst={agentFirst} />}
         {action && (
           <a href={action.href} className={BTN}>
             {action.label}
@@ -561,7 +561,11 @@ export default async function Portal({
         <div key={d.id} className={`flex min-h-[48px] items-center justify-between gap-3 border-b ${HAIR} text-[14px]`}>
           <span>{d.title}</span>
           <span className="flex items-center gap-3">
-            <Tag color="sage">Signed{d.signed_at ? ` ${fmtDay.format(new Date(d.signed_at))}` : ""}</Tag>
+            {replaced.has(d.id) ? (
+              <Tag color="lav">Replaced</Tag>
+            ) : (
+              <Tag color="sage">Signed{d.signed_at ? ` ${fmtDay.format(new Date(d.signed_at))}` : ""}</Tag>
+            )}
             {d.sign_token && (
               <a href={`/sign/${d.sign_token}/pdf`} download className="inline-flex items-center gap-1.5 text-[12.5px] text-lxink no-underline [border-bottom:1px_solid_#C2A46B]">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

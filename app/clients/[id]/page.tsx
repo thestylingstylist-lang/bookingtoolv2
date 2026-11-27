@@ -20,14 +20,16 @@ import { aiPrefsFor } from "@/lib/ai-prefs"
 import { sendPortalLink } from "./portal-actions"
 import LeftColumn, { type Task, type Collected } from "./left-column"
 import DealPanel, { type Offer, type Note } from "./deal-panel"
-import { phasesFor, stageLabel, phaseIndex, toBuyPhase, toSellPhase, toOwner, OWNER_LABEL, type Phase } from "@/lib/phases"
+import { phasesFor, stageLabel, phaseIndex, toBuyPhase, toSellPhase, toOwner, OWNER_LABEL, journeyOf, type Phase } from "@/lib/phases"
 import { journeysFor, suiteName } from "@/lib/suite"
 import { assistantDisplayName } from "@/lib/assistant-name"
 import { toggleTask } from "./checklist-actions"
 import SellerTools, { type OpenHouse, type SaleOffer } from "./seller-tools"
 import { agreementAuto, toAgreementSettings } from "@/lib/agreement"
-import { loadStepFacts, withFacts } from "@/lib/auto-steps"
+import { loadStepFacts, withFacts, loadDocSteps, loadReplaced } from "@/lib/auto-steps"
 
+import NewFrom, { type NewItem } from "./new-from"
+import { ACTIVITY_COLS, type Activity } from "@/lib/client-activity"
 export const dynamic = "force-dynamic"
 
 type Client = {
@@ -108,7 +110,7 @@ export default async function ClientJacket({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ updated?: string; doc?: string; error?: string; step?: string; nudge?: string; tab?: string }>
+  searchParams: Promise<{ updated?: string; doc?: string; error?: string; step?: string; nudge?: string; tab?: string; redo?: string }>
 }) {
   const { id } = await params
   const sp = await searchParams
@@ -177,6 +179,24 @@ export default async function ClientJacket({
   const { data: cardRows, error: cardErr } = await supabase.from("homes").select("id, photo_url, price, beds, baths, client_note").eq("client_id", id)
   type CardRow = { id: string; photo_url: string | null; price: number | null; beds: number | null; baths: number | null; client_note: string | null }
   const cards = new Map((cardErr ? [] : ((cardRows ?? []) as CardRow[])).map((r) => [r.id, r]))
+  // What the client did since she last looked (blank until client-activity.sql is run).
+  const { data: actRows, error: actErr } = await supabase
+    .from("client_activity")
+    .select(ACTIVITY_COLS)
+    .eq("client_id", id)
+    .order("created_at", { ascending: false })
+    .limit(40)
+  const { data: fuRow } = await supabase.from("clients").select("follow_up_at").eq("id", id).maybeSingle()
+  const followUp = !!(fuRow as { follow_up_at?: string | null } | null)?.follow_up_at
+  const activity = (actErr ? [] : ((actRows ?? []) as Activity[]))
+  const unseenActs = activity.filter((a) => !a.seen_at)
+  // Following up: keep showing the latest from the last month.
+  const shownActs = unseenActs.length
+    ? unseenActs
+    : followUp
+      ? activity.filter((a) => Date.now() - Date.parse(a.created_at) < 30 * 86400000).slice(0, 6)
+      : []
+  const litHomes = new Set(unseenActs.map((a) => a.home_id).filter(Boolean) as string[])
   const homes: HomeView[] = ((homeData ?? []) as Record<string, string | null>[]).map((h) => ({
     id: h.id as string,
     address: (h.address as string) || "",
@@ -204,6 +224,25 @@ export default async function ClientJacket({
     clientAsked: theirs.get(h.id as string)?.client_offer_at
       ? formatInTimeZone(new Date(theirs.get(h.id as string)!.client_offer_at!), homeTz, "EEEE")
       : "",
+    lit: litHomes.has(h.id as string),
+  }))
+  const streetById = new Map(homes.map((h) => [h.id, (h.address || "").split(",")[0].trim()]))
+  const whenFmt = (iso: string) => {
+    const d = new Date(iso)
+    const day = formatInTimeZone(d, homeTz, "yyyy-MM-dd")
+    const today = formatInTimeZone(new Date(), homeTz, "yyyy-MM-dd")
+    const yest = formatInTimeZone(new Date(Date.now() - 86400000), homeTz, "yyyy-MM-dd")
+    const t = formatInTimeZone(d, homeTz, "h:mm a")
+    return day === today ? `Today, ${t}` : day === yest ? `Yesterday, ${t}` : `${formatInTimeZone(d, homeTz, "EEE, MMM d")}, ${t}`
+  }
+  const newItems: NewItem[] = shownActs.map((a) => ({
+    id: a.id,
+    kind: a.kind,
+    detail: a.detail || a.line,
+    when: whenFmt(a.created_at),
+    homeId: a.home_id && streetById.has(a.home_id) ? a.home_id : null,
+    homeStreet: (a.home_id && streetById.get(a.home_id)) || "",
+    fresh: !a.seen_at,
   }))
 
   const [
@@ -300,7 +339,12 @@ export default async function ClientJacket({
           ),
       ])
     : [{ data: [] }, { data: [] }]
-  const collected = (colData ?? []) as Collected[]
+  // Which step each requested document was asked for at, and which signed documents were redone.
+  const [docSteps, replaced] = await Promise.all([loadDocSteps(supabase, id), loadReplaced(supabase, id)])
+  const collected = ((colData ?? []) as Collected[]).map((c) => ({ ...c, stepId: docSteps.get(c.id) ?? null }))
+  const signedDocs = [...docs.values()]
+    .filter((d) => d.status === "signed")
+    .map((d) => ({ id: d.id, title: d.title, signedAt: d.signed_at ?? null, replaced: replaced.has(d.id) }))
   const offers = (offerData ?? []) as Offer[]
   const notes = (noteData ?? []) as Note[]
   // The agent's own PDF offer forms. Skipped quietly if the table isn't there yet.
@@ -404,6 +448,8 @@ export default async function ClientJacket({
             )}
           </div>
         </div>
+
+        <NewFrom clientId={client.id} first={(client.first_name || "").trim()} items={newItems} followUp={followUp} />
 
         {/* Stage trackers: one per journey */}
         {journeys.map((j) => {
@@ -553,7 +599,7 @@ export default async function ClientJacket({
               collected.length ? `${got} of ${collected.length} documents in` : "",
             ].filter(Boolean).join(" \u00b7 ")
           })()}
-          documents={<DocumentsPanel clientId={client.id} collected={collected} />}
+          documents={<DocumentsPanel clientId={client.id} collected={collected} signed={signedDocs} redoId={sp.redo} first={client.first_name || ""} assistantName={assistantName} tz={agent.timezone || "America/New_York"} />}
           tasks={<>
             {journeys.map((j) => (
               <div key={j} className={j === journeys[0] ? "" : "mt-6"}>
@@ -571,6 +617,7 @@ export default async function ClientJacket({
                   assistant={assistant.unlocked && ai.reminders}
                   phase={j === "sell" ? sellPhase : buyPhase}
                   tasks={j === "sell" ? sellTasks : buyTasks}
+                  allTasks={allTasks.filter((t) => journeyOf(t.phase ?? "showing") === j)}
                   privateShowings={privateShowings}
                   suite={suiteName(client.client_type)}
                   heading={journeys.length > 1 ? (j === "sell" ? "Selling" : "Buying") : undefined}
@@ -643,7 +690,14 @@ export default async function ClientJacket({
                           </p>
                           <p className="mt-1 font-serif font-semibold tracking-tight text-xl">{doc.title}</p>
                           <div className="mt-3 flex items-center gap-3">
-                            {doc.status === "signed" ? (
+                            {doc.status === "signed" && replaced.has(doc.id) ? (
+                              <>
+                                <span className="rounded-full bg-lxfill px-2.5 py-0.5 text-[11px] text-lxsoft">Replaced</span>
+                                <a href={`/documents/${doc.id}/pdf`} target="_blank" rel="noopener" className="text-xs text-lxsoft underline hover:text-lxink">
+                                  Old signed copy (PDF)
+                                </a>
+                              </>
+                            ) : doc.status === "signed" ? (
                               <>
                               <span className="rounded-full bg-lxlav/50 px-2.5 py-0.5 text-[11px] text-lxgold">
                                 Signed{doc.signed_at ? ` \u00b7 ${fmtDay.format(new Date(doc.signed_at))}` : ""}
