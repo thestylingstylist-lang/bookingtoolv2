@@ -10,7 +10,7 @@ import { takenChatSlots } from "./taken"
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
-  title: { absolute: "Book your setup call with Marvberry" },
+  title: { absolute: "Book your private fitting with Marvberry" },
   description: "Thirty minutes. We set up Marvberry with you, so it's running from day one.",
   alternates: { canonical: "/chat" },
 }
@@ -57,7 +57,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
           <ol className="track" aria-label="Your progress">
             <li className="done">Account created</li>
             <li className="done">Your setup</li>
-            <li className="now">{paid ? "Book your kickoff call" : "Book your setup call"}</li>
+            <li className="now">{paid ? "Book your kickoff call" : "Book your private fitting"}</li>
           </ol>
         )}
       </header>
@@ -93,7 +93,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
                   <>
                     <p className="w1">You&rsquo;re in{first ? `, ${first}` : ""}. One more step.</p>
                     <p className="w2">
-                      Pick a time for your free setup call. We&rsquo;ll build your booking page, your agreements and your
+                      Pick a time for your private fitting. We&rsquo;ll build your booking page, your agreements and your
                       client steps with you, so Marvberry is running from day one.
                     </p>
                   </>
@@ -118,9 +118,9 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
               doneHref={welcome && prefill ? "/dashboard?welcome=1" : undefined}
               icsPath="/chat/ics"
               copy={{
-                title: paid ? "Book your kickoff call" : "Book your setup call",
-                button: paid ? "Book my kickoff call" : "Book my setup call",
-                withWho: "Your setup call with Alecia",
+                title: paid ? "Book your kickoff call" : "Book your private fitting",
+                button: paid ? "Book my kickoff call" : "Book my private fitting",
+                withWho: "Your private fitting with Alecia",
                 eventTitle: CHAT_EVENT_TITLE,
                 steps: [
                   "A confirmation is on its way to your email.",

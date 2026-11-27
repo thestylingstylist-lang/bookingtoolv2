@@ -225,7 +225,7 @@ export function chatConfirmationEmail(opts: {
 </td></tr>
 <tr><td style="padding:22px 8px 0;">
 <p style="margin:0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">Hi ${opts.clientFirstName},</p>
-<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">I&rsquo;m happy you reached out and booked your setup session. Just so you know, your date is confirmed and we&rsquo;ll be talking ${over}.</p>
+<p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">I&rsquo;m happy you reached out and booked your private fitting. Just so you know, your date is confirmed and we&rsquo;ll be talking ${over}.</p>
 <p style="margin:14px 0 0;font-family:Georgia,serif;font-size:16px;line-height:1.65;color:#4a433b;">To get us prepared and get the most out of our meeting, please come ready to talk through a few things:</p>
 </td></tr>
 <tr><td style="padding:16px 8px 0;">
@@ -268,7 +268,7 @@ ${opts.meetingType !== "phone" && opts.zoom ? `<p style="margin:12px 0 0;"><a hr
 
 Hi ${opts.clientFirstName},
 
-I'm happy you reached out and booked your setup session. Just so you know, your date is confirmed and we'll be talking ${over}.
+I'm happy you reached out and booked your private fitting. Just so you know, your date is confirmed and we'll be talking ${over}.
 
 To get us prepared and get the most out of our meeting, please come ready to talk through a few things:
 - Your schedule
@@ -289,7 +289,7 @@ Founder, Marvberry
 
 Marvberry. The Real Estate Agent's Client Experience Assistant.`
 
-  return { subject: "Your setup session is confirmed", html, text }
+  return { subject: "Your private fitting is confirmed", html, text }
 }
 
 export function agentNotificationEmail(opts: {

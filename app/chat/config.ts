@@ -17,7 +17,7 @@ export const CHAT_HOST = {
   email: "team@marvberry.com",
 }
 
-export const CHAT_EVENT_TITLE = "Marvberry chat with Alecia"
+export const CHAT_EVENT_TITLE = "Marvberry private fitting with Alecia"
 
 // Alecia's personal Zoom room — used for every video booking until auto-generated links are set up.
 export const CHAT_ZOOM = {

@@ -41,17 +41,17 @@ function letter(kind: "booked" | "day" | "hour" | "cancelled", c: CallRow, who: 
 
   if (kind === "cancelled") {
     return {
-      subject: "Our call is cancelled",
-      html: teamNote("Our call is cancelled.", para(`${hi} I&rsquo;ve cancelled our call on ${esc(when)}. I&rsquo;ll reach out to find a new time.`) + small(esc(c.owner))),
-      text: `${hiT} I've cancelled our call on ${when}. I'll reach out to find a new time.\n\n${c.owner}`,
+      subject: "Your private fitting is cancelled",
+      html: teamNote("Your private fitting is cancelled.", para(`${hi} I&rsquo;ve cancelled your private fitting on ${esc(when)}. I&rsquo;ll reach out to find a new time.`) + small(esc(c.owner))),
+      text: `${hiT} I've cancelled your private fitting on ${when}. I'll reach out to find a new time.\n\n${c.owner}`,
     }
   }
   const top =
     kind === "booked"
-      ? { s: `Our call: ${when}`, h: "Our call is on the calendar.", p: `${hi} I&rsquo;ve set up a call with you on <strong>${esc(when)}</strong>.`, t: `${hiT} I've set up a call with you on ${when}.` }
+      ? { s: `Your private fitting: ${when}`, h: "Your private fitting is on the calendar.", p: `${hi} I&rsquo;ve set up your private fitting on <strong>${esc(when)}</strong>.`, t: `${hiT} I've set up your private fitting on ${when}.` }
       : kind === "day"
-        ? { s: `Tomorrow: our call at ${formatInTimeZone(new Date(c.call_at), who.tz, "h:mm a").replace(":00 ", " ")}`, h: "See you tomorrow.", p: `${hi} a quick reminder: our call is <strong>${esc(when)}</strong>.`, t: `${hiT} a quick reminder: our call is ${when}.` }
-        : { s: "Our call starts in an hour", h: "See you in an hour.", p: `${hi} our call starts in an hour, <strong>${esc(when)}</strong>.`, t: `${hiT} our call starts in an hour, ${when}.` }
+        ? { s: `Tomorrow: your private fitting at ${formatInTimeZone(new Date(c.call_at), who.tz, "h:mm a").replace(":00 ", " ")}`, h: "See you tomorrow.", p: `${hi} a quick reminder: your private fitting is <strong>${esc(when)}</strong>.`, t: `${hiT} a quick reminder: your private fitting is ${when}.` }
+        : { s: "Your private fitting starts in an hour", h: "See you in an hour.", p: `${hi} your private fitting starts in an hour, <strong>${esc(when)}</strong>.`, t: `${hiT} your private fitting starts in an hour, ${when}.` }
   return {
     subject: top.s,
     html: teamNote(top.h, para(top.p) + about + h.html + h.btn + sign),

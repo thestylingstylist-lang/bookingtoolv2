@@ -502,7 +502,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             <Link href="/start-here" className="border-b border-lxgold text-lxink no-underline">Continue setup</Link>
           )}
           {needsSetupCall && (
-            <Link href="/chat" className="border-b border-lxgold text-lxink no-underline">Book your free setup call</Link>
+            <Link href="/chat" className="border-b border-lxgold text-lxink no-underline">Book your private fitting</Link>
           )}
         </p>
       )}

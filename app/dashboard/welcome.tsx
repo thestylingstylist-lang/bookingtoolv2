@@ -183,7 +183,7 @@ export default function Welcome(props: Props) {
           <h1 className="sr">Welcome to Marvberry</h1>
           <p className="sub">
             {first ? `Hi ${first}. ` : ""}
-            {callLabel ? `Your setup call is booked for ${callLabel}.` : "Let’s get you set up."}
+            {callLabel ? `Your private fitting is booked for ${callLabel}.` : "Let’s get you set up."}
           </p>
           <button type="button" className="go" onClick={start}>
             Let&rsquo;s go <span aria-hidden>&rarr;</span>
@@ -419,7 +419,7 @@ function Chat(p: Props & { onTour: () => void; onDone: (href: string) => void })
           return onTour()
         }
         if (pick === T_DONE) {
-          await say(`Sounds good.${callLabel ? ` Your setup call is ${callLabel}.` : ""} I’m right here whenever you need me.`)
+          await say(`Sounds good.${callLabel ? ` Your private fitting is ${callLabel}.` : ""} I’m right here whenever you need me.`)
           await sleep(900)
           return onDone("/dashboard")
         }

@@ -43,7 +43,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
     offer ? (
       <p className="skip">
         <a href="/chat?welcome=1">No thanks, I&rsquo;ll set it up myself</a>
-        <span>You still get a free setup call.</span>
+        <span>You still get a private fitting.</span>
       </p>
     ) : null
 
@@ -142,7 +142,7 @@ export default async function SetupPage({ searchParams }: { searchParams: Promis
           <Cta />
           <Skip />
           <p className="note">
-            Rather do it yourself? Every Marvberry plan comes with a free setup call. This is for agents who want it all
+            Rather do it yourself? Every Marvberry plan comes with a private fitting. This is for agents who want it all
             done for them.
           </p>
         </div>
