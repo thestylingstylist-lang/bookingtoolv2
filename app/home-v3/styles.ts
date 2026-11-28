@@ -161,22 +161,42 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .cjc{display:flex;flex-direction:column;justify-content:center;padding:clamp(48px,7vw,120px) clamp(32px,6vw,110px)}
 .hv3 .cjc .body{max-width:30ch}
 /* 4 the card builder */
-.hv3 .two4{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-areas:"copy pv" "claim pv";column-gap:clamp(36px,5vw,84px);align-items:center}
-.hv3 .two4 .copy{grid-area:copy;align-self:end}.hv3 .two4 .pvw{grid-area:pv}.hv3 .two4 .claim{grid-area:claim;align-self:start}
+.hv3 .two4{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-areas:"copy pv";column-gap:clamp(36px,5vw,84px);align-items:center}
+.hv3 .two4 .copy{grid-area:copy}.hv3 .two4 .pvw{grid-area:pv}
+/* the builder: one step at a time, in the same spot, sliding in like a turned page */
+.hv3 .stage{min-height:360px;display:flex;flex-direction:column;justify-content:center;animation:hv3page .55s cubic-bezier(.2,.7,.2,1) both}
+@keyframes hv3page{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+.hv3 .stage .go{align-self:flex-start;margin-top:30px;background:var(--ink);color:var(--paper);border:0;border-radius:0;padding:16px 38px;min-height:48px;font:400 15px var(--mono);letter-spacing:.04em;cursor:pointer;transition:background .4s}
+.hv3 .stage .go:hover{background:#3a342c}.hv3 .stage .go:disabled{opacity:.4;cursor:default}
+.hv3 .prog{display:flex;align-items:center;gap:14px;font:400 13px var(--mono);color:var(--soft);margin-bottom:26px}
+.hv3 .prog i{flex:1;max-width:180px;height:1px;background:var(--hair);position:relative}
+.hv3 .prog b{position:absolute;left:0;top:0;bottom:0;background:var(--golddeep);transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.hv3 .sh3{margin:0;font:400 clamp(30px,3vw,44px)/1.1 var(--serif);color:var(--ink)}
+.hv3 .hint{margin:12px 0 0;font:400 15px/1.5 var(--mono);color:var(--soft)}
+.hv3 .fields{display:grid;gap:18px;margin-top:28px;max-width:420px}
+.hv3 .fields input,.hv3 .claim input{width:100%;border:0;border-bottom:1px solid rgba(31,28,24,.3);background:transparent;padding:6px 0 8px;font:400 22px/1.2 var(--serif);color:var(--ink);border-radius:0}
+.hv3 .fields input:focus,.hv3 .claim input:focus{outline:none;border-bottom-color:var(--golddeep)}
+.hv3 .fields input::placeholder,.hv3 .claim input::placeholder{color:rgba(74,69,62,.55)}
+.hv3 .kind{display:flex;gap:24px;margin:26px 0 22px}
+.hv3 .kind button{border:0;background:none;padding:0 0 4px;font:400 16px var(--mono);color:var(--soft);cursor:pointer;border-bottom:1px solid transparent}
+.hv3 .kind button.on{color:var(--ink);border-bottom-color:var(--golddeep)}
+.hv3 .stage .up{align-self:flex-start}
+.hv3 .stage .fn{margin:10px 0 0;font:400 13px var(--mono);color:var(--soft);min-height:1.4em}
+.hv3 .nav{display:flex;align-items:center;gap:26px;margin-top:34px}
+.hv3 .nav .go{margin-top:0}
+.hv3 .nav .back{border:0;background:none;padding:0 0 2px;font:400 15px var(--mono);color:var(--soft);cursor:pointer;border-bottom:1px solid var(--gold)}
+.hv3 .claim{display:grid;gap:18px;max-width:420px}
+.hv3 .claim .sh3{margin-bottom:10px}
+.hv3 .claim .go{margin-top:10px}
+.hv3 .claim .fine{margin:0;font:400 13px/1.6 var(--mono);color:var(--soft)}
+.hv3 .claim .err{margin:0;font:400 14px/1.5 var(--mono);color:#8a2a1f}
+.hv3 .claim + .nav{margin-top:20px}
 .hv3 .sw{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px}
 .hv3 .sw .l{font:400 16px var(--mono);color:var(--soft);margin-right:4px}
 .hv3 .sw button{width:22px;height:22px;border:1px solid rgba(31,28,24,.12);border-radius:0;padding:0;cursor:pointer}
 .hv3 .sw button.on{box-shadow:0 0 0 2px var(--paper),0 0 0 3px var(--golddeep)}
 .hv3 .sw .cu{position:relative;font:400 14px var(--mono);color:var(--soft);border-bottom:1px solid var(--gold);padding-bottom:1px;cursor:pointer}
 .hv3 .sw .cu input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.hv3 .claim{margin-top:34px;display:grid;grid-template-columns:1fr 1fr;gap:18px 26px;max-width:540px}
-.hv3 .claim input{width:100%;border:0;border-bottom:1px solid rgba(31,28,24,.3);background:transparent;padding:6px 0 8px;font:400 20px/1.2 var(--serif);color:var(--ink);border-radius:0}
-.hv3 .claim input::placeholder{color:rgba(74,69,62,.6)}
-.hv3 .claim input:focus{outline:none;border-bottom-color:var(--golddeep)}
-.hv3 .claim .go{grid-column:1/-1;justify-self:start;margin-top:8px;background:var(--ink);color:var(--paper);border:0;border-radius:0;padding:16px 38px;min-height:48px;font:400 15px var(--mono);letter-spacing:.04em;cursor:pointer;transition:background .4s}
-.hv3 .claim .go:hover{background:#3a342c}.hv3 .claim .go:disabled{opacity:.5;cursor:default}
-.hv3 .claim .fine{grid-column:1/-1;margin:0;font:400 13px/1.6 var(--mono);color:var(--soft)}
-.hv3 .claim .err{grid-column:1/-1;margin:0;font:400 14px/1.5 var(--mono);color:#8a2a1f}
 .hv3 .bk .hero{overflow:hidden}
 /* her card in her colour: the main button, the gold lines, the chosen date and time */
 .hv3 .bk .bt.main{background:var(--ac);border-color:var(--ac);color:var(--on);transition:background-color .5s,border-color .5s,color .5s}
@@ -209,8 +229,17 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .lux{display:block;width:100%;height:auto;margin:clamp(34px,5vh,60px) auto 0;max-width:1240px}
 @media(max-width:860px){
   .hv3 .sheet{position:relative;top:auto;box-shadow:none}
-  .hv3 .two4{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "pv" "claim";row-gap:30px}
-  .hv3 .claim{grid-template-columns:1fr;margin-top:6px}
+  .hv3 .two4{grid-template-columns:minmax(0,1fr);grid-template-areas:"pv" "copy";row-gap:22px}
+  .hv3 #s4{padding-top:24px;padding-bottom:24px}
+  .hv3 #s4 .pvw{max-width:300px;margin:0 auto}
+  .hv3 .stage{min-height:330px;justify-content:flex-start}
+  .hv3 .stage .go{padding:14px 32px}
+  .hv3 .claim .sh3{margin-bottom:2px}
+  .hv3 .claim input,.hv3 .fields input{font-size:20px}
+  .hv3 .sh3{font-size:30px}
+  .hv3 .prog{margin-bottom:16px}
+  .hv3 .fields,.hv3 .claim{gap:14px}
+  .hv3 .nav{margin-top:24px}
   .hv3 .cj{grid-template-columns:1fr;min-height:0}
   .hv3 .cjv{aspect-ratio:4/5}
   .hv3 .cjc{padding:44px 24px 64px}

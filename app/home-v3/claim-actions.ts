@@ -10,22 +10,22 @@ import { uploadImage } from "@/lib/branding"
 import { sendEmail } from "@/lib/email"
 import { teamNote, para, button, small, details, esc } from "@/lib/letter"
 
-// "Protect your signature" → Claim. One step: her card (which is her booking page) and her
-// back office, made from what she entered on the home page, with 7 days of full access.
+// "Protect your signature" → Claim your card. Her Marvberry Card (which is her booking page),
+// free, no trial and no payment, made from what she entered. The back office comes with Diana.
 
 export type SignatureClaim = { error: string }
 
-const TRIAL_DAYS = 7
-const SETUP_DOCS = ["Your buyer agreement", "Your listing agreement", "Any other forms you send clients"]
 const HEX = /^#[0-9a-f]{6}$/i
 
 export async function claimSignature(_prev: SignatureClaim | null, formData: FormData): Promise<SignatureClaim> {
   const fullName = String(formData.get("name") ?? "").trim().replace(/\s+/g, " ").slice(0, 80)
+  const brokerage = String(formData.get("brokerage") ?? "").trim().replace(/\s+/g, " ").slice(0, 120)
+  const photoKind = formData.get("photoKind") === "headshot" ? "headshot" : "logo"
   const email = String(formData.get("email") ?? "").trim().toLowerCase()
   const phone = String(formData.get("phone") ?? "").trim().slice(0, 40)
   const colorIn = String(formData.get("color") ?? "").trim()
   const color = HEX.test(colorIn) ? colorIn.toLowerCase() : ""
-  const logo = formData.get("logo")
+  const image = formData.get("logo")
 
   if (!fullName) return { error: "Type your name first, so your card has it." }
   const bad = await checkEmail(email)
@@ -45,10 +45,12 @@ export async function claimSignature(_prev: SignatureClaim | null, formData: For
   const slug = await uniqueSlug(slugify(fullName))
   const { error: rowErr } = await admin.from("agents").insert({
     id,
-    business_name: fullName,
+    business_name: brokerage || fullName,
     full_name: fullName,
     slug,
-    trial_ends_at: new Date(Date.now() + TRIAL_DAYS * 86400000).toISOString(),
+    // the free card: her card and its booking page, no trial clock
+    plan: "card",
+    trial_ends_at: null,
     timezone: AGENT_DEFAULTS.timezone,
     weekdays: AGENT_DEFAULTS.weekdays,
     day_start: AGENT_DEFAULTS.startHour,
@@ -73,20 +75,14 @@ export async function claimSignature(_prev: SignatureClaim | null, formData: For
   }
   await save({ public_phone: phone, public_email: email })
   if (color) await save({ brand_color: color })
-  let logoUrl = ""
-  if (logo instanceof File && logo.size > 0) {
+  let imageUrl = ""
+  if (image instanceof File && image.size > 0) {
     try {
-      logoUrl = (await uploadImage(id, "logo", logo)) ?? ""
-      if (logoUrl) await save({ logo_url: logoUrl })
+      imageUrl = (await uploadImage(id, photoKind, image)) ?? ""
+      if (imageUrl) await save(photoKind === "headshot" ? { headshot_url: imageUrl } : { logo_url: imageUrl })
     } catch (e) {
-      console.error("[claim] logo failed", e)
+      console.error("[claim] image failed", e)
     }
-  }
-  try {
-    await admin.from("onboarding").upsert({ agent_id: id, owner: "Alecia" }, { onConflict: "agent_id", ignoreDuplicates: true })
-    await admin.from("onboarding_docs").insert(SETUP_DOCS.map((title) => ({ agent_id: id, title })))
-  } catch (e) {
-    console.error("[claim] onboarding failed", e)
   }
 
   // Her link to choose a password, so she can come back on any device.
@@ -101,10 +97,10 @@ export async function claimSignature(_prev: SignatureClaim | null, formData: For
         subject: "Your Marvberry card is live",
         fromName: "Marvberry",
         replyTo: "team@marvberry.com",
-        text: `Hi ${first},\n\nYour card is live: https://www.marvberry.com/book/${slug}\n\nChoose a password so you can sign in on any device:\n${url}\n\nYou have 7 days of full access.\n\nThe Marvberry team`,
+        text: `Hi ${first},\n\nYour card is live: https://www.marvberry.com/book/${slug}\n\nChoose a password so you can sign in on any device:\n${url}\n\nIt's yours, free. Just from us to you.\n\nThe Marvberry team`,
         html: teamNote(
           `Your card is live, ${esc(first)}.`,
-          para(`Here it is: <a href="https://www.marvberry.com/book/${slug}">marvberry.com/book/${esc(slug)}</a>. You have 7 days of full access.`) +
+          para(`Here it is: <a href="https://www.marvberry.com/book/${slug}">marvberry.com/book/${esc(slug)}</a>. It's yours, free. Just from us to you.`) +
             button(url, "Choose your password") +
             small("Choose a password so you can sign in on any device. The link works once."),
         ),
@@ -120,14 +116,15 @@ export async function claimSignature(_prev: SignatureClaim | null, formData: For
       to: "team@marvberry.com",
       subject: `New card claimed: ${fullName}`,
       fromName: "Marvberry",
-      text: `${fullName} claimed a card from the home page.\nEmail: ${email}\nPhone: ${phone}\nCard: https://www.marvberry.com/book/${slug}\n7-day access ends ${new Date(Date.now() + TRIAL_DAYS * 86400000).toDateString()}.`,
+      text: `${fullName} claimed a free card from the home page.\nBrokerage: ${brokerage || "-"}\nEmail: ${email}\nPhone: ${phone}\nCard: https://www.marvberry.com/book/${slug}`,
       html: teamNote(
         "A new card was claimed.",
-        para(`${esc(fullName)} built and claimed a card from the home page.`) +
+        para(`${esc(fullName)} built and claimed a free card from the home page.`) +
           details([
+            ["Brokerage", esc(brokerage || "-")],
             ["Email", esc(email)],
             ["Phone", esc(phone)],
-            ["Logo", logoUrl ? "Uploaded" : "None yet"],
+            [photoKind === "headshot" ? "Headshot" : "Logo", imageUrl ? "Uploaded" : "None yet"],
             ["Colour", color || "Default"],
           ]) +
           button(`https://www.marvberry.com/book/${slug}`, "See the card"),

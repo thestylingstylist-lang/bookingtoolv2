@@ -3,12 +3,13 @@
 import { useActionState } from "react"
 import { signUp } from "./actions"
 
-export default function SignupForm() {
+export default function SignupForm({ trial }: { trial?: string }) {
   const [state, formAction, pending] = useActionState(signUp, null)
   const v = state?.values
 
   return (
     <form action={formAction} className="space-y-5">
+      {trial && <input type="hidden" name="trial" value={trial} />}
       <Field label="Business name" name="businessName" autoComplete="organization" required defaultValue={v?.businessName ?? ""} />
       <Field label="Your name" name="fullName" autoComplete="name" required defaultValue={v?.fullName ?? ""} />
       <Field label="Email" name="email" type="email" autoComplete="email" required defaultValue={v?.email ?? ""} />

@@ -61,15 +61,23 @@ async function trim(url: string): Promise<string> {
 }
 
 export default function HomeV3({ luxury }: { luxury: boolean }) {
+  // The guided card builder: 0 is the finished example; 1–4 are the steps, one at a time.
+  const [step, setStep] = useState(0)
   const [name, setName] = useState("")
+  const [brokerage, setBrokerage] = useState("")
+  const [kind, setKind] = useState<"logo" | "headshot">("logo")
   const [logo, setLogo] = useState("")
   const [logoName, setLogoName] = useState("")
   const [color, setColor] = useState(COLOURS[0])
   const [state, claim, pending] = useActionState<SignatureClaim | null, FormData>(claimSignature, null)
   const nameRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const nm = name.trim()
+  const example = step === 0
+  const nm = example ? "Camille Laurent" : name.trim()
+  const firm = example ? "Laurent & Co." : brokerage.trim()
   const f = firstOf(nm)
+  const ac = example ? COLOURS[0] : color
+  const mark = example ? "" : logo
 
   useEffect(() => {
     const $ = (id: string) => document.getElementById(id) as HTMLElement
@@ -187,7 +195,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
     const px = (v: string) => parseFloat(getComputedStyle(root).getPropertyValue(v))
     const s4 = document.getElementById("s4")!, stack = document.getElementById("stack")!
     scrollTo({ top: stack.offsetTop + s4.offsetTop - (px("--bar") + px("--menu")), behavior: still ? "auto" : "smooth" })
-    setTimeout(() => nameRef.current?.focus({ preventScroll: true }), still ? 0 : 1500)
+    setTimeout(() => setStep((n) => (n === 0 ? 1 : n)), still ? 0 : 1200)
   }
 
   async function pickLogo(e: React.ChangeEvent<HTMLInputElement>) {
@@ -198,12 +206,14 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       fr.onload = () => res(String(fr.result))
       fr.readAsDataURL(file)
     })
-    setLogo(file.type === "image/svg+xml" ? raw : await trim(raw))
+    setLogo(file.type === "image/svg+xml" || kind === "headshot" ? raw : await trim(raw))
     setLogoName(file.name)
   }
 
   function submit(fd: FormData) {
     fd.set("name", nm)
+    fd.set("brokerage", firm)
+    fd.set("photoKind", kind)
     fd.set("color", color)
     // The trimmed logo, as she sees it in the preview.
     if (logo) {
@@ -217,7 +227,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
     claim(fd)
   }
 
-  const onAccent = darkOn(color) ? "#2A2522" : "#FAFAFA"
+  const onAccent = darkOn(ac) ? "#2A2522" : "#FAFAFA"
 
   return (
     <div className="hv3">
@@ -251,43 +261,112 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
         {/* 4 PROTECT YOUR SIGNATURE: builds her Marvberry Card, which is her booking page */}
         <section className="sheet" id="s4">
           <div className="inner two4">
+            {/* One thing at a time, in the same spot, like turning a page */}
             <div className="copy">
-              <h2 className="mv l">Protect your signature.</h2>
-              <p className="body soft">The first impression happens before you ever meet. Your card carries your name, logo and colours from the moment a client books. So they meet you, not a calendar link.</p>
-              <div className="ctl soft">
-                <input ref={nameRef} type="text" placeholder="Your name" aria-label="Your name" autoComplete="name" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
-                <label className="up">
-                  <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onChange={pickLogo} />
-                  <span>{logo ? "Upload a new logo" : "Upload logo"}</span>
-                </label>
-                <span className="fn">{logoName}</span>
-              </div>
-              <div className="sw soft" role="group" aria-label="Your colour">
-                <span className="l">Your colour</span>
-                {COLOURS.map((c) => (
-                  <button key={c} type="button" className={color === c ? "on" : ""} style={{ background: c }} aria-label={`Colour ${c}`} aria-pressed={color === c} onClick={() => setColor(c)} />
-                ))}
-                <label className="cu">
-                  Custom
-                  <input type="color" value={color} aria-label="Pick any colour" onChange={(e) => setColor(e.target.value)} />
-                </label>
+              <div className="stage" key={step}>
+                {step === 0 && (
+                  <>
+                    <h2>Protect your signature.</h2>
+                    <p className="body">The first impression happens before you ever meet. Your card carries your name, logo and colours from the moment a client books. So they meet you, not a calendar link.</p>
+                    <button type="button" className="go" onClick={() => setStep(1)}>
+                      Build your own
+                    </button>
+                  </>
+                )}
+                {step > 0 && (
+                  <div className="prog" aria-label={`Step ${step} of 4`}>
+                    <span>{step} of 4</span>
+                    <i>
+                      <b style={{ width: `${step * 25}%` }} />
+                    </i>
+                  </div>
+                )}
+                {step === 1 && (
+                  <>
+                    <h3 className="sh3">Your name, as clients know you.</h3>
+                    <div className="fields">
+                      <input ref={nameRef} autoFocus type="text" placeholder="Your name" aria-label="Your name" autoComplete="name" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
+                      <input type="text" placeholder="Brokerage" aria-label="Brokerage" autoComplete="organization" maxLength={80} value={brokerage} onChange={(e) => setBrokerage(e.target.value)} />
+                    </div>
+                  </>
+                )}
+                {step === 2 && (
+                  <>
+                    <h3 className="sh3">Your logo or headshot.</h3>
+                    <div className="kind" role="group" aria-label="Logo or headshot">
+                      {(["logo", "headshot"] as const).map((k) => (
+                        <button key={k} type="button" aria-pressed={kind === k} className={kind === k ? "on" : ""} onClick={() => {
+                          setKind(k)
+                          setLogo("")
+                          setLogoName("")
+                        }}>
+                          {k === "logo" ? "Logo" : "Headshot"}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="up">
+                      <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden onChange={pickLogo} />
+                      <span>{logo ? `Choose a different ${kind}` : `Upload your ${kind}`}</span>
+                    </label>
+                    <p className="fn">{logoName}</p>
+                  </>
+                )}
+                {step === 3 && (
+                  <>
+                    <h3 className="sh3">Your colour.</h3>
+                    <p className="hint">It goes on your buttons and the fine lines of your card.</p>
+                    <div className="sw" role="group" aria-label="Your colour">
+                      {COLOURS.map((c) => (
+                        <button key={c} type="button" className={color === c ? "on" : ""} style={{ background: c }} aria-label={`Colour ${c}`} aria-pressed={color === c} onClick={() => setColor(c)} />
+                      ))}
+                      <label className="cu">
+                        Custom
+                        <input type="color" value={color} aria-label="Pick any colour" onChange={(e) => setColor(e.target.value)} />
+                      </label>
+                    </div>
+                  </>
+                )}
+                {step === 4 && (
+                  <form className="claim" action={submit}>
+                    <h3 className="sh3">Claim your card.</h3>
+                    <input name="email" type="email" placeholder="Email" aria-label="Email" autoComplete="email" required />
+                    <input name="phone" type="tel" placeholder="Phone" aria-label="Phone" autoComplete="tel" required />
+                    {state?.error && <p className="err" role="alert">{state.error}</p>}
+                    <button type="submit" className="go" disabled={pending}>
+                      {pending ? "Creating your card\u2026" : "Claim your card"}
+                    </button>
+                    <p className="fine">No payment. Just from us to you, for stopping by.</p>
+                  </form>
+                )}
+                {step > 0 && (
+                  <div className="nav">
+                    <button type="button" className="back" onClick={() => setStep(step - 1)}>
+                      Back
+                    </button>
+                    {step < 4 && (
+                      <button type="button" className="go" disabled={step === 1 && !name.trim()} onClick={() => setStep(step + 1)}>
+                        {step === 2 && !logo ? "Skip for now" : "Next"}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="pvw soft" id="pvw">
-              <div className="pv" id="pv" style={{ ["--ac" as string]: color, ["--on" as string]: onAccent } as React.CSSProperties}>
+              <div className="pv" id="pv" style={{ ["--ac" as string]: ac, ["--on" as string]: onAccent } as React.CSSProperties}>
                 {/* her card */}
                 <div className="bk" aria-label="Your Marvberry Card">
                   <div className="hero">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="ph" src="/home/card-placeholder.jpg" alt="" />
+                    <img className="ph" src={kind === "headshot" && mark ? mark : "/home/card-placeholder.jpg"} alt="" />
                     <div className="fade" />
                   </div>
                   <div className="in">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {logo && <img className="blogo" src={logo} alt="" />}
+                    {kind === "logo" && mark && <img className="blogo" src={mark} alt="" />}
                     <p className="nm">{nm || "Your name"}</p>
-                    <p className="ttl">Real estate agent</p>
+                    <p className="ttl">{["Real estate agent", firm].filter(Boolean).join(" \u00b7 ")}</p>
                     <p className="t1i">Let&rsquo;s find the one</p>
                     <p className="t2i">that feels like home</p>
                     <div className="bts">
@@ -307,7 +386,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
                   <div className="tt">
                     <span className="bk-back">&lsaquo;</span>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {logo ? <img className="tlogo" src={logo} alt="" /> : <span className="tnm">{nm || "Your name"}</span>}
+                    {kind === "logo" && mark ? <img className="tlogo" src={mark} alt="" /> : <span className="tnm">{nm || "Your name"}</span>}
                   </div>
                   <p className="th">Let&rsquo;s talk about your next home</p>
                   <p className="tsub">Choose a time that works for you</p>
@@ -330,16 +409,6 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
                 </div>
               </div>
             </div>
-
-            <form className="claim soft" action={submit}>
-              <input name="email" type="email" placeholder="Email" aria-label="Email" autoComplete="email" required />
-              <input name="phone" type="tel" placeholder="Phone" aria-label="Phone" autoComplete="tel" required />
-              {state?.error && <p className="err" role="alert">{state.error}</p>}
-              <button type="submit" className="go" disabled={pending}>
-                {pending ? "Creating your card…" : "Claim my card"}
-              </button>
-              <p className="fine">Your card and back office, ready now. Seven days of full access, no payment details.</p>
-            </form>
           </div>
         </section>
 
@@ -349,7 +418,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
             <div>
               <h2 className="mv r">Not everything in your business needs you. But everything should feel like you.</h2>
               <p className="body soft">Let Marvberry handle the work between booking and closing, from client follow-ups and paperwork to appointment reminders, while you focus on the moments that require your expertise.</p>
-              <a className="try soft" href="/signup">Try Diana for 7 days</a>
+              <a className="try soft" href="/signup?try=diana">Try Diana for 7 days</a>
             </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="dstill soft" src="/home/diana-chat.png" width={1620} height={1149} alt="Diana asks to follow up with a client about Saturday's showing, with a drafted message approved and sent." />

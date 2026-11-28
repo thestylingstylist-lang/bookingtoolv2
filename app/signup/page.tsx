@@ -3,7 +3,9 @@ import AuthFooter from "@/app/auth-footer"
 import Link from "next/link"
 import SignupForm from "./signup-form"
 
-export default function SignupPage() {
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ try?: string }> }) {
+  // "Try Diana for 7 days" on the home page: the full back office for 7 days.
+  const trial = (await searchParams).try === "diana" ? "diana" : undefined
   return (
     <main className="mb-app min-h-screen">
       <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-16">
@@ -15,7 +17,7 @@ export default function SignupPage() {
           Set up your booking page and client workflow in a couple of minutes.
         </p>
       </header>
-      <SignupForm />
+      <SignupForm trial={trial} />
       <p className="mt-6 text-center text-sm text-lxink/60">
         Already have an account?{" "}
         <Link href="/login" className="font-medium text-lxink hover:underline">

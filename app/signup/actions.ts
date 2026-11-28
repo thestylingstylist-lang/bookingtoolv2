@@ -73,6 +73,15 @@ export async function signUp(
     return fail("Couldn't finish setting up your account. Please try again.")
   }
 
+  // "Try Diana for 7 days": the full back office for 7 days (a partner's longer trial still wins below).
+  if (String(formData.get("trial") ?? "") === "diana") {
+    try {
+      await admin.from("agents").update({ trial_ends_at: new Date(Date.now() + 7 * 86400000).toISOString() }).eq("id", created.user.id)
+    } catch (err) {
+      console.error("[signup] 7-day trial failed (account still created):", err)
+    }
+  }
+
   // Came through a partner's link? Credit the partner. Coaches' people get a longer free trial.
   try {
     const ref = (await cookies()).get(REF_COOKIE)?.value
