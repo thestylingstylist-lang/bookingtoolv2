@@ -15,6 +15,7 @@ type Props = {
   name: string
   initials: string
   logo?: string | null
+  brandColor?: string
   title: string
   tagline: string
   photo: string
@@ -46,7 +47,6 @@ export default function CardFlow(p: Props) {
   const [screen, setScreen] = useState<Screen>("card")
   const [back, setBack] = useState(false)
   const [day, setDay] = useState("")
-  const [page, setPage] = useState(0)
   const [slot, setSlot] = useState<Slot | null>(null)
   const [looking, setLooking] = useState("Buy")
   const [talk, setTalk] = useState<"phone" | "virtual">("phone")
@@ -59,7 +59,15 @@ export default function CardFlow(p: Props) {
   const [inApp, setInApp] = useState(false)
   const first = p.name.split(" ")[0] || "I"
   const q = p.claimToken ? `?claim=${p.claimToken}` : ""
-  const [tagA, tagB] = p.tagline.includes("|") ? p.tagline.split("|").map((t) => t.trim()) : ["", ""]
+  const tagline = p.tagline || ""
+  const [tagA, tagB] = tagline.includes("|") ? tagline.split("|").map((t) => t.trim()) : ["", ""]
+  // Her colour behind the header, with lettering that reads on it.
+  const brand = (() => {
+    if (!p.brandColor) return undefined
+    const n = parseInt(p.brandColor.slice(1), 16)
+    const light = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.6
+    return { backgroundColor: p.brandColor, color: light ? "#9a9188" : "rgba(250,250,250,.86)" } as React.CSSProperties
+  })()
 
   useEffect(() => {
     setInApp(/Instagram|FBAN|FBAV|LinkedInApp|TikTok/i.test(navigator.userAgent))
@@ -88,8 +96,13 @@ export default function CardFlow(p: Props) {
     }
     return [...m.entries()].map(([label, slots]) => ({ label, slots }))
   }, [p.slots])
-  const shown = days.slice(page * 5, page * 5 + 5)
-  const active = days.find((d) => d.label === day) ?? days[0]
+  // Times show only once a day is chosen.
+  const active = days.find((d) => d.label === day)
+  const monthLine = useMemo(() => {
+    const ms = [...new Set(days.map((d) => (d.label.split(", ")[1] ?? "").split(" ")[0]).filter(Boolean))]
+    const full: Record<string, string> = { Jan: "January", Feb: "February", Mar: "March", Apr: "April", May: "May", Jun: "June", Jul: "July", Aug: "August", Sep: "September", Oct: "October", Nov: "November", Dec: "December" }
+    return ms.map((m) => full[m] ?? m).join(" \u2013 ")
+  }, [days])
   const tzName = useMemo(() => {
     try {
       return new Intl.DateTimeFormat("en-US", { timeZone: p.timezone, timeZoneName: "long" }).formatToParts(new Date()).find((x) => x.type === "timeZoneName")?.value.replace(/ (Standard|Daylight) Time/, " time") ?? ""
@@ -164,8 +177,8 @@ export default function CardFlow(p: Props) {
   )
 
   return (
-    <div className="mbf">
-      <div className="side" aria-hidden>
+    <div className={`mbf ${screen === "time" ? "wide" : ""}`}>
+      <div className="side" aria-hidden style={brand}>
         {p.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={p.photo} alt="" />
@@ -180,7 +193,7 @@ export default function CardFlow(p: Props) {
       <div key={screen} className={`pg ${back ? "back" : ""} ${screen === "card" ? "home" : ""} ${p.claimToken ? "gift" : ""}`}>
         {screen === "card" && (
           <>
-            <div className="hero">
+            <div className="hero" style={brand}>
               {p.photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={p.photo} alt={p.name} />
@@ -190,7 +203,7 @@ export default function CardFlow(p: Props) {
               ) : (
                 <div className="ini s" aria-hidden>{p.initials}</div>
               )}
-              <div className="fade" />
+              {(!brand || p.photo) && <div className="fade" />}
             </div>
             <div className="in c body">
               {p.photo && p.logo && (
@@ -204,8 +217,8 @@ export default function CardFlow(p: Props) {
                   <p className="s i tag1">{tagA}</p>
                   <p className="s tag2">{tagB}</p>
                 </>
-              ) : p.tagline ? (
-                <p className="s tag">{p.tagline}</p>
+              ) : tagline ? (
+                <p className="s tag">{tagline}</p>
               ) : (
                 <>
                   <p className="s i tag1">Let’s find the one</p>
@@ -258,42 +271,62 @@ export default function CardFlow(p: Props) {
         {screen === "time" && (
           <>
             <Top to="card" />
-            <div className="in c">
-              <p className="s h">Let’s talk about<br />your next home</p>
-              <p className="s i sub">Choose a time that works for you</p>
-              {days.length === 0 ? (
-                <p className="s empty">No open times right now. Leave your details and {first} will reach out.</p>
-              ) : (
-                <>
-                  <div className="days">
-                    <button type="button" className="pgb" disabled={page === 0} onClick={() => setPage((x) => x - 1)} aria-label="Earlier days">‹</button>
-                    {shown.map((d) => {
-                      const [wd, md] = d.label.split(", ")
-                      const on = (active?.label ?? "") === d.label
-                      return (
-                        <button key={d.label} type="button" className={`day s ${on ? "on" : ""}`} onClick={() => setDay(d.label)}>
-                          <small>{wd}</small>
-                          <b>{(md ?? "").split(" ")[1] ?? md}</b>
+            <div className="tgrid">
+              <div className="tl in">
+                <p className="s h">Let’s talk about<br />your next home</p>
+                <p className="s i sub">Choose a time that works for you</p>
+                {days.length === 0 ? (
+                  <p className="s empty">No open times right now. Leave your details and {first} will reach out.</p>
+                ) : (
+                  <>
+                    <p className="s month">{monthLine}</p>
+                    <div className="dates" role="group" aria-label="Dates">
+                      {days.map((d) => {
+                        const [wd, md] = d.label.split(", ")
+                        const on = day === d.label
+                        return (
+                          <button
+                            key={d.label}
+                            type="button"
+                            aria-pressed={on}
+                            aria-label={d.label}
+                            className={`dt s ${on ? "on" : ""}`}
+                            onClick={() => {
+                              setDay(d.label)
+                              if (slot && !d.slots.some((x) => x.startISO === slot.startISO)) setSlot(null)
+                            }}
+                          >
+                            <small>{wd}</small>
+                            <b>{(md ?? "").split(" ")[1] ?? md}</b>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="tr in">
+                {active ? (
+                  <>
+                    <p className="s day">{active.label}</p>
+                    <div className="tms s" role="group" aria-label="Times">
+                      {active.slots.map((x) => (
+                        <button key={x.startISO} type="button" aria-pressed={slot?.startISO === x.startISO} className={`tm s ${slot?.startISO === x.startISO ? "on" : ""}`} onClick={() => setSlot(x)}>
+                          {x.timeLabel}
                         </button>
-                      )
-                    })}
-                    <button type="button" className="pgb" disabled={(page + 1) * 5 >= days.length} onClick={() => setPage((x) => x + 1)} aria-label="Later days">›</button>
-                  </div>
-                  <p className="s month">{active?.label}</p>
-                  <div className="times s">
-                    {active?.slots.map((s) => (
-                      <button key={s.startISO} type="button" className={`tm ${slot?.startISO === s.startISO ? "on" : ""}`} onClick={() => setSlot(s)}>
-                        <span>{s.timeLabel}</span>
-                        {slot?.startISO === s.startISO && <span className="pip" aria-hidden>●</span>}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="fine">{p.minutes} minute call{tzName ? ` · ${tzName}` : ""}</p>
-                </>
-              )}
-              <button type="button" className="bt go s" disabled={!slot && days.length > 0} onClick={() => (days.length ? go("details") : go("ask"))}>
-                {days.length ? "Continue" : "Leave my details"}
-              </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  days.length > 0 && <p className="s i pick">Choose a day to see the times</p>
+                )}
+                {days.length > 0 && <p className="fine tz">{p.minutes} minute call{tzName ? ` · ${tzName}` : ""}</p>}
+                <div className="gobar">
+                  <button type="button" className="go s" disabled={!slot && days.length > 0} onClick={() => (days.length ? go("details") : go("ask"))}>
+                    {days.length ? "Continue" : "Leave my details"}
+                  </button>
+                </div>
+              </div>
             </div>
           </>
         )}
@@ -412,7 +445,7 @@ export default function CardFlow(p: Props) {
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-.mbf{min-height:100dvh;background:#FAFAFA;color:#2A2522;font-family:var(--font-geist-sans),system-ui,sans-serif;overflow-x:hidden}
+.mbf{min-height:100dvh;background:#FAFAFA;color:#2A2522;font-family:var(--font-geist-sans),system-ui,sans-serif;overflow-x:clip}
 .mbf .side{display:none}
 .mbf .pane{min-height:100dvh}
 .mbf .pg{max-width:460px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;animation:mbfIn .38s cubic-bezier(.2,.8,.2,1) both}
@@ -425,7 +458,7 @@ const CSS = `
   .mbf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);height:100dvh;overflow:hidden}
   .mbf .side{display:block;position:relative;height:100dvh;background:#e7e3dd;overflow:hidden}
   .mbf .side img{width:100%;height:100%;object-fit:cover;object-position:center top}
-  .mbf .side .ini{height:100%;display:grid;place-items:center;font-size:120px;color:#9a9188}
+  .mbf .side .ini{height:100%;display:grid;place-items:center;font-size:120px;color:inherit}
   .mbf .pane{height:100dvh;overflow-y:auto}
   .mbf .pg{max-width:480px;min-height:100dvh;padding:0 8px}
   .mbf .pg .hero{display:none}
@@ -438,7 +471,8 @@ const CSS = `
 .mbf .c{text-align:center}
 .mbf .hero{position:relative;height:40dvh;min-height:190px;background:#e7e3dd;overflow:hidden;flex:none}
 .mbf .hero img{width:100%;height:100%;object-fit:cover;object-position:top}
-.mbf .ini{height:100%;display:grid;place-items:center;font-size:84px;color:#9a9188}
+.mbf .ini{height:100%;display:grid;place-items:center;font-size:84px;color:inherit}
+.mbf .hero,.mbf .side{color:#9a9188}
 .mbf .ini.logo img{width:auto;height:auto;max-width:62%;max-height:42%;object-fit:contain;position:static}
 .mbf .brandlogo{display:block;height:24px;width:auto;max-width:160px;object-fit:contain;margin:0 auto 20px;position:relative}
 .mbf .fade{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 58%,#FAFAFA 99%)}
@@ -494,19 +528,45 @@ const CSS = `
 .mbf .kick{margin:34px 0 0;font-size:10.5px;letter-spacing:.2em;color:#8a8279}
 .mbf .kick+.h{margin-top:10px}
 .mbf .blurb{margin:18px auto 0;max-width:330px;font-size:17px;line-height:1.5;color:#4a433d}
-.mbf .days{margin-top:30px;display:flex;align-items:center;justify-content:space-between;gap:4px}
-.mbf .pgb{width:26px;height:40px;border:0;background:none;font-size:22px;color:#8a8279;cursor:pointer}
-.mbf .pgb:disabled{opacity:.25;cursor:default}
-.mbf .day{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;padding:6px 0;cursor:pointer;color:#8a8279;border-bottom:1.5px solid transparent}
-.mbf .day small{font-size:14px}
-.mbf .day b{font-size:22px;font-weight:400;color:#2A2522}
-.mbf .day.on{border-color:#2A2522;color:#2A2522}
-.mbf .day.on b{font-weight:500}
-.mbf .month{margin:18px 0 0;font-size:15px;font-style:italic;color:#8a8279}
-.mbf .times{margin-top:8px;display:flex;flex-direction:column;text-align:left}
-.mbf .tm{display:flex;justify-content:space-between;align-items:center;border:0;border-bottom:1px solid #e2ddd6;background:none;padding:13px 4px;font:inherit;font-size:19px;color:#2A2522;cursor:pointer}
-.mbf .tm .pip{font-size:10px}
+/* Choose a time: no boxes. Plain numbers and times; a thin gold line under what's chosen. */
+.mbf .month{margin:30px 0 0;font-size:15px;font-style:italic;color:#8a8279}
+.mbf .dates{margin-top:10px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.mbf .dates::-webkit-scrollbar{display:none}
+.mbf .dt{flex:none;min-width:46px;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;padding:6px 4px 8px;cursor:pointer;color:#8a8279;position:relative}
+.mbf .dt small{font-size:13px}
+.mbf .dt b{font-size:24px;font-weight:400;color:#2A2522;line-height:1.1}
+.mbf .dt::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:1px;background:#C2A46B;transform:scaleX(0);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.mbf .dt.on::after{transform:none}
+.mbf .dt.on b{font-weight:500}
+.mbf .day{margin:28px 0 0;font-size:17px;font-style:italic;color:#8a8279;text-align:left}
+.mbf .pick{margin:28px 0 0;font-size:17px;color:#a39b90;text-align:left}
+.mbf .tms{margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 18px}
+.mbf .tm{position:relative;border:0;background:none;padding:12px 0 10px;font:inherit;font-family:'Cormorant Garamond','Iowan Old Style',Georgia,serif;font-size:20px;color:#2A2522;cursor:pointer;text-align:center}
+.mbf .tm::after{content:"";position:absolute;left:24%;right:24%;bottom:2px;height:1px;background:#C2A46B;transform:scaleX(0);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.mbf .tm.on::after{transform:none}
 .mbf .tm.on{font-weight:500}
+.mbf .tz{margin:14px 0 0;text-align:left}
+.mbf .gobar{position:sticky;bottom:0;margin-top:18px;padding:14px 0 calc(16px + env(safe-area-inset-bottom));background:linear-gradient(to bottom,rgba(250,250,250,0),#FAFAFA 28%)}
+.mbf .go{display:block;width:100%;border:0;border-radius:0;background:#2A2522;color:#FAFAFA;padding:15px 16px;font-size:19px;cursor:pointer;transition:background .2s}
+.mbf .go:hover{background:#3d3631}
+.mbf .go:disabled{opacity:.35;cursor:default}
+.mbf .tgrid{display:flex;flex-direction:column;flex:1}
+.mbf .tr{flex:1;display:flex;flex-direction:column}
+.mbf .tr .gobar{margin-top:auto}
+@media (min-width:768px){
+  .mbf.wide{grid-template-columns:minmax(0,1fr)}
+  .mbf.wide .side{display:none}
+  .mbf.wide .pg{max-width:1160px;padding:0 clamp(24px,4vw,56px)}
+  .mbf.wide .top .av{display:grid}
+  .mbf.wide .tgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(48px,7vw,120px);align-items:start;padding:clamp(24px,6vh,72px) 0 40px}
+  .mbf.wide .tl,.mbf.wide .tr{padding:0;text-align:left}
+  .mbf.wide .tl .h{margin-top:0;font-size:clamp(34px,3.4vw,46px)}
+  .mbf.wide .dates{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px 6px;overflow:visible}
+  .mbf.wide .dt{min-width:0}
+  .mbf.wide .tr{position:sticky;top:24px;min-height:0}
+  .mbf.wide .tr .day,.mbf.wide .tr .pick{margin-top:0}
+  .mbf.wide .gobar{position:static;background:none;padding:0;margin-top:26px}
+}
 .mbf .empty{margin:30px 0 0;font-size:17px;color:#4a433d}
 .mbf .fields{margin-top:22px;display:flex;flex-direction:column}
 .mbf .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}

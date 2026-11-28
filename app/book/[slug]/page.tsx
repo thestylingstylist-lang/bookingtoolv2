@@ -89,6 +89,13 @@ export default async function BookPage({
     license = ((data as { license_number?: string } | null)?.license_number ?? "").trim()
   } catch {}
   const x = await cardExtras(agent.id)
+  // Her colour behind the card's header (blank until brand-color.sql has run).
+  let brandColor = ""
+  try {
+    const { data } = await createAdminClient().from("agents").select("brand_color").eq("id", agent.id).maybeSingle()
+    const c = ((data as { brand_color?: string } | null)?.brand_color ?? "").trim()
+    if (/^#[0-9a-f]{6}$/i.test(c)) brandColor = c
+  } catch {}
 
   return (
     <CardFlow
@@ -99,6 +106,7 @@ export default async function BookPage({
       tagline={agent.tagline}
       photo={agent.headshot_url}
       logo={agent.logo_url}
+      brandColor={brandColor}
       phone={agent.show_contact ? agent.public_phone : ""}
       email={agent.show_contact ? agent.public_email : ""}
       address={x.address}
