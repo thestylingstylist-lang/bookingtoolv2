@@ -121,7 +121,8 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       const head = px("--bar") + px("--menu")
       sheets.forEach((s, i) => {
         s.style.zIndex = String(10 + i)
-        if (i > 0) s.style.top = Math.min(head, innerHeight - s.offsetHeight) + "px"
+        // phones: the sheets scroll normally, nothing sticks
+        s.style.top = i > 0 && innerWidth > 860 ? Math.min(head, innerHeight - s.offsetHeight) + "px" : ""
       })
     }
 

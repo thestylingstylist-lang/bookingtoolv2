@@ -186,6 +186,7 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 /* 6 luxury image */
 .hv3 .lux{display:block;width:100%;height:auto;margin:clamp(34px,5vh,60px) auto 0;max-width:1240px}
 @media(max-width:860px){
+  .hv3 .sheet{position:relative;top:auto;box-shadow:none}
   .hv3 .two4{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "pv" "claim";row-gap:30px}
   .hv3 .claim{grid-template-columns:1fr;margin-top:6px}
   .hv3 .cj{grid-template-columns:1fr;min-height:0}
