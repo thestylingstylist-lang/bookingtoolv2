@@ -153,10 +153,13 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .gl{transform:scaleX(1)}}
 /* the menu: only the private fitting for now */
 .hv3 .menu{justify-content:flex-end}
-/* 3 the client journey: a portrait cinematic card, square edges, no shadow */
-.hv3 #s3 .inner{display:flex;justify-content:center}
-.hv3 .vcard{width:min(100%,calc((100svh - var(--bar) - var(--menu) - 120px) * .8),560px);aspect-ratio:4/5;background:#1a1a1a;overflow:hidden;border-radius:0;box-shadow:none}
-.hv3 .vcard video{display:block;width:100%;height:100%;object-fit:cover}
+/* 3 the client journey: the video fills its half edge to edge; the words take the other half */
+.hv3 #s3{padding:0}
+.hv3 .cj{display:grid;grid-template-columns:1fr 1fr;min-height:100svh}
+.hv3 .cjv{position:relative;overflow:hidden;background:#d9d2c6}
+.hv3 .cjv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:49% 50%;display:block}
+.hv3 .cjc{display:flex;flex-direction:column;justify-content:center;padding:clamp(48px,7vw,120px) clamp(32px,6vw,110px)}
+.hv3 .cjc .body{max-width:30ch}
 /* 4 the card builder */
 .hv3 .two4{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-areas:"copy pv" "claim pv";column-gap:clamp(36px,5vw,84px);align-items:center}
 .hv3 .two4 .copy{grid-area:copy;align-self:end}.hv3 .two4 .pvw{grid-area:pv}.hv3 .two4 .claim{grid-area:claim;align-self:start}
@@ -185,7 +188,9 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 @media(max-width:860px){
   .hv3 .two4{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "pv" "claim";row-gap:30px}
   .hv3 .claim{grid-template-columns:1fr;margin-top:6px}
-  .hv3 .vcard{width:min(100%,calc((100svh - var(--bar) - var(--menu) - 80px) * .8))}
+  .hv3 .cj{grid-template-columns:1fr;min-height:0}
+  .hv3 .cjv{aspect-ratio:4/5}
+  .hv3 .cjc{padding:44px 24px 64px}
   .hv3 .dstill{margin:0 auto}
 }
 `

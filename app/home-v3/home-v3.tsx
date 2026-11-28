@@ -237,9 +237,13 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       <main className="stack" id="stack">
         {/* 3 CLIENT JOURNEY */}
         <section className="sheet" id="s3">
-          <div className="inner">
-            <div className="vcard mv g">
-              <video src="/home/client-journey.mp4" poster="/home/client-journey-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-label="A client's journey in their Marvberry suite" />
+          <div className="cj">
+            <div className="cjv">
+              <video src="/home/client-journey-wide.mp4" poster="/home/client-journey-wide-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-label="A client's suite on their phone" />
+            </div>
+            <div className="cjc">
+              <h2 className="mv r">This is what your client sees.</h2>
+              <p className="body soft">Every home you send, every step and every document, in one private suite with your name on it.</p>
             </div>
           </div>
         </section>
