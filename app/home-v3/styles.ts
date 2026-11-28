@@ -37,7 +37,7 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .bar{position:fixed;top:0;left:0;right:0;height:var(--bar);z-index:60;background:var(--char) url(/home/charcoal-grain.png) repeat;background-size:512px;transform:translateY(-100%);transition:transform .8s cubic-bezier(.2,.7,.2,1)}
 .hv3 .bar.show{transform:none}
 .hv3 .bwm{position:absolute;left:50%;top:50%;width:92px;aspect-ratio:1360/262;transform:translate(-50%,-50%);-webkit-mask:url(/marvberry-wordmark.png) center/contain no-repeat;mask:url(/marvberry-wordmark.png) center/contain no-repeat;background:#C2A46B}
-.hv3 #s3{position:relative;top:auto;box-shadow:0 -40px 80px -30px rgba(0,0,0,.6);border-top:0}
+.hv3 .stack>.sheet:first-child{position:relative;top:auto;box-shadow:0 -40px 80px -30px rgba(0,0,0,.6);border-top:0}
 .hv3 .menu{position:fixed;left:0;right:0;top:var(--bar);height:var(--menu);z-index:55;display:flex;align-items:center;justify-content:space-between;padding:0 max(4vw,20px);
   background:rgba(248,248,248,.62);-webkit-backdrop-filter:blur(14px) saturate(1.1);backdrop-filter:blur(14px) saturate(1.1);border-bottom:1px solid rgba(31,28,24,.08);
   transform:translateY(calc(-100% - var(--bar)));transition:transform .9s cubic-bezier(.2,.7,.2,1)}
@@ -155,7 +155,7 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .menu{justify-content:flex-end}
 /* 3 the client journey: the video fills its half edge to edge; the words take the other half */
 .hv3 #s3{padding:0}
-.hv3 .cj{display:grid;grid-template-columns:1fr 1fr;min-height:100svh}
+.hv3 .cj{width:100%;display:grid;grid-template-columns:1fr 1fr;min-height:calc(100svh - var(--bar) - var(--menu))}
 .hv3 .cjv{position:relative;overflow:hidden;background:#d9d2c6}
 .hv3 .cjv video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:49% 50%;display:block}
 .hv3 .cjc{display:flex;flex-direction:column;justify-content:center;padding:clamp(48px,7vw,120px) clamp(32px,6vw,110px)}

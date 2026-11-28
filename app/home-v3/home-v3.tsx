@@ -121,7 +121,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       const head = px("--bar") + px("--menu")
       sheets.forEach((s, i) => {
         s.style.zIndex = String(10 + i)
-        if (s.id !== "s3") s.style.top = Math.min(head, innerHeight - s.offsetHeight) + "px"
+        if (i > 0) s.style.top = Math.min(head, innerHeight - s.offsetHeight) + "px"
       })
     }
 
@@ -235,19 +235,6 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       <div className="spacer" />
 
       <main className="stack" id="stack">
-        {/* 3 CLIENT JOURNEY */}
-        <section className="sheet" id="s3">
-          <div className="cj">
-            <div className="cjv">
-              <video src="/home/client-journey-wide.mp4" poster="/home/client-journey-wide-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-label="A client's suite on their phone" />
-            </div>
-            <div className="cjc">
-              <h2 className="mv r">This is what your client sees.</h2>
-              <p className="body soft">Every home you send, every step and every document, in one private suite with your name on it.</p>
-            </div>
-          </div>
-        </section>
-
         {/* 4 PROTECT YOUR SIGNATURE: builds her Marvberry Card, which is her booking page */}
         <section className="sheet" id="s4">
           <div className="inner two4">
@@ -376,6 +363,18 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
                 <img className="lux soft" src="/home/luxury-desktop.jpg" alt="Marvberry on an iPad, resting on a sofa" />
               </picture>
             )}
+          </div>
+        </section>
+        {/* CLIENT JOURNEY: rises over the luxury section */}
+        <section className="sheet" id="s3">
+          <div className="cj">
+            <div className="cjv">
+              <video src="/home/client-journey-wide.mp4" poster="/home/client-journey-wide-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-label="A client's suite on their phone" />
+            </div>
+            <div className="cjc">
+              <h2 className="mv r">This is what your client sees.</h2>
+              <p className="body soft">Every home you send, every step and every document, in one private suite with your name on it.</p>
+            </div>
           </div>
         </section>
       </main>
