@@ -203,6 +203,8 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
   }
 
   const heroInk = darkOn(color) ? "#9a9188" : "rgba(250,250,250,.86)"
+  // A sample portrait until she makes it hers with a logo or a colour.
+  const sample = !logo && color === COLOURS[0]
 
   return (
     <div className="hv3">
@@ -273,7 +275,9 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
               <div className={`pv ${logo ? "has-logo" : ""}`} id="pv">
                 <div className="bk" aria-label="Your Marvberry Card">
                   <div className="hero" style={{ backgroundColor: color }}>
-                    <span className="ini" style={{ color: heroInk }}>{initials(nm)}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {sample && <img className="ph" src="/home/card-placeholder.jpg" alt="" />}
+                    {!sample && <span className="ini" style={{ color: heroInk }}>{initials(nm)}</span>}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     {logo && <img src={logo} alt="" />}
                     {/* the soft fade only on the default; her colour gets a clean edge */}

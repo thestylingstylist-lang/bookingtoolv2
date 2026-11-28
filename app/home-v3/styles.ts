@@ -174,7 +174,8 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .claim .go:hover{background:#3a342c}.hv3 .claim .go:disabled{opacity:.5;cursor:default}
 .hv3 .claim .fine{grid-column:1/-1;margin:0;font:400 13px/1.6 var(--mono);color:var(--soft)}
 .hv3 .claim .err{grid-column:1/-1;margin:0;font:400 14px/1.5 var(--mono);color:#8a2a1f}
-.hv3 .bk .hero{transition:background-color .6s ease}
+.hv3 .bk .hero{transition:background-color .6s ease;overflow:hidden}
+.hv3 .bk .hero img.ph{display:block;position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;object-position:center 22%;animation:none}
 /* 5 Diana: a still of her chat panel */
 .hv3 .dstill{display:block;width:100%;max-width:540px;height:auto;margin-left:auto}
 .hv3 .try{display:inline-block;margin-top:30px;background:var(--ink);color:var(--paper);padding:16px 38px;min-height:48px;font:400 15px var(--mono);letter-spacing:.04em;text-decoration:none;transition:background .4s}
