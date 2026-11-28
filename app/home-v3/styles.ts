@@ -236,7 +236,9 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
   .hv3 .sheet{position:relative;top:auto;box-shadow:none}
   .hv3 #s6{min-height:0;padding-top:20px;padding-bottom:24px}
   .hv3 #s6 .body{margin-top:14px}
-  .hv3 #s6 .cine{margin-top:17px;aspect-ratio:4/5}
+  .hv3 #s6 .cine{margin:17px -22px 0;width:calc(100% + 44px);max-width:none;aspect-ratio:4/5;box-shadow:none;background:transparent;
+    -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 16%,#000 90%,transparent 100%)}
+  .hv3 #s6 .cine video,.hv3 #s6 .cine img{transform:scale(var(--lz,1.18));transform-origin:50% 62%;will-change:transform}
   .hv3 .two4{grid-template-columns:minmax(0,1fr);grid-template-areas:"pv" "copy";row-gap:22px}
   .hv3 #s4{padding-top:24px;padding-bottom:24px}
   .hv3 #s4 .pvw{max-width:300px;margin:0 auto}

@@ -169,7 +169,19 @@ export default function HomeV3({ luxury, luxuryVideo = false, luxuryPoster = fal
       vios.push(vio)
     }
 
+    // Phone: the luxury shot starts close and keeps easing in as she scrolls through it.
+    const cine = document.querySelector("#s6 .cine") as HTMLElement | null
+    function zoom() {
+      if (!cine) return
+      if (innerWidth > 860 || matchMedia("(prefers-reduced-motion: reduce)").matches) return cine.style.removeProperty("--lz")
+      const r = cine.getBoundingClientRect()
+      const t = Math.min(1, Math.max(0, (innerHeight - r.top) / (innerHeight + r.height)))
+      cine.style.setProperty("--lz", (1.18 + 0.22 * t).toFixed(3))
+    }
+    addEventListener("scroll", zoom, { passive: true })
+
     function layout() {
+      zoom()
       fitPreview()
       stick()
       fold()
@@ -184,6 +196,7 @@ export default function HomeV3({ luxury, luxuryVideo = false, luxuryPoster = fal
     return () => {
       timers.forEach(clearTimeout)
       removeEventListener("scroll", fold)
+      removeEventListener("scroll", zoom)
       removeEventListener("resize", layout)
       removeEventListener("mousemove", onMove)
       io.disconnect()
