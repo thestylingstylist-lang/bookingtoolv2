@@ -177,7 +177,29 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .claim .go:hover{background:#3a342c}.hv3 .claim .go:disabled{opacity:.5;cursor:default}
 .hv3 .claim .fine{grid-column:1/-1;margin:0;font:400 13px/1.6 var(--mono);color:var(--soft)}
 .hv3 .claim .err{grid-column:1/-1;margin:0;font:400 14px/1.5 var(--mono);color:#8a2a1f}
-.hv3 .bk .hero{transition:background-color .6s ease;overflow:hidden}
+.hv3 .bk .hero{overflow:hidden}
+/* her card in her colour: the main button, the gold lines, the chosen date and time */
+.hv3 .bk .bt.main{background:var(--ac);border-color:var(--ac);color:var(--on);transition:background-color .5s,border-color .5s,color .5s}
+.hv3 .bk .bt.main span{color:var(--on);opacity:.75}
+.hv3 .bk .blogo{display:block;height:20px;width:auto;max-width:130px;object-fit:contain;margin:4px auto 12px}
+.hv3 .bk .in .nm::after{content:"";display:block;width:34px;height:1px;background:var(--ac);margin:10px auto 0;transition:background-color .5s}
+.hv3 .b2{left:340px;top:30px;padding:22px 20px 0;display:flex;flex-direction:column}
+.hv3 .b2 .tt{display:flex;align-items:center;gap:10px;height:22px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#2A2522}
+.hv3 .b2 .bk-back{font-size:18px;color:#8a8279;line-height:1}
+.hv3 .b2 .tlogo{height:16px;width:auto;max-width:120px;object-fit:contain}
+.hv3 .b2 .th{margin:22px 0 0;font-size:25px;line-height:1.08}
+.hv3 .b2 .tsub{margin:6px 0 0;font-size:13px;font-style:italic;color:#8a8279}
+.hv3 .b2 .tmo{margin:20px 0 0;font-size:12px;font-style:italic;color:#8a8279}
+.hv3 .b2 .tdays{margin-top:6px;display:flex;justify-content:space-between}
+.hv3 .b2 .tdays span{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:4px 6px 7px;color:#8a8279}
+.hv3 .b2 .tdays small{font-size:10px}
+.hv3 .b2 .tdays b{font-weight:400;font-size:19px;color:#2A2522;line-height:1.1}
+.hv3 .b2 .tdays .on::after,.hv3 .b2 .ttimes .on::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:1px;background:var(--ac);transition:background-color .5s}
+.hv3 .b2 .tday{margin:18px 0 0;font-size:13px;font-style:italic;color:#8a8279}
+.hv3 .b2 .ttimes{margin-top:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:2px 6px}
+.hv3 .b2 .ttimes span{position:relative;text-align:center;padding:8px 0 8px;font-size:14px;color:#2A2522}
+.hv3 .b2 .ttimes .on{font-weight:600}
+.hv3 .b2 .tgo{margin-top:auto;margin-bottom:22px;background:var(--ac);color:var(--on);text-align:center;padding:11px 0;font-size:15px;transition:background-color .5s,color .5s}
 .hv3 .bk .hero img.ph{display:block;position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:cover;object-position:center 22%;animation:none}
 /* 5 Diana: a still of her chat panel */
 .hv3 .dstill{display:block;width:100%;max-width:540px;height:auto;margin-left:auto}

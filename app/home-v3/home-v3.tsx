@@ -9,12 +9,9 @@ import { useActionState, useEffect, useRef, useState } from "react"
 import { HV3_CSS } from "./styles"
 import { claimSignature, type SignatureClaim } from "./claim-actions"
 
-const STAGES = ["Preparing", "Showing", "Offer", "Contract", "Closing"]
-const NOW = 1
-const COLOURS = ["#e7e3dd", "#141414", "#1f2a3a", "#2f3b30", "#5a2a2e", "#8c7040"]
+// Her accent: the first is Marvberry gold, the default.
+const COLOURS = ["#c2a46b", "#141414", "#1f2a3a", "#2f3b30", "#5a2a2e", "#8a7a6a"]
 
-const initials = (n: string) =>
-  n.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("") || "YN"
 const firstOf = (n: string) => n.trim().split(/\s+/)[0] || ""
 // Light or dark lettering on her colour.
 const darkOn = (hex: string) => {
@@ -70,6 +67,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
   const [color, setColor] = useState(COLOURS[0])
   const [state, claim, pending] = useActionState<SignatureClaim | null, FormData>(claimSignature, null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
   const nm = name.trim()
   const f = firstOf(nm)
 
@@ -145,6 +143,21 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       $("pvw").style.height = 640 * z + "px"
     }
 
+    // The video plays on its own, on a loop. Phones only allow that when it's muted, so set it in
+    // code (React leaves the muted attribute out of the first HTML) and start it once it's on screen.
+    const vid = videoRef.current
+    let vio: IntersectionObserver | null = null
+    if (vid) {
+      vid.muted = true
+      vid.defaultMuted = true
+      vid.setAttribute("muted", "")
+      vid.setAttribute("playsinline", "")
+      const play = () => vid.play().catch(() => {})
+      play()
+      vio = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? play() : vid.pause())), { threshold: 0.15 })
+      vio.observe(vid)
+    }
+
     function layout() {
       fitPreview()
       stick()
@@ -164,6 +177,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       removeEventListener("mousemove", onMove)
       io.disconnect()
       ro.disconnect()
+      vio?.disconnect()
     }
   }, [])
 
@@ -190,7 +204,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
 
   function submit(fd: FormData) {
     fd.set("name", nm)
-    fd.set("color", color === COLOURS[0] ? "" : color)
+    fd.set("color", color)
     // The trimmed logo, as she sees it in the preview.
     if (logo) {
       const [head, body] = logo.split(",")
@@ -203,9 +217,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
     claim(fd)
   }
 
-  const heroInk = darkOn(color) ? "#9a9188" : "rgba(250,250,250,.86)"
-  // A sample portrait until she makes it hers with a logo or a colour.
-  const sample = !logo && color === COLOURS[0]
+  const onAccent = darkOn(color) ? "#2A2522" : "#FAFAFA"
 
   return (
     <div className="hv3">
@@ -241,8 +253,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
           <div className="inner two4">
             <div className="copy">
               <h2 className="mv l">Protect your signature.</h2>
-              <p className="sub2 soft">Grow without becoming generic.</p>
-              <p className="body soft">Give every client an experience that&rsquo;s uniquely yours, from the first appointment to closing.</p>
+              <p className="body soft">The first impression happens before you ever meet. Your card carries your name, logo and colours from the moment a client books. So they meet you, not a calendar link.</p>
               <div className="ctl soft">
                 <input ref={nameRef} type="text" placeholder="Your name" aria-label="Your name" autoComplete="name" maxLength={40} value={name} onChange={(e) => setName(e.target.value)} />
                 <label className="up">
@@ -264,18 +275,17 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
             </div>
 
             <div className="pvw soft" id="pvw">
-              <div className={`pv ${logo ? "has-logo" : ""}`} id="pv">
+              <div className="pv" id="pv" style={{ ["--ac" as string]: color, ["--on" as string]: onAccent } as React.CSSProperties}>
+                {/* her card */}
                 <div className="bk" aria-label="Your Marvberry Card">
-                  <div className="hero" style={{ backgroundColor: color }}>
+                  <div className="hero">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {sample && <img className="ph" src="/home/card-placeholder.jpg" alt="" />}
-                    {!sample && <span className="ini" style={{ color: heroInk }}>{initials(nm)}</span>}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {logo && <img src={logo} alt="" />}
-                    {/* the soft fade only on the default; her colour gets a clean edge */}
-                    {color === COLOURS[0] && <div className="fade" />}
+                    <img className="ph" src="/home/card-placeholder.jpg" alt="" />
+                    <div className="fade" />
                   </div>
                   <div className="in">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {logo && <img className="blogo" src={logo} alt="" />}
                     <p className="nm">{nm || "Your name"}</p>
                     <p className="ttl">Real estate agent</p>
                     <p className="t1i">Let&rsquo;s find the one</p>
@@ -292,37 +302,31 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
                     </div>
                   </div>
                 </div>
-                <div className="su" aria-label="Your client suite">
-                  <div className="sh">
+                {/* the time a client picks, in her colour */}
+                <div className="bk b2" aria-label="Choosing a time on your card">
+                  <div className="tt">
+                    <span className="bk-back">&lsaquo;</span>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {logo && <img className="slogo" src={logo} alt="" />}
-                    <div className="sini">{initials(nm)}</div>
-                    <div className="who">
-                      <b>{nm || "Your name"}</b>
-                      <small>Real estate agent</small>
-                    </div>
+                    {logo ? <img className="tlogo" src={logo} alt="" /> : <span className="tnm">{nm || "Your name"}</span>}
                   </div>
-                  <p className="hello">
-                    Hello Sophia, <span className="nmg">{nm || "your agent"}</span> has prepared your buyer suite.
-                  </p>
-                  <div className="trk">
-                    {STAGES.map((l, i) => (
-                      <span key={l} style={{ display: "contents" }}>
-                        <div className="st">
-                          <div className="dot">{i < NOW ? <i /> : i === NOW ? <i className="ring" /> : <i className="todo" />}</div>
-                          <span className={`lb ${i === NOW ? "now" : ""}`}>{l}</span>
-                        </div>
-                        {i < STAGES.length - 1 && <div className={`ln ${i < NOW ? "done" : ""}`} />}
+                  <p className="th">Let&rsquo;s talk about your next home</p>
+                  <p className="tsub">Choose a time that works for you</p>
+                  <p className="tmo">December</p>
+                  <div className="tdays">
+                    {[["Wed", "2"], ["Thu", "3"], ["Fri", "4"], ["Mon", "7"], ["Tue", "8"]].map(([w, d]) => (
+                      <span key={d} className={d === "3" ? "on" : ""}>
+                        <small>{w}</small>
+                        <b>{d}</b>
                       </span>
                     ))}
                   </div>
-                  <div className="note">
-                    <div className="dd">D</div>
-                    <div>
-                      <p>Welcome, Sophia! I found four homes with the light you loved. Shall I book Saturday?</p>
-                      <div className="sig">Diana, for {f || "your agent"}</div>
-                    </div>
+                  <p className="tday">Thu, Dec 3</p>
+                  <div className="ttimes">
+                    {["10:00 AM", "10:30 AM", "11:00 AM", "1:00 PM", "1:30 PM", "2:00 PM", "3:00 PM", "3:30 PM", "4:00 PM"].map((t) => (
+                      <span key={t} className={t === "1:30 PM" ? "on" : ""}>{t}</span>
+                    ))}
                   </div>
+                  <div className="tgo">Continue</div>
                 </div>
               </div>
             </div>
@@ -370,7 +374,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
         <section className="sheet" id="s3">
           <div className="cj">
             <div className="cjv">
-              <video src="/home/client-journey-wide.mp4" poster="/home/client-journey-wide-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-label="A client's suite on their phone" />
+              <video ref={videoRef} src="/home/client-journey-wide.mp4" poster="/home/client-journey-wide-poster.jpg" autoPlay muted loop playsInline preload="auto" aria-label="A client's suite on their phone" />
             </div>
             <div className="cjc">
               <h2 className="mv r">This is what your client sees.</h2>

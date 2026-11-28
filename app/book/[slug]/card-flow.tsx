@@ -61,12 +61,12 @@ export default function CardFlow(p: Props) {
   const q = p.claimToken ? `?claim=${p.claimToken}` : ""
   const tagline = p.tagline || ""
   const [tagA, tagB] = tagline.includes("|") ? tagline.split("|").map((t) => t.trim()) : ["", ""]
-  // Her colour behind the header, with lettering that reads on it.
-  const brand = (() => {
+  // Her colour: the main button, Continue, and the gold lines (date and time underlines).
+  const accent = (() => {
     if (!p.brandColor) return undefined
     const n = parseInt(p.brandColor.slice(1), 16)
-    const light = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.6
-    return { backgroundColor: p.brandColor, color: light ? "#9a9188" : "rgba(250,250,250,.86)" } as React.CSSProperties
+    const light = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.62
+    return { "--accent": p.brandColor, "--on-accent": light ? "#2A2522" : "#FAFAFA" } as React.CSSProperties
   })()
 
   useEffect(() => {
@@ -177,8 +177,8 @@ export default function CardFlow(p: Props) {
   )
 
   return (
-    <div className={`mbf ${screen === "time" ? "wide" : ""}`}>
-      <div className="side" aria-hidden style={brand}>
+    <div className={`mbf ${screen === "time" ? "wide" : ""} ${accent ? "branded" : ""}`} style={accent}>
+      <div className="side" aria-hidden>
         {p.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={p.photo} alt="" />
@@ -193,7 +193,7 @@ export default function CardFlow(p: Props) {
       <div key={screen} className={`pg ${back ? "back" : ""} ${screen === "card" ? "home" : ""} ${p.claimToken ? "gift" : ""}`}>
         {screen === "card" && (
           <>
-            <div className="hero" style={brand}>
+            <div className="hero">
               {p.photo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={p.photo} alt={p.name} />
@@ -203,7 +203,7 @@ export default function CardFlow(p: Props) {
               ) : (
                 <div className="ini s" aria-hidden>{p.initials}</div>
               )}
-              {(!brand || p.photo) && <div className="fade" />}
+              <div className="fade" />
             </div>
             <div className="in c body">
               {p.photo && p.logo && (
@@ -535,14 +535,14 @@ const CSS = `
 .mbf .dt{flex:none;min-width:46px;display:flex;flex-direction:column;align-items:center;gap:2px;border:0;background:none;padding:6px 4px 8px;cursor:pointer;color:#8a8279;position:relative}
 .mbf .dt small{font-size:13px}
 .mbf .dt b{font-size:24px;font-weight:400;color:#2A2522;line-height:1.1}
-.mbf .dt::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:1px;background:#C2A46B;transform:scaleX(0);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.mbf .dt::after{content:"";position:absolute;left:22%;right:22%;bottom:0;height:1px;background:var(--accent,#C2A46B);transform:scaleX(0);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
 .mbf .dt.on::after{transform:none}
 .mbf .dt.on b{font-weight:500}
 .mbf .day{margin:28px 0 0;font-size:17px;font-style:italic;color:#8a8279;text-align:left}
 .mbf .pick{margin:28px 0 0;font-size:17px;color:#a39b90;text-align:left}
 .mbf .tms{margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 18px}
 .mbf .tm{position:relative;border:0;background:none;padding:12px 0 10px;font:inherit;font-family:'Cormorant Garamond','Iowan Old Style',Georgia,serif;font-size:20px;color:#2A2522;cursor:pointer;text-align:center}
-.mbf .tm::after{content:"";position:absolute;left:24%;right:24%;bottom:2px;height:1px;background:#C2A46B;transform:scaleX(0);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
+.mbf .tm::after{content:"";position:absolute;left:24%;right:24%;bottom:2px;height:1px;background:var(--accent,#C2A46B);transform:scaleX(0);transition:transform .35s cubic-bezier(.2,.7,.2,1)}
 .mbf .tm.on::after{transform:none}
 .mbf .tm.on{font-weight:500}
 .mbf .tz{margin:14px 0 0;text-align:left}
@@ -550,6 +550,10 @@ const CSS = `
 .mbf .go{display:block;width:100%;border:0;border-radius:0;background:#2A2522;color:#FAFAFA;padding:15px 16px;font-size:19px;cursor:pointer;transition:background .2s}
 .mbf .go:hover{background:#3d3631}
 .mbf .go:disabled{opacity:.35;cursor:default}
+/* her colour, when she chose one */
+.mbf.branded .bt.main,.mbf.branded .go{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.mbf.branded .bt.main .t2{color:var(--on-accent);opacity:.75}
+.mbf.branded .bt.main:hover,.mbf.branded .go:hover{background:var(--accent);filter:brightness(1.08)}
 .mbf .tgrid{display:flex;flex-direction:column;flex:1}
 .mbf .tr{flex:1;display:flex;flex-direction:column}
 .mbf .tr .gobar{margin-top:auto}
