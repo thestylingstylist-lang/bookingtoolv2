@@ -14,9 +14,11 @@ export const metadata: Metadata = {
 export default function Home() {
   // The luxury images show once they're in public/home.
   const luxury = ["luxury-desktop.jpg", "luxury-phone.jpg"].every((f) => existsSync(join(process.cwd(), "public", "home", f)))
+  // A luxury video (luxury.mp4) takes the place of the images once it's added.
+  const has = (f: string) => existsSync(join(process.cwd(), "public", "home", f))
   return (
     <>
-      <HomeV3 luxury={luxury} />
+      <HomeV3 luxury={luxury} luxuryVideo={has("luxury.mp4")} luxuryPoster={has("luxury-poster.jpg")} />
       <SiteTracker />
       <Clarity />
     </>

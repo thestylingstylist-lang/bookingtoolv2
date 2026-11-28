@@ -60,7 +60,7 @@ async function trim(url: string): Promise<string> {
   }
 }
 
-export default function HomeV3({ luxury }: { luxury: boolean }) {
+export default function HomeV3({ luxury, luxuryVideo = false, luxuryPoster = false }: { luxury: boolean; luxuryVideo?: boolean; luxuryPoster?: boolean }) {
   // The guided card builder: 0 is the finished example; 1–4 are the steps, one at a time.
   const [step, setStep] = useState(0)
   const [name, setName] = useState("")
@@ -72,6 +72,7 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
   const [state, claim, pending] = useActionState<SignatureClaim | null, FormData>(claimSignature, null)
   const nameRef = useRef<HTMLInputElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const luxRef = useRef<HTMLVideoElement>(null)
   const example = step === 0
   const nm = example ? "Camille Laurent" : name.trim()
   const firm = example ? "Laurent & Co." : brokerage.trim()
@@ -153,17 +154,19 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
 
     // The video plays on its own, on a loop. Phones only allow that when it's muted, so set it in
     // code (React leaves the muted attribute out of the first HTML) and start it once it's on screen.
-    const vid = videoRef.current
-    let vio: IntersectionObserver | null = null
-    if (vid) {
+    const vios: IntersectionObserver[] = []
+    for (const vid of [videoRef.current, luxRef.current]) {
+      if (!vid) continue
       vid.muted = true
       vid.defaultMuted = true
+      vid.controls = false
       vid.setAttribute("muted", "")
       vid.setAttribute("playsinline", "")
       const play = () => vid.play().catch(() => {})
       play()
-      vio = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? play() : vid.pause())), { threshold: 0.15 })
+      const vio = new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? play() : vid.pause())), { threshold: 0.15 })
       vio.observe(vid)
+      vios.push(vio)
     }
 
     function layout() {
@@ -185,18 +188,9 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
       removeEventListener("mousemove", onMove)
       io.disconnect()
       ro.disconnect()
-      vio?.disconnect()
+      vios.forEach((v) => v.disconnect())
     }
   }, [])
-
-  function buildYourOwn() {
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches
-    const root = document.querySelector(".hv3") as HTMLElement
-    const px = (v: string) => parseFloat(getComputedStyle(root).getPropertyValue(v))
-    const s4 = document.getElementById("s4")!, stack = document.getElementById("stack")!
-    scrollTo({ top: stack.offsetTop + s4.offsetTop - (px("--bar") + px("--menu")), behavior: still ? "auto" : "smooth" })
-    setTimeout(() => setStep((n) => (n === 0 ? 1 : n)), still ? 0 : 1200)
-  }
 
   async function pickLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -240,9 +234,9 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
           <h1 className="hh fadeup">Built for where you&rsquo;re going. Without losing what got you here.</h1>
           <p className="hs fadeup d2">Custom systems that run your luxury real estate business, so your mind stays with the client in front of you.</p>
           <div className="gl" id="hgl" />
-          <button className="hbtn fadeup d3" type="button" onClick={buildYourOwn}>
-            Build your own
-          </button>
+          <a className="hbtn fadeup d3" href="/chat">
+            Book your private fitting
+          </a>
         </div>
         <div className="hcue" id="hcue" aria-hidden="true" />
       </header>
@@ -266,10 +260,11 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
               <div className="stage" key={step}>
                 {step === 0 && (
                   <>
-                    <h2>Protect your signature.</h2>
-                    <p className="body">The first impression happens before you ever meet. Your card carries your name, logo and colours from the moment a client books. So they meet you, not a calendar link.</p>
+                    <p className="ey">Protect your signature.</p>
+                    <h2>Grow without becoming generic.</h2>
+                    <p className="body">When clients meet the real you, they remember you. Your Marvberry Card carries your name and your look into every booking, save and share, and shows you who&rsquo;s paying attention. So you can grow and still be the agent they came for.</p>
                     <button type="button" className="go" onClick={() => setStep(1)}>
-                      Build your own
+                      Build your card
                     </button>
                   </>
                 )}
@@ -430,13 +425,19 @@ export default function HomeV3({ luxury }: { luxury: boolean }) {
           <div className="inner center">
             <h2 className="mv g">Luxury is not just about what your clients see. It&rsquo;s how you make them feel.</h2>
             <p className="body soft">A fast reply means your client had to ask. Luxury is when they never have to. With Marvberry, you create that experience for every client, from the first appointment to closing.</p>
-            {luxury && (
-              <picture>
-                <source media="(max-width: 860px)" srcSet="/home/luxury-phone.jpg" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="lux soft" src="/home/luxury-desktop.jpg" alt="Marvberry on an iPad, resting on a sofa" />
-              </picture>
-            )}
+            {luxuryVideo ? (
+              <div className="cine soft">
+                <video ref={luxRef} src="/home/luxury.mp4" poster={luxuryPoster ? "/home/luxury-poster.jpg" : undefined} autoPlay muted loop playsInline preload="auto" aria-label="Marvberry on an iPad, resting on a sofa" />
+              </div>
+            ) : luxury ? (
+              <div className="cine soft">
+                <picture>
+                  <source media="(max-width: 860px)" srcSet="/home/luxury-phone.jpg" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/home/luxury-desktop.jpg" alt="Marvberry on an iPad, resting on a sofa" />
+                </picture>
+              </div>
+            ) : null}
           </div>
         </section>
         {/* CLIENT JOURNEY: rises over the luxury section */}

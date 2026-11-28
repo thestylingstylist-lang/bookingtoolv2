@@ -226,9 +226,17 @@ export const HV3_CSS = String.raw`html{overflow-x:clip}
 .hv3 .try{display:inline-block;margin-top:30px;background:var(--ink);color:var(--paper);padding:16px 38px;min-height:48px;font:400 15px var(--mono);letter-spacing:.04em;text-decoration:none;transition:background .4s}
 .hv3 .try:hover{background:#3a342c}
 /* 6 luxury image */
-.hv3 .lux{display:block;width:100%;height:auto;margin:clamp(34px,5vh,60px) auto 0;max-width:1240px}
+.hv3 .hbtn{display:inline-flex;align-items:center;text-decoration:none}
+.hv3 .ey{margin:0 0 18px;font:400 13px/1 var(--mono);letter-spacing:.06em;color:var(--gold)}
+/* luxury media: a centred cinematic card, square edges, even margin */
+.hv3 .cine{width:100%;max-width:1120px;margin:clamp(34px,5vh,60px) auto 0;aspect-ratio:16/9;overflow:hidden;background:#141414;box-shadow:0 30px 60px -34px rgba(31,28,24,.45)}
+.hv3 .cine video,.hv3 .cine img{display:block;width:100%;height:100%;object-fit:cover}
+.hv3 .cine picture{display:contents}
 @media(max-width:860px){
   .hv3 .sheet{position:relative;top:auto;box-shadow:none}
+  .hv3 #s6{min-height:0;padding-top:20px;padding-bottom:24px}
+  .hv3 #s6 .body{margin-top:14px}
+  .hv3 #s6 .cine{margin-top:17px;aspect-ratio:4/5}
   .hv3 .two4{grid-template-columns:minmax(0,1fr);grid-template-areas:"pv" "copy";row-gap:22px}
   .hv3 #s4{padding-top:24px;padding-bottom:24px}
   .hv3 #s4 .pvw{max-width:300px;margin:0 auto}
